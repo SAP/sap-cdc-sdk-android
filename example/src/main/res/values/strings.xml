@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Bits n Bytes</string>
+
+    <string name="com.sap.cxcdc.apikey">4_mL-YkAEegR9vzt6QvHWI5Q</string>
+    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
+
+    <string name="home">Bits \u0026 Bytes</string>
+    <string name="search">Search</string>
+    <string name="cart">My Cart</string>
+    <string name="favorites">My Favorites</string>
+    <string name="profile">My Profile</string>
+    <string name="app_configuration">App Configuration</string>
+
+    <string name="welcome">Welcome</string>
+    <string name="register">Register</string>
+    <string name="my_profile">My Profile</string>
+
+    <string name="home_img_macbook_content_description">Macbook image</string>
+
+    <!-- Social providers -->
+    <string name="facebook_app_id">113512789545198 </string>
+    <string name="fb_login_protocol_scheme">fb113512789545198 </string>
+    <string name="facebook_client_token">26444838e49deb23e6d5fbc9a27672f2</string>
+
+    <string name="line_channel_id">1618046855</string>
+
+    <string name="google_server_client_id"></string>
+
+
+</resources>
