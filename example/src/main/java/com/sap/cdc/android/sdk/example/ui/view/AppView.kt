@@ -217,8 +217,8 @@ fun ProfileNavHost() {
     NavHost(
         profileNavController, startDestination =
         when (isLoggedIn) {
-            true -> ProfileScreenRoute.Welcome.route
-            false -> ProfileScreenRoute.MyProfile.route
+            true -> ProfileScreenRoute.MyProfile.route
+            false -> ProfileScreenRoute.Welcome.route
         }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
