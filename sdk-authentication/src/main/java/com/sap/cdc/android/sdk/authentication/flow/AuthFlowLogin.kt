@@ -24,6 +24,9 @@ class LoginAuthFlow(sessionService: SessionService) : AuthFlow(sessionService) {
         if (loginResponse.isError()) {
             response.failedAuthenticationWith(loginResponse.toCDCError())
         }
+
+        secureNewSession(loginResponse)
+
         // Success.
         return response.withAuthenticationData(loginResponse.asJson()!!)
     }

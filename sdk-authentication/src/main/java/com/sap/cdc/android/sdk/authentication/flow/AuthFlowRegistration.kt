@@ -49,23 +49,29 @@ class RegistrationAuthFlow(sessionService: SessionService) : AuthFlow(sessionSer
 
         // Actual registration call.
         parameters["regToken"] = regToken!!
+
+        // Flow is set to finalize the registration if not specified otherwise.
         if (!parameters.containsKey("finalizeRegistration")) {
             parameters["finalizeRegistration"] = true.toString()
         }
 
         val registrationResponse =
             Api(sessionService).genericSend(EP_ACCOUNTS_REGISTER, parameters)
+
         // Check errors.
         if (registrationResponse.isError()) {
             response.failedAuthenticationWith(registrationResponse.toCDCError())
         }
+
+        secureNewSession(registrationResponse)
 
         return response.withAuthenticationData(registrationResponse.asJson()!!)
     }
 
     /**
      *
-     * Finalize registration flow. If not requested at flow initiation or interrupted.
+     * Finalize registration flow.
+     * If not requested at flow initiation or interrupted.
      *
      * @see [accounts.finalizeRegistration](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/228cd8bc68dc477094b3e0e9fe108e23.html?q=accounts.getAccountInfo)
      */

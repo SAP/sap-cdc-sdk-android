@@ -81,7 +81,7 @@ class CDCResponse {
     inline fun <reified T> serializeObject(key: String): T? {
         if (jsonObject != null) {
             if (!jsonObject!!.contains(key)) return null
-            val jsonObjectString = jsonObject!!["key"].toString()
+            val jsonObjectString = jsonObject!![key].toString()
             try {
                 return json.decodeFromString<T>(jsonObjectString)
             } catch (ex: Exception) {
