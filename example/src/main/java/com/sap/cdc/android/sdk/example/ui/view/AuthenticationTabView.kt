@@ -18,9 +18,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModel
 import kotlinx.coroutines.launch
 
 
@@ -31,7 +33,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AuthenticationTabView(navController: NavHostController, selected: Int) {
+fun AuthenticationTabView(selected: Int) {
     val tabs = listOf("Register", "Sign In")
 
     val scope = rememberCoroutineScope()
@@ -66,7 +68,13 @@ fun AuthenticationTabView(navController: NavHostController, selected: Int) {
                 contentAlignment = Alignment.Center
             ) {
                 when (selectedTabIndex.value) {
-                    0 -> CreateYourAccount(navController)
+                    0 -> CredentialsRegistrationView(
+                        viewModel = CredentialsRegistrationViewModel(
+                            context =
+                            LocalContext.current
+                        )
+                    )
+
                     1 -> SignInPage()
                 }
             }
@@ -78,5 +86,5 @@ fun AuthenticationTabView(navController: NavHostController, selected: Int) {
 @Preview
 @Composable
 fun AuthenticationTabViewPreview() {
-    AuthenticationTabView(navController = rememberNavController(), 0)
+    AuthenticationTabView(0)
 }

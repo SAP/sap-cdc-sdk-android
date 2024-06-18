@@ -3,7 +3,7 @@ package com.sap.cdc.android.sdk.example.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.sap.cdc.android.sdk.example.cdc.IdentityServiceRepository
-import com.sap.cdc.android.sdk.session.SiteConfig
+import com.sap.cdc.android.sdk.core.SiteConfig
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

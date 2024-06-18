@@ -10,10 +10,11 @@ import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
-import com.sap.cdc.android.sdk.session.SessionService
-import com.sap.cdc.android.sdk.session.extensions.getEncryptedPreferences
-import com.sap.cdc.android.sdk.session.session.SessionEncryption
-import com.sap.cdc.android.sdk.session.session.SessionSecure
+import com.sap.cdc.android.sdk.authentication.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.authentication.session.SessionService
+import com.sap.cdc.android.sdk.core.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.authentication.session.SessionEncryption
+import com.sap.cdc.android.sdk.authentication.session.SessionSecure
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
@@ -105,7 +106,9 @@ class BiometricAuth(private val sessionService: SessionService) {
             return
         }
         val esp =
-            sessionService.siteConfig.applicationContext.getEncryptedPreferences(SessionService.CDC_SECURE_PREFS)
+            sessionService.siteConfig.applicationContext.getEncryptedPreferences(
+                CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+            )
         val json = esp.getString(SessionSecure.CDC_SESSIONS, null)
         var sessionMap: MutableMap<String, String> = mutableMapOf()
         if (json != null) {

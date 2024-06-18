@@ -3,20 +3,23 @@ package com.sap.cdc.android.sdk.authentication.flow
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNTS_FINALIZE_REGISTRATION
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNTS_INIT_REGISTRATION
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNTS_REGISTER
+import com.sap.cdc.android.sdk.authentication.AuthenticationApi
 import com.sap.cdc.android.sdk.authentication.IAuthResponse
-import com.sap.cdc.android.sdk.session.SessionService
-import com.sap.cdc.android.sdk.session.api.Api
+import com.sap.cdc.android.sdk.authentication.session.SessionService
+import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.api.Api
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  */
 
-class RegistrationAuthFlow(sessionService: SessionService) : AuthFlow(sessionService) {
+class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
+    AuthFlow(coreClient, sessionService) {
 
     init {
         // Add default finalize registration parameter.
-        if (parameters.containsKey("finalizeRegistration")) {
+        if (!parameters.containsKey("finalizeRegistration")) {
             parameters["finalizeRegistration"] = true.toString()
         }
     }
@@ -37,7 +40,7 @@ class RegistrationAuthFlow(sessionService: SessionService) : AuthFlow(sessionSer
     override suspend fun authenticate(): IAuthResponse {
         // Init registration.
         val initResponse =
-            Api(sessionService).genericSend(EP_ACCOUNTS_INIT_REGISTRATION)
+            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_INIT_REGISTRATION)
         // Check errors.
         if (initResponse.isError()) {
             response.failedAuthenticationWith(initResponse.toCDCError())
@@ -50,13 +53,8 @@ class RegistrationAuthFlow(sessionService: SessionService) : AuthFlow(sessionSer
         // Actual registration call.
         parameters["regToken"] = regToken!!
 
-        // Flow is set to finalize the registration if not specified otherwise.
-        if (!parameters.containsKey("finalizeRegistration")) {
-            parameters["finalizeRegistration"] = true.toString()
-        }
-
         val registrationResponse =
-            Api(sessionService).genericSend(EP_ACCOUNTS_REGISTER, parameters)
+            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_REGISTER, parameters)
 
         // Check errors.
         if (registrationResponse.isError()) {
@@ -77,7 +75,7 @@ class RegistrationAuthFlow(sessionService: SessionService) : AuthFlow(sessionSer
      */
     suspend fun finalize(): IAuthResponse {
         val finalizeRegistrationResponse =
-            Api(sessionService).genericSend(EP_ACCOUNTS_FINALIZE_REGISTRATION, parameters)
+            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_FINALIZE_REGISTRATION, parameters)
         if (finalizeRegistrationResponse.isError()) {
             response.failedAuthenticationWith(finalizeRegistrationResponse.toCDCError())
         }

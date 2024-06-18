@@ -22,9 +22,6 @@ import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGOUT
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebViewClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -82,31 +79,30 @@ fun ScreenSetView() {
             }
         }, update = {
             Log.d("ScreenSetView", "update")
-            CoroutineScope(Dispatchers.IO).launch {
-                webBridgeJS
-                    ?.attachBridgeTo(it) { webBridgeJSEvent ->
-                        // Streamed WebBridgeJS event.
-                        val eventName = webBridgeJSEvent.name()
-                        Log.d("ScreenSetView", "event: $eventName")
-                        when (eventName) {
-                            CANCELED -> {
+            webBridgeJS
+                ?.attachBridgeTo(it) { webBridgeJSEvent ->
+                    // Streamed WebBridgeJS event.
+                    val eventName = webBridgeJSEvent.name()
+                    Log.d("ScreenSetView", "event: $eventName")
+                    when (eventName) {
+                        CANCELED -> {
 
-                            }
+                        }
 
-                            HIDE -> {
+                        HIDE -> {
 
-                            }
+                        }
 
-                            LOGIN -> {
+                        LOGIN -> {
 
-                            }
+                        }
 
-                            LOGOUT -> {
+                        LOGOUT -> {
 
-                            }
                         }
                     }
-            }
+                }
+
 
             it.loadDataWithBaseURL(
                 WebBridgeJS.BASE_URL,

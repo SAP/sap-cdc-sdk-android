@@ -15,7 +15,7 @@ import android.widget.ProgressBar
 import android.window.OnBackInvokedDispatcher
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.authentication.R
-import com.sap.cdc.android.sdk.session.extensions.parseQueryStringParams
+import com.sap.cdc.android.sdk.core.extensions.parseQueryStringParams
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

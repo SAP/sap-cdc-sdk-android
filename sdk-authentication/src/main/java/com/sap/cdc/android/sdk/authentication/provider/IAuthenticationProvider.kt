@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.authentication.provider
 
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.session.session.Session
+import com.sap.cdc.android.sdk.authentication.session.Session
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

@@ -1,16 +1,19 @@
 package com.sap.cdc.android.sdk.authentication.flow
 
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNTS_LOGIN
+import com.sap.cdc.android.sdk.authentication.AuthenticationApi
 import com.sap.cdc.android.sdk.authentication.IAuthResponse
-import com.sap.cdc.android.sdk.session.SessionService
-import com.sap.cdc.android.sdk.session.api.Api
+import com.sap.cdc.android.sdk.authentication.session.SessionService
+import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.api.Api
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  */
 
-class LoginAuthFlow(sessionService: SessionService) : AuthFlow(sessionService) {
+class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
+    AuthFlow(coreClient, sessionService) {
 
     /**
      * Initiate login authentication flow.
@@ -19,7 +22,7 @@ class LoginAuthFlow(sessionService: SessionService) : AuthFlow(sessionService) {
      */
     override suspend fun authenticate(): IAuthResponse {
         val loginResponse =
-            Api(sessionService).genericSend(EP_ACCOUNTS_LOGIN)
+            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGIN)
         // Check errors.
         if (loginResponse.isError()) {
             response.failedAuthenticationWith(loginResponse.toCDCError())

@@ -8,14 +8,17 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_LOGIN
-import com.sap.cdc.android.sdk.session.SessionService
-import com.sap.cdc.android.sdk.session.api.Api
-import com.sap.cdc.android.sdk.session.api.Signing
-import com.sap.cdc.android.sdk.session.api.SigningSpec
-import com.sap.cdc.android.sdk.session.api.model.CDCError
-import com.sap.cdc.android.sdk.session.api.toEncodedQuery
-import com.sap.cdc.android.sdk.session.session.Session
-import com.sap.cdc.android.sdk.session.session.SessionEncryption
+import com.sap.cdc.android.sdk.authentication.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.authentication.AuthenticationService.Companion.CDC_GMID
+import com.sap.cdc.android.sdk.authentication.session.SessionService
+import com.sap.cdc.android.sdk.core.api.Api
+import com.sap.cdc.android.sdk.core.api.Signing
+import com.sap.cdc.android.sdk.core.api.SigningSpec
+import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.core.api.toEncodedQuery
+import com.sap.cdc.android.sdk.authentication.session.Session
+import com.sap.cdc.android.sdk.authentication.session.SessionEncryption
+import com.sap.cdc.android.sdk.core.extensions.getEncryptedPreferences
 import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
 import kotlin.coroutines.resume
@@ -38,8 +41,8 @@ class WebAuthenticationProvider(
 
     override fun getProvider(): String = this.socialProvider
 
-    override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult =
-        suspendCoroutine { continuation ->
+    override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
+        return suspendCoroutine { continuation ->
 
             if (hostActivity == null) {
                 continuation.resumeWithException(
@@ -92,7 +95,7 @@ class WebAuthenticationProvider(
 
                                 val authenticatorProviderResult = AuthenticatorProviderResult(
                                     provider = getProvider(),
-                                    type = ProviderType.NATIVE,
+                                    type = ProviderType.WEB,
                                     session = session
                                 )
                                 continuation.resume(authenticatorProviderResult)
@@ -112,16 +115,24 @@ class WebAuthenticationProvider(
             }
             launcher.launch(webProviderIntent)
         }
+    }
 
     /**
      * Generate authentication URI.
      */
     private fun generateUri(hostActivity: ComponentActivity): String {
+        // Fetch gmid
+        val esp =
+            sessionService.siteConfig.applicationContext.getEncryptedPreferences(
+                CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+            )
+        val gmid = esp.getString(CDC_GMID, "")
+
         val uriParameters = mutableMapOf(
             "redirect_uri" to "gigya://gsapi/" + hostActivity.packageName + "/login_result",
             "response_type" to "token",
             "client_id" to sessionService.siteConfig.apiKey,
-            "gmid" to sessionService.gmidLatest()!!,
+            "gmid" to gmid!!,
             "x_secret_type" to "oauth1",
             "x_sdk" to "Android_1.0.0",
             "x_provider" to getProvider(),

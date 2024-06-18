@@ -6,8 +6,9 @@ import com.sap.cdc.android.sdk.authentication.flow.LoginAuthFlow
 import com.sap.cdc.android.sdk.authentication.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.authentication.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.session.SessionService
-import com.sap.cdc.android.sdk.session.api.model.CDCError
+import com.sap.cdc.android.sdk.authentication.session.SessionService
+import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.api.model.CDCError
 import java.lang.ref.WeakReference
 
 /**
@@ -52,7 +53,7 @@ interface IAuthApis {
 
     suspend fun login(parameters: MutableMap<String, String>): IAuthResponse
 
-    suspend fun getAccountInfo(): IAuthResponse
+    suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse
 
     suspend fun providerLogin(
         hostActivity: ComponentActivity,
@@ -61,13 +62,16 @@ interface IAuthApis {
 
 }
 
-internal class AuthApis(private val sessionService: SessionService) : IAuthApis {
+internal class AuthApis(
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService
+) : IAuthApis {
 
     /**
      * initiate credentials registration flow
      */
     override suspend fun register(parameters: MutableMap<String, String>): IAuthResponse {
-        val flow = RegistrationAuthFlow(sessionService)
+        val flow = RegistrationAuthFlow(coreClient, sessionService)
         flow.withParameters(parameters)
         return flow.authenticate()
     }
@@ -76,7 +80,7 @@ internal class AuthApis(private val sessionService: SessionService) : IAuthApis 
      * initiate credentials login flow.
      */
     override suspend fun login(parameters: MutableMap<String, String>): IAuthResponse {
-        val flow = LoginAuthFlow(sessionService)
+        val flow = LoginAuthFlow(coreClient, sessionService)
         flow.withParameters(parameters)
         return flow.authenticate()
     }
@@ -84,8 +88,9 @@ internal class AuthApis(private val sessionService: SessionService) : IAuthApis 
     /**
      * Request account information..
      */
-    override suspend fun getAccountInfo(): IAuthResponse {
-        val flow = AccountAuthFlow(sessionService)
+    override suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
+        val flow = AccountAuthFlow(coreClient, sessionService)
+        flow.withParameters(parameters)
         return flow.getAccountInfo()
     }
 
@@ -97,6 +102,7 @@ internal class AuthApis(private val sessionService: SessionService) : IAuthApis 
         authenticationProvider: IAuthenticationProvider
     ): IAuthResponse {
         val flow = ProviderAuthFow(
+            coreClient,
             sessionService,
             authenticationProvider,
             WeakReference(hostActivity)
@@ -113,10 +119,13 @@ interface IAuthResolvers {
     suspend fun linkAccount(parameters: MutableMap<String, String>): IAuthResponse
 }
 
-internal class AuthResolvers(private val sessionService: SessionService) : IAuthResolvers {
+internal class AuthResolvers(
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService
+) : IAuthResolvers {
 
     override suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse {
-        val resolver = RegistrationAuthFlow(sessionService)
+        val resolver = RegistrationAuthFlow(coreClient, sessionService)
         resolver.withParameters(parameters)
         return resolver.finalize()
     }

@@ -7,13 +7,10 @@ import com.sap.cdc.android.sdk.authentication.AuthenticationService
 import com.sap.cdc.android.sdk.authentication.IAuthResponse
 import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.authentication.provider.WebAuthenticationProvider
+import com.sap.cdc.android.sdk.authentication.session.Session
+import com.sap.cdc.android.sdk.authentication.session.SessionService
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
-import com.sap.cdc.android.sdk.session.SessionService
-import com.sap.cdc.android.sdk.session.SiteConfig
-import com.sap.cdc.android.sdk.session.api.Api
-import com.sap.cdc.android.sdk.session.api.CDCResponse
-import com.sap.cdc.android.sdk.session.session.Session
-import io.ktor.http.HttpMethod
+import com.sap.cdc.android.sdk.core.SiteConfig
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -36,7 +33,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Initialize session service.
      */
-    private var sessionService = SessionService(SiteConfig(context)).newClient()
+    private var sessionService = SessionService(SiteConfig(context))
 
     /**
      * Initialize authentication service.
@@ -90,18 +87,18 @@ class IdentityServiceRepository private constructor(context: Context) {
 
     suspend fun register(email: String, password: String): IAuthResponse {
         val params = mutableMapOf("email" to email, "password" to password)
-        return authenticationService.apis().register(params)
+        return authenticationService.authenticate().register(params)
     }
 
-    suspend fun getAccountInfo(): IAuthResponse {
-        return authenticationService.apis().getAccountInfo()
+    suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
+        return authenticationService.authenticate().getAccountInfo(parameters!!)
     }
 
     suspend fun nativeSocialSignIn(
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider
     ): IAuthResponse {
-        return authenticationService.apis().providerLogin(
+        return authenticationService.authenticate().providerLogin(
             hostActivity, provider
         )
     }
@@ -109,9 +106,9 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun webSocialSignIn(
         hostActivity: ComponentActivity,
         socialProvider: String
-    ) : IAuthResponse {
+    ): IAuthResponse {
         val webAuthenticationProvider = WebAuthenticationProvider(socialProvider, sessionService)
-        return authenticationService.apis().providerLogin(
+        return authenticationService.authenticate().providerLogin(
             hostActivity, webAuthenticationProvider
         )
     }
@@ -124,25 +121,6 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Instantiate a new WebBridgeJS element.
      */
     fun getWebBridge(): WebBridgeJS = WebBridgeJS(authenticationService)
-
-    //endregion
-
-    //region GENERIC
-
-    /**
-     * Identity cloud generic send request.
-     */
-    suspend fun send(
-        api: String,
-        parameters: MutableMap<String, String>,
-        method: String? = HttpMethod.Post.value
-    ): CDCResponse {
-        return Api(sessionService).genericSend(
-            api,
-            parameters,
-            method
-        )
-    }
 
     //endregion
 }

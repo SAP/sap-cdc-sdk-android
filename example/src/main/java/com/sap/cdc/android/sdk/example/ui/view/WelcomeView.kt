@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.viewmodel.SocialSelectionViewModelModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -45,7 +47,7 @@ fun WelcomeView(navController: NavHostController) {
         Text("Manage your profile", fontSize = 16.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.size(20.dp))
 
-        SocialSelectionView {
+        SocialSelectionView(SocialSelectionViewModelModel(LocalContext.current)) {
 
         }
 

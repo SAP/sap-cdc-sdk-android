@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ConfigurationViewModelPreviewMock
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IConfigurationViewModel
-import com.sap.cdc.android.sdk.session.SiteConfig
+import com.sap.cdc.android.sdk.core.SiteConfig
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

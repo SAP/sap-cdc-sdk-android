@@ -11,9 +11,9 @@ import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.example.cdc.IdentityServiceRepository
 import com.sap.cdc.android.sdk.example.cdc.model.AccountEntity
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
-import com.sap.cdc.android.sdk.session.api.model.CDCError
+import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json.Default.decodeFromString
+import kotlinx.serialization.json.Json
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -24,6 +24,8 @@ import kotlinx.serialization.json.Json.Default.decodeFromString
  * Abstract authentication view model. Created to add Compose preview interface.
  */
 abstract class IAuthenticationViewModel : ViewModel() {
+
+    val json = Json { ignoreUnknownKeys = true }
 
     var lastName by mutableStateOf("")
         internal set
@@ -100,7 +102,7 @@ class AuthenticationViewModel(context: Context) : IAuthenticationViewModel() {
                 return@launch
             }
             // Deserialize account data.
-            val account = decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
+            val account = json.decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
 
             // Update UI stateful parameters.
             firstName = account.profile.firstName
@@ -128,7 +130,11 @@ class AuthenticationViewModel(context: Context) : IAuthenticationViewModel() {
                 return@launch
             }
             // Deserialize account data.
-            val account = decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
+            val account = json.decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
+
+            // Update UI stateful parameters.
+            firstName = account.profile.firstName
+            lastName = account.profile.lastName
         }
     }
 
@@ -148,7 +154,11 @@ class AuthenticationViewModel(context: Context) : IAuthenticationViewModel() {
                 return@launch
             }
             // Deserialize account data.
-            val account = decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
+            val account = json.decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
+
+            // Update UI stateful parameters.
+            firstName = account.profile.firstName
+            lastName = account.profile.lastName
         }
     }
 

@@ -37,7 +37,9 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.MainScreenRoute
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelCoordinator
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ConfigurationViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.HomeViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.MyProfileViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -147,7 +149,7 @@ fun AppView() {
                     titleText = stringResource(id = MainScreenRoute.Profile.resourceId)
                 }
                 composable(MainScreenRoute.Configuration.route) {
-                    ConfigurationView(viewModel = ViewModelCoordinator.configuration(LocalContext.current))
+                    ConfigurationView(viewModel = ConfigurationViewModel(LocalContext.current))
                     titleText = stringResource(id = MainScreenRoute.Configuration.resourceId)
                 }
             }
@@ -211,7 +213,7 @@ fun ProfileNavHost() {
     NavigationCoordinator.INSTANCE.setNavController(profileNavController)
 
     val context = LocalContext.current
-    val viewModel = ViewModelCoordinator.home(context)
+    val viewModel = HomeViewModel(context)
     val isLoggedIn = viewModel.validSession()
 
     NavHost(
@@ -227,12 +229,11 @@ fun ProfileNavHost() {
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
             AuthenticationTabView(
-                navController = profileNavController,
                 selected = selected!!.toInt()
             )
         }
         composable(ProfileScreenRoute.MyProfile.route) {
-            MyProfileView(ViewModelCoordinator.authentication(LocalContext.current))
+            MyProfileView(MyProfileViewModel(LocalContext.current))
         }
     }
 }

@@ -47,7 +47,6 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
     implementation("androidx.biometric:biometric:1.1.0")
-
-    api(project(":sdk-session"))
+    api(project(":sdk-core"))
 }
 

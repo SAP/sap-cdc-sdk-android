@@ -42,11 +42,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelCoordinator
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ACredentialsRegistrationViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -54,7 +54,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelCoordinator
  */
 
 @Composable
-fun CreateYourAccount(navController: NavHostController) {
+fun CredentialsRegistrationView(viewModel: ACredentialsRegistrationViewModel) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -176,7 +176,7 @@ fun CreateYourAccount(navController: NavHostController) {
                 ),
                 visualTransformation = if (passwordVisible) {
                     VisualTransformation.None
-                } else  {
+                } else {
                     PasswordVisualTransformation()
                 },
                 onValueChange = {
@@ -216,7 +216,7 @@ fun CreateYourAccount(navController: NavHostController) {
                 ),
                 visualTransformation = if (passwordVisible) {
                     VisualTransformation.None
-                } else  {
+                } else {
                     PasswordVisualTransformation()
                 },
                 onValueChange = {
@@ -287,7 +287,7 @@ fun CreateYourAccount(navController: NavHostController) {
                     registerError = ""
                     loading = true
                     // Credentials registration.
-                    ViewModelCoordinator.authentication(context).register(
+                    viewModel.register(
                         email, password,
                         onLogin = {
                             loading = false
@@ -311,5 +311,5 @@ fun CreateYourAccount(navController: NavHostController) {
 @Preview
 @Composable
 fun CreateYourAccountPreview() {
-    CreateYourAccount(navController = rememberNavController())
+    CredentialsRegistrationView(CredentialsRegistrationViewModelPreview(LocalContext.current))
 }

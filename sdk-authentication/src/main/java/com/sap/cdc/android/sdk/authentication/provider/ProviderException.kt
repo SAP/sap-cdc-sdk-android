@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.authentication.provider
 
-import com.sap.cdc.android.sdk.session.api.model.CDCError
+import com.sap.cdc.android.sdk.core.api.model.CDCError
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

@@ -16,7 +16,7 @@ import com.sap.cdc.android.sdk.authentication.provider.ProviderException
 import com.sap.cdc.android.sdk.authentication.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.authentication.provider.ProviderType
 import com.sap.cdc.android.sdk.example.R
-import com.sap.cdc.android.sdk.session.api.model.CDCError
+import com.sap.cdc.android.sdk.core.api.model.CDCError
 import io.ktor.util.generateNonce
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

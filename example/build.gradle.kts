@@ -76,8 +76,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     implementation("io.coil-kt:coil-compose:2.6.0")
-    implementation(project(":sdk-authentication"))
 
+    implementation(project(":sdk-authentication"))
     implementation(project(":sdk-sceensets"))
 
     // Used social providers.

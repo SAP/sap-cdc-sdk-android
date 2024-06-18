@@ -9,10 +9,11 @@ import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNT
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_ADD_CONNECTION
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_LOGOUT
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
+import com.sap.cdc.android.sdk.authentication.AuthenticationApi
 import com.sap.cdc.android.sdk.authentication.AuthenticationService
-import com.sap.cdc.android.sdk.session.api.Api
-import com.sap.cdc.android.sdk.session.api.CDCResponse
-import com.sap.cdc.android.sdk.session.extensions.parseQueryStringParams
+import com.sap.cdc.android.sdk.core.api.Api
+import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.extensions.parseQueryStringParams
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,14 +49,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     /**
      * Attach JS bridge to given WebView widget.
      */
-    suspend fun attachBridgeTo(webView: WebView, events: (WebBridgeJSEvent) -> Unit) {
-        // Ensure that we have a GMID available. In the event of no API call initiated from the SDK,
-        // there will be no GMID available as it is requested only on demand.
-        val gmid = authenticationService.sessionService.gmidLatest()
-        if (gmid == null) {
-            Api(authenticationService.sessionService).getIds()
-        }
-
+    fun attachBridgeTo(webView: WebView, events: (WebBridgeJSEvent) -> Unit) {
         bridgeEvents = events
         bridgedWebView = webView
         bridgedWebView!!.addJavascriptInterface(
@@ -199,7 +193,10 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     private fun sendRequest(api: String, params: Map<String, String>, callbackID: String) {
         Log.d(LOG_TAG, "sendRequest: $api")
         CoroutineScope(Dispatchers.IO).launch {
-            val response = Api(authenticationService.sessionService).genericSend(
+            val response = AuthenticationApi(
+                authenticationService.coreClient,
+                authenticationService.sessionService
+            ).genericSend(
                 api = api, parameters = params.toMutableMap(), method = HttpMethod.Post.value
             )
             if (response.isError()) {
