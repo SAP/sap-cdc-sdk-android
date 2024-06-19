@@ -62,7 +62,6 @@ fun CredentialsRegistrationView(viewModel: ACredentialsRegistrationViewModel) {
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-        val context = LocalContext.current
         // Editable variables.
         var name by remember {
             mutableStateOf("")
@@ -311,5 +310,7 @@ fun CredentialsRegistrationView(viewModel: ACredentialsRegistrationViewModel) {
 @Preview
 @Composable
 fun CreateYourAccountPreview() {
-    CredentialsRegistrationView(CredentialsRegistrationViewModelPreview(LocalContext.current))
+    CredentialsRegistrationView(
+        CredentialsRegistrationViewModelPreview(LocalContext.current)
+    )
 }
