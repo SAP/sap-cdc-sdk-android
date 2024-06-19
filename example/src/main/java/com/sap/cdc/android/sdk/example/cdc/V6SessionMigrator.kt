@@ -14,8 +14,15 @@ import javax.crypto.spec.GCMParameterSpec
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * User migrator class to initiate session migration for previous versions of the CDC
+ * SDK from version 6+.
+ * The migrator will decode a secured session that was created by previous SDK (v6+) and
+ * re-secure it using current SDK standards.
+ *
+ * Use this class in any "init" function of your CDC SDK wrapper class to ensure migration is
+ * preformed before any other SDK actions.
  */
-
 class V6SessionMigrator(private val context: Context) {
 
     private var keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore")
@@ -110,6 +117,9 @@ class V6SessionMigrator(private val context: Context) {
     }
 }
 
+/**
+ * Migrator String helper extension.
+ */
 fun String.stringToBytes(): ByteArray {
     val b2 = BigInteger(this, 36).toByteArray()
     return Arrays.copyOfRange(b2, 1, b2.size)

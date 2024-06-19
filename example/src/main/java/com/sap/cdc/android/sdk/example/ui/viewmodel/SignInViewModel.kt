@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
  * Copyright: SAP LTD.
  */
 
-abstract class ASocialSelectionViewModel(context: Context) : ViewModelBase(context) {
+abstract class ASignInViewModel(context: Context) : ViewModelBase(context) {
 
     abstract fun socialSignInWith(
         hostActivity: ComponentActivity,
@@ -31,7 +31,7 @@ abstract class ASocialSelectionViewModel(context: Context) : ViewModelBase(conte
     )
 }
 
-class SocialSelectionViewModelModel(context: Context) : ASocialSelectionViewModel(context) {
+class SignInViewModelModel(context: Context) : ASignInViewModel(context) {
 
     private val identityService: IdentityServiceRepository =
         IdentityServiceRepository.getInstance(context)
@@ -75,7 +75,7 @@ class SocialSelectionViewModelModel(context: Context) : ASocialSelectionViewMode
     }
 }
 
-class SocialSelectionViewModelPreview(context: Context) : ASocialSelectionViewModel(context) {
+class SignInViewModelPreview(context: Context) : ASignInViewModel(context) {
 
     override fun socialSignInWith(
         hostActivity: ComponentActivity,

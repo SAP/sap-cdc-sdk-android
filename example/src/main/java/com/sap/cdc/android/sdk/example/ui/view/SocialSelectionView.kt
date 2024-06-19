@@ -1,6 +1,5 @@
 package com.sap.cdc.android.sdk.example.ui.view
 
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,13 +15,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.android.sdk.example.R
-import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
-import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
-import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
-import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
-import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ASocialSelectionViewModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.SocialSelectionViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -31,10 +23,9 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.SocialSelectionViewModelPrev
 
 @Composable
 fun SocialSelectionView(
-    viewModel: ASocialSelectionViewModel,
+    onSocialProviderSelection: (String) -> Unit,
     onMutableValueChange: (Boolean) -> Unit
 ) {
-    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,18 +36,7 @@ fun SocialSelectionView(
             modifier = Modifier.size(52.dp),
             onClick = {
                 onMutableValueChange(true)
-                // Facebook social login.
-                viewModel.socialSignInWith(
-                    context as ComponentActivity, FacebookAuthenticationProvider(),
-                    onLogin = {
-                        onMutableValueChange(false)
-                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                    },
-                    onFailedWith = {
-                        onMutableValueChange(false)
-                        // Handle error here.
-                    }
-                )
+                onSocialProviderSelection("facebook")
             }) {
             Icon(
                 modifier = Modifier.size(40.dp),
@@ -69,17 +49,8 @@ fun SocialSelectionView(
             modifier = Modifier.size(52.dp),
             onClick = {
                 // Google social login.
-                viewModel.socialSignInWith(
-                    context as ComponentActivity, GoogleAuthenticationProvider(),
-                    onLogin = {
-                        onMutableValueChange(false)
-                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                    },
-                    onFailedWith = {
-                        onMutableValueChange(false)
-                        // Handle error here.
-                    }
-                )
+                onMutableValueChange(true)
+                onSocialProviderSelection("google")
             }) {
             Icon(
                 modifier = Modifier.size(40.dp),
@@ -94,17 +65,7 @@ fun SocialSelectionView(
             onClick = {
                 // Apple social login.
                 onMutableValueChange(true)
-                viewModel.socialWebSignInWith(
-                    context as ComponentActivity, "apple",
-                    onLogin = {
-                        onMutableValueChange(false)
-                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                    },
-                    onFailedWith = {
-                        onMutableValueChange(false)
-                        // Handle error here.
-                    }
-                )
+                onSocialProviderSelection("apple")
             }) {
             Icon(
                 modifier = Modifier.size(40.dp),
@@ -118,18 +79,7 @@ fun SocialSelectionView(
             onClick = {
                 // Line social login.
                 onMutableValueChange(true)
-                // Facebook social login.
-                viewModel.socialSignInWith(
-                    context as ComponentActivity, LineAuthenticationProvider(),
-                    onLogin = {
-                        onMutableValueChange(false)
-                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                    },
-                    onFailedWith = {
-                        onMutableValueChange(false)
-                        // Handle error here.
-                    }
-                )
+                onSocialProviderSelection("line")
             }) {
             Icon(
                 modifier = Modifier.size(40.dp),
@@ -144,5 +94,5 @@ fun SocialSelectionView(
 @Preview
 @Composable
 fun SocialSelectionViewPreview() {
-    SocialSelectionView(SocialSelectionViewModelPreview(LocalContext.current), {})
+    SocialSelectionView({}, {})
 }

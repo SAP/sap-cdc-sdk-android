@@ -20,9 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModelPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelPreview
 import kotlinx.coroutines.launch
 
 
@@ -75,16 +76,71 @@ fun AuthenticationTabView(selected: Int) {
                         )
                     )
 
-                    1 -> SignInPage()
+                    1 -> SignInPageView(
+                        viewModel = SignInViewModelModel(
+                            context =
+                            LocalContext.current
+                        )
+                    )
                 }
             }
         }
     }
-
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Preview
 @Composable
 fun AuthenticationTabViewPreview() {
-    AuthenticationTabView(0)
+    val tabs = listOf("Register", "Sign In")
+
+    val scope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(pageCount = { tabs.size }, initialPage = 0)
+    val selectedTabIndex = remember { derivedStateOf { pagerState.currentPage } }
+
+    Column(
+        modifier = Modifier
+            .background(color = Color.White)
+            .fillMaxWidth()
+    ) {
+        TabRow(selectedTabIndex = pagerState.currentPage) {
+            tabs.forEachIndexed { index, title ->
+                Tab(text = { Text(title) },
+                    selected = selectedTabIndex.value == pagerState.currentPage,
+                    onClick = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    }
+                )
+            }
+        }
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                when (selectedTabIndex.value) {
+                    0 -> CredentialsRegistrationView(
+                        viewModel = CredentialsRegistrationViewModelPreview(
+                            context =
+                            LocalContext.current
+                        )
+                    )
+
+                    1 -> SignInPageView(
+                        viewModel = SignInViewModelPreview(
+                            context =
+                            LocalContext.current
+                        )
+                    )
+                }
+            }
+        }
+    }
 }

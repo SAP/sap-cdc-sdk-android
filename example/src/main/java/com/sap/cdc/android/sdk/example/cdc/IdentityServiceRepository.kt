@@ -67,16 +67,25 @@ class IdentityServiceRepository private constructor(context: Context) {
         sessionService.reloadWithSiteConfig(siteConfig)
     }
 
+    /**
+     * Get current instance of the current SiteConfig class.
+     */
     fun getConfig() = sessionService.siteConfig
 
     //endregion
 
     //region SESSION MANAGEMENT
 
+    /**
+     * Set a new session (secure it).
+     */
     fun setSession(session: Session) {
         sessionService.sessionSecure.setSession(session)
     }
 
+    /**
+     * Get current secured session.
+     */
     fun getSession(): Session? {
         return sessionService.sessionSecure.getSession()
     }
@@ -85,15 +94,24 @@ class IdentityServiceRepository private constructor(context: Context) {
 
     //region AUTHENTICATION FLOWS
 
+    /**
+     * Initiate cdc SDK credentials registration.
+     */
     suspend fun register(email: String, password: String): IAuthResponse {
         val params = mutableMapOf("email" to email, "password" to password)
         return authenticationService.authenticate().register(params)
     }
 
+    /**
+     * Request cdc SDK latest account information.
+     */
     suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
         return authenticationService.authenticate().getAccountInfo(parameters!!)
     }
 
+    /**
+     * Initiate cdc SDK native social provider login flow.
+     */
     suspend fun nativeSocialSignIn(
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider
@@ -103,6 +121,9 @@ class IdentityServiceRepository private constructor(context: Context) {
         )
     }
 
+    /**
+     * Initiate cdc Web social provider login (any provider that is currently noy native).
+     */
     suspend fun webSocialSignIn(
         hostActivity: ComponentActivity,
         socialProvider: String

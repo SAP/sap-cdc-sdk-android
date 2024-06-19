@@ -1,15 +1,9 @@
 package com.sap.cdc.android.sdk.authentication
 
-import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS
-import com.sap.cdc.android.sdk.authentication.model.GMIDEntity
 import com.sap.cdc.android.sdk.authentication.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.api.Api
-import com.sap.cdc.android.sdk.core.extensions.getEncryptedPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /**

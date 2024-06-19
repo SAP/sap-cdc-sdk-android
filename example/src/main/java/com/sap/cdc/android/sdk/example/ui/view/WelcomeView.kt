@@ -25,7 +25,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.SocialSelectionViewModelModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -47,9 +47,14 @@ fun WelcomeView(navController: NavHostController) {
         Text("Manage your profile", fontSize = 16.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.size(20.dp))
 
-        SocialSelectionView(SocialSelectionViewModelModel(LocalContext.current)) {
+        SocialSelectionView(
+            onMutableValueChange = {
 
-        }
+            },
+            onSocialProviderSelection = {
+
+            },
+        )
 
         Spacer(modifier = Modifier.size(20.dp))
 
@@ -74,9 +79,11 @@ fun WelcomeView(navController: NavHostController) {
             Text("Register")
         }
         Spacer(modifier = Modifier.size(28.dp))
-        Divider(color = Color.LightGray, thickness = 1.dp, modifier = Modifier.size(
-          240.dp,  1.dp
-        ))
+        Divider(
+            color = Color.LightGray, thickness = 1.dp, modifier = Modifier.size(
+                240.dp, 1.dp
+            )
+        )
         Spacer(modifier = Modifier.size(28.dp))
         Text("Sign in with SSO", fontSize = 18.sp, fontWeight = FontWeight.Bold)
     }
