@@ -21,7 +21,7 @@ import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebChromeClient
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun ScreenSetView() {
+fun ViewScreenSet() {
     val context = LocalContext.current
 //    val viewModel = ViewModelCoordinator.authentication(context)
 

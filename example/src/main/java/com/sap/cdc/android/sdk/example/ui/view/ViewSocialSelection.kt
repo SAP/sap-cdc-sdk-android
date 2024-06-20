@@ -10,7 +10,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,7 +21,7 @@ import com.sap.cdc.android.sdk.example.R
  */
 
 @Composable
-fun SocialSelectionView(
+fun ViewSocialSelection(
     onSocialProviderSelection: (String) -> Unit,
     onMutableValueChange: (Boolean) -> Unit
 ) {
@@ -94,5 +93,5 @@ fun SocialSelectionView(
 @Preview
 @Composable
 fun SocialSelectionViewPreview() {
-    SocialSelectionView({}, {})
+    ViewSocialSelection({}, {})
 }

@@ -103,6 +103,14 @@ class IdentityServiceRepository private constructor(context: Context) {
     }
 
     /**
+     * Initiate cdc SDL credentials login.
+     */
+    suspend fun login(email: String, password: String): IAuthResponse {
+        val params = mutableMapOf("email" to email, "password" to password)
+        return authenticationService.authenticate().login(params)
+    }
+
+    /**
      * Request cdc SDK latest account information.
      */
     suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {

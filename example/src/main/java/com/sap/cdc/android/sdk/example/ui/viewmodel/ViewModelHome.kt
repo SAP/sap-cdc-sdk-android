@@ -9,28 +9,16 @@ import com.sap.cdc.android.sdk.example.cdc.IdentityServiceRepository
  * Copyright: SAP LTD.
  */
 
-interface IHomeViewModel {
+interface IViewModelHome {
 
-    fun validSession(): Boolean
+    fun validSession(): Boolean = false
 }
 
-class HomeViewModel(context: Context) : ViewModel(), IHomeViewModel {
-
-    private val identityService: IdentityServiceRepository =
-        IdentityServiceRepository.getInstance(context)
+class ViewModelHome(context: Context) : ViewModelBase(context), IViewModelHome {
 
     /**
      * Check Identity session state.
      */
     override
     fun validSession(): Boolean = identityService.getSession() != null
-}
-
-
-class HomeViewModelMock() : IHomeViewModel {
-
-    override fun validSession(): Boolean {
-        return true
-    }
-
 }

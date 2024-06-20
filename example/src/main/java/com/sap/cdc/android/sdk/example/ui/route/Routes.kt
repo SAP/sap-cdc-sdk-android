@@ -29,6 +29,7 @@ sealed class ProfileScreenRoute(
     object Welcome : ProfileScreenRoute("Welcome", R.string.welcome)
     object AuthTabView: ProfileScreenRoute("AuthTabView", -1)
     object Register : ProfileScreenRoute("Register", R.string.register)
+    object Login: ProfileScreenRoute("Login", R.string.login)
     object MyProfile : ProfileScreenRoute("MyProfile", R.string.my_profile)
 }
 

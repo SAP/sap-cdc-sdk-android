@@ -16,18 +16,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Custom BottomAppBar composable - cause the provided one does not give the option to set
+ * the row property "horizontalArrangement = Arrangement.SpaceEvenly".
  */
-
-// Custom BottomAppBar composable - cause the provided one does not give the option to set
-// the row property "horizontalArrangement = Arrangement.SpaceEvenly".
 @Composable
-fun BottomAppBar(
+fun ViewCustomBottomBar(
     modifier: Modifier = Modifier,
     containerColor: Color = BottomAppBarDefaults.containerColor,
     contentColor: Color = contentColorFor(containerColor),

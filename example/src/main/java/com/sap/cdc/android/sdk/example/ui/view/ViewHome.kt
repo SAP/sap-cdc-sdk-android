@@ -38,7 +38,7 @@ import com.sap.cdc.android.sdk.example.R
 
 @Preview
 @Composable
-fun HomeView() {
+fun ViewHome() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier

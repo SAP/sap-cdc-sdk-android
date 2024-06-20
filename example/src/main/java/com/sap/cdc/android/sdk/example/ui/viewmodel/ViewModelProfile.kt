@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.example.cdc.IdentityServiceRepository
 import com.sap.cdc.android.sdk.example.cdc.model.AccountEntity
 import kotlinx.coroutines.launch
 
@@ -14,7 +13,21 @@ import kotlinx.coroutines.launch
  * Created by Tal Mirmelshtein on 18/06/2024
  * Copyright: SAP LTD.
  */
-abstract class AMyProfileViewModel(context: Context) : ViewModelBase(context) {
+interface IViewModelProfile {
+
+    fun firstName(): String = ""
+
+    fun lastName(): String = ""
+
+    fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()) {}
+}
+
+
+class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelProfile {
+
+    init {
+        getAccountInfo()
+    }
 
     var lastName by mutableStateOf("")
         internal set
@@ -22,18 +35,9 @@ abstract class AMyProfileViewModel(context: Context) : ViewModelBase(context) {
     var firstName by mutableStateOf("")
         internal set
 
-    abstract fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf())
-}
+    override fun firstName(): String = this.firstName
 
-
-class MyProfileViewModel(context: Context) : AMyProfileViewModel(context) {
-
-    private val identityService: IdentityServiceRepository =
-        IdentityServiceRepository.getInstance(context)
-
-    init {
-        getAccountInfo()
-    }
+    override fun lastName(): String = this.lastName
 
     override fun getAccountInfo(parameters: MutableMap<String, String>?) {
         viewModelScope.launch {
@@ -54,15 +58,4 @@ class MyProfileViewModel(context: Context) : AMyProfileViewModel(context) {
 
 }
 
-class MyProfileViewModelPreview(context: Context) : AMyProfileViewModel(context) {
-
-    init {
-        firstName = "John"
-        lastName = "Doe"
-    }
-
-    override fun getAccountInfo(parameters: MutableMap<String, String>?) {
-        // Stub.
-    }
-
-}
+class ViewModelProfilePreview() : IViewModelProfile

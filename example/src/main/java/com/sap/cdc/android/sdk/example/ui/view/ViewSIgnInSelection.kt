@@ -40,8 +40,8 @@ import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ASignInViewModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -49,7 +49,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelPreview
  */
 
 @Composable
-fun SignInPageView(viewModel: ASignInViewModel) {
+fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
     var loading by remember { mutableStateOf(false) }
     // UI elements.
     IndeterminateLinearIndicator(loading)
@@ -71,7 +71,7 @@ fun SignInPageView(viewModel: ASignInViewModel) {
         Spacer(modifier = Modifier.size(24.dp))
 
         val context = LocalContext.current
-        SocialSelectionView(onSocialProviderSelection = { provider ->
+        ViewSocialSelection(onSocialProviderSelection = { provider ->
             when (provider) {
                 "facebook" -> {
                     viewModel.socialSignInWith(
@@ -240,6 +240,6 @@ fun SignInPageView(viewModel: ASignInViewModel) {
 
 @Preview
 @Composable
-fun SignInViewPreview() {
-    SignInPageView(viewModel = SignInViewModelPreview(LocalContext.current))
+fun ViewSignInSelectionPreview() {
+    ViewSignInSelection(viewModel = ViewModelAuthenticationPreview())
 }

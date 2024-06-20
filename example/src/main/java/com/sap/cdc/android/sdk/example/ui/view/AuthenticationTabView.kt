@@ -18,12 +18,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModelPreview
-import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import kotlinx.coroutines.launch
 
 
@@ -34,7 +31,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AuthenticationTabView(selected: Int) {
+fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
     val tabs = listOf("Register", "Sign In")
 
     val scope = rememberCoroutineScope()
@@ -70,17 +67,11 @@ fun AuthenticationTabView(selected: Int) {
             ) {
                 when (selectedTabIndex.value) {
                     0 -> CredentialsRegistrationView(
-                        viewModel = CredentialsRegistrationViewModel(
-                            context =
-                            LocalContext.current
-                        )
+                        viewModel = viewModel
                     )
 
-                    1 -> SignInPageView(
-                        viewModel = SignInViewModelModel(
-                            context =
-                            LocalContext.current
-                        )
+                    1 -> ViewSignInSelection(
+                        viewModel = viewModel
                     )
                 }
             }
@@ -88,59 +79,9 @@ fun AuthenticationTabView(selected: Int) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Preview
 @Composable
 fun AuthenticationTabViewPreview() {
-    val tabs = listOf("Register", "Sign In")
-
-    val scope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(pageCount = { tabs.size }, initialPage = 0)
-    val selectedTabIndex = remember { derivedStateOf { pagerState.currentPage } }
-
-    Column(
-        modifier = Modifier
-            .background(color = Color.White)
-            .fillMaxWidth()
-    ) {
-        TabRow(selectedTabIndex = pagerState.currentPage) {
-            tabs.forEachIndexed { index, title ->
-                Tab(text = { Text(title) },
-                    selected = selectedTabIndex.value == pagerState.currentPage,
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
-                    }
-                )
-            }
-        }
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                when (selectedTabIndex.value) {
-                    0 -> CredentialsRegistrationView(
-                        viewModel = CredentialsRegistrationViewModelPreview(
-                            context =
-                            LocalContext.current
-                        )
-                    )
-
-                    1 -> SignInPageView(
-                        viewModel = SignInViewModelPreview(
-                            context =
-                            LocalContext.current
-                        )
-                    )
-                }
-            }
-        }
-    }
+    AuthenticationTabView(viewModel = ViewModelAuthenticationPreview(), selected = 0)
 }
+

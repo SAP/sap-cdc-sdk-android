@@ -9,31 +9,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  */
 
+@Preview
 @Composable
-fun WelcomeView(navController: NavHostController) {
+fun ViewWelcome() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -47,7 +44,7 @@ fun WelcomeView(navController: NavHostController) {
         Text("Manage your profile", fontSize = 16.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.size(20.dp))
 
-        SocialSelectionView(
+        ViewSocialSelection(
             onMutableValueChange = {
 
             },
@@ -79,7 +76,7 @@ fun WelcomeView(navController: NavHostController) {
             Text("Register")
         }
         Spacer(modifier = Modifier.size(28.dp))
-        Divider(
+        HorizontalDivider(
             color = Color.LightGray, thickness = 1.dp, modifier = Modifier.size(
                 240.dp, 1.dp
             )
@@ -89,10 +86,5 @@ fun WelcomeView(navController: NavHostController) {
     }
 }
 
-@Preview
-@Composable
-fun WelcomeViewPreview() {
-    WelcomeView(navController = rememberNavController())
-}
 
 

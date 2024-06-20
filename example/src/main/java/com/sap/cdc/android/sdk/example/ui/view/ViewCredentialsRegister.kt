@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -44,9 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ACredentialsRegistrationViewModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewModelPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -54,7 +52,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.CredentialsRegistrationViewM
  */
 
 @Composable
-fun CredentialsRegistrationView(viewModel: ACredentialsRegistrationViewModel) {
+fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -310,7 +308,5 @@ fun CredentialsRegistrationView(viewModel: ACredentialsRegistrationViewModel) {
 @Preview
 @Composable
 fun CreateYourAccountPreview() {
-    CredentialsRegistrationView(
-        CredentialsRegistrationViewModelPreview(LocalContext.current)
-    )
+    CredentialsRegistrationView(ViewModelAuthenticationPreview())
 }

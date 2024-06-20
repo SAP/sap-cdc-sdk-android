@@ -5,36 +5,87 @@ import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.example.cdc.IdentityServiceRepository
 import kotlinx.coroutines.launch
 
-
 /**
- * Created by Tal Mirmelshtein on 18/06/2024
+ * Created by Tal Mirmelshtein on 20/06/2024
  * Copyright: SAP LTD.
  */
 
-abstract class ASignInViewModel(context: Context) : ViewModelBase(context) {
+interface IViewModelAuthentication {
 
-    abstract fun socialSignInWith(
+    fun register(
+        email: String,
+        password: String,
+        onLogin: () -> Unit,
+        onFailed: (CDCError?) -> Unit
+    ) {
+        //Stub
+    }
+
+    fun login(
+        email: String,
+        password: String,
+        onLogin: () -> Unit,
+        onFailed: (CDCError?) -> Unit
+    ) {
+        //Stub
+    }
+
+    fun socialSignInWith(
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
-    )
+    ) {
+        //Stub
+    }
 
-    abstract fun socialWebSignInWith(
+    fun socialWebSignInWith(
         hostActivity: ComponentActivity,
         provider: String,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
-    )
+    ) {
+        //Stub
+    }
 }
 
-class SignInViewModelModel(context: Context) : ASignInViewModel(context) {
+class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewModelAuthentication {
 
-    private val identityService: IdentityServiceRepository =
-        IdentityServiceRepository.getInstance(context)
+    override fun register(
+        email: String,
+        password: String,
+        onLogin: () -> Unit,
+        onFailed: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val authResponse = identityService.register(email, password)
+            if (authResponse.authenticationError() != null) {
+                // Error in flow
+                onFailed(authResponse.authenticationError())
+                return@launch
+            }
+            onLogin()
+        }
+    }
+
+    override fun login(
+        email: String,
+        password: String,
+        onLogin: () -> Unit,
+        onFailed: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val authResponse = identityService.login(email, password)
+            if (authResponse.authenticationError() != null) {
+                // Error in flow
+                onFailed(authResponse.authenticationError())
+                return@launch
+            }
+            onLogin()
+        }
+    }
 
     override fun socialSignInWith(
         hostActivity: ComponentActivity,
@@ -47,7 +98,7 @@ class SignInViewModelModel(context: Context) : ASignInViewModel(context) {
                 hostActivity, provider
             )
             if (authResponse.authenticationError() != null) {
-                // Error in account request.
+                // Error in flow
                 onFailedWith(authResponse.authenticationError())
                 return@launch
             }
@@ -66,7 +117,7 @@ class SignInViewModelModel(context: Context) : ASignInViewModel(context) {
                 hostActivity, provider
             )
             if (authResponse.authenticationError() != null) {
-                // Error in account request.
+                // Error in flow
                 onFailedWith(authResponse.authenticationError())
                 return@launch
             }
@@ -75,24 +126,8 @@ class SignInViewModelModel(context: Context) : ASignInViewModel(context) {
     }
 }
 
-class SignInViewModelPreview(context: Context) : ASignInViewModel(context) {
+/**
+ * Preview mock view model.
+ */
+class ViewModelAuthenticationPreview : IViewModelAuthentication
 
-    override fun socialSignInWith(
-        hostActivity: ComponentActivity,
-        provider: IAuthenticationProvider,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
-    ) {
-        // Stub.
-    }
-
-    override fun socialWebSignInWith(
-        hostActivity: ComponentActivity,
-        provider: String,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
-    ) {
-        // Stub.
-    }
-
-}

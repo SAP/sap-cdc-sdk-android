@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -39,8 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.ColorUtils
 import com.sap.cdc.android.sdk.example.R
-import com.sap.cdc.android.sdk.example.ui.viewmodel.AMyProfileViewModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.MyProfileViewModelPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelProfile
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfilePreview
 import kotlin.math.absoluteValue
 
 /**
@@ -49,7 +48,7 @@ import kotlin.math.absoluteValue
  */
 
 @Composable
-fun MyProfileView(viewModel: AMyProfileViewModel) {
+fun ViewMyProfile(viewModel: IViewModelProfile) {
     var loading by remember { mutableStateOf(false) }
 
     viewModel.getAccountInfo()
@@ -90,7 +89,7 @@ fun MyProfileView(viewModel: AMyProfileViewModel) {
                 )
             }
             UserHead(
-                id = "", firstName = viewModel.firstName, lastName = viewModel.lastName,
+                id = "", firstName = viewModel.firstName(), lastName = viewModel.lastName(),
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -109,7 +108,7 @@ fun MyProfileView(viewModel: AMyProfileViewModel) {
                 .height(44.dp), contentAlignment = Alignment.Center
         ) {
             Text(
-                "${viewModel.firstName} ${viewModel.lastName}",
+                "${viewModel.firstName()} ${viewModel.lastName()}",
                 fontSize = 34.sp, fontWeight = FontWeight.Bold
             )
         }
@@ -142,8 +141,8 @@ fun MyProfileView(viewModel: AMyProfileViewModel) {
 
 @Preview
 @Composable
-fun MyProfileViewPreview() {
-    MyProfileView(MyProfileViewModelPreview(LocalContext.current))
+fun ViewMyProfilePreview() {
+    ViewMyProfile(ViewModelProfilePreview())
 }
 
 @Composable

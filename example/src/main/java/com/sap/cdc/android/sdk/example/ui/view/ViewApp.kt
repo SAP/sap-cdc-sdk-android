@@ -37,9 +37,10 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.MainScreenRoute
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ConfigurationViewModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.HomeViewModel
-import com.sap.cdc.android.sdk.example.ui.viewmodel.MyProfileViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthentication
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelHome
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfile
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -49,7 +50,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.MyProfileViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
-fun AppView() {
+fun ViewApp() {
     var titleText by remember { mutableStateOf("") }
     titleText = stringResource(id = MainScreenRoute.Home.resourceId)
 
@@ -98,7 +99,7 @@ fun AppView() {
             )
         },
         bottomBar = {
-            BottomAppBar(
+            ViewCustomBottomBar(
                 modifier = Modifier.fillMaxWidth(),
                 content = {
                     bottomAppBarItems.forEach { item ->
@@ -149,7 +150,7 @@ fun AppView() {
                     titleText = stringResource(id = MainScreenRoute.Profile.resourceId)
                 }
                 composable(MainScreenRoute.Configuration.route) {
-                    ConfigurationView(viewModel = ConfigurationViewModel(LocalContext.current))
+                    ViewConfiguration(viewModel = ViewModelConfiguration(LocalContext.current))
                     titleText = stringResource(id = MainScreenRoute.Configuration.resourceId)
                 }
             }
@@ -170,7 +171,7 @@ fun HomeNavHost() {
     val homeNavController = rememberNavController()
     NavHost(homeNavController, startDestination = "home1") {
         composable("home1") {
-            HomeView()
+            ViewHome()
         }
     }
 }
@@ -181,7 +182,7 @@ fun SearchNavHost() {
     NavHost(searchNavController, startDestination = "search1") {
         composable("search1") {
             //TEST
-            ScreenSetView()
+            ViewScreenSet()
             //Text(MainScreenRoute.Search.route)
         }
     }
@@ -213,7 +214,7 @@ fun ProfileNavHost() {
     NavigationCoordinator.INSTANCE.setNavController(profileNavController)
 
     val context = LocalContext.current
-    val viewModel = HomeViewModel(context)
+    val viewModel = ViewModelHome(context)
     val isLoggedIn = viewModel.validSession()
 
     NavHost(
@@ -224,16 +225,17 @@ fun ProfileNavHost() {
         }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
-            WelcomeView(navController = profileNavController)
+            ViewWelcome()
         }
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
             AuthenticationTabView(
-                selected = selected!!.toInt()
+                viewModel = ViewModelAuthentication(context),
+                selected = selected!!.toInt(),
             )
         }
         composable(ProfileScreenRoute.MyProfile.route) {
-            MyProfileView(MyProfileViewModel(LocalContext.current))
+            ViewMyProfile(viewModel = ViewModelProfile(context))
         }
     }
 }
