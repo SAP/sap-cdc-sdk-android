@@ -53,8 +53,6 @@ interface IAuthApis {
 
     suspend fun login(parameters: MutableMap<String, String>): IAuthResponse
 
-    suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse
-
     suspend fun providerLogin(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider
@@ -86,15 +84,6 @@ internal class AuthApis(
     }
 
     /**
-     * Request account information..
-     */
-    override suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
-        val flow = AccountAuthFlow(coreClient, sessionService)
-        flow.withParameters(parameters)
-        return flow.getAccountInfo()
-    }
-
-    /**
      * initiate provider authentication flow.
      */
     override suspend fun providerLogin(
@@ -108,6 +97,47 @@ internal class AuthApis(
             WeakReference(hostActivity)
         )
         return flow.authenticate()
+    }
+
+}
+
+interface IAuthApisSet {
+
+    suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse
+
+}
+
+internal class AuthApisSet(
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService
+) : IAuthApisSet {
+
+    override suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
+        val flow = AccountAuthFlow(coreClient, sessionService)
+        flow.withParameters(parameters)
+        return flow.setAccountInfo()
+    }
+
+}
+
+interface IAuthApisGet {
+
+    suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse
+
+}
+
+internal class AuthApisGet(
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService
+) : IAuthApisGet {
+
+    /**
+     * Request account information..
+     */
+    override suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
+        val flow = AccountAuthFlow(coreClient, sessionService)
+        flow.withParameters(parameters)
+        return flow.getAccountInfo()
     }
 
 }

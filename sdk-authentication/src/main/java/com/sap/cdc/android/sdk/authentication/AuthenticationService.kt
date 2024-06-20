@@ -33,9 +33,9 @@ class AuthenticationService(val sessionService: SessionService) {
 
     fun resolve(): IAuthResolvers = AuthResolvers(coreClient, sessionService)
 
-    fun get(): IAuthApis = AuthApis(coreClient, sessionService)
+    fun get(): IAuthApisGet = AuthApisGet(coreClient, sessionService)
 
-    fun set(): IAuthApis = AuthApis(coreClient, sessionService)
+    fun set(): IAuthApisSet = AuthApisSet(coreClient, sessionService)
 
 
 }

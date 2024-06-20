@@ -29,6 +29,14 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -85,7 +93,7 @@ dependencies {
     // Used social providers.
     implementation("com.facebook.android:facebook-login:latest.release")
     implementation("com.linecorp.linesdk:linesdk:latest.release")
-
+    implementation("com.tencent.mm.opensdk:wechat-sdk-android-without-mta:6.8.0")
     //noinspection CredentialDependency
     implementation("androidx.credentials:credentials:1.2.2")
     implementation("androidx.credentials:credentials-play-services-auth:1.2.2")

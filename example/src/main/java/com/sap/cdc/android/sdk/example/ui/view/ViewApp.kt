@@ -239,6 +239,9 @@ fun ProfileNavHost() {
         composable(ProfileScreenRoute.MyProfile.route) {
             ViewMyProfile(viewModel = ViewModelProfile(context))
         }
+        composable(ProfileScreenRoute.AboutMe.route) {
+            ViewAboutMe(viewModel = ViewModelProfile(context))
+        }
     }
 }
 

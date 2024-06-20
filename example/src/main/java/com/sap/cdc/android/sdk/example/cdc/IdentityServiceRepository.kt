@@ -114,7 +114,14 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Request cdc SDK latest account information.
      */
     suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
-        return authenticationService.authenticate().getAccountInfo(parameters!!)
+        return authenticationService.get().getAccountInfo(parameters!!)
+    }
+
+    /**
+     * Update cdc SDK account information.
+     */
+    suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
+        return authenticationService.set().setAccountInfo(parameters)
     }
 
     /**

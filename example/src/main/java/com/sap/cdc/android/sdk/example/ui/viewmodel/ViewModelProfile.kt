@@ -5,8 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.cdc.model.AccountEntity
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToJsonElement
 
 
 /**
@@ -20,6 +23,8 @@ interface IViewModelProfile {
     fun lastName(): String = ""
 
     fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()) {}
+
+    fun setAccountInfo(success: () -> Unit, onFailed: (CDCError) -> Unit) {}
 }
 
 
@@ -55,6 +60,33 @@ class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelPro
             firstName = account.profile.firstName
             lastName = account.profile.lastName
         }
+    }
+
+    override fun setAccountInfo(success: () -> Unit, onFailed: (CDCError) -> Unit) {
+        val profileObject =
+            json.encodeToJsonElement(mutableMapOf("firstName" to firstName, "lastName" to lastName))
+        val parameters = mutableMapOf("profile" to profileObject.toString())
+        viewModelScope.launch {
+            val authResponse = identityService.setAccountInfo(parameters)
+            if (authResponse.authenticationError() != null) {
+                // Error in account request.
+                onFailed(authResponse.authenticationError()!!)
+                return@launch
+            }
+            // Deserialize account data.
+            val account = json.decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
+
+            // Update UI stateful parameters.
+            firstName = account.profile.firstName
+            lastName = account.profile.lastName
+
+            success()
+        }
+    }
+
+    fun splitName(name: String): Pair<String?, String?> {
+        val names = name.trim().split(Regex("\\s+"))
+        return names.firstOrNull() to names.lastOrNull()
     }
 
 }

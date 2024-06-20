@@ -66,6 +66,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                     ): android.util.Pair<Int, Intent> {
                         return android.util.Pair.create(resultCode, intent)
                     }
+
                 }
             ) { result ->
                 val resultData = result.second
