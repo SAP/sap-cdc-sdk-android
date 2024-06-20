@@ -63,7 +63,7 @@ fun ViewMyProfile(viewModel: IViewModelProfile) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp)
+                .height(180.dp)
         ) {
             Column {
                 Box(

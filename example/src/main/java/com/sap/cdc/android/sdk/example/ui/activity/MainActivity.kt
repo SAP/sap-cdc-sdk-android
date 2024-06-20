@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.sap.cdc.android.sdk.example.ui.theme.CDCAndroidSdkExampleTheme
 import com.sap.cdc.android.sdk.example.ui.view.ViewApp
 
@@ -18,6 +19,7 @@ import com.sap.cdc.android.sdk.example.ui.view.ViewApp
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
         setContent {
             CDCAndroidSdkExampleTheme {
                 // A surface container using the 'background' color from the theme

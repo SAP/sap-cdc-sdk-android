@@ -37,10 +37,12 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.MainScreenRoute
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelScreenSet
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelHome
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfile
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -182,7 +184,7 @@ fun SearchNavHost() {
     NavHost(searchNavController, startDestination = "search1") {
         composable("search1") {
             //TEST
-            ViewScreenSet()
+            ViewScreenSet(ViewModelScreenSet(LocalContext.current))
             //Text(MainScreenRoute.Search.route)
         }
     }

@@ -26,6 +26,7 @@ interface IViewModelProfile {
 class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelProfile {
 
     init {
+        // Request account information on viewModel initialization.
         getAccountInfo()
     }
 

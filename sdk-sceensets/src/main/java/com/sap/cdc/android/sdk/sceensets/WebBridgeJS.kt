@@ -5,19 +5,8 @@ import android.util.Base64
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
-import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
-import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_ADD_CONNECTION
-import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_LOGOUT
-import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
-import com.sap.cdc.android.sdk.authentication.AuthenticationApi
 import com.sap.cdc.android.sdk.authentication.AuthenticationService
-import com.sap.cdc.android.sdk.core.api.Api
-import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.extensions.parseQueryStringParams
-import io.ktor.http.HttpMethod
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 
@@ -25,7 +14,7 @@ import kotlinx.serialization.json.buildJsonArray
  * Created by Tal Mirmelshtein on 13/06/2024
  * Copyright: SAP LTD.
  */
-class WebBridgeJS(private val authenticationService: AuthenticationService) {
+class WebBridgeJS(authenticationService: AuthenticationService) {
 
     companion object {
         const val LOG_TAG = "CDC_WebBridgeJS"
@@ -44,6 +33,8 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     private var bridgedWebView: WebView? = null
     private var bridgeEvents: ((WebBridgeJSEvent) -> Unit?)? = null
 
+    var apiService: WebBridgeJSApiService = WebBridgeJSApiService(authenticationService)
+
     fun streamEvent(event: WebBridgeJSEvent) = bridgeEvents?.invoke(event)
 
     /**
@@ -54,7 +45,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
         bridgedWebView = webView
         bridgedWebView!!.addJavascriptInterface(
             ScreenSetsJavaScriptInterface(
-                authenticationService.sessionService.siteConfig.apiKey
+                apiService.apiKey()
             ),
             JS_NAME
         )
@@ -119,13 +110,13 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
 
         when (action) {
             "get_ids" -> {
-                val ids = "{\"gmid\":\"${authenticationService.sessionService.gmidLatest()}\"}"
+                val ids = "{\"gmid\":\"${apiService.gmid()}\"}"
                 Log.d(LOG_TAG, "$action: $ids")
                 evaluateJS(callbackID!!, ids)
             }
 
             "is_session_valid" -> {
-                val session = authenticationService.sessionService.sessionSecure.getSession()
+                val session = apiService.session()
                 Log.d(LOG_TAG, "$action: ${session != null}")
                 evaluateJS(callbackID!!, (session != null).toString())
             }
@@ -133,7 +124,8 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             "send_request", "send_oauth_request" -> {
                 Log.d(LOG_TAG, "$action: ")
                 // Specific mapping is required to handle legacy & new apis.
-                sendRequestMapping(action, method, params, callbackID!!)
+                //TODO: A callback id is needed to JS evaluation of responses.
+                apiService.onRequest(action, method, params)
             }
 
             "on_plugin_event" -> {
@@ -146,79 +138,6 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             }
         }
         return true
-    }
-
-    /**
-     * Certain flows can be originated from multiple endpoints. Therefore we need to map the correct
-     * ones before initiating an API call.
-     * //TODO: Verify that this is relevant anymore??
-     */
-    private fun sendRequestMapping(
-        action: String,
-        api: String,
-        params: Map<String, String>,
-        callbackID: String
-    ) {
-        when (api) {
-            EP_ACCOUNTS_LOGOUT, EP_SOCIALIZE_LOGOUT -> {
-
-            }
-
-            EP_SOCIALIZE_ADD_CONNECTION -> {
-
-            }
-
-            EP_SOCIALIZE_REMOVE_CONNECTION -> {
-
-            }
-
-            else -> {
-                when (action) {
-                    "send_request" -> {
-                        sendRequest(api, params, callbackID)
-                    }
-
-                    "send_oauth_request" -> {
-
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Throttle request received from webSDK via the mobile adapter.
-     * Json response will be evaluated back to the WebSDK (success & error).
-     */
-    private fun sendRequest(api: String, params: Map<String, String>, callbackID: String) {
-        Log.d(LOG_TAG, "sendRequest: $api")
-        CoroutineScope(Dispatchers.IO).launch {
-            val response = AuthenticationApi(
-                authenticationService.coreClient,
-                authenticationService.sessionService
-            ).genericSend(
-                api = api, parameters = params.toMutableMap(), method = HttpMethod.Post.value
-            )
-            if (response.isError()) {
-                Log.d(
-                    LOG_TAG,
-                    "sendRequest: $api - request error: ${response.errorCode()} - ${response.errorDetails()}"
-                )
-            }
-            evaluateJS(callbackID, response.jsonResponse ?: "")
-        }
-    }
-
-    /**
-     * Evaluate API responses.
-     * A response containing a session should trigger the login event.
-     */
-    private fun evaluateSendRequestResponse(response: CDCResponse) {
-        if (response.containsKey("sessionInfo")) {
-            // Response contains session information.
-            // Parse session object.
-
-        }
     }
 
     /**
