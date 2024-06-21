@@ -13,12 +13,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.sap.cdc.android.sdk.example.R
+import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
+import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
+import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
 import com.sap.cdc.android.sdk.sceensets.ScreenSetBuilder
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.CANCELED
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.HIDE
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN
+import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN_STARTED
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGOUT
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebViewClient
@@ -31,6 +35,7 @@ import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebViewClient
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun ViewScreenSet(viewModel: ViewModelScreenSet) {
+
     val context = LocalContext.current
 
     // Create only when file access is required..
@@ -53,6 +58,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
         .params(params)
         .build().screenSetUrl
 
+    // Set native social provider authenticators.
     val webBridgeJS: WebBridgeJS = viewModel.newWebBridgeJS()
 
     AndroidView(
@@ -76,34 +82,43 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
                 settings.allowFileAccess = true
                 webChromeClient = bridgingWebChromeClient
             }
-        }, update = {
+        }, update = { webView ->
             Log.d("ScreenSetView", "update")
-            webBridgeJS
-                .attachBridgeTo(it) { webBridgeJSEvent ->
-                    // Streamed WebBridgeJS event.
-                    val eventName = webBridgeJSEvent.name()
-                    Log.d("ScreenSetView", "event: $eventName")
-                    when (eventName) {
-                        CANCELED -> {
+            webBridgeJS.attachBridgeTo(webView)
+            webBridgeJS.setNativeSocialProviders(
+                mutableMapOf(
+                    "facebook" to FacebookAuthenticationProvider(),
+                    "google" to GoogleAuthenticationProvider(),
+                    "line" to LineAuthenticationProvider()
+                )
+            )
+            webBridgeJS.registerForEvents { webBridgeJSEvent ->
+                val eventName = webBridgeJSEvent.name()
+                Log.d("ScreenSetView", "event: $eventName")
+                when (eventName) {
+                    LOGIN_STARTED -> {
 
-                        }
+                    }
 
-                        HIDE -> {
+                    CANCELED -> {
 
-                        }
+                    }
 
-                        LOGIN -> {
+                    HIDE -> {
 
-                        }
+                    }
 
-                        LOGOUT -> {
+                    LOGIN -> {
 
-                        }
+                    }
+
+                    LOGOUT -> {
+
                     }
                 }
+            }
 
-
-            it.loadDataWithBaseURL(
+            webView.loadDataWithBaseURL(
                 WebBridgeJS.BASE_URL,
                 screenSetUrl,
                 WebBridgeJS.MIME_TYPE,

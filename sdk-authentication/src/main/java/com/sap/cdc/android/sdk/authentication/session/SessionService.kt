@@ -26,6 +26,12 @@ class SessionService(
 
     fun getSession() : Session? = sessionSecure.getSession()
 
+    fun clearSession() = sessionSecure.clearSession()
+
+    fun setSession(session: Session) = sessionSecure.setSession(session)
+
+    fun setSession(sessionJson: String) = sessionSecure.setSession(sessionJson)
+
     /**
      * "Re-Initialize" the SDK with a different site configuration.
      * Support for multiple session is available.

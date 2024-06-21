@@ -5,16 +5,19 @@ import android.util.Base64
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
+import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.authentication.AuthenticationService
+import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.core.extensions.parseQueryStringParams
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
+import java.lang.ref.WeakReference
 
 /**
  * Created by Tal Mirmelshtein on 13/06/2024
  * Copyright: SAP LTD.
  */
-class WebBridgeJS(authenticationService: AuthenticationService) {
+class WebBridgeJS(private val authenticationService: AuthenticationService) {
 
     companion object {
         const val LOG_TAG = "CDC_WebBridgeJS"
@@ -33,25 +36,40 @@ class WebBridgeJS(authenticationService: AuthenticationService) {
     private var bridgedWebView: WebView? = null
     private var bridgeEvents: ((WebBridgeJSEvent) -> Unit?)? = null
 
-    var apiService: WebBridgeJSApiService = WebBridgeJSApiService(authenticationService)
+    private lateinit var apiService: WebBridgeJSApiService
 
     fun streamEvent(event: WebBridgeJSEvent) = bridgeEvents?.invoke(event)
+
+    fun registerForEvents(events: (WebBridgeJSEvent) -> Unit) {
+        bridgeEvents = events
+    }
+
+    fun setNativeSocialProviders(providerMap: MutableMap<String, IAuthenticationProvider>) {
+        apiService.nativeSocialProviders = providerMap
+    }
 
     /**
      * Attach JS bridge to given WebView widget.
      */
-    fun attachBridgeTo(webView: WebView, events: (WebBridgeJSEvent) -> Unit) {
-        bridgeEvents = events
+    fun attachBridgeTo(webView: WebView) {
         bridgedWebView = webView
+        apiService = WebBridgeJSApiService(
+            weakHostActivity = WeakReference(webView.context as ComponentActivity?),
+            authenticationService = authenticationService
+        )
         bridgedWebView!!.addJavascriptInterface(
             ScreenSetsJavaScriptInterface(
                 apiService.apiKey()
             ),
             JS_NAME
         )
+        apiService.evaluateResult = { pair ->
+            evaluateJS(pair.first, pair.second)
+        }
     }
 
     fun detachBridgeFrom(webView: WebView) {
+        apiService.dispose()
         webView.loadUrl("about:blank")
         webView.clearCache(true);
         webView.clearHistory();
@@ -125,7 +143,7 @@ class WebBridgeJS(authenticationService: AuthenticationService) {
                 Log.d(LOG_TAG, "$action: ")
                 // Specific mapping is required to handle legacy & new apis.
                 //TODO: A callback id is needed to JS evaluation of responses.
-                apiService.onRequest(action, method, params)
+                apiService.onRequest(action, method, params, callbackID!!)
             }
 
             "on_plugin_event" -> {

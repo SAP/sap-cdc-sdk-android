@@ -85,14 +85,12 @@ class ScreenSetFragment : Fragment() {
             context?.startActivity(intent)
         }
         webView.webViewClient = webViewClient
+        webBridgeJS
+            ?.attachBridgeTo(webView)
+        webBridgeJS?.registerForEvents { webBridgeJSEvent ->
+            // Streamed WebBridgeJS event.
+            Log.d(LOG_TAG, webBridgeJSEvent.name() ?: "")
 
-        CoroutineScope(Dispatchers.IO).launch {
-            webBridgeJS
-                ?.attachBridgeTo(webView) { webBridgeJSEvent ->
-                    // Streamed WebBridgeJS event.
-                    Log.d(LOG_TAG, webBridgeJSEvent.name() ?: "")
-                    events.invoke(webBridgeJSEvent)
-                }
         }
 
         webView.loadDataWithBaseURL(

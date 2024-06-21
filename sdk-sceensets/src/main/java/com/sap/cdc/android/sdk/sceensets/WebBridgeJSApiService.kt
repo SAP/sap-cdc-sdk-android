@@ -1,18 +1,25 @@
 package com.sap.cdc.android.sdk.sceensets
 
 import android.util.Log
+import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_ADD_CONNECTION
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_LOGOUT
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
 import com.sap.cdc.android.sdk.authentication.AuthenticationApi
 import com.sap.cdc.android.sdk.authentication.AuthenticationService
+import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.authentication.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.authentication.session.Session
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJS.Companion.LOG_TAG
+import com.sap.cdc.android.sdk.sceensets.extensions.capitalFirst
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import java.lang.ref.WeakReference
 
 
 /**
@@ -20,7 +27,10 @@ import kotlinx.coroutines.launch
  * Copyright: SAP LTD.
  */
 
-class WebBridgeJSApiService(private val authenticationService: AuthenticationService) {
+class WebBridgeJSApiService(
+    private val weakHostActivity: WeakReference<ComponentActivity>,
+    private val authenticationService: AuthenticationService
+) {
 
     fun apiKey(): String = authenticationService.sessionService.siteConfig.apiKey
 
@@ -28,16 +38,26 @@ class WebBridgeJSApiService(private val authenticationService: AuthenticationSer
 
     fun session(): Session? = authenticationService.sessionService.sessionSecure.getSession()
 
-    var evaluateResult: (response: String) -> Unit? = { }
+    var evaluateResult: (response: (Pair<String, String>)) -> Unit? = { }
+
+    var nativeSocialProviders: MutableMap<String, IAuthenticationProvider> = mutableMapOf()
 
     fun onRequest(
         action: String,
         api: String,
         params: Map<String, String>,
+        containerId: String
     ) {
         when (api) {
             EP_ACCOUNTS_LOGOUT, EP_SOCIALIZE_LOGOUT -> {
-
+                sendRequest(
+                    api =
+                    EP_ACCOUNTS_LOGOUT,
+                    params = params,
+                    containerId
+                ) {
+                    authenticationService.sessionService.clearSession()
+                }
             }
 
             EP_SOCIALIZE_ADD_CONNECTION -> {
@@ -51,11 +71,11 @@ class WebBridgeJSApiService(private val authenticationService: AuthenticationSer
             else -> {
                 when (action) {
                     "send_request" -> {
-                        sendRequest(api = api, params = params)
+                        sendRequest(api = api, params = params, containerId, {})
                     }
 
                     "send_oauth_request" -> {
-
+                        sendOAuthRequest(api = api, params = params, containerId, {})
                     }
                 }
             }
@@ -66,7 +86,12 @@ class WebBridgeJSApiService(private val authenticationService: AuthenticationSer
      * Throttle request received from webSDK via the mobile adapter.
      * Json response will be evaluated back to the WebSDK (success & error).
      */
-    private fun sendRequest(api: String, params: Map<String, String>) {
+    private fun sendRequest(
+        api: String,
+        params: Map<String, String>,
+        containerId: String,
+        completion: () -> Unit
+    ) {
         Log.d(LOG_TAG, "sendRequest: $api")
         CoroutineScope(Dispatchers.IO).launch {
             val response = AuthenticationApi(
@@ -83,8 +108,91 @@ class WebBridgeJSApiService(private val authenticationService: AuthenticationSer
                     "sendRequest: $api - request error: ${response.errorCode()} - ${response.errorDetails()}"
                 )
             }
-            evaluateResult(response.jsonResponse ?: "")
+
+            // Check if response contains a session object.
+            if (responseContainsSession(response.asJson())) {
+                // Set new session.
+                authenticationService.sessionService.setSession(response.asJson()!!)
+                //TODO: Throttle event login.
+            }
+
+            //Optional completion handler.
+            completion()
+
+            // Evaluate response.
+            evaluateResult(Pair(containerId, response.jsonResponse ?: ""))
         }
     }
 
+    private fun sendOAuthRequest(
+        api: String,
+        params: Map<String, String>,
+        containerId: String,
+        completion: () -> Unit
+    ) {
+        if (weakHostActivity.get() == null) {
+            // Fail with error.
+            Log.d(LOG_TAG, "Context host error. Flow broken")
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            val provider = params["provider"]
+            if (provider == null) {
+                // Fail with error.
+                Log.d(LOG_TAG, "Missing provider parameter in social login attempt. Flow broken")
+                //TODO: throttle error
+            }
+
+            // Vary selected authentication provider. If no native provider is available, the
+            // service will create a new instance of the WebAuthenticationProvider.
+            var authProvider = getNativeProviderAuthenticator(provider!!)
+            if (authProvider == null) {
+                authProvider = WebAuthenticationProvider(
+                    socialProvider = provider,
+                    sessionService = authenticationService.sessionService
+                )
+            }
+
+            val authResponse = authenticationService.authenticate().providerLogin(
+                weakHostActivity.get()!!, authProvider
+            )
+            if (authResponse.authenticationError() != null) {
+                // Fail with error.
+                //TODO: throttle error
+            }
+
+            //Optional completion handler.
+            completion()
+
+            // Evaluate response.
+            evaluateResult(Pair(containerId, authResponse.authenticationJson() ?: ""))
+        }
+    }
+
+    private fun getNativeProviderAuthenticator(provider: String): IAuthenticationProvider? {
+        if (nativeSocialProviders.isEmpty() || !nativeSocialProviders.containsKey(provider))
+            return getNewNativeProviderInstance(provider)
+        return nativeSocialProviders[provider]
+    }
+
+    private fun getNewNativeProviderInstance(provider: String): IAuthenticationProvider? {
+        try {
+            val context = authenticationService.sessionService.siteConfig.applicationContext
+            val kClass = Class.forName("${provider.capitalFirst()}AuthenticationProvider").kotlin
+            return kClass.java.getDeclaredConstructor().newInstance() as IAuthenticationProvider?
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
+        return null
+    }
+
+    private fun responseContainsSession(json: String?): Boolean {
+        if (json == null) return false
+        val jsonObject = Json.parseToJsonElement(json).jsonObject
+        return jsonObject.containsKey("sessionInfo")
+    }
+
+
+    fun dispose() {
+        weakHostActivity.clear()
+    }
 }

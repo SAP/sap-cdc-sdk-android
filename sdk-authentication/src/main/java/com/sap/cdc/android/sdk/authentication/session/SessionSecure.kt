@@ -56,9 +56,19 @@ class SessionSecure(
         return this.session
     }
 
-    fun updateSecureLevel(level: SessionSecureLevel) {
+    /**
+     * Clears current session heap and remove secured session from encrypted preferences.
+     */
+    fun clearSession() {
+        this.session = null
         val esp =
-            siteConfig.applicationContext.getEncryptedPreferences(CDC_AUTHENTICATION_SERVICE_SECURE_PREFS)
+            siteConfig.applicationContext.getEncryptedPreferences(
+                CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+            ).edit().remove(CDC_SESSIONS).apply()
+    }
+
+    fun updateSecureLevel(level: SessionSecureLevel) {
+
     }
 
     /**
@@ -66,7 +76,9 @@ class SessionSecure(
      */
     private fun secure(session: Session) {
         val esp =
-            siteConfig.applicationContext.getEncryptedPreferences(CDC_AUTHENTICATION_SERVICE_SECURE_PREFS)
+            siteConfig.applicationContext.getEncryptedPreferences(
+                CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+            )
         val json = esp.getString(CDC_SESSIONS, null)
         var sessionMap: MutableMap<String, String> = mutableMapOf()
         if (json != null) {
@@ -82,7 +94,9 @@ class SessionSecure(
      */
     private fun loadToMem() {
         val esp =
-            siteConfig.applicationContext.getEncryptedPreferences(CDC_AUTHENTICATION_SERVICE_SECURE_PREFS)
+            siteConfig.applicationContext.getEncryptedPreferences(
+                CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+            )
         if (esp.contains(CDC_SESSIONS)) {
             val json = esp.getString(CDC_SESSIONS, null)
             if (json != null) {
