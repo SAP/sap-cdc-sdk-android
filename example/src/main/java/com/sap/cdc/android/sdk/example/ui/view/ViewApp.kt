@@ -37,7 +37,6 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.MainScreenRoute
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelScreenSet
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelHome

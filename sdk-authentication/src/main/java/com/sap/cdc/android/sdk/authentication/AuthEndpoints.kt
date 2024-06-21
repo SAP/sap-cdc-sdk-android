@@ -20,7 +20,10 @@ class AuthEndpoints {
         const val EP_SOCIALIZE_GET_IDS = "socialize.getIDs"
         const val EP_SOCIALIZE_LOGIN = "socialize.login"
         const val EP_SOCIALIZE_LOGOUT = "socialize.logout"
-        const val EP_SOCIALIZE_ADD_CONNECTION = "socialize.addConnection"
         const val EP_SOCIALIZE_REMOVE_CONNECTION = "socialize.removeConnection"
+
+        // May be redundant cause connection can be done using notifySocialLogin with
+        // loginMode = connect.
+        const val EP_SOCIALIZE_ADD_CONNECTION = "socialize.addConnection"
     }
 }

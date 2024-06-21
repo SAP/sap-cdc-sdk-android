@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.cdc.model.AccountEntity
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 
 

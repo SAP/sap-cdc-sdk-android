@@ -37,9 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfigurationPreview
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelConfiguration
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelConfiguration
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfigurationPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

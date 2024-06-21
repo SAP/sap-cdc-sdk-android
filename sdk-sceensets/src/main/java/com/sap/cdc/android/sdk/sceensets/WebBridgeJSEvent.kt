@@ -26,7 +26,12 @@ class WebBridgeJSEvent(
         const val ADD_CONNECTION: String = "addConnection"
         const val REMOVE_CONNECTION: String = "removeConnection"
         const val CANCELED: String = "canceled"
+
+        fun canceledEvent(): WebBridgeJSEvent = WebBridgeJSEvent(
+            mapOf("eventName" to CANCELED)
+        )
     }
 
     fun name(): String? = content!!["eventName"]?.toString()
+
 }

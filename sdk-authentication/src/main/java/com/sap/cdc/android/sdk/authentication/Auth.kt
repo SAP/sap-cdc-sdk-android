@@ -55,7 +55,8 @@ interface IAuthApis {
 
     suspend fun providerLogin(
         hostActivity: ComponentActivity,
-        authenticationProvider: IAuthenticationProvider
+        authenticationProvider: IAuthenticationProvider,
+        parameters: MutableMap<String, String>? = mutableMapOf(),
     ): IAuthResponse
 
 }
@@ -88,7 +89,8 @@ internal class AuthApis(
      */
     override suspend fun providerLogin(
         hostActivity: ComponentActivity,
-        authenticationProvider: IAuthenticationProvider
+        authenticationProvider: IAuthenticationProvider,
+        parameters: MutableMap<String, String>?
     ): IAuthResponse {
         val flow = ProviderAuthFow(
             coreClient,
@@ -96,6 +98,7 @@ internal class AuthApis(
             authenticationProvider,
             WeakReference(hostActivity)
         )
+        flow.withParameters(parameters ?: mutableMapOf())
         return flow.authenticate()
     }
 

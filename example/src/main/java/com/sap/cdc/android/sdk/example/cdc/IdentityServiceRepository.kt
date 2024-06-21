@@ -9,8 +9,8 @@ import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.authentication.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.authentication.session.Session
 import com.sap.cdc.android.sdk.authentication.session.SessionService
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

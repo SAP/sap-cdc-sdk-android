@@ -38,11 +38,10 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
-import com.sap.cdc.android.sdk.example.social.WeChatAuthenticationProvider
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
