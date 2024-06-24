@@ -16,7 +16,6 @@ import com.sap.cdc.android.sdk.authentication.provider.ProviderException
 import com.sap.cdc.android.sdk.authentication.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.authentication.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.example.R
 import io.ktor.util.generateNonce
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +52,7 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
             val credentialManager = CredentialManager.create(hostActivity)
 
             // Reference required Google server client ID (Resource id is not strict).
-            val serverClientId = hostActivity.getString(R.string.google_server_client_id)
+            val serverClientId = ""//hostActivity.getString(R.string.google_server_client_id)
 
             CoroutineScope(Dispatchers.IO).launch {
                 var result = credentialsManagerSignIn(
@@ -151,6 +150,10 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
         // Ambiguous... need to be tested.
         val request = ClearCredentialStateRequest()
         CredentialManager.create(hostActivity!!).clearCredentialState(request)
+    }
+
+    override fun dispose() {
+        // Stub.
     }
 }
 

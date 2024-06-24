@@ -6,18 +6,19 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_LOGIN
 import com.sap.cdc.android.sdk.authentication.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.authentication.AuthenticationService.Companion.CDC_GMID
+import com.sap.cdc.android.sdk.authentication.session.Session
+import com.sap.cdc.android.sdk.authentication.session.SessionEncryption
 import com.sap.cdc.android.sdk.authentication.session.SessionService
 import com.sap.cdc.android.sdk.core.api.Api
 import com.sap.cdc.android.sdk.core.api.Signing
 import com.sap.cdc.android.sdk.core.api.SigningSpec
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.core.api.toEncodedQuery
-import com.sap.cdc.android.sdk.authentication.session.Session
-import com.sap.cdc.android.sdk.authentication.session.SessionEncryption
 import com.sap.cdc.android.sdk.core.extensions.getEncryptedPreferences
 import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
@@ -39,6 +40,8 @@ class WebAuthenticationProvider(
         const val LOG_TAG = "WebAuthenticationProvider"
     }
 
+    private var launcher: ActivityResultLauncher<Intent>? = null
+
     override fun getProvider(): String = this.socialProvider
 
     override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
@@ -59,7 +62,7 @@ class WebAuthenticationProvider(
             webProviderIntent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             webProviderIntent.putExtra(WebLoginActivity.EXTRA_URI, uri)
 
-            val launcher = hostActivity.activityResultRegistry.register(
+            launcher = hostActivity.activityResultRegistry.register(
                 "web-login",
                 object : ActivityResultContract<Intent, android.util.Pair<Int, Intent>>() {
                     override fun createIntent(context: Context, input: Intent): Intent = input
@@ -75,6 +78,7 @@ class WebAuthenticationProvider(
                 val resultCode = result.first
                 when (resultCode) {
                     RESULT_CANCELED -> {
+                        dispose()
                         continuation.resumeWithException(
                             ProviderException(
                                 ProviderExceptionType.CANCELED,
@@ -98,10 +102,14 @@ class WebAuthenticationProvider(
                                     type = ProviderType.WEB,
                                     session = session
                                 )
+
+                                dispose()
                                 continuation.resume(authenticatorProviderResult)
                             } else {
                                 // Parse error information.
                                 val cdcError = handleErrorInfo(resultData)
+
+                                dispose()
                                 continuation.resumeWithException(
                                     ProviderException(
                                         ProviderExceptionType.PROVIDER_FAILURE,
@@ -113,7 +121,7 @@ class WebAuthenticationProvider(
                     }
                 }
             }
-            launcher.launch(webProviderIntent)
+            launcher?.launch(webProviderIntent)
         }
     }
 
@@ -202,6 +210,10 @@ class WebAuthenticationProvider(
 
     override suspend fun providerSignOut(hostActivity: ComponentActivity?) {
         // Stub. Not implemented via web authentication provider.
+    }
+
+    override fun dispose() {
+        launcher?.unregister()
     }
 
 }

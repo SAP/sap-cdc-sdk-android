@@ -99,4 +99,9 @@ class FacebookAuthenticationProvider : IAuthenticationProvider {
         LoginManager.getInstance().logOut()
     }
 
+    override fun dispose() {
+        // Stub.
+        // Facebook SDK unregisters the activityResultRegistry.
+    }
+
 }

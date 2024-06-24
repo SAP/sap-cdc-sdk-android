@@ -1,3 +1,4 @@
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -21,13 +22,25 @@ android {
         }
     }
 
+    signingConfigs {
+
+        getByName("debug") {
+            keyAlias = "key0"
+            keyPassword = "android"
+            storeFile = file("keystore/debug-key.keystore")
+            storePassword = "android"
+        }
+    }
+
     buildTypes {
-        release {
-            isMinifyEnabled = false
+        getByName("debug") {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = true
         }
 
         release {

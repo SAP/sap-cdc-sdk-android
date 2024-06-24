@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
+import com.sap.cdc.android.sdk.authentication.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
 import com.sap.cdc.android.sdk.authentication.AuthenticationApi
 import com.sap.cdc.android.sdk.authentication.IAuthResponse
 import com.sap.cdc.android.sdk.authentication.provider.AuthenticatorProviderResult
@@ -12,7 +13,8 @@ import com.sap.cdc.android.sdk.authentication.provider.ProviderException
 import com.sap.cdc.android.sdk.authentication.provider.ProviderType
 import com.sap.cdc.android.sdk.authentication.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.api.Api
+import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.api.model.CDCError
 import java.lang.ref.WeakReference
 
 /**
@@ -23,8 +25,8 @@ import java.lang.ref.WeakReference
 class ProviderAuthFow(
     coreClient: CoreClient,
     sessionService: SessionService,
-    private val provider: IAuthenticationProvider,
-    private val weakActivity: WeakReference<ComponentActivity>
+    private val provider: IAuthenticationProvider? = null,
+    private val weakActivity: WeakReference<ComponentActivity>? = null
 ) : AuthFlow(coreClient, sessionService) {
 
     companion object {
@@ -32,8 +34,10 @@ class ProviderAuthFow(
     }
 
     override suspend fun authenticate(): IAuthResponse {
+        if (provider == null)
+            return response.failedAuthenticationWith(CDCError.providerError())
         try {
-            val result: AuthenticatorProviderResult = provider.providerSignIn(weakActivity.get())
+            val result: AuthenticatorProviderResult = provider.providerSignIn(weakActivity?.get())
             parameters["loginMode"] = "standard"
             parameters["provider"] = result.provider
 
@@ -41,9 +45,12 @@ class ProviderAuthFow(
                 ProviderType.NATIVE -> {
                     parameters["providerSessions"] = result.providerSessions!!
                     val notifyResponse =
-                        AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN, parameters)
+                        AuthenticationApi(coreClient, sessionService).genericSend(
+                            EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,
+                            parameters
+                        )
                     if (notifyResponse.isError()) {
-                      //TODO: notify error.
+                        //TODO: notify error.
                     }
                     dispose()
                     return response.withAuthenticationData(notifyResponse.asJson()!!)
@@ -70,8 +77,14 @@ class ProviderAuthFow(
         }
     }
 
+    suspend fun removeConnection(provider: String): CDCResponse =
+        AuthenticationApi(coreClient, sessionService).genericSend(
+            EP_SOCIALIZE_REMOVE_CONNECTION, mutableMapOf("provider" to provider)
+        )
+
+
     override fun dispose() {
-        weakActivity.clear()
+        weakActivity?.clear()
     }
 
     suspend fun link() {

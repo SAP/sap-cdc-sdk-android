@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import com.linecorp.linesdk.LineApiResponseCode
 import com.linecorp.linesdk.Scope
@@ -16,7 +17,6 @@ import com.sap.cdc.android.sdk.authentication.provider.ProviderException
 import com.sap.cdc.android.sdk.authentication.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.authentication.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.example.R
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.coroutines.resume
@@ -30,6 +30,8 @@ import kotlin.coroutines.suspendCoroutine
  */
 
 class LineAuthenticationProvider() : IAuthenticationProvider {
+
+    private var launcher: ActivityResultLauncher<Intent>? = null
 
     override fun getProvider(): String = "line"
 
@@ -46,7 +48,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                 return@suspendCoroutine
             }
 
-            val channelId = hostActivity.getString(R.string.line_channel_id)
+            val channelId = ""//hostActivity.getString(R.string.line_channel_id)
             val loginIntent: Intent = LineLoginApi.getLoginIntent(
                 hostActivity,
                 channelId,
@@ -55,7 +57,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                     .build()
             )
 
-            val launcher = hostActivity.activityResultRegistry.register(
+            launcher = hostActivity.activityResultRegistry.register(
                 "line-login",
                 object : ActivityResultContract<Intent, android.util.Pair<Int, Intent>>() {
                     override fun createIntent(context: Context, input: Intent): Intent = input
@@ -92,11 +94,15 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                             type = ProviderType.NATIVE,
                             providerSessions = providerSession
                         )
+
+                        dispose()
                         continuation.resume(authenticatorProviderResult)
                     }
 
                     LineApiResponseCode.CANCEL -> {
                         Log.d("LineAuthenticationProvider", "CANCEL")
+
+                        dispose()
                         continuation.resumeWithException(
                             ProviderException(
                                 ProviderExceptionType.CANCELED,
@@ -117,17 +123,23 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                             "providerMessage",
                             lineResult.errorData.toString()
                         )
+
+                        dispose()
                         continuation.resumeWithException(providerException)
                     }
                 }
             }
-            launcher.launch(loginIntent)
+            launcher?.launch(loginIntent)
         }
 
     override suspend fun providerSignOut(hostActivity: ComponentActivity?) {
         if (hostActivity == null) return
-        val channelId = hostActivity.getString(R.string.line_channel_id)
+        val channelId =""// hostActivity.getString(R.string.line_channel_id)
         val client = LineApiClientBuilder(hostActivity, channelId).build()
         client.logout()
+    }
+
+    override fun dispose() {
+        launcher?.unregister()
     }
 }

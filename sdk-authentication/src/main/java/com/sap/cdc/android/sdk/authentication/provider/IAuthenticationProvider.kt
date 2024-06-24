@@ -20,6 +20,8 @@ interface IAuthenticationProvider {
 
     suspend fun providerSignOut(hostActivity: ComponentActivity?)
 
+    fun dispose()
+
 }
 
 class AuthenticatorProviderResult(val provider: String, val type: ProviderType) {

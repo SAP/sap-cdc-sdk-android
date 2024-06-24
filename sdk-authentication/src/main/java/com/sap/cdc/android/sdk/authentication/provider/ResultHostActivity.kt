@@ -18,6 +18,8 @@ class ResultHostActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        Log.d(LOG_TAG, "onNewIntent: ")
+        Log.d(LOG_TAG, "onNewIntent: recieved")
+        setResult(RESULT_OK, intent)
+        finish()
     }
 }

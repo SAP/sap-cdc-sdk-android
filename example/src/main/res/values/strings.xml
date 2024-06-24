@@ -16,17 +16,20 @@
     <string name="my_profile">My Profile</string>
     <string name="login">Login</string>
 
+    <string name="about_me">About Me</string>
+
     <string name="home_img_macbook_content_description">Macbook image</string>
 
     <!-- Social providers -->
-    <string name="facebook_app_id">113512789545198 </string>
-    <string name="fb_login_protocol_scheme">fb113512789545198 </string>
-    <string name="facebook_client_token">26444838e49deb23e6d5fbc9a27672f2</string>
+    <string name="facebook_app_id"></string>
+    <string name="fb_login_protocol_scheme"></string>
+    <string name="facebook_client_token"></string>
 
-    <string name="line_channel_id">1618046855</string>
+    <string name="line_channel_id"></string>
+
+    <string name="wechat_app_id"></string>
 
     <string name="google_server_client_id"></string>
-    <string name="about_me">About Me</string>
 
 
 </resources>

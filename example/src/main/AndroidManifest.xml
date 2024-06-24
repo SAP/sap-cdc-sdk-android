@@ -42,10 +42,16 @@
             android:theme="@style/Theme.CXCDCAndroidSDK" />
 
         <activity
+            android:name="com.sap.cdc.android.sdk.authentication.provider.ResultHostActivity"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:theme="@style/Theme.CDC.NoAnimationActivity" />
+
+        <activity
             android:name=".wxapi.WXEntryActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@style/Theme.CDC.NoAnimationActivity" />
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
