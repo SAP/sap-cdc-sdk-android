@@ -26,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerIcon.Companion.Text
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -34,13 +33,14 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
+import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
+import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
 import com.sap.cdc.android.sdk.sceensets.ScreenSetBuilder
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.CANCELED
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.HIDE
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN_STARTED
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGOUT
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebViewClient
@@ -117,7 +117,6 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
                     val eventName = webBridgeJSEvent.name()
                     Log.d("ScreenSetView", "event: $eventName")
                     when (eventName) {
-
                         CANCELED -> {
                             screenSetError = "Operation canceled"
                             Handler(Looper.getMainLooper()).postDelayed({
@@ -130,7 +129,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
                         }
 
                         LOGIN -> {
-
+                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         }
 
                         LOGOUT -> {
@@ -151,6 +150,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
         if (screenSetError.isNotEmpty()) {
             Spacer(modifier = Modifier.size(12.dp))
             Row(
+                modifier = Modifier.align(Alignment.BottomCenter),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(

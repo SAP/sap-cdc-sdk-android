@@ -35,17 +35,30 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
 
     private var bridgedWebView: WebView? = null
     private var bridgeEvents: ((WebBridgeJSEvent) -> Unit?)? = null
+    private lateinit var bridgedApiService: WebBridgeJSApiService
 
-    private lateinit var apiService: WebBridgeJSApiService
-
-    fun streamEvent(event: WebBridgeJSEvent) = bridgeEvents?.invoke(event)
-
+    /**
+     * Register bridge for event forwarding.
+     */
     fun registerForEvents(events: (WebBridgeJSEvent) -> Unit) {
         bridgeEvents = events
     }
 
-    fun setNativeSocialProviders(providerMap: MutableMap<String, IAuthenticationProvider>) {
-        apiService.nativeSocialProviders = providerMap
+    /**
+     * Stream events forward.
+     */
+    fun streamEvent(event: WebBridgeJSEvent) = bridgeEvents?.invoke(event)
+
+
+    /**
+     * Set the native social providers.
+     * Use provide lowercased name as key & the authenticator instance for the value.
+     */
+    fun setNativeSocialProviders(
+        providerMap: MutableMap<String,
+                IAuthenticationProvider>
+    ) {
+        bridgedApiService.nativeSocialProviders = providerMap
     }
 
     /**
@@ -53,23 +66,29 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
      */
     fun attachBridgeTo(webView: WebView) {
         bridgedWebView = webView
-        apiService = WebBridgeJSApiService(
+        bridgedApiService = WebBridgeJSApiService(
             weakHostActivity = WeakReference(webView.context as ComponentActivity?),
             authenticationService = authenticationService
         )
         bridgedWebView!!.addJavascriptInterface(
             ScreenSetsJavaScriptInterface(
-                apiService.apiKey()
+                bridgedApiService.apiKey()
             ),
             JS_NAME
         )
-        apiService.evaluateResult = { pair ->
-            evaluateJS(pair.first, pair.second)
+        bridgedApiService.evaluateResult = { response, event ->
+            evaluateJS(response.first, response.second)
+            if (event != null) {
+                streamEvent(event)
+            }
         }
     }
 
+    /**
+     * Detach the JS bridge from given WebView widget.
+     */
     fun detachBridgeFrom(webView: WebView) {
-        apiService.dispose()
+        bridgedApiService.dispose()
         webView.loadUrl("about:blank")
         webView.clearCache(true);
         webView.clearHistory();
@@ -128,13 +147,13 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
 
         when (action) {
             "get_ids" -> {
-                val ids = "{\"gmid\":\"${apiService.gmid()}\"}"
+                val ids = "{\"gmid\":\"${bridgedApiService.gmid()}\"}"
                 Log.d(LOG_TAG, "$action: $ids")
                 evaluateJS(callbackID!!, ids)
             }
 
             "is_session_valid" -> {
-                val session = apiService.session()
+                val session = bridgedApiService.session()
                 Log.d(LOG_TAG, "$action: ${session != null}")
                 evaluateJS(callbackID!!, (session != null).toString())
             }
@@ -143,7 +162,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
                 Log.d(LOG_TAG, "$action: ")
                 // Specific mapping is required to handle legacy & new apis.
                 //TODO: A callback id is needed to JS evaluation of responses.
-                apiService.onRequest(action, method, params, callbackID!!)
+                bridgedApiService.onRequest(action, method, params, callbackID!!)
             }
 
             "on_plugin_event" -> {

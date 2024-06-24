@@ -8,6 +8,7 @@ import com.sap.cdc.android.sdk.authentication.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.authentication.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import java.lang.ref.WeakReference
 
@@ -59,6 +60,7 @@ interface IAuthApis {
         parameters: MutableMap<String, String>? = mutableMapOf(),
     ): IAuthResponse
 
+    suspend fun removeConnection(provider: String): CDCResponse
 }
 
 internal class AuthApis(
@@ -101,6 +103,12 @@ internal class AuthApis(
         flow.withParameters(parameters ?: mutableMapOf())
         return flow.authenticate()
     }
+
+    override suspend fun removeConnection(provider: String): CDCResponse =
+        ProviderAuthFow(
+            coreClient,
+            sessionService
+        ).removeConnection(provider)
 
 }
 

@@ -1,8 +1,8 @@
 package com.sap.cdc.android.sdk.core.api
 
 import android.util.Log
-import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.BuildConfig
+import com.sap.cdc.android.sdk.core.SiteConfig
 import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
 

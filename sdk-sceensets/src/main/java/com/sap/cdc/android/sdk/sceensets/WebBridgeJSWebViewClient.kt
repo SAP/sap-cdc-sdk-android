@@ -52,6 +52,7 @@ class WebBridgeJSWebViewClient(
         error: WebResourceError?
     ) {
         if (error == null) return
+        // Stream error.
         webBridge.streamEvent(
             errorEvent(
                 error.errorCode,
@@ -71,18 +72,27 @@ class WebBridgeJSWebViewClient(
         return true
     }
 
+    /**
+     * Check for JS exception in page load.
+     */
     private fun isJsException(scheme: String?, host: String?): Boolean {
         if (scheme == null || host == null) return false
         if (scheme == URI_REDIRECT_SCHEME && host == JS_EXCEPTION_SCHEME_DEFAULT) return true
         return false
     }
 
+    /**
+     * Check for specific page load error.
+     */
     private fun isJsLoadError(scheme: String?, host: String?): Boolean {
         if (scheme == null || host == null) return false
         if (scheme == URI_REDIRECT_SCHEME && host == JS_LOAD_ERROR_SCHEME_DEFAULT) return true
         return false
     }
 
+    /**
+     * Generate error event.
+     */
     private fun errorEvent(code: Int, description: String): WebBridgeJSEvent =
         WebBridgeJSEvent(
             mapOf(

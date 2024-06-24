@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.sceensets
+package com.sap.cdc.android.sdk.example.ui.fragment
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -10,9 +10,11 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.sap.cdc.android.sdk.sceensets.R
+import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
+import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent
+import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebChromeClient
+import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebViewClient
 
 /**
  * Created by Tal Mirmelshtein on 15/06/2024

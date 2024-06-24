@@ -1,11 +1,13 @@
 package com.sap.cdc.android.sdk.sceensets
 
+import com.sap.cdc.android.sdk.core.api.model.CDCError
+
 /**
  * Created by Tal Mirmelshtein on 13/06/2024
  * Copyright: SAP LTD.
  */
 class WebBridgeJSEvent(
-    val content: Map<String, Any>? = mapOf()
+    val content: Map<String, Any?>? = mapOf()
 ) {
     companion object {
         const val BEFORE_SCREEN_LOAD: String = "beforeScreenLoad"
@@ -29,6 +31,10 @@ class WebBridgeJSEvent(
 
         fun canceledEvent(): WebBridgeJSEvent = WebBridgeJSEvent(
             mapOf("eventName" to CANCELED)
+        )
+
+        fun errorEvent(error: CDCError?): WebBridgeJSEvent = WebBridgeJSEvent(
+            mapOf("eventName" to ERROR, "error" to error)
         )
     }
 

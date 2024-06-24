@@ -2,10 +2,10 @@ package com.sap.cdc.android.sdk.authentication.flow
 
 import com.sap.cdc.android.sdk.authentication.AuthResponse
 import com.sap.cdc.android.sdk.authentication.IAuthResponse
-import com.sap.cdc.android.sdk.authentication.session.SessionService
-import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.authentication.session.Session
+import com.sap.cdc.android.sdk.authentication.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.api.CDCResponse
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

@@ -20,6 +20,6 @@ class WebBridgeJSWebChromeClient() : WebChromeClient() {
     }
 
     fun onActivityResult(uri: Uri?) {
-
+        //TODO: Handle Uri result
     }
 }

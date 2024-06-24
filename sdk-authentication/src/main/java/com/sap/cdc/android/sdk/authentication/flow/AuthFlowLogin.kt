@@ -5,7 +5,6 @@ import com.sap.cdc.android.sdk.authentication.AuthenticationApi
 import com.sap.cdc.android.sdk.authentication.IAuthResponse
 import com.sap.cdc.android.sdk.authentication.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.api.Api
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

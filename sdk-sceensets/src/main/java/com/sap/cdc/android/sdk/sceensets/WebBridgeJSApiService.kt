@@ -11,11 +11,13 @@ import com.sap.cdc.android.sdk.authentication.AuthenticationService
 import com.sap.cdc.android.sdk.authentication.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.authentication.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.authentication.session.Session
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJS.Companion.LOG_TAG
+import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN
 import com.sap.cdc.android.sdk.sceensets.extensions.capitalFirst
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -42,10 +44,20 @@ class WebBridgeJSApiService(
 
     fun session(): Session? = authenticationService.sessionService.sessionSecure.getSession()
 
-    var evaluateResult: (response: (Pair<String, String>)) -> Unit? = { }
+    /**
+     * Forward result for JS evaluation.
+     */
+    var evaluateResult: (response: (Pair<String, String>), event: WebBridgeJSEvent?) -> Unit? =
+        { _: Pair<String, String>, _: WebBridgeJSEvent? -> }
 
+    /**
+     * Set native social provider map.
+     */
     var nativeSocialProviders: MutableMap<String, IAuthenticationProvider> = mutableMapOf()
 
+    /**
+     * Bridge web request handler.
+     */
     fun onRequest(
         action: String,
         api: String,
@@ -121,23 +133,39 @@ class WebBridgeJSApiService(
                     LOG_TAG,
                     "sendRequest: $api - request error: ${response.errorCode()} - ${response.errorDetails()}"
                 )
+                evaluateResult(
+                    Pair(containerId, response.jsonResponse ?: ""),
+                    WebBridgeJSEvent.errorEvent(response.serializeTo<CDCError>())
+                )
+                this.coroutineContext.cancel()
             }
 
             // Check if response contains a session object.
             if (responseContainsSession(response.asJson())) {
                 // Set new session.
                 authenticationService.sessionService.setSession(response.asJson()!!)
-                //TODO: Throttle event login.
+                evaluateResult(
+                    Pair(containerId, response.jsonResponse ?: ""),
+                    WebBridgeJSEvent(
+                        mapOf(
+                            "eventName" to LOGIN, "data" to response.asJson()
+                        )
+                    )
+                )
+                this.coroutineContext.cancel()
             }
 
             //Optional completion handler.
             completion()
 
             // Evaluate response.
-            evaluateResult(Pair(containerId, response.jsonResponse ?: ""))
+            evaluateResult(Pair(containerId, response.jsonResponse ?: ""), null)
         }
     }
 
+    /**
+     * Throttle oauth request (social) received from webSDK via the mobile adapter.
+     */
     private fun sendOAuthRequest(
         api: String,
         params: Map<String, String>,
@@ -166,19 +194,21 @@ class WebBridgeJSApiService(
                 )
             }
 
+            // Initiate provider login flow.
             val authResponse = authenticationService.authenticate().providerLogin(
                 weakHostActivity.get()!!, authProvider, params.toMutableMap()
             )
             if (authResponse.authenticationError() != null) {
                 // Fail with error.
                 //TODO: throttle error
+
             }
 
             //Optional completion handler.
             completion()
 
             // Evaluate response.
-            evaluateResult(Pair(containerId, authResponse.authenticationJson() ?: ""))
+//            evaluateResult(Pair(containerId, authResponse.authenticationJson() ?: ""))
         }
     }
 
