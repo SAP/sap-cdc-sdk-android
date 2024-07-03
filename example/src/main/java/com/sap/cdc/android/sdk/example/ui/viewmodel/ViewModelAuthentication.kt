@@ -64,7 +64,6 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             if (authResponse.authenticationError() != null) {
                 // Error in flow
                 onFailed(authResponse.authenticationError())
-                return@launch
             }
             onLogin()
         }

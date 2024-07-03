@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CreateCredentialRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
@@ -16,10 +17,12 @@ import com.sap.cdc.android.sdk.authentication.provider.ProviderException
 import com.sap.cdc.android.sdk.authentication.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.authentication.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.example.R
 import io.ktor.util.generateNonce
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.coroutines.resume
@@ -35,80 +38,74 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
 
     override fun getProvider(): String = "google"
 
-    override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult =
-        suspendCoroutine { continuation ->
-
-            if (hostActivity == null) {
-                continuation.resumeWithException(
-                    ProviderException(
-                        ProviderExceptionType.HOST_NULL,
-                        CDCError.contextError()
-                    )
-                )
-                return@suspendCoroutine
-            }
-
-            // Create instance of CredentialsManager.
-            val credentialManager = CredentialManager.create(hostActivity)
-
-            // Reference required Google server client ID (Resource id is not strict).
-            val serverClientId = ""//hostActivity.getString(R.string.google_server_client_id)
-
-            CoroutineScope(Dispatchers.IO).launch {
-                var result = credentialsManagerSignIn(
-                    credentialManager,
-                    serverClientId,
-                    true,
-                    hostActivity
-                )
-
-                // Try again using showFilterByAuthorizedAccounts as FALSE.
-                if (result.failed()) {
-                    result = credentialsManagerSignIn(
-                        credentialManager,
-                        serverClientId,
-                        false,
-                        hostActivity
-                    )
-                }
-
-                if (result.failed()) {
-                    val providerException = ProviderException(
-                        ProviderExceptionType.PROVIDER_FAILURE,
-                        CDCError.providerError()
-                    )
-                    providerException.error?.addDynamic(
-                        "providerMessage",
-                        result.exception?.message.toString()
-                    )
-                    continuation.resumeWithException(providerException)
-                }
-
-                // Handle result.
-                val credential = result.response!!.credential
-                // Extract ID Token.
-                val googleIdTokenCredential = GoogleIdTokenCredential
-                    .createFrom(credential.data)
-
-                val data = JsonObject(
-                    mapOf(
-                        "google" to JsonObject(
-                            mapOf(
-                                "idToken" to JsonPrimitive(googleIdTokenCredential.idToken),
-                            )
-                        )
-                    )
-                )
-                val providerSession = data.toString()
-
-                val authenticatorProviderResult = AuthenticatorProviderResult(
-                    provider = getProvider(),
-                    type = ProviderType.NATIVE,
-                    providerSessions = providerSession
-                )
-                continuation.resume(authenticatorProviderResult)
-            }
+    override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
+        if (hostActivity == null) {
+            val exception = ProviderException(
+                ProviderExceptionType.HOST_NULL,
+                CDCError.contextError()
+            )
+            throw exception
         }
+
+        // Create instance of CredentialsManager.
+        val credentialManager = CredentialManager.create(hostActivity)
+
+        // Reference required Google server client ID (Resource id is not strict).
+        val serverClientId = hostActivity.getString(R.string.google_server_client_id)
+
+        var result = credentialsManagerSignIn(
+            credentialManager,
+            serverClientId,
+            true,
+            hostActivity
+        )
+
+        // Try again using setFilterByAuthorizedAccounts as FALSE.
+        if (result.failed()) {
+            result = credentialsManagerSignIn(
+                credentialManager,
+                serverClientId,
+                false,
+                hostActivity
+            )
+        }
+
+        if (result.failed()) {
+            val providerException = ProviderException(
+                ProviderExceptionType.PROVIDER_FAILURE,
+                CDCError.providerError()
+            )
+            providerException.error?.addDynamic(
+                "providerMessage",
+                result.exception?.message.toString()
+            )
+            throw providerException
+        }
+
+        // Handle result.
+        val credential = result.response!!.credential
+        // Extract ID Token.
+        val googleIdTokenCredential = GoogleIdTokenCredential
+            .createFrom(credential.data)
+
+        val data = JsonObject(
+            mapOf(
+                "google" to JsonObject(
+                    mapOf(
+                        "idToken" to JsonPrimitive(googleIdTokenCredential.idToken),
+                    )
+                )
+            )
+        )
+        val providerSession = data.toString()
+
+        val authenticatorProviderResult = AuthenticatorProviderResult(
+            provider = getProvider(),
+            type = ProviderType.NATIVE,
+            providerSessions = providerSession
+        )
+        return authenticatorProviderResult
+    }
 
 
     /**
@@ -117,11 +114,11 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
     private suspend fun credentialsManagerSignIn(
         credentialManager: CredentialManager,
         serverClientId: String,
-        showFilterByAuthorizedAccounts: Boolean,
+        setFilterByAuthorizedAccounts: Boolean,
         context: Context
     ): CredentialSignInResult {
         val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(showFilterByAuthorizedAccounts)
+            .setFilterByAuthorizedAccounts(setFilterByAuthorizedAccounts)
             .setServerClientId(serverClientId)
             .setNonce(generateNonce())
             .build()

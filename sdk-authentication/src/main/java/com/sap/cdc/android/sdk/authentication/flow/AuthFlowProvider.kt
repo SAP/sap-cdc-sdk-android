@@ -50,7 +50,9 @@ class ProviderAuthFow(
                             parameters
                         )
                     if (notifyResponse.isError()) {
-                        //TODO: notify error.
+                        val error = notifyResponse.toCDCError()
+                        Log.d(LOG_TAG, error.errorDetails ?: "")
+                        response.failedAuthenticationWith(error)
                     }
                     dispose()
                     return response.withAuthenticationData(notifyResponse.asJson()!!)
