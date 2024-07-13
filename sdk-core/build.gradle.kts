@@ -63,8 +63,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-inline:5.0.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 
     // HTTP engine: that handles network requests.
     api("io.ktor:ktor-client-android:2.3.5")

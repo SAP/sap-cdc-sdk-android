@@ -90,8 +90,10 @@ class WebBridgeJSApiService(
                 sendRequest(
                     api = EP_SOCIALIZE_REMOVE_CONNECTION,
                     params = mutableMapOf("provider" to provider!!),
-                    containerId,
-                    {})
+                    containerId
+                ) {
+                    // Stub.
+                }
             }
 
             else -> {
@@ -143,7 +145,19 @@ class WebBridgeJSApiService(
             // Check if response contains a session object.
             if (responseContainsSession(response.asJson())) {
                 // Set new session.
-                authenticationService.sessionService.setSession(response.asJson()!!)
+                val sessionInfo = response.serializeObject<Session>("sessionInfo")
+                if (sessionInfo == null) {
+                    Log.d(
+                        LOG_TAG,
+                        "sendRequest: $api - request error: faild to serialize session Info"
+                    )
+                    evaluateResult(
+                        Pair(containerId, response.jsonResponse ?: ""),
+                        WebBridgeJSEvent.canceledEvent()
+                    )
+                    this.coroutineContext.cancel()
+                }
+                authenticationService.sessionService.setSession(sessionInfo!!)
                 evaluateResult(
                     Pair(containerId, response.jsonResponse ?: ""),
                     WebBridgeJSEvent(
@@ -175,6 +189,10 @@ class WebBridgeJSApiService(
         if (weakHostActivity.get() == null) {
             // Fail with error.
             Log.d(LOG_TAG, "Context host error. Flow broken")
+            evaluateResult(
+                Pair(containerId, ""),
+                WebBridgeJSEvent.canceledEvent()
+            )
         }
         CoroutineScope(Dispatchers.IO).launch {
             val provider = params["provider"]
@@ -201,7 +219,6 @@ class WebBridgeJSApiService(
             if (authResponse.authenticationError() != null) {
                 // Fail with error.
                 //TODO: throttle error
-
             }
 
             //Optional completion handler.
@@ -219,7 +236,7 @@ class WebBridgeJSApiService(
      */
     private fun getNativeProviderAuthenticator(provider: String): IAuthenticationProvider? {
         if (nativeSocialProviders.isEmpty() || !nativeSocialProviders.containsKey(provider))
-            return getNewNativeProviderInstance(provider)
+            return null
         return nativeSocialProviders[provider]
     }
 

@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.CreateCredentialRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
@@ -19,15 +18,8 @@ import com.sap.cdc.android.sdk.authentication.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.R
 import io.ktor.util.generateNonce
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

@@ -46,6 +46,11 @@ class Request(
     }
 
     fun parameters(parameters: MutableMap<String, String>) = apply {
+        // Make sure that we always send mobile as targetEnv field.
+        val targetEnvironment = parameters["targetEnv"]
+        if (targetEnvironment != null && targetEnvironment != "mobile") {
+            parameters.remove("targetEnv")
+        }
         this.parameters += parameters
     }
 

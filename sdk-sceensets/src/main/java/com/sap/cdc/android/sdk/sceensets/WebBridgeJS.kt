@@ -77,7 +77,11 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             JS_NAME
         )
         bridgedApiService.evaluateResult = { response, event ->
-            evaluateJS(response.first, response.second)
+            val containerID = response.first
+            val evaluationString = response.second
+            if (evaluationString.isNotEmpty()) {
+                evaluateJS(containerID, evaluationString)
+            }
             if (event != null) {
                 streamEvent(event)
             }

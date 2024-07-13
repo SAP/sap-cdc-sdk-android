@@ -106,6 +106,9 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
             }, update = { webView ->
                 Log.d("ScreenSetView", "update")
                 webBridgeJS.attachBridgeTo(webView)
+
+                // Set external authenticators. SDK will no longer use reflection to
+                // retrieve external providers.
                 webBridgeJS.setNativeSocialProviders(
                     mutableMapOf(
                         "facebook" to FacebookAuthenticationProvider(),
@@ -123,9 +126,8 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
                                 screenSetError = ""
                             }, 2000)
                         }
-
                         HIDE -> {
-
+                            NavigationCoordinator.INSTANCE.navigateUp()
                         }
 
                         LOGIN -> {
@@ -133,7 +135,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
                         }
 
                         LOGOUT -> {
-
+                            NavigationCoordinator.INSTANCE.navigateUp()
                         }
                     }
                 }

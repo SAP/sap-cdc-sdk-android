@@ -41,7 +41,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     private var authenticationService = AuthenticationService(sessionService)
 
     init {
-        val v6Migrator = V6SessionMigrator(context)
+        val v6Migrator = SessionMigrator(context)
         // v6 -> tryMigrateSession (needs identityService as injection)
         if (v6Migrator.sessionAvailableForMigration()) {
             v6Migrator.getSession(

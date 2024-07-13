@@ -2,7 +2,7 @@
     <string name="app_name">Bits n Bytes</string>
 
     <string name="com.sap.cxcdc.apikey">4_mL-YkAEegR9vzt6QvHWI5Q</string>
-    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
+    <string name="com.sap.cxcdc.domain">us1-st2.gigya.com</string>
 
     <string name="home">Bits \u0026 Bytes</string>
     <string name="search">Search</string>
@@ -29,7 +29,7 @@
 
     <string name="wechat_app_id"></string>
 
-    <string name="google_server_client_id"></string>
+    <string name="google_server_client_id">977811956095-t72doari7i8iuv9r6qf3kbhh2ns3u7cj.apps.googleusercontent.com</string>
 
 
 </resources>

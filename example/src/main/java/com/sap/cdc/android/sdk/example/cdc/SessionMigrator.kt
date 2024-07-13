@@ -23,22 +23,22 @@ import javax.crypto.spec.GCMParameterSpec
  * Use this class in any "init" function of your CDC SDK wrapper class to ensure migration is
  * preformed before any other SDK actions.
  */
-class V6SessionMigrator(private val context: Context) {
+class SessionMigrator(private val context: Context) {
 
     private var keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore")
     private var preferences: SharedPreferences =
-        context.getSharedPreferences(pref_file, Context.MODE_PRIVATE)
+        context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE)
 
     init {
         keyStore.load(null)
     }
 
     companion object {
-        const val alias = "GS_ALIAS_V2"
-        const val pref_file = "GSLIB"
-        const val pref_session_entry = "GS_PREFS"
-        const val pref_session_iv_spec = "IV_session"
-        const val transformation_algorithm = "AES/GCM/NoPadding"
+        const val ALIAS = "GS_ALIAS_V2"
+        const val PREF_FILE = "GSLIB"
+        const val PREF_SESSION_ENTRY = "GS_PREFS"
+        const val PREF_SESSION_IV_SPEC = "IV_session"
+        const val TRANSFORMATION = "AES/GCM/NoPadding"
 
         const val TAG = "V6SessionMigrator"
     }
@@ -46,16 +46,16 @@ class V6SessionMigrator(private val context: Context) {
     /**
      * Check if the Android Keystore has an old session alias.
      */
-    fun sessionAvailableForMigration(): Boolean = keyStore.containsAlias(alias)
+    fun sessionAvailableForMigration(): Boolean = keyStore.containsAlias(ALIAS)
 
     /**
      * Get session keystore key for decryption.
      */
     private fun getKeyV2(): SecretKey? {
         keyStore.load(null)
-        if (keyStore.containsAlias(alias)) {
+        if (keyStore.containsAlias(ALIAS)) {
             // Alias available. Key generated.
-            val secretKeyEntry = keyStore.getEntry(alias, null) as KeyStore.SecretKeyEntry
+            val secretKeyEntry = keyStore.getEntry(ALIAS, null) as KeyStore.SecretKeyEntry
             return secretKeyEntry.secretKey
         }
         return null
@@ -65,7 +65,7 @@ class V6SessionMigrator(private val context: Context) {
      * Clear old SDK keystore alias.
      */
     private fun clearKeyV2() {
-        keyStore.deleteEntry(alias)
+        keyStore.deleteEntry(ALIAS)
     }
 
     /**
@@ -73,9 +73,9 @@ class V6SessionMigrator(private val context: Context) {
      */
     private fun clearPrefsV2() {
         preferences.edit()
-            .remove(pref_session_entry)
-            .remove(pref_session_iv_spec).apply()
-        context.deleteSharedPreferences(pref_file)
+            .remove(PREF_SESSION_ENTRY)
+            .remove(PREF_SESSION_IV_SPEC).apply()
+        context.deleteSharedPreferences(PREF_FILE)
     }
 
     /**
@@ -85,9 +85,9 @@ class V6SessionMigrator(private val context: Context) {
         success: (String?) -> Unit,
         error: (String) -> Unit
     ) {
-        val cipher = Cipher.getInstance(transformation_algorithm)
+        val cipher = Cipher.getInstance(TRANSFORMATION)
 
-        val encryptedSession: String? = preferences.getString(pref_session_entry, null)
+        val encryptedSession: String? = preferences.getString(PREF_SESSION_ENTRY, null)
         if (encryptedSession == null) {
             Log.e(TAG, "Session not available for migration")
             error("$TAG: Session not available")
@@ -95,7 +95,7 @@ class V6SessionMigrator(private val context: Context) {
         }
 
         val ivSpecString: String? =
-            preferences.getString(pref_session_iv_spec, null)
+            preferences.getString(PREF_SESSION_IV_SPEC, null)
         if (ivSpecString == null) {
             Log.e(TAG, "Session not migrated to GCM. Cannot be migrated")
             error("$TAG: Session not migrated to GCM. Cannot be migrated")
