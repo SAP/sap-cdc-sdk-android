@@ -34,7 +34,7 @@ interface IViewModelAuthentication {
 
     fun socialSignInWith(
         hostActivity: ComponentActivity,
-        provider: IAuthenticationProvider,
+        provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
@@ -48,6 +48,10 @@ interface IViewModelAuthentication {
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
+    }
+
+    fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
+        return null
     }
 }
 
@@ -88,10 +92,14 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
 
     override fun socialSignInWith(
         hostActivity: ComponentActivity,
-        provider: IAuthenticationProvider,
+        provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
+        if(provider == null) {
+            onFailedWith(CDCError.providerError())
+            return
+        }
         viewModelScope.launch {
             val authResponse = identityService.nativeSocialSignIn(
                 hostActivity, provider
@@ -122,6 +130,10 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             }
             onLogin()
         }
+    }
+
+    override fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
+        return identityService.getAuthenticationProvider(name)
     }
 }
 

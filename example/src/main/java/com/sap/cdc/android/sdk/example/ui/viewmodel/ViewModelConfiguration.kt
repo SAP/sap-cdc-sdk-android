@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.example.ui.viewmodel
 
 import android.content.Context
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.example.ApplicationConfig
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -14,6 +15,8 @@ interface IViewModelConfiguration {
     fun currentApiDomain(): String = ""
     fun currentCname(): String = ""
     fun updateWithNewConfig(siteConfig: SiteConfig) {}
+    fun webViewUse(): Boolean = ApplicationConfig.useWebViews
+    fun updateWebViewUse(use: Boolean) {}
 }
 
 class ViewModelConfiguration(context: Context) : ViewModelBase(context), IViewModelConfiguration {
@@ -32,6 +35,10 @@ class ViewModelConfiguration(context: Context) : ViewModelBase(context), IViewMo
 
     override fun updateWithNewConfig(siteConfig: SiteConfig) {
         identityService.reinitializeSessionService(siteConfig)
+    }
+
+    override fun updateWebViewUse(use: Boolean) {
+        ApplicationConfig.useWebViews(use)
     }
 
 }

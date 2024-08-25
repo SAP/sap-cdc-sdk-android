@@ -38,6 +38,7 @@ import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
 import com.sap.cdc.android.sdk.sceensets.ScreenSetBuilder
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
+import com.sap.cdc.android.sdk.sceensets.WebBridgeJSConfig
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.CANCELED
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.HIDE
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN
@@ -80,6 +81,10 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
 
     // Set native social provider authenticators.
     val webBridgeJS: WebBridgeJS = viewModel.newWebBridgeJS()
+    // Add specific web bridge configurations.
+    webBridgeJS.addConfig(
+        WebBridgeJSConfig.Builder().obfuscate(false).build()
+    )
 
     Box {
         AndroidView(
@@ -126,6 +131,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet) {
                                 screenSetError = ""
                             }, 2000)
                         }
+
                         HIDE -> {
                             NavigationCoordinator.INSTANCE.navigateUp()
                         }

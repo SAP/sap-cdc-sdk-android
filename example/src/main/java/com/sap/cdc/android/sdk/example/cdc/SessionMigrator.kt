@@ -40,7 +40,7 @@ class SessionMigrator(private val context: Context) {
         const val PREF_SESSION_IV_SPEC = "IV_session"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
 
-        const val TAG = "V6SessionMigrator"
+        const val TAG = "SessionMigrator"
     }
 
     /**

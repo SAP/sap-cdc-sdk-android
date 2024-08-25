@@ -10,6 +10,10 @@ import com.sap.cdc.android.sdk.authentication.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.authentication.session.Session
 import com.sap.cdc.android.sdk.authentication.session.SessionService
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
+import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
+import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
+import com.sap.cdc.android.sdk.example.social.WeChatAuthenticationProvider
 import com.sap.cdc.android.sdk.sceensets.WebBridgeJS
 
 /**
@@ -41,10 +45,10 @@ class IdentityServiceRepository private constructor(context: Context) {
     private var authenticationService = AuthenticationService(sessionService)
 
     init {
-        val v6Migrator = SessionMigrator(context)
+        val sessionMigrator = SessionMigrator(context)
         // v6 -> tryMigrateSession (needs identityService as injection)
-        if (v6Migrator.sessionAvailableForMigration()) {
-            v6Migrator.getSession(
+        if (sessionMigrator.sessionAvailableForMigration()) {
+            sessionMigrator.getSession(
                 success = { session ->
                     if (session != null) {
                         // Set the session.
@@ -56,6 +60,12 @@ class IdentityServiceRepository private constructor(context: Context) {
                 }
             )
         }
+
+        // Register application specific authentication providers.
+        registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
+        registerAuthenticationProvider("google", GoogleAuthenticationProvider())
+        registerAuthenticationProvider("line", LineAuthenticationProvider())
+        registerAuthenticationProvider("weChat", WeChatAuthenticationProvider())
     }
 
     //region CONFIGURATION
@@ -148,6 +158,26 @@ class IdentityServiceRepository private constructor(context: Context) {
             hostActivity, webAuthenticationProvider
         )
     }
+
+    //region SOCIAL PROVIDERS
+
+    private var authenticationProviderMap: MutableMap<String, IAuthenticationProvider> =
+        mutableMapOf()
+
+    /**
+     * Get reference to registered authentication provider.
+     */
+    fun getAuthenticationProvider(name: String): IAuthenticationProvider? =
+        authenticationProviderMap[name]
+
+    /**
+     * Register new authentication provider.
+     */
+    fun registerAuthenticationProvider(name: String, provider: IAuthenticationProvider) {
+        authenticationProviderMap[name] = provider
+    }
+
+    //endregion
 
     //endregion
 

@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.sceensets
 
 import org.json.JSONObject
 
+//TODO: Wrong builder pattern - FIXME.
 /**
  * Created by Tal Mirmelshtein on 14/06/2024
  * Copyright: SAP LTD.

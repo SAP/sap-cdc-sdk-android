@@ -77,7 +77,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                 "facebook" -> {
                     viewModel.socialSignInWith(
                         context as ComponentActivity,
-                        FacebookAuthenticationProvider(),
+                        viewModel.getAuthenticationProvider("facebook"),
                         onLogin = {
                             loading = false
                             signInError = ""
@@ -92,7 +92,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                 "google" -> {
                     viewModel.socialSignInWith(
                         context as ComponentActivity,
-                        GoogleAuthenticationProvider(),
+                        viewModel.getAuthenticationProvider("google"),
                         onLogin = {
                             loading = false
                             signInError = ""
@@ -107,7 +107,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                 "line" -> {
                     viewModel.socialSignInWith(
                         context as ComponentActivity,
-                        LineAuthenticationProvider(),
+                        viewModel.getAuthenticationProvider("line"),
                         onLogin = {
                             loading = false
                             signInError = ""

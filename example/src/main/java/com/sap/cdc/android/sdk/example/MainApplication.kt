@@ -13,7 +13,7 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Allow WebViews debugging.
+        // Allow WebView debugging.
         WebView.setWebContentsDebuggingEnabled(true)
     }
 }

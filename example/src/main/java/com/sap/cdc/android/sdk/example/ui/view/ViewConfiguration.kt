@@ -3,8 +3,11 @@
 package com.sap.cdc.android.sdk.example.ui.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -19,6 +24,9 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -53,6 +61,7 @@ fun ViewConfiguration(viewModel: IViewModelConfiguration) {
     val apiKey = remember { mutableStateOf(viewModel.currentApiKey()) }
     val domain = remember { mutableStateOf(viewModel.currentApiDomain()) }
     val cname = remember { mutableStateOf(viewModel.currentCname()) }
+    var checked by remember { mutableStateOf(viewModel.webViewUse()) }
 
     Column(
         modifier = Modifier
@@ -71,20 +80,53 @@ fun ViewConfiguration(viewModel: IViewModelConfiguration) {
             ConfigurationCardEdit(title = "Api Key", valueState = apiKey)
             Spacer(
                 modifier = Modifier
-                    .height(4.dp)
+                    .height(2.dp)
                     .fillMaxWidth()
                     .background(color = Color.LightGray)
             )
             ConfigurationCardExposed(title = "Domain", valueState = domain)
             Spacer(
                 modifier = Modifier
-                    .height(4.dp)
+                    .height(2.dp)
                     .fillMaxWidth()
                     .background(color = Color.LightGray)
             )
             ConfigurationCardEdit(
                 title = "cname".uppercase(), valueState = cname
             )
+            Spacer(
+                modifier = Modifier
+                    .height(2.dp)
+                    .fillMaxWidth()
+                    .background(color = Color.LightGray)
+            )
+            Box(modifier = Modifier.height(54.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text("Use Web View (default: native view)")
+                    Switch(
+                        checked = viewModel.webViewUse(),
+                        onCheckedChange = {
+                            checked = it
+                            viewModel.updateWebViewUse(checked)
+                        },
+                        thumbContent = if (checked) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        } else {
+                            null
+                        }
+                    )
+                }
+            }
         }
         Spacer(modifier = Modifier.height(24.dp))
         ElevatedButton(

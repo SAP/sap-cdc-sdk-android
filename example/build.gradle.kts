@@ -24,24 +24,24 @@ android {
 
     signingConfigs {
 
-        getByName("debug") {
-            keyAlias = "key0"
-            keyPassword = "android"
-            storeFile = file("keystore/debug-key.keystore")
-            storePassword = "android"
-        }
+//        getByName("debug") {
+//            keyAlias = "key0"
+//            keyPassword = "android"
+//            storeFile = file("keystore/debug-key.keystore")
+//            storePassword = "android"
+//        }
     }
 
     buildTypes {
-        getByName("debug") {
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-            isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
-            isDebuggable = true
-        }
+//        getByName("debug") {
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
+//            isMinifyEnabled = false
+//            signingConfig = signingConfigs.getByName("debug")
+//            isDebuggable = true
+//        }
 
         release {
             isMinifyEnabled = true

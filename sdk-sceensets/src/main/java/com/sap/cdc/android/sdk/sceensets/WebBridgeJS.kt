@@ -36,6 +36,14 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     private var bridgedWebView: WebView? = null
     private var bridgeEvents: ((WebBridgeJSEvent) -> Unit?)? = null
     private lateinit var bridgedApiService: WebBridgeJSApiService
+    private var webBridgeJSConfig: WebBridgeJSConfig? = null
+
+    /**
+     * Add specific web bridge configurations.
+     */
+    fun addConfig(webBridgeJSConfig: WebBridgeJSConfig) {
+        this.webBridgeJSConfig = webBridgeJSConfig
+    }
 
     /**
      * Register bridge for event forwarding.
@@ -106,7 +114,10 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
      * Pass response data back the webSDK using the WebView's JS evaluation.
      */
     private fun evaluateJS(id: String, evaluation: String) {
-        val value = obfuscate(evaluation)
+        val value = when (webBridgeJSConfig?.obfuscate ?: true) {
+            true -> obfuscate(evaluation)
+            false -> evaluation
+        }
         val invocation = "javascript:$JS_EVALUATE['$id']($value);"
         bridgedWebView?.post {
             bridgedWebView?.evaluateJavascript(
@@ -146,7 +157,12 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
         if (queryStringParams == null) return false
 
         val data = queryStringParams.parseQueryStringParams()
-        val params = data["params"]?.let { deobfuscate(it).parseQueryStringParams() } ?: mapOf()
+        val params = data["params"]?.let {
+            when (webBridgeJSConfig?.obfuscate ?: false) {
+                true -> deobfuscate(it).parseQueryStringParams()
+                false -> it.parseQueryStringParams()
+            }
+        } ?: mapOf()
         val callbackID = data["callbackID"]
 
         when (action) {
