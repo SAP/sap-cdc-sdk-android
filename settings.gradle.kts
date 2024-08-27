@@ -18,7 +18,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "SAP-CDC-Android-SDK"
-include(":example")
-include(":sdk-core")
-include(":sdk-authentication")
-include(":sdk-sceensets")
+include(":app")
+include(":library")
