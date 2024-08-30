@@ -68,7 +68,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
     // Create screen set request parameters.
     val params = mutableMapOf<String, Any>(
         "screenSet" to screenSet,
-       // "startScreen" to startScreen
+        "startScreen" to startScreen
     )
 
     // Build Uri.
@@ -121,6 +121,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                 // Register for JS events.
                 webBridgeJS.registerForEvents { webBridgeJSEvent ->
                     val eventName = webBridgeJSEvent.name()
+                    // Log event.
                     Log.d("ScreenSetView", "event: $eventName")
                     when (eventName) {
                         CANCELED -> {
@@ -131,14 +132,21 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                         }
 
                         HIDE -> {
-                            NavigationCoordinator.INSTANCE.navigateUp()
+                            // Destroy the WebView instance.
+                            webView.post {
+                                webView.destroy()
+                            }
                         }
 
                         LOGIN -> {
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                            // Flow successful. Navigate to profile screen.
+                            webView.post {
+                                NavigationCoordinator.INSTANCE.popAndNavigate(ProfileScreenRoute.MyProfile.route)
+                            }
                         }
 
                         LOGOUT -> {
+                            // Navigate back to close the screen set view.
                             NavigationCoordinator.INSTANCE.navigateUp()
                         }
                     }
@@ -148,6 +156,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                 webBridgeJS.load(webView, screenSetUrl)
             }
         )
+        // Screen-set error optional display.
         if (screenSetError.isNotEmpty()) {
             Spacer(modifier = Modifier.size(12.dp))
             Row(

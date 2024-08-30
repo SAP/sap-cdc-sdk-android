@@ -12,7 +12,7 @@ import com.sap.cdc.android.sdk.core.CoreClient
  */
 
 class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
-    com.sap.cdc.android.sdk.auth.flow.AuthFlow(coreClient, sessionService) {
+    AuthFlow(coreClient, sessionService) {
 
     /**
      * Initiate login authentication flow.

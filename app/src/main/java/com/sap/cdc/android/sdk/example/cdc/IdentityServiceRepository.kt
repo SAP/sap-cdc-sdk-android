@@ -9,6 +9,7 @@ import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
@@ -142,6 +143,13 @@ class IdentityServiceRepository private constructor(context: Context) {
     }
 
     /**
+     * Logout from current CDC session.
+     */
+    suspend fun logout(): CDCResponse {
+        return authenticationService.authenticate().logout()
+    }
+
+    /**
      * Initiate cdc SDK native social provider login flow.
      */
     suspend fun nativeSocialSignIn(
@@ -164,6 +172,14 @@ class IdentityServiceRepository private constructor(context: Context) {
         return authenticationService.authenticate().providerLogin(
             hostActivity, webAuthenticationProvider
         )
+    }
+
+    suspend fun resolvePendingRegistrationWithMissingFields(
+        key: String,
+        serializedJsonValue: String
+    ): IAuthResponse {
+        val params = mutableMapOf(key to serializedJsonValue)
+        return authenticationService.resolve().pendingRegistrationWith(params)
     }
 
     //region SOCIAL PROVIDERS

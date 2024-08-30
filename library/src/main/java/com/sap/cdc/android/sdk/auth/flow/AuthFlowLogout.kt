@@ -29,7 +29,9 @@ class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
             response.failedAuthenticationWith(logoutResponse.toCDCError())
         }
         // Success.
-        //TODO: Determine if additional data purge is required.
+
+        // Invalidate session.
+        sessionService.clearSession()
         clearCookies()
         return response.withAuthenticationData(logoutResponse.asJson()!!)
     }

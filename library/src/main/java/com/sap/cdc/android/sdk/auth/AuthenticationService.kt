@@ -25,21 +25,21 @@ class AuthenticationService(val sessionService: SessionService) {
     init {
         // Check async/await.
         CoroutineScope(Dispatchers.IO).launch {
-            com.sap.cdc.android.sdk.auth.AuthenticationApi(coreClient, sessionService).getIDs()
+            AuthenticationApi(coreClient, sessionService).getIDs()
         }
     }
 
-    fun authenticate(): com.sap.cdc.android.sdk.auth.IAuthApis =
-        com.sap.cdc.android.sdk.auth.AuthApis(coreClient, sessionService)
+    fun authenticate(): IAuthApis =
+        AuthApis(coreClient, sessionService)
 
-    fun resolve(): com.sap.cdc.android.sdk.auth.IAuthResolvers =
-        com.sap.cdc.android.sdk.auth.AuthResolvers(coreClient, sessionService)
+    fun resolve(): IAuthResolvers =
+        AuthResolvers(coreClient, sessionService)
 
-    fun get(): com.sap.cdc.android.sdk.auth.IAuthApisGet =
-        com.sap.cdc.android.sdk.auth.AuthApisGet(coreClient, sessionService)
+    fun get(): IAuthApisGet =
+        AuthApisGet(coreClient, sessionService)
 
     fun set(): com.sap.cdc.android.sdk.auth.IAuthApisSet =
-        com.sap.cdc.android.sdk.auth.AuthApisSet(coreClient, sessionService)
+        AuthApisSet(coreClient, sessionService)
 
 
 

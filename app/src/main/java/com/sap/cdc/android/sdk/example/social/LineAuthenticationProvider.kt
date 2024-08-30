@@ -15,6 +15,7 @@ import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.example.R
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.coroutines.resume
@@ -46,7 +47,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                 return@suspendCoroutine
             }
 
-            val channelId = ""//hostActivity.getString(R.string.line_channel_id)
+            val channelId = hostActivity.getString(R.string.line_channel_id)
             val loginIntent: Intent = LineLoginApi.getLoginIntent(
                 hostActivity,
                 channelId,

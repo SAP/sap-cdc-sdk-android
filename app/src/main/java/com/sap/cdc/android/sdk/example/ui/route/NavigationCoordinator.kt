@@ -20,6 +20,7 @@ class NavigationCoordinator private constructor() {
 
     private var currentNavController: NavController? = null
 
+    // Tracking back state for back icon navigation in toolbar. Kind of a hack.
     private val _backNav = MutableStateFlow(false)
     val backNav = _backNav.asStateFlow()
 
@@ -32,12 +33,18 @@ class NavigationCoordinator private constructor() {
         _backNav.value = currentNavController?.previousBackStackEntry != null
     }
 
+    fun popAndNavigate(route: String) {
+        currentNavController?.popBackStack()
+        currentNavController?.navigate(route)
+        _backNav.value = currentNavController?.previousBackStackEntry != null
+    }
+
     fun navigate(route: String, builder: NavOptionsBuilder.() -> Unit) {
         currentNavController?.navigate(route, navOptions(builder))
     }
 
     fun navigateUp() {
-        currentNavController?.navigateUp()
+        currentNavController?.popBackStack()
         _backNav.value = currentNavController?.previousBackStackEntry != null
     }
 

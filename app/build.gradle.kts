@@ -10,7 +10,8 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sap.cdc.android.sdk.example"
+        applicationId  = "com.gigya.android.sample"
+//        applicationId = "com.sap.cdc.android.sdk.example"
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 34

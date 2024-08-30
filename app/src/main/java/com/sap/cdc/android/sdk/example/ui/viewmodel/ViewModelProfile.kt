@@ -24,6 +24,8 @@ interface IViewModelProfile {
     fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()) {}
 
     fun setAccountInfo(success: () -> Unit, onFailed: (CDCError) -> Unit) {}
+
+    fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {}
 }
 
 
@@ -79,6 +81,18 @@ class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelPro
             firstName = account.profile.firstName
             lastName = account.profile.lastName
 
+            success()
+        }
+    }
+
+    override fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {
+        viewModelScope.launch {
+            val authResponse = identityService.logout()
+            if (authResponse.isError()) {
+                // Error in account request.
+                onFailed(authResponse.toCDCError())
+                return@launch
+            }
             success()
         }
     }

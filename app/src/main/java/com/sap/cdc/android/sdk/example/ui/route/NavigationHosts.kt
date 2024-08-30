@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.example.ui.view.AuthenticationTabView
+import com.sap.cdc.android.sdk.example.ui.view.ResolvePendingRegistrationWithMissingFields
 import com.sap.cdc.android.sdk.example.ui.view.ViewAboutMe
 import com.sap.cdc.android.sdk.example.ui.view.ViewHome
 import com.sap.cdc.android.sdk.example.ui.view.ViewMyProfile
@@ -16,6 +17,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelHome
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfile
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
+import kotlinx.serialization.json.Json
 
 
 @Composable
@@ -84,6 +86,14 @@ fun ProfileNavHost() {
                 selected = selected!!.toInt(),
             )
         }
+        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{missingFields}") { backStackEntry ->
+            val missingFieldsJson = backStackEntry.arguments?.getString("missingFields")
+            val missingFields = Json.decodeFromString<List<String>>(missingFieldsJson!!)
+            ResolvePendingRegistrationWithMissingFields(
+                viewModel = ViewModelAuthentication(context),
+                missingFields
+            )
+        }
         composable(ProfileScreenRoute.MyProfile.route) {
             ViewMyProfile(viewModel = ViewModelProfile(context))
         }
@@ -94,14 +104,14 @@ fun ProfileNavHost() {
             ViewScreenSet(
                 ViewModelScreenSet(LocalContext.current),
                 "Default-RegistrationLogin",
-                "Login"
+                "gigya-login-screen"
             )
         }
         composable(ScreenSetsRoute.RegistrationLogin_Register.route) {
             ViewScreenSet(
                 ViewModelScreenSet(LocalContext.current),
                 "Default-RegistrationLogin",
-                "Registration"
+                "gigya-register-screen"
             )
         }
     }

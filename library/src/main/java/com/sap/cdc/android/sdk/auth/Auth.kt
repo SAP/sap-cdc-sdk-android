@@ -2,6 +2,8 @@ package com.sap.cdc.android.sdk.auth
 
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.flow.AccountAuthFlow
+import com.sap.cdc.android.sdk.auth.flow.LoginAuthFlow
+import com.sap.cdc.android.sdk.auth.flow.LogoutAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.auth.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
@@ -20,6 +22,7 @@ interface IAuthResponse {
 
     fun authenticationJson(): String?
     fun authenticationError(): CDCError?
+    fun isResolvable(): Boolean
 }
 
 class AuthResponse : IAuthResponse {
@@ -34,6 +37,10 @@ class AuthResponse : IAuthResponse {
     override fun authenticationError(): CDCError? {
         return this.authenticationError
     }
+
+    override fun isResolvable(): Boolean =
+        AuthResolvable.resolvables.containsKey(authenticationError?.errorCode)
+
 
     fun failedAuthenticationWith(error: CDCError) = apply {
         this.authenticationError = error
@@ -60,6 +67,8 @@ interface IAuthApis {
     ): IAuthResponse
 
     suspend fun removeConnection(provider: String): CDCResponse
+
+    suspend fun logout(): CDCResponse
 }
 
 internal class AuthApis(
@@ -80,7 +89,7 @@ internal class AuthApis(
      * initiate credentials login flow.
      */
     override suspend fun login(parameters: MutableMap<String, String>): IAuthResponse {
-        val flow = com.sap.cdc.android.sdk.auth.flow.LoginAuthFlow(coreClient, sessionService)
+        val flow = LoginAuthFlow(coreClient, sessionService)
         flow.withParameters(parameters)
         return flow.authenticate()
     }
@@ -103,11 +112,24 @@ internal class AuthApis(
         return flow.authenticate()
     }
 
+    /**
+     * Remove social connection from current account.
+     */
     override suspend fun removeConnection(provider: String): CDCResponse =
         ProviderAuthFow(
             coreClient,
             sessionService
         ).removeConnection(provider)
+
+    /**
+     * Log out of current account.
+     * Logging out will remove all session data.
+     */
+    override suspend fun logout(): CDCResponse {
+        val flow = LogoutAuthFlow(coreClient, sessionService)
+        val authResponse: IAuthResponse = flow.authenticate()
+        return CDCResponse().fromJSON(authResponse.authenticationJson()!!)
+    }
 
 }
 
@@ -157,6 +179,8 @@ interface IAuthResolvers {
     suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse
 
     suspend fun linkAccount(parameters: MutableMap<String, String>): IAuthResponse
+
+    suspend fun pendingRegistrationWith(parameters: MutableMap<String, String>): IAuthResponse
 }
 
 internal class AuthResolvers(
@@ -164,14 +188,31 @@ internal class AuthResolvers(
     private val sessionService: SessionService
 ) : IAuthResolvers {
 
+    /**
+     * Finalize pending registration.
+     */
     override suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse {
         val resolver = RegistrationAuthFlow(coreClient, sessionService)
         resolver.withParameters(parameters)
         return resolver.finalize()
     }
 
+    /**
+     * Link account.
+     */
     override suspend fun linkAccount(parameters: MutableMap<String, String>): IAuthResponse {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun pendingRegistrationWith(parameters: MutableMap<String, String>): IAuthResponse {
+        val setAccountResolver = AccountAuthFlow(coreClient, sessionService)
+        val setAccountAuthResponse = setAccountResolver.setAccountInfo(parameters)
+        if (setAccountAuthResponse.authenticationError() != null) {
+            // Error in flow.
+            return setAccountAuthResponse
+        }
+        val finalizeRegistrationResolver = RegistrationAuthFlow(coreClient, sessionService)
+        return finalizeRegistrationResolver.finalize()
     }
 
 }

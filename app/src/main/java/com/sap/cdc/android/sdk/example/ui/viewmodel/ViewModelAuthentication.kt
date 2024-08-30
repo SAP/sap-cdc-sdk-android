@@ -3,9 +3,12 @@ package com.sap.cdc.android.sdk.example.ui.viewmodel
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
+import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Created by Tal Mirmelshtein on 20/06/2024
@@ -36,6 +39,7 @@ interface IViewModelAuthentication {
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
+        onPendingRegistration: (CDCError?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -53,6 +57,15 @@ interface IViewModelAuthentication {
     fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
         return null
     }
+
+    fun resolvePendingRegistrationWithMissingProfileFields(
+        map: MutableMap<String, String>,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+
+    }
+
 }
 
 class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewModelAuthentication {
@@ -66,8 +79,9 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         viewModelScope.launch {
             val authResponse = identityService.register(email, password)
             if (authResponse.authenticationError() != null) {
-                // Error in flow
+                // Error in flow.
                 onFailed(authResponse.authenticationError())
+                return@launch
             }
             onLogin()
         }
@@ -94,9 +108,10 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
+        onPendingRegistration: (CDCError?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
-        if(provider == null) {
+        if (provider == null) {
             onFailedWith(CDCError.providerError())
             return
         }
@@ -104,9 +119,16 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             val authResponse = identityService.nativeSocialSignIn(
                 hostActivity, provider
             )
-            if (authResponse.authenticationError() != null) {
-                // Error in flow
-                onFailedWith(authResponse.authenticationError())
+            val error = authResponse.authenticationError()
+            if (error != null) {
+                if (authResponse.isResolvable()) {
+                    if (error.errorCode == AuthResolvable.ERR_ACCOUNT_PENDING_REGISTRATION) {
+                        onPendingRegistration(error)
+                    }
+                } else {
+                    // Unresolvable error in flow.
+                    onFailedWith(error)
+                }
                 return@launch
             }
             onLogin()
@@ -135,6 +157,30 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     override fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
         return identityService.getAuthenticationProvider(name)
     }
+
+    override fun resolvePendingRegistrationWithMissingProfileFields(
+        map: MutableMap<String, String>,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val jsonMap = mutableMapOf<String, JsonPrimitive>()
+            map.forEach { (key, value) ->
+                jsonMap[key] = JsonPrimitive(value)
+            }
+            val authResponse = identityService.resolvePendingRegistrationWithMissingFields(
+                "profile", JsonObject(jsonMap).toString()
+            )
+            if (authResponse.authenticationError() != null) {
+                // Error in flow
+                onFailedWith(authResponse.authenticationError())
+                return@launch
+            }
+            onLogin()
+        }
+
+    }
+
 }
 
 /**

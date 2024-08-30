@@ -50,6 +50,10 @@ class ProviderAuthFow(
                         )
                     if (notifyResponse.isError()) {
                         val error = notifyResponse.toCDCError()
+                        if (notifyResponse.containsKey("regToken")) {
+                            error.addDynamic("regToken", notifyResponse.stringField("regToken")!!)
+                        }
+
                         Log.d(LOG_TAG, error.errorDetails ?: "")
                         response.failedAuthenticationWith(error)
                     }

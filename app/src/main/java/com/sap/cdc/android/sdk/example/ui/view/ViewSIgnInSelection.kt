@@ -35,10 +35,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.R
+import com.sap.cdc.android.sdk.example.extensions.parseRequiredMissingFieldsForRegistration
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -78,6 +81,9 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             loading = false
                             signInError = ""
                         },
+                        onPendingRegistration = { error ->
+
+                        },
                         onFailedWith = { error ->
                             loading = false
                             signInError = error?.errorDetails!!
@@ -93,6 +99,10 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             loading = false
                             signInError = ""
                         },
+                        onPendingRegistration = { error ->
+
+
+                        },
                         onFailedWith = { error ->
                             loading = false
                             signInError = error?.errorDetails!!
@@ -107,6 +117,15 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                         onLogin = {
                             loading = false
                             signInError = ""
+                        },
+                        onPendingRegistration = { error ->
+                            val errorDetails = error!!.errorDetails
+                            val missingFields =
+                                errorDetails!!.parseRequiredMissingFieldsForRegistration()
+                            NavigationCoordinator.INSTANCE
+                                .navigate("${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                    Json.encodeToString(missingFields)
+                                }")
                         },
                         onFailedWith = { error ->
                             loading = false
