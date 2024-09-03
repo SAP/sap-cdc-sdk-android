@@ -32,14 +32,17 @@ sealed class ProfileScreenRoute(
     object Login : ProfileScreenRoute("Login", R.string.login)
     object MyProfile : ProfileScreenRoute("MyProfile", R.string.my_profile)
     object AboutMe : ProfileScreenRoute("AboutMe", R.string.about_me)
-    object ResolvePendingRegistration: ProfileScreenRoute("ResolvePendingRegistration", R.string.resolve_pending_registration_with_missing_fields)
+    object ResolvePendingRegistration : ProfileScreenRoute(
+        "ResolvePendingRegistration",
+        R.string.resolve_pending_registration_with_missing_fields
+    )
 }
 
 sealed class ScreenSetsRoute(
     val route: String
 ) {
-    object RegistrationLogin_Register: ScreenSetsRoute("Register")
-    object ResistrationLogin_Login: ScreenSetsRoute("Login")
+    object ScreenSetRegistrationLoginRegister : ScreenSetsRoute("Register")
+    object ScreenSetRegistrationLoginLogin : ScreenSetsRoute("Login")
 }
 
 

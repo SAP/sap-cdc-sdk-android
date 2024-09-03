@@ -52,6 +52,9 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfigurationPrevie
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Application configuration view.
+ * View allows reconfiguration of the CDC SDK & transition from native UI flows to screen-sets.
  */
 
 @Composable

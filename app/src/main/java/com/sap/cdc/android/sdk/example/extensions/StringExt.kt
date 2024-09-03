@@ -2,7 +2,7 @@ package com.sap.cdc.android.sdk.example.extensions
 
 
 /**
- * Helper method to split first/last name.
+ * Helper extension method to split first/last name.
  */
 fun String.splitFullName(name: String): Pair<String, String> {
     val index = name.lastIndexOf("")
@@ -11,6 +11,9 @@ fun String.splitFullName(name: String): Pair<String, String> {
     return Pair(firstName, lastName)
 }
 
+/**
+ * Helper extension method to parse String value for required missing fields list.
+ */
 fun String.parseRequiredMissingFieldsForRegistration(): List<String> {
     val fields = this.substringAfterLast(": ")
     return fields.split(", ")

@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.auth.flow
 
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_LOGIN
+import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.session.SessionService
@@ -22,14 +23,10 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     override suspend fun authenticate(): IAuthResponse {
         val loginResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGIN)
-        // Check errors.
-        if (loginResponse.isError()) {
-            response.failedAuthenticationWith(loginResponse.toCDCError())
+        // Secure new session if the response does not contain any errors.
+        if (!loginResponse.isError()) {
+            secureNewSession(loginResponse)
         }
-
-        secureNewSession(loginResponse)
-
-        // Success.
-        return response.withAuthenticationData(loginResponse.asJson()!!)
+        return AuthResponse(loginResponse)
     }
 }

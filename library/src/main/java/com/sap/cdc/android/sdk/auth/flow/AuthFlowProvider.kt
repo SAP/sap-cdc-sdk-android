@@ -5,10 +5,12 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
+import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
@@ -34,7 +36,7 @@ class ProviderAuthFow(
 
     override suspend fun authenticate(): IAuthResponse {
         if (provider == null)
-            return response.failedAuthenticationWith(CDCError.providerError())
+            return AuthResponse(CDCResponse().providerError())
         try {
             val result: AuthenticatorProviderResult = provider.providerSignIn(weakActivity?.get())
             parameters["loginMode"] = "standard"
@@ -48,17 +50,8 @@ class ProviderAuthFow(
                             EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,
                             parameters
                         )
-                    if (notifyResponse.isError()) {
-                        val error = notifyResponse.toCDCError()
-                        if (notifyResponse.containsKey("regToken")) {
-                            error.addDynamic("regToken", notifyResponse.stringField("regToken")!!)
-                        }
-
-                        Log.d(LOG_TAG, error.errorDetails ?: "")
-                        response.failedAuthenticationWith(error)
-                    }
                     dispose()
-                    return response.withAuthenticationData(notifyResponse.asJson()!!)
+                    return AuthResponse(notifyResponse)
                 }
 
                 ProviderType.WEB -> {
@@ -73,12 +66,13 @@ class ProviderAuthFow(
                             mutableMapOf("include" to "data,profile,emails")
                         )
                     dispose()
-                    return response.withAuthenticationData(accountResponse.asJson()!!)
+                    return AuthResponse(accountResponse)
                 }
             }
-        } catch (exception: com.sap.cdc.android.sdk.auth.provider.ProviderException) {
+        } catch (exception: ProviderException) {
+            //TODO: Generify provider exception or remove it.
             Log.d(LOG_TAG, exception.type.ordinal.toString())
-            return response.failedAuthenticationWith(exception.error!!)
+            return AuthResponse(CDCResponse().providerError())
         }
     }
 

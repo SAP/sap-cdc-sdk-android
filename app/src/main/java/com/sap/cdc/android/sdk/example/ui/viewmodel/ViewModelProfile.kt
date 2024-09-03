@@ -49,13 +49,13 @@ class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelPro
     override fun getAccountInfo(parameters: MutableMap<String, String>?) {
         viewModelScope.launch {
             val authResponse = identityService.getAccountInfo()
-            if (authResponse.authenticationError() != null) {
+            if (authResponse.toDisplayError() != null) {
                 // Error in account request.
                 //TODO: Add error handling.
                 return@launch
             }
             // Deserialize account data.
-            val account = json.decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
+            val account = json.decodeFromString<AccountEntity>(authResponse.asJsonString()!!)
 
             // Update UI stateful parameters.
             firstName = account.profile.firstName
@@ -69,13 +69,13 @@ class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelPro
         val parameters = mutableMapOf("profile" to profileObject.toString())
         viewModelScope.launch {
             val authResponse = identityService.setAccountInfo(parameters)
-            if (authResponse.authenticationError() != null) {
+            if (authResponse.toDisplayError() != null) {
                 // Error in account request.
-                onFailed(authResponse.authenticationError()!!)
+                onFailed(authResponse.toDisplayError()!!)
                 return@launch
             }
             // Deserialize account data.
-            val account = json.decodeFromString<AccountEntity>(authResponse.authenticationJson()!!)
+            val account = json.decodeFromString<AccountEntity>(authResponse.asJsonString()!!)
 
             // Update UI stateful parameters.
             firstName = account.profile.firstName

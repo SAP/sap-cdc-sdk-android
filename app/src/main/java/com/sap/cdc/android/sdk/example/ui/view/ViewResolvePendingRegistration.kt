@@ -34,10 +34,20 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
+/**
+ * Created by Tal Mirmelshtein on 10/06/2024
+ * Copyright: SAP LTD.
+ *
+ * Custom view for dynamically creating input fields for resolving "Account Pending Registration"
+ * interruption flow.
+ */
+
+
 @Composable
 fun ResolvePendingRegistrationWithMissingFields(
     viewModel: IViewModelAuthentication,
-    missingFields: List<String>
+    missingFields: List<String>,
+    regToken: String,
 ) {
     var loading by remember { mutableStateOf(false) }
 
@@ -115,14 +125,18 @@ fun ResolvePendingRegistrationWithMissingFields(
                     registerError = ""
                     loading = true
                     // Resolve pending registration.
-                    viewModel.resolvePendingRegistrationWithMissingProfileFields(values, onLogin = {
-                        Log.d("", "")
-                    }, onFailedWith = { error ->
-                        if (error != null) {
-                            // Need to display error information.
-                            registerError = error.errorDetails!!
-                        }
-                    })
+                    viewModel.resolvePendingRegistrationWithMissingProfileFields(
+                        values,
+                        regToken,
+                        onLogin = {
+                            Log.d("", "")
+                        },
+                        onFailedWith = { error ->
+                            if (error != null) {
+                                // Need to display error information.
+                                registerError = error.errorDetails!!
+                            }
+                        })
                 }) {
                 Text("Resolve")
             }
@@ -135,7 +149,8 @@ fun ResolvePendingRegistrationWithMissingFields(
 fun ResolvePendingRegistrationWithMissingFieldsPreview() {
     ResolvePendingRegistrationWithMissingFields(
         viewModel = ViewModelAuthenticationPreview(),
-        missingFields = listOf("email")
+        missingFields = listOf("email"),
+        ""
     )
 }
 

@@ -3,6 +3,7 @@ package com.sap.cdc.android.sdk.auth.flow
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_FINALIZE_REGISTRATION
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_INIT_REGISTRATION
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_REGISTER
+import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.session.SessionService
@@ -41,28 +42,23 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
         val initResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_INIT_REGISTRATION)
         // Check errors.
-        if (initResponse.isError()) {
-            response.failedAuthenticationWith(initResponse.toCDCError())
+        if (!initResponse.isError()) {
+            // Fetch regToken.
+            // Required parameter for flow.
+            val regToken = initResponse.stringField("regToken")
+            // Actual registration call.
+            parameters["regToken"] = regToken!!
+            val registrationResponse =
+                AuthenticationApi(coreClient, sessionService).genericSend(
+                    EP_ACCOUNTS_REGISTER,
+                    parameters
+                )
+            if (!registrationResponse.isError()) {
+                secureNewSession(registrationResponse)
+            }
+            return AuthResponse(registrationResponse)
         }
-
-        // Fetch regToken.
-        // Required parameter for flow.
-        val regToken = initResponse.stringField("regToken")
-
-        // Actual registration call.
-        parameters["regToken"] = regToken!!
-
-        val registrationResponse =
-            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_REGISTER, parameters)
-
-        // Check errors.
-        if (registrationResponse.isError()) {
-            response.failedAuthenticationWith(registrationResponse.toCDCError())
-        }
-
-        secureNewSession(registrationResponse)
-
-        return response.withAuthenticationData(registrationResponse.asJson()!!)
+        return AuthResponse(initResponse)
     }
 
     /**
@@ -74,12 +70,11 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
      */
     suspend fun finalize(): IAuthResponse {
         val finalizeRegistrationResponse =
-            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_FINALIZE_REGISTRATION, parameters)
-        if (finalizeRegistrationResponse.isError()) {
-            response.failedAuthenticationWith(finalizeRegistrationResponse.toCDCError())
-        }
-
-        return response.withAuthenticationData(finalizeRegistrationResponse.asJson()!!)
+            AuthenticationApi(coreClient, sessionService).genericSend(
+                EP_ACCOUNTS_FINALIZE_REGISTRATION,
+                parameters
+            )
+        return AuthResponse(finalizeRegistrationResponse)
     }
 
 }

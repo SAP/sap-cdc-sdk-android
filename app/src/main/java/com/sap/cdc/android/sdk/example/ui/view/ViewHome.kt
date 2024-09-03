@@ -34,6 +34,8 @@ import com.sap.cdc.android.sdk.example.R
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Static scrollbar navigation home view.
  */
 
 @Preview

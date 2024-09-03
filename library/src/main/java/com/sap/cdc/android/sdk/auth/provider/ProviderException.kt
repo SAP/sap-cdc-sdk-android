@@ -12,6 +12,6 @@ enum class ProviderExceptionType {
 }
 
 data class ProviderException(
-    val type: com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType,
+    val type: ProviderExceptionType,
     val error: CDCError? = null
 ) : Exception(error?.errorDetails)

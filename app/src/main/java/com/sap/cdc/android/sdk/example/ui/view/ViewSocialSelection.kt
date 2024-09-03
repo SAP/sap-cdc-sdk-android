@@ -18,6 +18,9 @@ import com.sap.cdc.android.sdk.example.R
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Custom view for social login UI selection Row.
+ * View may appear in different composable views.
  */
 
 @Composable

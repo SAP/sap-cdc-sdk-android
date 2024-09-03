@@ -46,6 +46,10 @@ import kotlin.math.absoluteValue
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Profile view containing basic account information available from the SDK.
+ * Addition authentication flows can be initiated from here when the application contains a valid
+ * session.
  */
 
 @Composable
@@ -130,9 +134,11 @@ fun ViewMyProfile(viewModel: IViewModelProfile) {
         SelectionRow(title = "Payment Methods", leadingIcon = R.drawable.ic_payment_methods_row)
         SelectionRow(title = "Support", leadingIcon = R.drawable.ic_support_row)
         SelectionRow(title = "Login Options", leadingIcon = R.drawable.ic_login_options_row)
-        Spacer(modifier = Modifier
-            .height(24.dp)
-            .fillMaxWidth())
+        Spacer(
+            modifier = Modifier
+                .height(24.dp)
+                .fillMaxWidth()
+        )
         SelectionRow(
             title = "Logout",
             leadingIcon = R.drawable.ic_logout_row,

@@ -46,6 +46,8 @@ import kotlinx.serialization.json.Json
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Sign in flows initiator selection view.
  */
 
 @Composable
@@ -118,14 +120,16 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             loading = false
                             signInError = ""
                         },
-                        onPendingRegistration = { error ->
-                            val errorDetails = error!!.errorDetails
+                        onPendingRegistration = { authResponse ->
+                            val errorDetails = authResponse!!.toDisplayError()!!.errorDetails!!
                             val missingFields =
-                                errorDetails!!.parseRequiredMissingFieldsForRegistration()
+                                errorDetails.parseRequiredMissingFieldsForRegistration()
                             NavigationCoordinator.INSTANCE
-                                .navigate("${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                    Json.encodeToString(missingFields)
-                                }")
+                                .navigate(
+                                    "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                        Json.encodeToString(missingFields)
+                                    }/${authResponse.asJsonObject()!!["regToken"]}"
+                                )
                         },
                         onFailedWith = { error ->
                             loading = false

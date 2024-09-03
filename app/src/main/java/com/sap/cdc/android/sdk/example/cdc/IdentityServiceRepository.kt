@@ -174,11 +174,18 @@ class IdentityServiceRepository private constructor(context: Context) {
         )
     }
 
+    /**
+     * Attempt to resolve "Account Pending Registration" interruption bt providing the necessary
+     * missing fields.
+     * Note: regToken is required for authenticating the request.
+     */
     suspend fun resolvePendingRegistrationWithMissingFields(
         key: String,
-        serializedJsonValue: String
+        serializedJsonValue: String,
+        regToken: String,
     ): IAuthResponse {
         val params = mutableMapOf(key to serializedJsonValue)
+        params["regToken"] = regToken
         return authenticationService.resolve().pendingRegistrationWith(params)
     }
 

@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import android.webkit.CookieManager
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
+import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.session.SessionService
@@ -14,7 +15,7 @@ import com.sap.cdc.android.sdk.core.CoreClient
  */
 
 class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
-    com.sap.cdc.android.sdk.auth.flow.AuthFlow(coreClient, sessionService) {
+    AuthFlow(coreClient, sessionService) {
 
     /**
      * Initiate logout flow.
@@ -24,16 +25,12 @@ class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     override suspend fun authenticate(): IAuthResponse {
         val logoutResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGOUT)
-        // Check errors.
-        if (logoutResponse.isError()) {
-            response.failedAuthenticationWith(logoutResponse.toCDCError())
+        if (!logoutResponse.isError()) {
+            // Invalidate session if the response does not contain any erros.
+            sessionService.clearSession()
+            clearCookies()
         }
-        // Success.
-
-        // Invalidate session.
-        sessionService.clearSession()
-        clearCookies()
-        return response.withAuthenticationData(logoutResponse.asJson()!!)
+        return AuthResponse(logoutResponse)
     }
 
     private fun clearCookies() {

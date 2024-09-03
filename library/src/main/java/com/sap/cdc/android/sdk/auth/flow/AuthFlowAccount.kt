@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
+import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.session.SessionService
@@ -23,11 +24,11 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
         withParameters(parameters!!)
         val accountResponse =
-            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_GET_ACCOUNT_INFO, this.parameters)
-        if (accountResponse.isError()) {
-            response.failedAuthenticationWith(accountResponse.toCDCError())
-        }
-        return response.withAuthenticationData(accountResponse.asJson()!!)
+            AuthenticationApi(coreClient, sessionService).genericSend(
+                EP_ACCOUNTS_GET_ACCOUNT_INFO,
+                this.parameters
+            )
+        return AuthResponse(accountResponse)
     }
 
     /**
@@ -39,10 +40,10 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     suspend fun setAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
         withParameters(parameters!!)
         val setAccountResponse =
-            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_SET_ACCOUNT_INFO, this.parameters)
-        if (setAccountResponse.isError()) {
-            response.failedAuthenticationWith(setAccountResponse.toCDCError())
-        }
-        return getAccountInfo()
+            AuthenticationApi(coreClient, sessionService).genericSend(
+                EP_ACCOUNTS_SET_ACCOUNT_INFO,
+                this.parameters
+            )
+        return AuthResponse(setAccountResponse)
     }
 }

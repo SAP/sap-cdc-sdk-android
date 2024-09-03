@@ -14,8 +14,9 @@ import com.sap.cdc.android.sdk.example.ui.view.ViewApp
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Main application activity class.
  */
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

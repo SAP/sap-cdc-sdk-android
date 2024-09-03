@@ -8,13 +8,13 @@ plugins {
 group = "com.sap.cdc.android"
 version = "0.0.1"
 
-ext["name"] = "SAP-CDC-Android-SDK"
+ext["name"] = "SAP Customer Data Cloud for Android"
 ext["artifactId"] = "sdk"
-ext["description"] = "SAP CX-CDC (Gigya) Android SDK"
+ext["description"] = "SAP Customer Data Cloud for Android"
 ext["url"] = ""
 
 android {
-    namespace = "com.sap.cdc.android.sdk.core"
+    namespace = "com.sap.cdc.android.sdk"
     compileSdk = 34
 
     android.buildFeatures.buildConfig = true
@@ -74,9 +74,9 @@ dependencies {
     api("io.ktor:ktor-serialization-kotlinx-json:2.3.5")
     // Logging HTTP requests
     api("io.ktor:ktor-client-logging-jvm:2.3.5")
-
+    // Jetpack security.
     api("androidx.security:security-crypto:1.0.0")
-
+    //
     api("androidx.biometric:biometric:1.1.0")
 
     api("androidx.work:work-runtime-ktx:2.9.1")

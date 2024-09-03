@@ -46,6 +46,8 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Main landing page view containing bottom bar navigation flows.
  */
 
 @OptIn(ExperimentalMaterial3Api::class)

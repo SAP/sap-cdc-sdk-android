@@ -51,6 +51,8 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 /**
  * Created by Tal Mirmelshtein on 19/06/2024
  * Copyright: SAP LTD.
+ *
+ * Credentials sign in basic view.
  */
 
 @Composable

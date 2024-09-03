@@ -27,8 +27,9 @@ import kotlinx.coroutines.launch
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Horizontal tab view pager for native UI authentication flows (register,sign in).
  */
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {

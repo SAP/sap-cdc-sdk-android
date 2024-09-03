@@ -19,7 +19,9 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfile
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
 import kotlinx.serialization.json.Json
 
-
+/**
+ * Home tab navigation host.
+ */
 @Composable
 fun HomeNavHost() {
     val homeNavController = rememberNavController()
@@ -30,6 +32,9 @@ fun HomeNavHost() {
     }
 }
 
+/**
+ * Search tab navigation host.
+ */
 @Composable
 fun SearchNavHost() {
     val searchNavController = rememberNavController()
@@ -40,6 +45,9 @@ fun SearchNavHost() {
     }
 }
 
+/**
+ * Cart tab navigation host.
+ */
 @Composable
 fun CartNavHost() {
     val cartNavController = rememberNavController()
@@ -50,6 +58,9 @@ fun CartNavHost() {
     }
 }
 
+/**
+ * Favorites tab navigation host.
+ */
 @Composable
 fun FavoritesNavHost() {
     val favoritesNavController = rememberNavController()
@@ -60,6 +71,9 @@ fun FavoritesNavHost() {
     }
 }
 
+/**
+ * Profile tab navigation host.
+ */
 @Composable
 fun ProfileNavHost() {
     val profileNavController = rememberNavController()
@@ -86,12 +100,14 @@ fun ProfileNavHost() {
                 selected = selected!!.toInt(),
             )
         }
-        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{missingFields}") { backStackEntry ->
+        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{missingFields}/{regToken}") { backStackEntry ->
             val missingFieldsJson = backStackEntry.arguments?.getString("missingFields")
             val missingFields = Json.decodeFromString<List<String>>(missingFieldsJson!!)
+            val regToken = backStackEntry.arguments?.getString("regToken")
             ResolvePendingRegistrationWithMissingFields(
                 viewModel = ViewModelAuthentication(context),
-                missingFields
+                missingFields,
+                regToken!!
             )
         }
         composable(ProfileScreenRoute.MyProfile.route) {
@@ -100,14 +116,14 @@ fun ProfileNavHost() {
         composable(ProfileScreenRoute.AboutMe.route) {
             ViewAboutMe(viewModel = ViewModelProfile(context))
         }
-        composable(ScreenSetsRoute.ResistrationLogin_Login.route) {
+        composable(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route) {
             ViewScreenSet(
                 ViewModelScreenSet(LocalContext.current),
                 "Default-RegistrationLogin",
                 "gigya-login-screen"
             )
         }
-        composable(ScreenSetsRoute.RegistrationLogin_Register.route) {
+        composable(ScreenSetsRoute.ScreenSetRegistrationLoginRegister.route) {
             ViewScreenSet(
                 ViewModelScreenSet(LocalContext.current),
                 "Default-RegistrationLogin",

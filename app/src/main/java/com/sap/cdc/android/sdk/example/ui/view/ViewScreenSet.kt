@@ -46,6 +46,11 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Custom view for loading screen-sets.
+ * Compose requires WebViews to be created within an AndroidView composable.
+ * This view demonstrates the basic usage of the WebBridgeJS element that allows streaming
+ * events from the WebSDK to the mobile SDK.
  */
 
 @SuppressLint("SetJavaScriptEnabled")

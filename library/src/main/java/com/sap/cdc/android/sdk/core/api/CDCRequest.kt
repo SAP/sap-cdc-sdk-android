@@ -10,7 +10,7 @@ import io.ktor.util.generateNonce
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  */
-class Request(
+class CDCRequest(
     siteConfig: SiteConfig
 ) {
     private var method: String = HttpMethod.Post.value // Default method is post.

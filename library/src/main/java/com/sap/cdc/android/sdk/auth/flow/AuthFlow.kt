@@ -14,7 +14,6 @@ import com.sap.cdc.android.sdk.core.api.CDCResponse
 
 open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionService) {
 
-    var response: AuthResponse = AuthResponse()
     var parameters: MutableMap<String, String> = mutableMapOf()
 
     /**
@@ -27,9 +26,9 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     /**
      * Base authentication flow stub.
      */
-    open suspend fun authenticate(): IAuthResponse {
+    open suspend fun authenticate(): IAuthResponse? {
         //Stub.
-        return this.response
+        return null
     }
 
     /**

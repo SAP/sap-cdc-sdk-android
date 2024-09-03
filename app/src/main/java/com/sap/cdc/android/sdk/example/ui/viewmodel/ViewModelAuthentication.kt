@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthResolvable
+import com.sap.cdc.android.sdk.auth.AuthResponse
+import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.coroutines.launch
@@ -15,6 +17,9 @@ import kotlinx.serialization.json.JsonPrimitive
  * Copyright: SAP LTD.
  */
 
+/**
+ * Authentication view model interface.
+ */
 interface IViewModelAuthentication {
 
     fun register(
@@ -39,7 +44,7 @@ interface IViewModelAuthentication {
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
-        onPendingRegistration: (CDCError?) -> Unit,
+        onPendingRegistration: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -60,6 +65,7 @@ interface IViewModelAuthentication {
 
     fun resolvePendingRegistrationWithMissingProfileFields(
         map: MutableMap<String, String>,
+        regToken: String,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
@@ -68,6 +74,15 @@ interface IViewModelAuthentication {
 
 }
 
+/**
+ * Preview mock view model.
+ */
+class ViewModelAuthenticationPreview : IViewModelAuthentication
+
+/**
+ * Authentication view model.
+ * View model is relevant to all authentication views.
+ */
 class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewModelAuthentication {
 
     override fun register(
@@ -78,9 +93,9 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     ) {
         viewModelScope.launch {
             val authResponse = identityService.register(email, password)
-            if (authResponse.authenticationError() != null) {
+            if (authResponse.toDisplayError() != null) {
                 // Error in flow.
-                onFailed(authResponse.authenticationError())
+                onFailed(authResponse.toDisplayError())
                 return@launch
             }
             onLogin()
@@ -95,9 +110,9 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     ) {
         viewModelScope.launch {
             val authResponse = identityService.login(email, password)
-            if (authResponse.authenticationError() != null) {
+            if (authResponse.toDisplayError() != null) {
                 // Error in flow
-                onFailed(authResponse.authenticationError())
+                onFailed(authResponse.toDisplayError())
                 return@launch
             }
             onLogin()
@@ -108,7 +123,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
-        onPendingRegistration: (CDCError?) -> Unit,
+        onPendingRegistration: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         if (provider == null) {
@@ -119,11 +134,11 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             val authResponse = identityService.nativeSocialSignIn(
                 hostActivity, provider
             )
-            val error = authResponse.authenticationError()
+            val error = authResponse.toDisplayError()
             if (error != null) {
                 if (authResponse.isResolvable()) {
                     if (error.errorCode == AuthResolvable.ERR_ACCOUNT_PENDING_REGISTRATION) {
-                        onPendingRegistration(error)
+                        onPendingRegistration(authResponse!!)
                     }
                 } else {
                     // Unresolvable error in flow.
@@ -145,9 +160,9 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             val authResponse = identityService.webSocialSignIn(
                 hostActivity, provider
             )
-            if (authResponse.authenticationError() != null) {
+            if (authResponse.toDisplayError() != null) {
                 // Error in flow
-                onFailedWith(authResponse.authenticationError())
+                onFailedWith(authResponse.toDisplayError())
                 return@launch
             }
             onLogin()
@@ -160,6 +175,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
 
     override fun resolvePendingRegistrationWithMissingProfileFields(
         map: MutableMap<String, String>,
+        regToken: String,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
@@ -169,11 +185,11 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
                 jsonMap[key] = JsonPrimitive(value)
             }
             val authResponse = identityService.resolvePendingRegistrationWithMissingFields(
-                "profile", JsonObject(jsonMap).toString()
+                "profile", JsonObject(jsonMap).toString(), regToken,
             )
-            if (authResponse.authenticationError() != null) {
+            if (authResponse.toDisplayError() != null) {
                 // Error in flow
-                onFailedWith(authResponse.authenticationError())
+                onFailedWith(authResponse.toDisplayError())
                 return@launch
             }
             onLogin()
@@ -182,9 +198,4 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     }
 
 }
-
-/**
- * Preview mock view model.
- */
-class ViewModelAuthenticationPreview : IViewModelAuthentication
 

@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.core.api.model
 
+
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
@@ -30,3 +31,4 @@ data class CDCError(
         fun providerError(): CDCError = CDCError(400122, "Provider configuration error")
     }
 }
+

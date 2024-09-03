@@ -9,7 +9,7 @@ import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.Api
 import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.core.api.Request
+import com.sap.cdc.android.sdk.core.api.CDCRequest
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 
 
@@ -34,17 +34,17 @@ class AuthenticationApi(
         return super.genericSend(api, parameters, method, headers)
     }
 
-    override suspend fun get(request: Request): CDCResponse {
+    override suspend fun get(request: CDCRequest): CDCResponse {
         signRequestIfNeeded(request)
         return super.get(request)
     }
 
-    override suspend fun post(request: Request): CDCResponse {
+    override suspend fun post(request: CDCRequest): CDCResponse {
         signRequestIfNeeded(request)
         return super.post(request)
     }
 
-    private fun signRequestIfNeeded(request: Request) {
+    private fun signRequestIfNeeded(request: CDCRequest) {
         if (sessionService.validSession()) {
             val session = sessionService.getSession()
             request.authenticated(session!!.token)

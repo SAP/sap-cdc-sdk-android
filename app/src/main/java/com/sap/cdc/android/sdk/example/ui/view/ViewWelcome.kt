@@ -28,6 +28,8 @@ import com.sap.cdc.android.sdk.example.ui.route.ScreenSetsRoute
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Welcome view.
  */
 
 @Preview
@@ -63,7 +65,7 @@ fun ViewWelcome() {
             onClick = {
                 if (ApplicationConfig.useWebViews) {
                     NavigationCoordinator.INSTANCE
-                        .navigate(ScreenSetsRoute.ResistrationLogin_Login.route)
+                        .navigate(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route)
                 } else {
                     NavigationCoordinator.INSTANCE
                         .navigate("${ProfileScreenRoute.AuthTabView.route}/1")
@@ -79,7 +81,7 @@ fun ViewWelcome() {
             onClick = {
                 if (ApplicationConfig.useWebViews) {
                     NavigationCoordinator.INSTANCE
-                        .navigate(ScreenSetsRoute.RegistrationLogin_Register.route)
+                        .navigate(ScreenSetsRoute.ScreenSetRegistrationLoginRegister.route)
                 } else {
                     NavigationCoordinator.INSTANCE
                         .navigate("${ProfileScreenRoute.AuthTabView.route}/0")

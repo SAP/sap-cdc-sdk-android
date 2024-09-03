@@ -217,7 +217,7 @@ class WebBridgeJSApiService(
             val authResponse = authenticationService.authenticate().providerLogin(
                 weakHostActivity.get()!!, authProvider, params.toMutableMap()
             )
-            if (authResponse.authenticationError() != null) {
+            if (authResponse.toDisplayError() != null) {
                 // Fail with error.
                 //TODO: throttle error
             }

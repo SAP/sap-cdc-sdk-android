@@ -11,6 +11,7 @@ import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import kotlinx.serialization.json.JsonObject
 import java.lang.ref.WeakReference
 
 /**
@@ -18,47 +19,50 @@ import java.lang.ref.WeakReference
  * Copyright: SAP LTD.
  */
 
+/**
+ * Authentication response main class interface.
+ */
 interface IAuthResponse {
 
-    fun authenticationJson(): String?
-    fun authenticationError(): CDCError?
+    fun baseResponse(): CDCResponse
+    fun asJsonString(): String?
+    fun asJsonObject(): JsonObject?
+    fun isError(): Boolean
+    fun toDisplayError(): CDCError?
     fun isResolvable(): Boolean
 }
 
-class AuthResponse : IAuthResponse {
+/**
+ * Authentication flow main response class.
+ */
+class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
 
-    private var authenticationError: CDCError? = null
-    private var authJson: String? = null
+    override fun baseResponse(): CDCResponse = cdcResponse
 
-    override fun authenticationJson(): String? {
-        return this.authJson
-    }
+    override fun asJsonString(): String? = this.cdcResponse.asJson()
 
-    override fun authenticationError(): CDCError? {
-        return this.authenticationError
-    }
+    override fun asJsonObject(): JsonObject? = this.cdcResponse.jsonObject
+
+    override fun isError(): Boolean = cdcResponse.isError()
+
+    override fun toDisplayError(): CDCError = this.cdcResponse.toCDCError()
 
     override fun isResolvable(): Boolean =
-        AuthResolvable.resolvables.containsKey(authenticationError?.errorCode)
-
-
-    fun failedAuthenticationWith(error: CDCError) = apply {
-        this.authenticationError = error
-    }
-
-    fun withAuthenticationData(json: String) = apply {
-        this.authJson = json
-    }
-
-    fun authenticationFailed(): Boolean = authenticationError != null
-
+        AuthResolvable.resolvables.containsKey(cdcResponse.errorCode())
 }
 
+/**
+ * Authentication APIs interface.
+ */
 interface IAuthApis {
 
-    suspend fun register(parameters: MutableMap<String, String>): IAuthResponse
+    suspend fun register(
+        parameters: MutableMap<String, String>
+    ): IAuthResponse
 
-    suspend fun login(parameters: MutableMap<String, String>): IAuthResponse
+    suspend fun login(
+        parameters: MutableMap<String, String>
+    ): IAuthResponse
 
     suspend fun providerLogin(
         hostActivity: ComponentActivity,
@@ -66,11 +70,16 @@ interface IAuthApis {
         parameters: MutableMap<String, String>? = mutableMapOf(),
     ): IAuthResponse
 
-    suspend fun removeConnection(provider: String): CDCResponse
+    suspend fun removeConnection(
+        provider: String
+    ): CDCResponse
 
     suspend fun logout(): CDCResponse
 }
 
+/**
+ * Authentication APIs initiators.
+ */
 internal class AuthApis(
     private val coreClient: CoreClient,
     private val sessionService: SessionService
@@ -128,18 +137,25 @@ internal class AuthApis(
     override suspend fun logout(): CDCResponse {
         val flow = LogoutAuthFlow(coreClient, sessionService)
         val authResponse: IAuthResponse = flow.authenticate()
-        return CDCResponse().fromJSON(authResponse.authenticationJson()!!)
+        return CDCResponse().fromJSON(authResponse.asJsonString()!!)
     }
 
 }
 
+/**
+ * Authentication set providers interface.
+ */
 interface IAuthApisSet {
 
     suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse
 
 }
 
+/**
+ * Authentication set providers initiators.
+ */
 internal class AuthApisSet(
+
     private val coreClient: CoreClient,
     private val sessionService: SessionService
 ) : IAuthApisSet {
@@ -152,12 +168,16 @@ internal class AuthApisSet(
 
 }
 
+/**
+ * Authentication get providers interface.
+ */
 interface IAuthApisGet {
-
     suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse
-
 }
 
+/**
+ * Authentication get providers initiators.
+ */
 internal class AuthApisGet(
     private val coreClient: CoreClient,
     private val sessionService: SessionService
@@ -174,22 +194,36 @@ internal class AuthApisGet(
 
 }
 
+/**
+ * Available authentication resolvers interface.
+ */
 interface IAuthResolvers {
 
+    /**
+     * Finalize registration to complete registration process.
+     */
     suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse
 
     suspend fun linkAccount(parameters: MutableMap<String, String>): IAuthResponse
 
-    suspend fun pendingRegistrationWith(parameters: MutableMap<String, String>): IAuthResponse
+    /**
+     * Resolve "Account Pending Registration" interruption error.
+     * 1. Flow will initiate a "setAccount" flow to update account information.
+     * 2. Flow will attempt to finalize the registration to complete registration process.
+     */
+    suspend fun pendingRegistrationWith(missingFields: MutableMap<String, String>): IAuthResponse
 }
 
+/***
+ * Authentication resolvers initiators.
+ */
 internal class AuthResolvers(
     private val coreClient: CoreClient,
     private val sessionService: SessionService
 ) : IAuthResolvers {
 
     /**
-     * Finalize pending registration.
+     * Finalize registration to complete registration process.
      */
     override suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse {
         val resolver = RegistrationAuthFlow(coreClient, sessionService)
@@ -204,10 +238,15 @@ internal class AuthResolvers(
         TODO("Not yet implemented")
     }
 
-    override suspend fun pendingRegistrationWith(parameters: MutableMap<String, String>): IAuthResponse {
+    /**
+     * Resolve "Account Pending Registration" interruption error.
+     * 1. Flow will initiate a "setAccount" flow to update account information.
+     * 2. Flow will attempt to finalize the registration to complete registration process.
+     */
+    override suspend fun pendingRegistrationWith(missingFields: MutableMap<String, String>): IAuthResponse {
         val setAccountResolver = AccountAuthFlow(coreClient, sessionService)
-        val setAccountAuthResponse = setAccountResolver.setAccountInfo(parameters)
-        if (setAccountAuthResponse.authenticationError() != null) {
+        val setAccountAuthResponse = setAccountResolver.setAccountInfo(missingFields)
+        if (setAccountAuthResponse.isError()) {
             // Error in flow.
             return setAccountAuthResponse
         }

@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Generic indeterminate linear progress indicator view.
  */
 
 @Composable
@@ -23,8 +25,10 @@ fun IndeterminateLinearIndicator(visible: Boolean) {
                 .fillMaxWidth(),
             color = MaterialTheme.colorScheme.secondary,
         ) else {
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .height(10.dp))
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+        )
     }
 }

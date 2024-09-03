@@ -44,7 +44,7 @@ open class Api(private val coreClient: CoreClient) {
     /**
      * Perform generic get request.
      */
-    open suspend fun get(request: Request): CDCResponse {
+    open suspend fun get(request: CDCRequest): CDCResponse {
         if (!networkAvailable()) {
             // Propagate network error.
             return CDCResponse().noNetwork()
@@ -74,7 +74,7 @@ open class Api(private val coreClient: CoreClient) {
      * Perform generic post request.
      */
     open suspend fun post(
-        request: Request
+        request: CDCRequest
     ): CDCResponse {
         if (!networkAvailable()) {
             // Propagate network error.
@@ -126,7 +126,7 @@ open class Api(private val coreClient: CoreClient) {
         return when (method!!) {
             HttpMethod.Get.value -> {
                 get(
-                    Request(coreClient.siteConfig)
+                    CDCRequest(coreClient.siteConfig)
                         .method(HttpMethod.Get.value)
                         .api(api.prepareApiUrl(coreClient.siteConfig))
                         .timestamp(getServerTimestamp(coreClient.siteConfig.applicationContext))
@@ -135,7 +135,7 @@ open class Api(private val coreClient: CoreClient) {
                 )
             }
             else -> post(
-                Request(coreClient.siteConfig)
+                CDCRequest(coreClient.siteConfig)
                     .method(HttpMethod.Post.value)
                     .api(api.prepareApiUrl(coreClient.siteConfig))
                     .parameters(parameters)

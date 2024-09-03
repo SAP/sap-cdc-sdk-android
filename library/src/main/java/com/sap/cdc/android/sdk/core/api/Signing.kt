@@ -65,7 +65,7 @@ class SigningSpec(
     var method: String,
     var queryParameters: MutableMap<String, String>
 ) {
-    fun fromRequest(request: Request): SigningSpec {
+    fun fromRequest(request: CDCRequest): SigningSpec {
         return this
     }
 }
