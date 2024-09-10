@@ -1,38 +1,43 @@
-# Contributing
 
-## Code of Conduct
+# Contributing Guide
 
-All members of the project community must abide by the [SAP Open Source Code of Conduct](https://github.com/SAP/.github/blob/main/CODE_OF_CONDUCT.md).
-Only by respecting each other we can develop a productive, collaborative community.
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting [a project maintainer](.reuse/dep5).
+Our project is Open Source! We love it when people contribute!
 
-## Engaging in Our Project
+## Report an issue
 
-We use GitHub to manage reviews of pull requests.
+If you find a bug you are welcome to report it. We can only handle well-reported, actual bugs, so please follow the guidelines below.
 
-* If you are a new contributor, see: [Steps to Contribute](#steps-to-contribute)
+### Quick Checklist for Bug Reports
 
-* Before implementing your change, create an issue that describes the problem you would like to solve or the code that should be enhanced. Please note that you are willing to work on that issue.
+Issue report checklist:
 
-* The team will review the issue and decide whether it should be implemented as a pull request. In that case, they will assign the issue to you. If the team decides against picking up the issue, the team will post a comment with an explanation.
+- Real, current bug
+- No duplicate
+- Reproducible
+- Good summary
+- Well-documented
+- Minimal example
 
-## Steps to Contribute
+### Issue handling process
 
-Should you wish to work on an issue, please claim it first by commenting on the GitHub issue that you want to work on. This is to prevent duplicated efforts from other contributors on the same issue.
+When an issue is reported, a committer will look at it and either confirm it as a real issue, close it if it is not an issue, or ask for more details.
 
-If you have questions about one of the issues, please comment on them, and one of the maintainers will clarify.
+An issue that is about a real bug is closed as soon as the fix is committed. The closing comment explains which version will contain the fix.
 
-## Contributing Code or Documentation
+## Rejections
 
-You are welcome to contribute code in order to fix a bug or to implement a new feature that is logged as an issue.
+Pull Request rejections are not a bad thing. It just means you need to fix something. Perhaps it is important to define 'rejection' as it is used in this case.
 
-The following rule governs code contributions:
+## Developer Certificate of Origin (DCO)
 
-* Contributions must be licensed under the [Apache 2.0 License](./LICENSE)
-* Due to legal reasons, contributors will be asked to accept a Developer Certificate of Origin (DCO) when they create the first pull request to this project. This happens in an automated fashion during the submission process. SAP uses [the standard DCO text of the Linux Foundation](https://developercertificate.org/).
+Due to legal reasons, contributors will be asked to accept a DCO when they create the first pull request to this project. This happens in an automated fashion during the submission process. SAP uses [the standard DCO text of the Linux Foundation](https://developercertificate.org/).
 
-## Issues and Planning
+## Contributing with AI-generated code
 
-* We use GitHub issues to track bugs and enhancement requests.
+As artificial intelligence evolves, AI-generated code is becoming valuable for many software projects, including open-source initiatives. While we recognize the potential benefits of incorporating AI-generated content into our open-source projects there a certain requirements that need to be reflected and adhered to when making contributions.
 
-* Please provide as much context as possible when you open an issue. The information you provide must be comprehensive enough to reproduce that issue for the assignee.
+Please see our [guideline for AI-generated code contributions to SAP Open Source Software Projects](CONTRIBUTING_USING_GENAI.md) for these requirements.
+
+## Contacting Us
+
+- Email: tal.mirmelshtein@sap.com, sagi.shmuel@sap.com
