@@ -38,7 +38,7 @@ class AuthenticationService(val sessionService: SessionService) {
     fun get(): IAuthApisGet =
         AuthApisGet(coreClient, sessionService)
 
-    fun set(): com.sap.cdc.android.sdk.auth.IAuthApisSet =
+    fun set(): IAuthApisSet =
         AuthApisSet(coreClient, sessionService)
 
 

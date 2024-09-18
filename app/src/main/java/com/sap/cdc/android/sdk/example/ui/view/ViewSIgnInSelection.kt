@@ -53,8 +53,6 @@ import kotlinx.serialization.json.Json
 @Composable
 fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
     var loading by remember { mutableStateOf(false) }
-    // UI elements.
-    IndeterminateLinearIndicator(loading)
 
     var signInError by remember { mutableStateOf("") }
 
@@ -73,89 +71,102 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
         Spacer(modifier = Modifier.size(24.dp))
 
         val context = LocalContext.current
-        ViewSocialSelection(onSocialProviderSelection = { provider ->
-            when (provider) {
-                "facebook" -> {
-                    viewModel.socialSignInWith(
-                        context as ComponentActivity,
-                        viewModel.getAuthenticationProvider("facebook"),
-                        onLogin = {
-                            loading = false
-                            signInError = ""
-                        },
-                        onPendingRegistration = { error ->
+        ViewSocialSelection(
+            onSocialProviderSelection = { provider ->
+                when (provider) {
+                    "facebook" -> {
+                        viewModel.socialSignInWith(
+                            context as ComponentActivity,
+                            viewModel.getAuthenticationProvider("facebook"),
+                            onLogin = {
+                                loading = false
+                                signInError = ""
+                            },
+                            onFailedWith = { error ->
+                                loading = false
+                                signInError = error?.errorDetails!!
+                            },
+                            onPendingRegistration = { error ->
 
-                        },
-                        onFailedWith = { error ->
-                            loading = false
-                            signInError = error?.errorDetails!!
-                        }
-                    )
+                            },
+                            onLoginIdentifierExists = { regToken, loginProviders ->
+
+                            }
+                        )
+                    }
+
+                    "google" -> {
+                        viewModel.socialSignInWith(
+                            context as ComponentActivity,
+                            viewModel.getAuthenticationProvider("linkedin"),
+                            onLogin = {
+                                loading = false
+                                signInError = ""
+                            },
+                            onFailedWith = { error ->
+                                loading = false
+                                signInError = error?.errorDetails!!
+                            },
+                            onPendingRegistration = { error ->
+
+
+                            },
+                            onLoginIdentifierExists = { regToken, loginProviders ->
+
+                            }
+
+                        )
+                    }
+
+                    "line" -> {
+                        viewModel.socialSignInWith(
+                            context as ComponentActivity,
+                            viewModel.getAuthenticationProvider("line"),
+                            onLogin = {
+                                loading = false
+                                signInError = ""
+                            },
+                            onFailedWith = { error ->
+                                loading = false
+                                signInError = error?.errorDetails!!
+                            },
+                            onPendingRegistration = { authResponse ->
+                                val errorDetails = authResponse!!.cdcResponse().errorDetails()
+                                val missingFields =
+                                    errorDetails?.parseRequiredMissingFieldsForRegistration()
+                                NavigationCoordinator.INSTANCE
+                                    .navigate(
+                                        "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                            Json.encodeToString(missingFields)
+                                        }/${authResponse.cdcResponse().stringField("regToken")}"
+                                    )
+                            },
+                            onLoginIdentifierExists = { regToken, loginProviders ->
+
+                            }
+                        )
+                    }
+
+                    "apple" -> {
+                        viewModel.socialWebSignInWith(
+                            context as ComponentActivity,
+                            "apple",
+                            onLogin = {
+                                loading = false
+                                signInError = ""
+                            },
+                            onFailedWith = { error ->
+                                loading = false
+                                signInError = error?.errorDetails!!
+                            }
+                        )
+                    }
                 }
-
-                "google" -> {
-                    viewModel.socialSignInWith(
-                        context as ComponentActivity,
-                        viewModel.getAuthenticationProvider("google"),
-                        onLogin = {
-                            loading = false
-                            signInError = ""
-                        },
-                        onPendingRegistration = { error ->
-
-
-                        },
-                        onFailedWith = { error ->
-                            loading = false
-                            signInError = error?.errorDetails!!
-                        }
-                    )
-                }
-
-                "line" -> {
-                    viewModel.socialSignInWith(
-                        context as ComponentActivity,
-                        viewModel.getAuthenticationProvider("line"),
-                        onLogin = {
-                            loading = false
-                            signInError = ""
-                        },
-                        onPendingRegistration = { authResponse ->
-                            val errorDetails = authResponse!!.toDisplayError()!!.errorDetails!!
-                            val missingFields =
-                                errorDetails.parseRequiredMissingFieldsForRegistration()
-                            NavigationCoordinator.INSTANCE
-                                .navigate(
-                                    "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                        Json.encodeToString(missingFields)
-                                    }/${authResponse.asJsonObject()!!["regToken"]}"
-                                )
-                        },
-                        onFailedWith = { error ->
-                            loading = false
-                            signInError = error?.errorDetails!!
-                        }
-                    )
-                }
-
-                "apple" -> {
-                    viewModel.socialWebSignInWith(
-                        context as ComponentActivity,
-                        "apple",
-                        onLogin = {
-                            loading = false
-                            signInError = ""
-                        },
-                        onFailedWith = { error ->
-                            loading = false
-                            signInError = error?.errorDetails!!
-                        }
-                    )
-                }
-            }
-        }, onMutableValueChange = { value ->
-            loading = value
-        })
+            },
+            onMutableValueChange = { value ->
+                loading = value
+            },
+        )
 
         Spacer(modifier = Modifier.size(24.dp))
         HorizontalDivider(
@@ -256,6 +267,9 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
             }
         }
     }
+
+    // Loading indicator on top of all views.
+    IndeterminateLinearIndicator(loading)
 }
 
 @Preview

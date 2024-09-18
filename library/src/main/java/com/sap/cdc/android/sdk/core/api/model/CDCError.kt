@@ -4,23 +4,14 @@ package com.sap.cdc.android.sdk.core.api.model
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
+ *
+ * Compact error class aligned with CDC response standard.
  */
 data class CDCError(
     val errorCode: Int,
-    val errorDetails: String?,
-    val errorDescription: String? = null
+    val errorDescription: String?,
+    var errorDetails: String? = null,
 ) {
-
-    private var dynamicParameters: MutableMap<String, Any?>? = null
-
-    fun addDynamic(key: String, value: Any?) {
-        if (dynamicParameters == null) {
-            dynamicParameters = mutableMapOf()
-        }
-        dynamicParameters!![key] = value
-    }
-
-    fun getDynamic(key: String): Any? = dynamicParameters?.get(key)
 
     companion object {
 

@@ -201,9 +201,12 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                             loading = false
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         },
-                        onFailed = { error ->
+                        onFailedWith = { error ->
                             loading = false
                             signInError = error?.errorDetails!!
+                        },
+                        onLoginIdentifierExists = {
+
                         }
                     )
                 }) {

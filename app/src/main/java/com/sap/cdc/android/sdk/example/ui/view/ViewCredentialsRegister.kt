@@ -292,7 +292,7 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
                             loading = false
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         },
-                        onFailed = { error ->
+                        onFailedWith = { error ->
                             if (error != null) {
                                 // Need to display error information.
                                 registerError = error.errorDetails!!

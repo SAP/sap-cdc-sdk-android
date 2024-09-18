@@ -13,6 +13,8 @@ import com.linecorp.linesdk.auth.LineAuthenticationParams
 import com.linecorp.linesdk.auth.LineLoginApi
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.ProviderException
+import com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.R
@@ -39,8 +41,8 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
 
             if (hostActivity == null) {
                 continuation.resumeWithException(
-                    com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                        com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.CANCELED,
+                    ProviderException(
+                        ProviderExceptionType.CANCELED,
                         CDCError.operationCanceled()
                     )
                 )
@@ -103,8 +105,8 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
 
                         dispose()
                         continuation.resumeWithException(
-                            com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                                com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.CANCELED,
+                            ProviderException(
+                                ProviderExceptionType.CANCELED,
                                 CDCError.operationCanceled()
                             )
                         )
@@ -115,14 +117,11 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                         Log.d("LineAuthenticationProvider", lineResult.errorData.toString())
 
                         val providerException =
-                            com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                                com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.PROVIDER_FAILURE,
+                            ProviderException(
+                                ProviderExceptionType.PROVIDER_FAILURE,
                                 CDCError.providerError()
                             )
-                        providerException.error?.addDynamic(
-                            "providerMessage",
-                            lineResult.errorData.toString()
-                        )
+                        providerException.error?.errorDetails = lineResult.errorData.toString()
 
                         dispose()
                         continuation.resumeWithException(providerException)
@@ -134,7 +133,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
 
     override suspend fun providerSignOut(hostActivity: ComponentActivity?) {
         if (hostActivity == null) return
-        val channelId =""// hostActivity.getString(R.string.line_channel_id)
+        val channelId = ""// hostActivity.getString(R.string.line_channel_id)
         val client = LineApiClientBuilder(hostActivity, channelId).build()
         client.logout()
     }

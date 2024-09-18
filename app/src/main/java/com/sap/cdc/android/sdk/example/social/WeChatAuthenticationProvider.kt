@@ -10,6 +10,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.ProviderException
+import com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.auth.provider.ResultHostActivity
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider.Companion.LOG_TAG
@@ -130,8 +132,8 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                         } else {
                             dispose()
                             continuation.resumeWithException(
-                                com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                                    com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.PROVIDER_FAILURE,
+                                ProviderException(
+                                    ProviderExceptionType.PROVIDER_FAILURE,
                                     CDCError.providerError()
                                 )
                             )

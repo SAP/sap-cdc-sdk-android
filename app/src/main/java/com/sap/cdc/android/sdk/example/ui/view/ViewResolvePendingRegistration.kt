@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.example.ui.view
 
-import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -31,6 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
+import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
@@ -50,9 +52,6 @@ fun ResolvePendingRegistrationWithMissingFields(
     regToken: String,
 ) {
     var loading by remember { mutableStateOf(false) }
-
-    // UI elements.
-    IndeterminateLinearIndicator(loading)
 
     val focusManager = LocalFocusManager.current
 
@@ -129,18 +128,30 @@ fun ResolvePendingRegistrationWithMissingFields(
                         values,
                         regToken,
                         onLogin = {
-                            Log.d("", "")
+                            loading = false
+                            // Route to profile page and pop all routes inclusively so
+                            // The root route will return to the main home screen.
+                            NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                                route = ProfileScreenRoute.MyProfile.route,
+                                rootRoute = ProfileScreenRoute.Welcome.route
+                            )
                         },
                         onFailedWith = { error ->
+                            loading = false
                             if (error != null) {
                                 // Need to display error information.
-                                registerError = error.errorDetails!!
+                                registerError = error.errorDescription ?: ""
                             }
                         })
                 }) {
                 Text("Resolve")
             }
         }
+    }
+
+    // Loading indicator on top of all views.
+    Box(Modifier.fillMaxWidth()) {
+        IndeterminateLinearIndicator(loading)
     }
 }
 

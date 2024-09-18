@@ -13,5 +13,5 @@ enum class ProviderExceptionType {
 
 data class ProviderException(
     val type: ProviderExceptionType,
-    val error: CDCError? = null
+    val error: CDCError? = null,
 ) : Exception(error?.errorDetails)

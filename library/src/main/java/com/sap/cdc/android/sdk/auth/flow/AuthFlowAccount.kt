@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.auth.flow
 
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
+import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
@@ -45,5 +46,20 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
                 this.parameters
             )
         return AuthResponse(setAccountResponse)
+    }
+
+    /**
+     * Request conflicting accounts information.
+     * NOTE: Call requires regToken due to interruption source.
+     *
+     * @see [accounts.getConflictingAccounts](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/4134d7df70b21014bbc5a10ce4041860.html?q=conflictingAccounts)
+     */
+    suspend fun getConflictingAccounts(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
+        withParameters(parameters!!)
+        val conflictingAccountsResponse = AuthenticationApi(coreClient, sessionService).genericSend(
+            EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS,
+            this.parameters
+        )
+        return AuthResponse(conflictingAccountsResponse)
     }
 }

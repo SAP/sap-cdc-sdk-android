@@ -80,8 +80,8 @@ class WebAuthenticationProvider(
                     RESULT_CANCELED -> {
                         dispose()
                         continuation.resumeWithException(
-                            com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                                com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.CANCELED,
+                            ProviderException(
+                                ProviderExceptionType.CANCELED,
                                 CDCError.operationCanceled()
                             )
                         )
@@ -111,8 +111,8 @@ class WebAuthenticationProvider(
 
                                 dispose()
                                 continuation.resumeWithException(
-                                    com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                                        com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.PROVIDER_FAILURE,
+                                    ProviderException(
+                                        ProviderExceptionType.PROVIDER_FAILURE,
                                         cdcError
                                     )
                                 )
@@ -189,6 +189,7 @@ class WebAuthenticationProvider(
     /**
      * Parse error information. May result in a continuous flow to resolve the error.
      */
+    //TODO: Change flow to base response. Not handling CDCError as a object.
     private fun handleErrorInfo(result: Intent): CDCError {
         val errorDescription = result.getStringExtra("error_description")
         val parts =
@@ -202,7 +203,7 @@ class WebAuthenticationProvider(
         // Extract registration token if available. Should be by default...
         if (result.extras?.containsKey("x_regToken") == true) {
             val regToken = result.getStringExtra("x_regToken")
-            error.addDynamic("regToken", regToken!!)
+            //error.addDynamic("regToken", regToken!!)
         }
 
         return error

@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthResolvable
-import com.sap.cdc.android.sdk.auth.AuthResponse
+import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
@@ -26,7 +26,7 @@ interface IViewModelAuthentication {
         email: String,
         password: String,
         onLogin: () -> Unit,
-        onFailed: (CDCError?) -> Unit
+        onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
     }
@@ -35,7 +35,8 @@ interface IViewModelAuthentication {
         email: String,
         password: String,
         onLogin: () -> Unit,
-        onFailed: (CDCError?) -> Unit
+        onLoginIdentifierExists: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
     }
@@ -45,6 +46,7 @@ interface IViewModelAuthentication {
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
+        onLoginIdentifierExists: (regToken: String, loginProviders: List<String>) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -89,16 +91,20 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         email: String,
         password: String,
         onLogin: () -> Unit,
-        onFailed: (CDCError?) -> Unit
+        onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
             val authResponse = identityService.register(email, password)
-            if (authResponse.toDisplayError() != null) {
-                // Error in flow.
-                onFailed(authResponse.toDisplayError())
-                return@launch
+            // Check response state for flow success/error/continuation.
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
+                }
+
+                else -> {
+                    onFailedWith(authResponse.toDisplayError())
+                }
             }
-            onLogin()
         }
     }
 
@@ -106,16 +112,28 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         email: String,
         password: String,
         onLogin: () -> Unit,
-        onFailed: (CDCError?) -> Unit
+        onLoginIdentifierExists: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
             val authResponse = identityService.login(email, password)
-            if (authResponse.toDisplayError() != null) {
-                // Error in flow
-                onFailed(authResponse.toDisplayError())
-                return@launch
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
+                }
+
+                AuthState.ERROR -> {
+                    onFailedWith(authResponse.toDisplayError())
+                }
+
+                AuthState.INTERRUPTED -> {
+                    when (authResponse.cdcResponse().errorCode()) {
+                        AuthResolvable.ERR_LOGIN_IDENTIFIER_EXISTS -> {
+                            onLoginIdentifierExists()
+                        }
+                    }
+                }
             }
-            onLogin()
         }
     }
 
@@ -124,6 +142,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
+        onLoginIdentifierExists: (regToken: String, loginProviders: List<String>) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         if (provider == null) {
@@ -134,21 +153,39 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             val authResponse = identityService.nativeSocialSignIn(
                 hostActivity, provider
             )
-            val error = authResponse.toDisplayError()
-            if (error != null) {
-                if (authResponse.isResolvable()) {
-                    if (error.errorCode == AuthResolvable.ERR_ACCOUNT_PENDING_REGISTRATION) {
-                        onPendingRegistration(authResponse!!)
-                    }
-                } else {
-                    // Unresolvable error in flow.
-                    onFailedWith(error)
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
                 }
-                return@launch
+
+                AuthState.ERROR -> {
+                    // Error in flow.
+                    onFailedWith(authResponse.toDisplayError())
+                }
+
+                AuthState.INTERRUPTED -> {
+                    // Handle available interruption.
+                    when (authResponse.cdcResponse().errorCode()) {
+                        AuthResolvable.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+                            onPendingRegistration(authResponse)
+                        }
+
+                        AuthResolvable.ERR_LOGIN_IDENTIFIER_EXISTS -> {
+                            val regToken = authResponse.cdcResponse().stringField("regToken")
+                            if (regToken == null) {
+                                onFailedWith(authResponse.toDisplayError())
+                                return@launch
+                            }
+                            val loginProviders =
+                                identityService.getConflictingAccountsLoginProviders(regToken)
+                            onLoginIdentifierExists(regToken, loginProviders)
+                        }
+                    }
+                }
             }
-            onLogin()
         }
     }
+
 
     override fun socialWebSignInWith(
         hostActivity: ComponentActivity,
@@ -160,12 +197,15 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             val authResponse = identityService.webSocialSignIn(
                 hostActivity, provider
             )
-            if (authResponse.toDisplayError() != null) {
-                // Error in flow
-                onFailedWith(authResponse.toDisplayError())
-                return@launch
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
+                }
+
+                else -> {
+                    onFailedWith(authResponse.toDisplayError())
+                }
             }
-            onLogin()
         }
     }
 
@@ -187,14 +227,16 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             val authResponse = identityService.resolvePendingRegistrationWithMissingFields(
                 "profile", JsonObject(jsonMap).toString(), regToken,
             )
-            if (authResponse.toDisplayError() != null) {
-                // Error in flow
-                onFailedWith(authResponse.toDisplayError())
-                return@launch
-            }
-            onLogin()
-        }
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
+                }
 
+                else -> {
+                    onFailedWith(authResponse.toDisplayError())
+                }
+            }
+        }
     }
 
 }

@@ -16,6 +16,7 @@ class AuthEndpoints {
         const val EP_ACCOUNTS_LOGOUT = "accounts.logout"
         const val EP_ACCOUNTS_GET_ACCOUNT_INFO = "accounts.getAccountInfo"
         const val EP_ACCOUNTS_SET_ACCOUNT_INFO = "accounts.setAccountInfo"
+        const val EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS = "accounts.getConflictingAccount"
 
         const val EP_SOCIALIZE_GET_IDS = "socialize.getIDs"
         const val EP_SOCIALIZE_LOGIN = "socialize.login"

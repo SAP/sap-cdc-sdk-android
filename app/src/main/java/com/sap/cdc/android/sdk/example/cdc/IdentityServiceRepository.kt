@@ -175,6 +175,18 @@ class IdentityServiceRepository private constructor(context: Context) {
     }
 
     /**
+     * Initiate call to retrieve conflicting account information and parse login providers list.
+     */
+    suspend fun getConflictingAccountsLoginProviders(regToken: String): List<String> {
+        val conflictingAccountsAuthResponse =
+            authenticationService.resolve().getConflictingAccounts(
+                mutableMapOf("regToken" to regToken)
+            )
+        return authenticationService.resolve()
+            .getConflictingAccountsLoginProviders(conflictingAccountsAuthResponse)
+    }
+
+    /**
      * Attempt to resolve "Account Pending Registration" interruption bt providing the necessary
      * missing fields.
      * Note: regToken is required for authenticating the request.
@@ -194,8 +206,12 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Get reference to registered authentication provider.
      */
-    fun getAuthenticationProvider(name: String): IAuthenticationProvider? =
-        authenticationProviderMap[name]
+    fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
+        if (!authenticationProviderMap.containsKey(name)) {
+            return WebAuthenticationProvider(name, sessionService)
+        }
+        return authenticationProviderMap[name]
+    }
 
     /**
      * Register new authentication provider.

@@ -12,6 +12,7 @@ import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import java.lang.ref.WeakReference
 
 /**
@@ -19,17 +20,23 @@ import java.lang.ref.WeakReference
  * Copyright: SAP LTD.
  */
 
+
+enum class AuthState {
+    ERROR, // Indicates an unresolvable error in the the API response.
+    SUCCESS, // API success or end of flow.
+    INTERRUPTED // Indicates an resolvable error occurred in the the API response. Flow can continue according to the error.
+}
+
 /**
  * Authentication response main class interface.
  */
 interface IAuthResponse {
 
-    fun baseResponse(): CDCResponse
+    fun cdcResponse(): CDCResponse
     fun asJsonString(): String?
     fun asJsonObject(): JsonObject?
-    fun isError(): Boolean
     fun toDisplayError(): CDCError?
-    fun isResolvable(): Boolean
+    fun state(): AuthState
 }
 
 /**
@@ -37,18 +44,34 @@ interface IAuthResponse {
  */
 class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
 
-    override fun baseResponse(): CDCResponse = cdcResponse
+    override fun cdcResponse(): CDCResponse = cdcResponse
 
     override fun asJsonString(): String? = this.cdcResponse.asJson()
 
     override fun asJsonObject(): JsonObject? = this.cdcResponse.jsonObject
 
-    override fun isError(): Boolean = cdcResponse.isError()
+    private fun isError(): Boolean = cdcResponse.isError()
 
     override fun toDisplayError(): CDCError = this.cdcResponse.toCDCError()
 
-    override fun isResolvable(): Boolean =
+    private fun isResolvable(): Boolean =
         AuthResolvable.resolvables.containsKey(cdcResponse.errorCode())
+
+    /**
+     * Defines flow state.
+     * Success - marks the end of the flow.
+     * Error - indicates an unresolvable error in the the API response.
+     * Interrupted - indicates a continuation of the flow is available providing additional data/steps/
+     */
+    override fun state(): AuthState {
+        if (isResolvable()) {
+            return AuthState.INTERRUPTED
+        }
+        if (isError()) {
+            return AuthState.ERROR
+        }
+        return AuthState.SUCCESS
+    }
 }
 
 /**
@@ -204,6 +227,8 @@ interface IAuthResolvers {
      */
     suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse
 
+    suspend fun getConflictingAccounts(parameters: MutableMap<String, String>): IAuthResponse
+
     suspend fun linkAccount(parameters: MutableMap<String, String>): IAuthResponse
 
     /**
@@ -212,6 +237,8 @@ interface IAuthResolvers {
      * 2. Flow will attempt to finalize the registration to complete registration process.
      */
     suspend fun pendingRegistrationWith(missingFields: MutableMap<String, String>): IAuthResponse
+
+    fun getConflictingAccountsLoginProviders(authResponse: IAuthResponse): List<String>
 }
 
 /***
@@ -232,10 +259,18 @@ internal class AuthResolvers(
     }
 
     /**
+     * Request conflicting accounts information required for linking to site/social account.
+     */
+    override suspend fun getConflictingAccounts(parameters: MutableMap<String, String>): IAuthResponse {
+        val conflictingAccountsResolver = AccountAuthFlow(coreClient, sessionService)
+        return conflictingAccountsResolver.getConflictingAccounts(parameters)
+    }
+
+    /**
      * Link account.
      */
     override suspend fun linkAccount(parameters: MutableMap<String, String>): IAuthResponse {
-        TODO("Not yet implemented")
+        return TODO("Provide the return value")
     }
 
     /**
@@ -246,12 +281,29 @@ internal class AuthResolvers(
     override suspend fun pendingRegistrationWith(missingFields: MutableMap<String, String>): IAuthResponse {
         val setAccountResolver = AccountAuthFlow(coreClient, sessionService)
         val setAccountAuthResponse = setAccountResolver.setAccountInfo(missingFields)
-        if (setAccountAuthResponse.isError()) {
-            // Error in flow.
-            return setAccountAuthResponse
+        when (setAccountAuthResponse.state()) {
+            AuthState.SUCCESS -> {
+                // Error in flow.
+                val finalizeRegistrationResolver = RegistrationAuthFlow(coreClient, sessionService)
+                return finalizeRegistrationResolver.finalize()
+            }
+
+            else -> {
+                return setAccountAuthResponse
+            }
         }
-        val finalizeRegistrationResolver = RegistrationAuthFlow(coreClient, sessionService)
-        return finalizeRegistrationResolver.finalize()
+    }
+
+    /**
+     * Get login providers list required for link account continuation flow.
+     * The method will serialize the conflicting accounts response.
+     */
+    override fun getConflictingAccountsLoginProviders(authResponse: IAuthResponse): List<String> {
+        val conflictingAccountJson = authResponse.asJsonObject()?.get("conflictingAccount")
+            ?: return listOf()
+        val loginProviders =
+            authResponse.cdcResponse().json.decodeFromString<List<String>>(conflictingAccountJson.jsonObject["loginProviders"].toString())
+        return loginProviders
     }
 
 }

@@ -177,11 +177,12 @@ fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
             onValueChange = {
                 valueState.value = it
             },
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent,
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
                 disabledTextColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent
             )
         )

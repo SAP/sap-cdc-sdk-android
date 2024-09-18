@@ -12,6 +12,8 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.ProviderException
+import com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.R
@@ -30,8 +32,8 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
 
     override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
         if (hostActivity == null) {
-            val exception = com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.HOST_NULL,
+            val exception = ProviderException(
+                ProviderExceptionType.HOST_NULL,
                 CDCError.contextError()
             )
             throw exception
@@ -61,14 +63,11 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
         }
 
         if (result.failed()) {
-            val providerException = com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.PROVIDER_FAILURE,
+            val providerException = ProviderException(
+                ProviderExceptionType.PROVIDER_FAILURE,
                 CDCError.providerError()
             )
-            providerException.error?.addDynamic(
-                "providerMessage",
-                result.exception?.message.toString()
-            )
+            providerException.error?.errorDetails = result.exception?.message.toString()
             throw providerException
         }
 

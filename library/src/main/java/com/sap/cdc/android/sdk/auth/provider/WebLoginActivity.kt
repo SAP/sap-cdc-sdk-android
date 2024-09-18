@@ -14,7 +14,7 @@ import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import android.window.OnBackInvokedDispatcher
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.core.R
+import com.sap.cdc.android.sdk.R
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 
 /**

@@ -52,6 +52,14 @@ class NavigationCoordinator private constructor() {
         _backNav.value = currentNavController?.previousBackStackEntry != null
     }
 
+    fun popToRootAndNavigate(route: String, rootRoute: String) {
+        currentNavController?.popBackStack(
+            route = rootRoute,
+            inclusive = true
+        )
+        currentNavController?.navigate(route)
+    }
+
     /**
      * Navigate to new route providing special options for this navigation operation.
      */

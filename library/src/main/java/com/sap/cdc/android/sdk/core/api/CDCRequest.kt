@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.core.api
 
 import android.util.Log
-import com.sap.cdc.android.sdk.core.BuildConfig
+import com.sap.cdc.android.sdk.BuildConfig
 import com.sap.cdc.android.sdk.core.SiteConfig
 import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
@@ -20,7 +20,7 @@ class CDCRequest(
         "sdk" to "Android_${BuildConfig.VERSION}",
         "targetEnv" to "mobile",
         "format" to "json",
-        "httpStatusCodes" to "false",
+        "httpStatusCodes" to "true", //TODO: Make configurable.
         "nonce" to generateNonce(),
     )
 

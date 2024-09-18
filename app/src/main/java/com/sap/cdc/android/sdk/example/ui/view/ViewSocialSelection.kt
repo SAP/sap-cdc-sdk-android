@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.android.sdk.example.R
+import com.sap.cdc.android.sdk.example.extensions.providerIcon
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -97,4 +98,39 @@ fun ViewSocialSelection(
 @Composable
 fun SocialSelectionViewPreview() {
     ViewSocialSelection({}, {})
+}
+
+@Composable
+fun ViewDynamicSocialSelection(
+    socialProviders: List<String>,
+    onSocialProviderSelection: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 74.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        socialProviders.forEach { provider ->
+            IconButton(
+                modifier = Modifier.size(52.dp),
+                onClick = {
+                    // Line social login.
+                    onSocialProviderSelection(provider)
+                }) {
+                Icon(
+                    modifier = Modifier.size(40.dp),
+                    painter = provider.providerIcon(),
+                    contentDescription = "Localized description",
+                    tint = Color.Unspecified
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ViewDynamicSocialSelectionPreview() {
+    ViewDynamicSocialSelection(listOf("google", "facebook")) { }
 }
