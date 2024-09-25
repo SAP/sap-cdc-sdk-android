@@ -6,8 +6,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.example.ui.view.AuthenticationTabView
+import com.sap.cdc.android.sdk.example.ui.view.ResolveLinkAccount
 import com.sap.cdc.android.sdk.example.ui.view.ResolvePendingRegistrationWithMissingFields
+import com.sap.cdc.android.sdk.example.ui.view.SignInWithEmailView
 import com.sap.cdc.android.sdk.example.ui.view.ViewAboutMe
 import com.sap.cdc.android.sdk.example.ui.view.ViewHome
 import com.sap.cdc.android.sdk.example.ui.view.ViewMyProfile
@@ -100,6 +103,9 @@ fun ProfileNavHost() {
                 selected = selected!!.toInt(),
             )
         }
+        composable(ProfileScreenRoute.EmailSignIn.route) {
+            SignInWithEmailView(viewModel = ViewModelAuthentication(context))
+        }
         composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{missingFields}/{regToken}") { backStackEntry ->
             val missingFieldsJson = backStackEntry.arguments?.getString("missingFields")
             val missingFields = Json.decodeFromString<List<String>>(missingFieldsJson!!)
@@ -107,6 +113,17 @@ fun ProfileNavHost() {
             ResolvePendingRegistrationWithMissingFields(
                 viewModel = ViewModelAuthentication(context),
                 missingFields,
+                regToken!!
+            )
+        }
+        composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{conflictingAccounts}/{regToken}") { backStackEntry ->
+            val conflictingAccountsJson = backStackEntry.arguments?.getString("conflictingAccounts")
+            val conflictingAccounts =
+                Json.decodeFromString<ConflictingAccountsEntity>(conflictingAccountsJson!!)
+            val regToken = backStackEntry.arguments?.getString("regToken")
+            ResolveLinkAccount(
+                viewModel = ViewModelAuthentication(context),
+                conflictingAccounts,
                 regToken!!
             )
         }

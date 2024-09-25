@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
@@ -51,11 +52,11 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 @Composable
 fun ResolveLinkAccount(
     viewModel: IViewModelAuthentication,
-    loginProviders: MutableList<String>,
+    conflictingAccounts: ConflictingAccountsEntity,
     regToken: String,
 ) {
     var loading by remember { mutableStateOf(false) }
-    
+
     var linkError by remember { mutableStateOf("") }
 
     val focusManager = LocalFocusManager.current
@@ -82,7 +83,7 @@ fun ResolveLinkAccount(
         Spacer(modifier = Modifier.size(24.dp))
 
         // Vary login providers list to display the correct link path (social or site).
-        if (loginProviders.contains("site")) {
+        if (conflictingAccounts.loginProviders.contains("site")) {
             // Login to site.
             Text("Link with account password")
             Spacer(modifier = Modifier.size(12.dp))
@@ -108,11 +109,26 @@ fun ResolveLinkAccount(
                     focusManager.moveFocus(FocusDirection.Next)
                 },
             )
+
+            Spacer(modifier = Modifier.size(12.dp))
+
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp),
+                shape = RoundedCornerShape(6.dp),
+                onClick = {
+                    loading = true
+                    // Link to site account using password.
+
+                }) {
+                Text("Link Account")
+            }
         }
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        val socialProvidersOnly = loginProviders.toMutableList()
+        val socialProvidersOnly = conflictingAccounts.loginProviders.toMutableList()
         socialProvidersOnly.remove("site")
         if (socialProvidersOnly.size > 0) {
             Text("Link with existing social accounts")
@@ -178,7 +194,6 @@ fun ResolveLinkAccount(
                 Spacer(modifier = Modifier.width(24.dp))
                 Text("Sign in with Email")
             }
-
         }
 
         Spacer(modifier = Modifier.size(24.dp))
@@ -219,7 +234,10 @@ fun ResolveLinkAccount(
 fun ResolveLinkAccountPreview() {
     ResolveLinkAccount(
         viewModel = ViewModelAuthenticationPreview(),
-        loginProviders = mutableListOf("site", "google", "facebook"),
+        conflictingAccounts = ConflictingAccountsEntity(
+            mutableListOf("site", "google", "facebook"),
+            null
+        ),
         regToken = "",
     )
 }

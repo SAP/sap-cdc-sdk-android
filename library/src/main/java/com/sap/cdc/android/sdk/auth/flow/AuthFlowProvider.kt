@@ -15,7 +15,6 @@ import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.core.api.model.CDCError
 import java.lang.ref.WeakReference
 
 /**

@@ -22,7 +22,7 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      */
     override suspend fun authenticate(): IAuthResponse {
         val loginResponse =
-            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGIN)
+            AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGIN, parameters)
         // Secure new session if the response does not contain any errors.
         if (!loginResponse.isError()) {
             secureNewSession(loginResponse)

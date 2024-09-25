@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.IAuthResponse
+import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
@@ -121,10 +122,10 @@ class IdentityServiceRepository private constructor(context: Context) {
     }
 
     /**
-     * Initiate cdc SDL credentials login.
+     * Initiate cdc SDK credentials login.
      */
     suspend fun login(email: String, password: String): IAuthResponse {
-        val params = mutableMapOf("email" to email, "password" to password)
+        val params = mutableMapOf("loginID" to email, "password" to password)
         return authenticationService.authenticate().login(params)
     }
 
@@ -177,13 +178,13 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Initiate call to retrieve conflicting account information and parse login providers list.
      */
-    suspend fun getConflictingAccountsLoginProviders(regToken: String): List<String> {
+    suspend fun getConflictingAccounts(regToken: String): ConflictingAccountsEntity {
         val conflictingAccountsAuthResponse =
             authenticationService.resolve().getConflictingAccounts(
                 mutableMapOf("regToken" to regToken)
             )
         return authenticationService.resolve()
-            .getConflictingAccountsLoginProviders(conflictingAccountsAuthResponse)
+            .parseConflictingAccounts(conflictingAccountsAuthResponse)
     }
 
     /**

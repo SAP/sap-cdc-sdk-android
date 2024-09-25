@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.IAuthResponse
+import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.coroutines.launch
@@ -46,7 +47,7 @@ interface IViewModelAuthentication {
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
-        onLoginIdentifierExists: (regToken: String, loginProviders: List<String>) -> Unit,
+        onLoginIdentifierExists: (regToken: String, conflictingAccounts: ConflictingAccountsEntity) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -142,7 +143,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
-        onLoginIdentifierExists: (regToken: String, loginProviders: List<String>) -> Unit,
+        onLoginIdentifierExists: (regToken: String, conflictingAccounts: ConflictingAccountsEntity) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         if (provider == null) {
@@ -176,9 +177,9 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
                                 onFailedWith(authResponse.toDisplayError())
                                 return@launch
                             }
-                            val loginProviders =
-                                identityService.getConflictingAccountsLoginProviders(regToken)
-                            onLoginIdentifierExists(regToken, loginProviders)
+                            val conflictingAccounts =
+                                identityService.getConflictingAccounts(regToken)
+                            onLoginIdentifierExists(regToken, conflictingAccounts)
                         }
                     }
                 }

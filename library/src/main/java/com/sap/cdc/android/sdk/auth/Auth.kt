@@ -6,6 +6,7 @@ import com.sap.cdc.android.sdk.auth.flow.LoginAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LogoutAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.auth.flow.RegistrationAuthFlow
+import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
@@ -104,8 +105,7 @@ interface IAuthApis {
  * Authentication APIs initiators.
  */
 internal class AuthApis(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
+    private val coreClient: CoreClient, private val sessionService: SessionService
 ) : IAuthApis {
 
     /**
@@ -135,10 +135,7 @@ internal class AuthApis(
         parameters: MutableMap<String, String>?
     ): IAuthResponse {
         val flow = ProviderAuthFow(
-            coreClient,
-            sessionService,
-            authenticationProvider,
-            WeakReference(hostActivity)
+            coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
         )
         flow.withParameters(parameters ?: mutableMapOf())
         return flow.authenticate()
@@ -147,11 +144,9 @@ internal class AuthApis(
     /**
      * Remove social connection from current account.
      */
-    override suspend fun removeConnection(provider: String): CDCResponse =
-        ProviderAuthFow(
-            coreClient,
-            sessionService
-        ).removeConnection(provider)
+    override suspend fun removeConnection(provider: String): CDCResponse = ProviderAuthFow(
+        coreClient, sessionService
+    ).removeConnection(provider)
 
     /**
      * Log out of current account.
@@ -179,8 +174,7 @@ interface IAuthApisSet {
  */
 internal class AuthApisSet(
 
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
+    private val coreClient: CoreClient, private val sessionService: SessionService
 ) : IAuthApisSet {
 
     override suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
@@ -202,8 +196,7 @@ interface IAuthApisGet {
  * Authentication get providers initiators.
  */
 internal class AuthApisGet(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
+    private val coreClient: CoreClient, private val sessionService: SessionService
 ) : IAuthApisGet {
 
     /**
@@ -229,7 +222,13 @@ interface IAuthResolvers {
 
     suspend fun getConflictingAccounts(parameters: MutableMap<String, String>): IAuthResponse
 
-    suspend fun linkAccount(parameters: MutableMap<String, String>): IAuthResponse
+    suspend fun linkSiteAccount(parameters: MutableMap<String, String>): IAuthResponse
+
+    suspend fun linkSocialAccount(
+        hostActivity: ComponentActivity,
+        authenticationProvider: IAuthenticationProvider,
+        parameters: MutableMap<String, String>
+    ): IAuthResponse
 
     /**
      * Resolve "Account Pending Registration" interruption error.
@@ -238,15 +237,14 @@ interface IAuthResolvers {
      */
     suspend fun pendingRegistrationWith(missingFields: MutableMap<String, String>): IAuthResponse
 
-    fun getConflictingAccountsLoginProviders(authResponse: IAuthResponse): List<String>
+    fun parseConflictingAccounts(authResponse: IAuthResponse): ConflictingAccountsEntity
 }
 
 /***
  * Authentication resolvers initiators.
  */
 internal class AuthResolvers(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
+    private val coreClient: CoreClient, private val sessionService: SessionService
 ) : IAuthResolvers {
 
     /**
@@ -267,10 +265,33 @@ internal class AuthResolvers(
     }
 
     /**
-     * Link account.
+     * Link account using site credentials.
+     * Will initiate a login call using loginMode = link.
+     * RegToken is required.
      */
-    override suspend fun linkAccount(parameters: MutableMap<String, String>): IAuthResponse {
-        return TODO("Provide the return value")
+    override suspend fun linkSiteAccount(parameters: MutableMap<String, String>): IAuthResponse {
+        val linkAccountResolver = LoginAuthFlow(coreClient, sessionService)
+        parameters["loginMode"] = "link" // Making sure login mode is link
+        linkAccountResolver.withParameters(parameters)
+        return linkAccountResolver.authenticate()
+    }
+
+    /**
+     * Link account using a social provider.
+     * Will initiate a login call using loginMode = link.
+     * RegToken is required.
+     */
+    override suspend fun linkSocialAccount(
+        hostActivity: ComponentActivity,
+        authenticationProvider: IAuthenticationProvider,
+        parameters: MutableMap<String, String>
+    ): IAuthResponse {
+        val linkAccountResolver = ProviderAuthFow(
+            coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
+        )
+        parameters["loginMode"] = "link"  // Making sure login mode is link
+        linkAccountResolver.withParameters(parameters)
+        return linkAccountResolver.authenticate()
     }
 
     /**
@@ -298,12 +319,13 @@ internal class AuthResolvers(
      * Get login providers list required for link account continuation flow.
      * The method will serialize the conflicting accounts response.
      */
-    override fun getConflictingAccountsLoginProviders(authResponse: IAuthResponse): List<String> {
+    override fun parseConflictingAccounts(authResponse: IAuthResponse): ConflictingAccountsEntity {
         val conflictingAccountJson = authResponse.asJsonObject()?.get("conflictingAccount")
-            ?: return listOf()
-        val loginProviders =
-            authResponse.cdcResponse().json.decodeFromString<List<String>>(conflictingAccountJson.jsonObject["loginProviders"].toString())
-        return loginProviders
+            ?: return ConflictingAccountsEntity(listOf())
+        val caEntity = authResponse.cdcResponse().json.decodeFromString<ConflictingAccountsEntity>(
+            conflictingAccountJson.jsonObject.toString()
+        )
+        return caEntity
     }
 
 }

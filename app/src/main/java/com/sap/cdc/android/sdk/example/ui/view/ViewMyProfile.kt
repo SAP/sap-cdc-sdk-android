@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.ColorUtils
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
+import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelProfile
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfilePreview
 import kotlin.math.absoluteValue
@@ -145,7 +146,10 @@ fun ViewMyProfile(viewModel: IViewModelProfile) {
             onClick = {
                 viewModel.logOut(
                     success = {
-                        NavigationCoordinator.INSTANCE.navigateUp()
+                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                            route = ProfileScreenRoute.MyProfile.route,
+                            rootRoute = ProfileScreenRoute.Welcome.route
+                        )
                     },
                     onFailed = {
                         // Stub.
@@ -189,42 +193,43 @@ fun UserHead(
 
 @Composable
 fun SelectionRow(title: String, leadingIcon: Int, onClick: () -> Unit = {}) {
-    Surface(onClick = { onClick() }) {
-        Column {
-            Box(
-                contentAlignment = Alignment.CenterStart,
-                modifier = Modifier
-                    .background(Color.White)
-                    .height(48.dp)
-                    .padding(start = 22.dp, end = 22.dp)
-                    .fillMaxWidth()
-                    .clickable {
+    Column(Modifier.clickable {
+        onClick()
+    }
+    ) {
+        Box(
+            contentAlignment = Alignment.CenterStart,
+            modifier = Modifier
+                .background(Color.White)
+                .height(48.dp)
+                .padding(start = 22.dp, end = 22.dp)
+                .fillMaxWidth()
+                .clickable {
 
-                    }
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(id = leadingIcon),
-                        contentDescription = stringResource(id = R.string.app_configuration),
-                        tint = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(20.dp))
-                    Text(title)
                 }
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .align(Alignment.CenterEnd),
-                    painter = painterResource(id = R.drawable.ic_arrow_right),
-                    contentDescription = "",
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = leadingIcon),
+                    contentDescription = stringResource(id = R.string.app_configuration),
                     tint = Color.Black
                 )
+                Spacer(modifier = Modifier.width(20.dp))
+                Text(title)
             }
-            BottomShadow(alpha = .15f, height = 4.dp)
+            Icon(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.CenterEnd),
+                painter = painterResource(id = R.drawable.ic_arrow_right),
+                contentDescription = "",
+                tint = Color.Black
+            )
         }
+        BottomShadow(alpha = .15f, height = 4.dp)
     }
 }
 

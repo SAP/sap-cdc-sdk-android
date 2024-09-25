@@ -32,6 +32,8 @@
     <string name="wechat_app_id"></string>
 
     <string name="google_server_client_id">977811956095-t72doari7i8iuv9r6qf3kbhh2ns3u7cj.apps.googleusercontent.com</string>
+    <string name="resolve_link_account">Resolve Link Account\n</string>
+    <string name="email_sign_in">email_sign_in</string>
 
 
 </resources>

@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -119,9 +120,16 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                 onValueChange = {
                     email = it
                 },
-                keyboardActions = KeyboardActions {
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ) {
                     focusManager.moveFocus(FocusDirection.Next)
                 },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                )
             )
             // Password input.
             Spacer(modifier = Modifier.size(12.dp))
@@ -138,6 +146,13 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 ),
+                placeholder = {
+                    Text(
+                        "Password Placeholder",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                    )
+                },
                 visualTransformation = if (passwordVisible) {
                     VisualTransformation.None
                 } else {
@@ -146,10 +161,16 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                 onValueChange = {
                     password = it
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions {
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ) {
                     focusManager.moveFocus(FocusDirection.Next)
                 },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
                 trailingIcon = {
                     val image = if (passwordVisible)
                         Icons.Filled.Visibility
@@ -196,7 +217,8 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                 onClick = {
                     loading = true
                     viewModel.login(
-                        email = email, password = password, onLogin = {
+                        email = email, password = password,
+                        onLogin = {
                             signInError = ""
                             loading = false
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
@@ -206,7 +228,7 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                             signInError = error?.errorDetails!!
                         },
                         onLoginIdentifierExists = {
-
+                            loading = false
                         }
                     )
                 }) {

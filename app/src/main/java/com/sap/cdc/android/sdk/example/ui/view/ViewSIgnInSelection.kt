@@ -89,7 +89,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             onPendingRegistration = { error ->
 
                             },
-                            onLoginIdentifierExists = { regToken, loginProviders ->
+                            onLoginIdentifierExists = { regToken, conflictingAccounts ->
 
                             }
                         )
@@ -111,7 +111,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
 
 
                             },
-                            onLoginIdentifierExists = { regToken, loginProviders ->
+                            onLoginIdentifierExists = { regToken, conflictingAccounts ->
 
                             }
 
@@ -141,8 +141,13 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                                         }/${authResponse.cdcResponse().stringField("regToken")}"
                                     )
                             },
-                            onLoginIdentifierExists = { regToken, loginProviders ->
-
+                            onLoginIdentifierExists = { regToken, conflictingAccounts ->
+                                NavigationCoordinator.INSTANCE
+                                    .navigate(
+                                        "${ProfileScreenRoute.ResolveLinkAccount.route}/${
+                                            Json.encodeToString(conflictingAccounts)
+                                        }/${regToken}"
+                                    )
                             }
                         )
                     }
@@ -205,7 +210,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
         OutlinedButton(modifier = Modifier.size(width = 240.dp, height = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
-                NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
+                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.EmailSignIn.route)
             }) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -29,13 +29,19 @@ sealed class ProfileScreenRoute(
     object Welcome : ProfileScreenRoute("Welcome", R.string.welcome)
     object AuthTabView : ProfileScreenRoute("AuthTabView", -1)
     object Register : ProfileScreenRoute("Register", R.string.register)
-    object Login : ProfileScreenRoute("Login", R.string.login)
+    object EmailSignIn : ProfileScreenRoute("EmailSignIn", R.string.email_sign_in)
     object MyProfile : ProfileScreenRoute("MyProfile", R.string.my_profile)
     object AboutMe : ProfileScreenRoute("AboutMe", R.string.about_me)
     object ResolvePendingRegistration : ProfileScreenRoute(
         "ResolvePendingRegistration",
         R.string.resolve_pending_registration_with_missing_fields
     )
+
+    object ResolveLinkAccount :
+        ProfileScreenRoute(
+            "ResolveLinkAccount",
+            R.string.resolve_link_account
+        )
 }
 
 sealed class ScreenSetsRoute(

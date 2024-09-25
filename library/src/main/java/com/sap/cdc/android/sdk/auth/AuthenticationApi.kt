@@ -8,8 +8,8 @@ import com.sap.cdc.android.sdk.auth.model.GMIDEntity
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.Api
-import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.CDCRequest
+import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 
 
