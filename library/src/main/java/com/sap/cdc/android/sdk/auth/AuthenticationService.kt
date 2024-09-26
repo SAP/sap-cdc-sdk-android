@@ -22,13 +22,6 @@ class AuthenticationService(val sessionService: SessionService) {
         const val CDC_GMID_REFRESH_TS = "cdc_gmid_refresh_ts"
     }
 
-    init {
-        // Check async/await.
-        CoroutineScope(Dispatchers.IO).launch {
-            AuthenticationApi(coreClient, sessionService).getIDs()
-        }
-    }
-
     fun authenticate(): IAuthApis =
         AuthApis(coreClient, sessionService)
 
@@ -40,7 +33,6 @@ class AuthenticationService(val sessionService: SessionService) {
 
     fun set(): IAuthApisSet =
         AuthApisSet(coreClient, sessionService)
-
 
 
 }

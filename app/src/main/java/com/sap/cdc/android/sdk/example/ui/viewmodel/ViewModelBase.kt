@@ -3,6 +3,7 @@ package com.sap.cdc.android.sdk.example.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.sap.cdc.android.sdk.example.cdc.IdentityServiceRepository
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 /**
@@ -16,7 +17,11 @@ open class ViewModelBase(context: Context) : ViewModel() {
     /**
      * Available Json interface.
      */
-    val json = Json { ignoreUnknownKeys = true }
+    @OptIn(ExperimentalSerializationApi::class)
+    val json = Json {
+        ignoreUnknownKeys = true
+        explicitNulls = true
+    }
 
     /**
      * Identity service repository instance.

@@ -98,7 +98,7 @@ interface IAuthApis {
         provider: String
     ): CDCResponse
 
-    suspend fun logout(): CDCResponse
+    suspend fun logout(): IAuthResponse
 }
 
 /**
@@ -152,10 +152,9 @@ internal class AuthApis(
      * Log out of current account.
      * Logging out will remove all session data.
      */
-    override suspend fun logout(): CDCResponse {
+    override suspend fun logout(): IAuthResponse {
         val flow = LogoutAuthFlow(coreClient, sessionService)
-        val authResponse: IAuthResponse = flow.authenticate()
-        return CDCResponse().fromJSON(authResponse.asJsonString()!!)
+        return flow.authenticate()
     }
 
 }

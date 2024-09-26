@@ -1,9 +1,11 @@
 package com.sap.cdc.android.sdk.core.api
 
 import android.content.Context
+import android.util.Log
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.CoreClient.Companion.CDC_CODE_CLIENT_SECURED_PREF
 import com.sap.cdc.android.sdk.core.CoreClient.Companion.CDC_SERVER_OFFSET
+import com.sap.cdc.android.sdk.core.network.HttpExceptions
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.extensions.isOnline
 import com.sap.cdc.android.sdk.extensions.prepareApiUrl
@@ -24,6 +26,8 @@ import java.util.Locale
 open class Api(private val coreClient: CoreClient) {
 
     companion object {
+
+        const val LOG_TAG = "Api"
         const val CDC_SERVER_OFFSET_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz"
 
         fun getServerTimestamp(context: Context): String {
@@ -31,6 +35,7 @@ open class Api(private val coreClient: CoreClient) {
                 context.getEncryptedPreferences(CDC_SERVER_OFFSET_FORMAT)
             val timestamp: String =
                 ((System.currentTimeMillis() / 1000) + esp.getLong(CDC_SERVER_OFFSET, 0)).toString()
+            Log.d(LOG_TAG, "serverOffset - get: $timestamp")
             return timestamp
         }
     }
@@ -106,6 +111,7 @@ open class Api(private val coreClient: CoreClient) {
         )
         val serverDate = format.parse(date) ?: return
         val offset = (serverDate.time - System.currentTimeMillis()) / 1000
+        Log.d(LOG_TAG, "serverOffset - set: $offset")
         val esp =
             coreClient.siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_CODE_CLIENT_SECURED_PREF
@@ -123,25 +129,31 @@ open class Api(private val coreClient: CoreClient) {
         method: String? = HttpMethod.Post.value,
         headers: MutableMap<String, String>? = mutableMapOf()
     ): CDCResponse {
-        return when (method!!) {
-            HttpMethod.Get.value -> {
-                get(
+        return try {
+            when (method!!) {
+                HttpMethod.Get.value -> {
+                    get(
+                        CDCRequest(coreClient.siteConfig)
+                            .method(HttpMethod.Get.value)
+                            .api(api.prepareApiUrl(coreClient.siteConfig))
+                            .timestamp(getServerTimestamp(coreClient.siteConfig.applicationContext))
+                            .parameters(parameters)
+                            .headers(headers)
+                    )
+                }
+
+                else -> post(
                     CDCRequest(coreClient.siteConfig)
-                        .method(HttpMethod.Get.value)
+                        .method(HttpMethod.Post.value)
                         .api(api.prepareApiUrl(coreClient.siteConfig))
-                        .timestamp(getServerTimestamp(coreClient.siteConfig.applicationContext))
                         .parameters(parameters)
+                        .timestamp(getServerTimestamp(coreClient.siteConfig.applicationContext))
                         .headers(headers)
                 )
             }
-            else -> post(
-                CDCRequest(coreClient.siteConfig)
-                    .method(HttpMethod.Post.value)
-                    .api(api.prepareApiUrl(coreClient.siteConfig))
-                    .parameters(parameters)
-                    .timestamp(getServerTimestamp(coreClient.siteConfig.applicationContext))
-                    .headers(headers)
-            )
+        } catch (e: HttpExceptions) {
+            Log.e(LOG_TAG, e.message)
+            return CDCResponse().fromHttpException(e)
         }
     }
 

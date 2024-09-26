@@ -20,7 +20,7 @@ class SessionSecure(
         const val CDC_SESSIONS = "cdc_sessions"
     }
 
-    private var session: com.sap.cdc.android.sdk.auth.session.Session? = null
+    private var session: Session? = null
 
     init {
         loadToMem()
@@ -30,7 +30,7 @@ class SessionSecure(
      * Set session object.
      * Given session will replace current session. Both in memory and secured storage.
      */
-    fun setSession(session: com.sap.cdc.android.sdk.auth.session.Session) {
+    fun setSession(session: Session) {
         this.session = session
         secure(session)
     }
@@ -40,7 +40,7 @@ class SessionSecure(
      * Given session will replace current session. Both in memory and secured storage.
      */
     fun setSession(sessionString: String) {
-        val session = com.sap.cdc.android.sdk.auth.session.Session.Companion.fromJson(sessionString)
+        val session = Session.fromJson(sessionString)
         this.session = session
         secure(session)
     }
@@ -49,7 +49,7 @@ class SessionSecure(
      * Get current session.
      * Will load current secured session (if saved) if not available in memory.s
      */
-    fun getSession(): com.sap.cdc.android.sdk.auth.session.Session? {
+    fun getSession(): Session? {
         if (this.session == null) {
             loadToMem()
         }
@@ -64,11 +64,7 @@ class SessionSecure(
         val esp =
             siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
-            ).edit().remove(com.sap.cdc.android.sdk.auth.session.SessionSecure.Companion.CDC_SESSIONS).apply()
-    }
-
-    fun updateSecureLevel(level: com.sap.cdc.android.sdk.auth.session.SessionSecureLevel) {
-
+            ).edit().remove(CDC_SESSIONS).apply()
     }
 
     /**
@@ -79,14 +75,14 @@ class SessionSecure(
             siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
-        val json = esp.getString(com.sap.cdc.android.sdk.auth.session.SessionSecure.Companion.CDC_SESSIONS, null)
+        val json = esp.getString(CDC_SESSIONS, null)
         var sessionMap: MutableMap<String, String> = mutableMapOf()
         if (json != null) {
             sessionMap = Json.decodeFromString<MutableMap<String, String>>(json)
         }
         sessionMap[siteConfig.apiKey] = session.toJson()
 
-        esp.edit().putString(com.sap.cdc.android.sdk.auth.session.SessionSecure.Companion.CDC_SESSIONS, Json.encodeToString(sessionMap)).apply()
+        esp.edit().putString(CDC_SESSIONS, Json.encodeToString(sessionMap)).apply()
     }
 
     /**
@@ -97,12 +93,12 @@ class SessionSecure(
             siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
-        if (esp.contains(com.sap.cdc.android.sdk.auth.session.SessionSecure.Companion.CDC_SESSIONS)) {
-            val json = esp.getString(com.sap.cdc.android.sdk.auth.session.SessionSecure.Companion.CDC_SESSIONS, null)
+        if (esp.contains(CDC_SESSIONS)) {
+            val json = esp.getString(CDC_SESSIONS, null)
             if (json != null) {
                 val sessionMap = Json.decodeFromString<Map<String, String>>(json)
                 this.session = sessionMap[siteConfig.apiKey]?.let {
-                    com.sap.cdc.android.sdk.auth.session.Session.Companion.fromJson(it)
+                    Session.fromJson(it)
                 }
             }
         }

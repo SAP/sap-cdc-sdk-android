@@ -29,7 +29,7 @@ class AuthenticationApi(
         headers: MutableMap<String, String>?
     ): CDCResponse {
         if (!gmidValid()) {
-            getIDs()
+            val ids = getIDs()
         }
         return super.genericSend(api, parameters, method, headers)
     }
@@ -52,7 +52,7 @@ class AuthenticationApi(
         }
     }
 
-    suspend fun getIDs() {
+    private suspend fun getIDs(): CDCResponse {
         val response = Api(coreClient).genericSend(EP_SOCIALIZE_GET_IDS)
         val gmidEntity = response.serializeTo<GMIDEntity>()
         if (gmidEntity != null) {
@@ -63,6 +63,7 @@ class AuthenticationApi(
             esp.edit().putString(CDC_GMID, gmidEntity.gmid)
                 .putLong(CDC_GMID_REFRESH_TS, gmidEntity.refreshTime!!).apply()
         }
+        return response
     }
 
     /**

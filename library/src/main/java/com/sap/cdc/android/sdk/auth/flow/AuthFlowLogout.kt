@@ -26,7 +26,7 @@ class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         val logoutResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGOUT)
         if (!logoutResponse.isError()) {
-            // Invalidate session if the response does not contain any erros.
+            // Invalidate session if the response does not contain any errors.
             sessionService.clearSession()
             clearCookies()
         }

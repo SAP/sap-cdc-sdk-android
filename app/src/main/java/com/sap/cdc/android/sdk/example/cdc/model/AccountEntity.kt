@@ -20,6 +20,6 @@ data class AccountEntity(
 @Serializable
 data class ProfileEntity(
     val email: String,
-    val firstName: String,
-    val lastName: String
+    val firstName: String? = null,
+    val lastName: String? = null
 )

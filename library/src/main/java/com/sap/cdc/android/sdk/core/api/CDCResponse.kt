@@ -1,6 +1,9 @@
 package com.sap.cdc.android.sdk.core.api
 
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.core.network.HttpExceptions
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -42,6 +45,15 @@ class CDCResponse {
                     "  \"errorMessage\": $message" +
                     "  \"errorDetails\": $description" +
                     "}"
+        )
+    }
+
+    internal fun fromHttpException(e: HttpExceptions) = apply {
+        val statusCode: HttpStatusCode = e.response.status
+        fromError(
+            statusCode.value,
+            statusCode.description,
+            ""
         )
     }
 

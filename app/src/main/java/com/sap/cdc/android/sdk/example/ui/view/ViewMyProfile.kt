@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.example.ui.view
 
+import android.util.Log
 import androidx.annotation.ColorInt
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,8 +56,6 @@ import kotlin.math.absoluteValue
 @Composable
 fun ViewMyProfile(viewModel: IViewModelProfile) {
     val loading by remember { mutableStateOf(false) }
-
-    viewModel.getAccountInfo()
 
     Column(
         modifier = Modifier
@@ -147,24 +145,27 @@ fun ViewMyProfile(viewModel: IViewModelProfile) {
                 viewModel.logOut(
                     success = {
                         NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                            route = ProfileScreenRoute.MyProfile.route,
+                            route = ProfileScreenRoute.Welcome.route,
                             rootRoute = ProfileScreenRoute.Welcome.route
                         )
                     },
                     onFailed = {
                         // Stub.
+                        Log.e("ViewMyProfile", "Logout failed")
                     }
                 )
             },
         )
     }
-}
 
-
-@Preview
-@Composable
-fun ViewMyProfilePreview() {
-    ViewMyProfile(ViewModelProfilePreview())
+    viewModel.getAccountInfo(
+        success = {
+            Log.d("ViewMyProfile", "Get account info success")
+        },
+        onFailed = {
+            Log.e("ViewMyProfile", "Get account info failed")
+        }
+    )
 }
 
 @Composable
@@ -204,9 +205,6 @@ fun SelectionRow(title: String, leadingIcon: Int, onClick: () -> Unit = {}) {
                 .height(48.dp)
                 .padding(start = 22.dp, end = 22.dp)
                 .fillMaxWidth()
-                .clickable {
-
-                }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -254,4 +252,10 @@ fun BottomShadow(alpha: Float = 0.1f, height: Dp = 8.dp) {
 fun String.toHslColor(saturation: Float = 0.5f, lightness: Float = 0.4f): Int {
     val hue = fold(0) { acc, char -> char.code + acc * 37 } % 360
     return ColorUtils.HSLToColor(floatArrayOf(hue.absoluteValue.toFloat(), saturation, lightness))
+}
+
+@Preview
+@Composable
+fun ViewMyProfilePreview() {
+    ViewMyProfile(ViewModelProfilePreview())
 }

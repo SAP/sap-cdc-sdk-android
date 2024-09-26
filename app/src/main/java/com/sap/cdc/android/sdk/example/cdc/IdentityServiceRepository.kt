@@ -10,7 +10,6 @@ import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
@@ -109,6 +108,15 @@ class IdentityServiceRepository private constructor(context: Context) {
         return sessionService.sessionSecure.getSession()
     }
 
+    /**
+     * Clear session secure session.
+     */
+    fun invalidateSession() {
+        sessionService.sessionSecure.clearSession()
+    }
+
+    fun validSession(): Boolean = sessionService.sessionSecure.getSession() != null
+
     //endregion
 
     //region AUTHENTICATION FLOWS
@@ -146,7 +154,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Logout from current CDC session.
      */
-    suspend fun logout(): CDCResponse {
+    suspend fun logout(): IAuthResponse {
         return authenticationService.authenticate().logout()
     }
 

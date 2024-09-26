@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.cdc.model.AccountEntity
 import kotlinx.coroutines.launch
@@ -21,7 +22,11 @@ interface IViewModelProfile {
 
     fun lastName(): String = ""
 
-    fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()) {}
+    fun getAccountInfo(
+        parameters: MutableMap<String, String>? = mutableMapOf(),
+        success: () -> Unit, onFailed: (CDCError) -> Unit
+    ) {
+    }
 
     fun setAccountInfo(success: () -> Unit, onFailed: (CDCError) -> Unit) {}
 
@@ -30,11 +35,6 @@ interface IViewModelProfile {
 
 
 class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelProfile {
-
-    init {
-        // Request account information on viewModel initialization.
-        getAccountInfo()
-    }
 
     var lastName by mutableStateOf("")
         internal set
@@ -46,20 +46,33 @@ class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelPro
 
     override fun lastName(): String = this.lastName
 
-    override fun getAccountInfo(parameters: MutableMap<String, String>?) {
+    override fun getAccountInfo(
+        parameters: MutableMap<String, String>?,
+        success: () -> Unit,
+        onFailed: (CDCError) -> Unit
+    ) {
+        if (!identityService.validSession()) {
+            return
+        }
         viewModelScope.launch {
             val authResponse = identityService.getAccountInfo()
-            if (authResponse.toDisplayError() != null) {
-                // Error in account request.
-                //TODO: Add error handling.
-                return@launch
-            }
-            // Deserialize account data.
-            val account = json.decodeFromString<AccountEntity>(authResponse.asJsonString()!!)
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    // Deserialize account data.
+                    val account =
+                        json.decodeFromString<AccountEntity>(authResponse.asJsonString()!!)
 
-            // Update UI stateful parameters.
-            firstName = account.profile.firstName
-            lastName = account.profile.lastName
+                    // Update UI stateful parameters.
+                    firstName = account.profile.firstName ?: ""
+                    lastName = account.profile.lastName ?: ""
+
+                    success()
+                }
+
+                else -> {
+                    onFailed(authResponse.toDisplayError()!!)
+                }
+            }
         }
     }
 
@@ -78,8 +91,8 @@ class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelPro
             val account = json.decodeFromString<AccountEntity>(authResponse.asJsonString()!!)
 
             // Update UI stateful parameters.
-            firstName = account.profile.firstName
-            lastName = account.profile.lastName
+            firstName = account.profile.firstName ?: ""
+            lastName = account.profile.lastName ?: ""
 
             success()
         }
@@ -88,12 +101,15 @@ class ViewModelProfile(context: Context) : ViewModelBase(context), IViewModelPro
     override fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {
         viewModelScope.launch {
             val authResponse = identityService.logout()
-            if (authResponse.isError()) {
-                // Error in account request.
-                onFailed(authResponse.toCDCError())
-                return@launch
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    success()
+                }
+
+                else -> {
+                    onFailed(authResponse.toDisplayError()!!)
+                }
             }
-            success()
         }
     }
 

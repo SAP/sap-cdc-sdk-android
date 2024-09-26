@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.core.network
 
 import android.util.Log
+import com.sap.cdc.android.sdk.core.api.CDCRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.DefaultRequest
@@ -17,6 +18,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.channels.Channel
 
 
 /**
@@ -25,6 +27,8 @@ import io.ktor.http.isSuccess
  */
 class NetworkClient(
 ) {
+
+    internal val networkChannel = Channel<CDCRequest>(capacity = 100)
 
     companion object {
         private const val LOG_TAG = "NetworkClient"
