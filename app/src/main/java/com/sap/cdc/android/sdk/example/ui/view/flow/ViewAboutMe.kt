@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.example.ui.view
+package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -33,8 +33,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelProfile
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfilePreview
+import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
+import com.sap.cdc.android.sdk.example.ui.view.custom.TitledText
+import com.sap.cdc.android.sdk.example.ui.view.custom.UpdatableEditBox
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
 
 /**
@@ -43,10 +46,13 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfilePreview
  */
 
 @Composable
-fun ViewAboutMe(viewModel: IViewModelProfile) {
-    var loading by remember { mutableStateOf(false) }
+fun ViewAboutMe(viewModel: IViewModelAuthentication) {
 
+    var loading by remember { mutableStateOf(false) }
     var setError by remember { mutableStateOf("") }
+
+    var name by remember { mutableStateOf("${viewModel.accountInfo()?.profile?.firstName ?: ""} " +
+            (viewModel.accountInfo()?.profile?.lastName ?: "")) }
 
     Column(
         modifier = Modifier
@@ -54,6 +60,7 @@ fun ViewAboutMe(viewModel: IViewModelProfile) {
             .fillMaxWidth()
             .fillMaxHeight(),
     ) {
+        IndeterminateLinearIndicator(loading)
         Box(
             modifier = Modifier
                 .height(height = 36.dp)
@@ -67,17 +74,21 @@ fun ViewAboutMe(viewModel: IViewModelProfile) {
                     .padding(start = 10.dp)
             )
         }
-        UpdatableEditBox(title = "Name: ", value = "") {
-
+        UpdatableEditBox(
+            title = "Name: ",
+            initialValue = name
+        ) {
+            name = it
         }
         HorizontalDivider(
             modifier = Modifier
                 .height(3.dp)
                 .background(Color.LightGray)
         )
-        UpdatableEditBox(title = "Email", value = "") {
-
-        }
+        TitledText(
+            title = "Email",
+            value = viewModel.accountInfo()?.profile?.email ?: ""
+        )
         HorizontalDivider(
             modifier = Modifier
                 .height(3.dp)
@@ -108,7 +119,8 @@ fun ViewAboutMe(viewModel: IViewModelProfile) {
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 loading = true
-                viewModel.setAccountInfo(
+                viewModel.updateAccountInfoWith(
+                    name = name,
                     success = {
                         loading = false
                     },
@@ -126,53 +138,6 @@ fun ViewAboutMe(viewModel: IViewModelProfile) {
 @Preview
 @Composable
 fun ViewAboutMePreview() {
-    ViewAboutMe(viewModel = ViewModelProfilePreview())
+    ViewAboutMe(viewModel = ViewModelAuthenticationPreview())
 }
 
-@Composable
-fun UpdatableEditBox(title: String, value: String, onValueChanged: (String) -> Unit) {
-    Spacer(modifier = Modifier.height(14.dp))
-    Box() {
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text(
-                title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light,
-            )
-            TextField(
-                value,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
-                ),
-                placeholder = {
-                    Text(
-                        "Update name",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                    )
-                },
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                onValueChange = {
-                    onValueChanged(it)
-                },
-                keyboardActions = KeyboardActions {
-
-                },
-            )
-        }
-    }
-    Spacer(modifier = Modifier.height(14.dp))
-}
-
-@Preview
-@Composable
-fun UpdatableEditBoxPreview() {
-    UpdatableEditBox(title = "title", value = "value", onValueChanged = {})
-}

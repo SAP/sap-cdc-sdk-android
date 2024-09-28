@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.example.ui.view
+package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,6 +41,7 @@ import com.sap.cdc.android.sdk.example.ui.route.MainScreenRoute
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileNavHost
 import com.sap.cdc.android.sdk.example.ui.route.SearchNavHost
+import com.sap.cdc.android.sdk.example.ui.view.custom.ViewCustomBottomBar
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
 
 /**

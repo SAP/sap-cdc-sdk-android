@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.auth
 
+import android.util.Log
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_GMID
@@ -30,6 +31,9 @@ class AuthenticationApi(
     ): CDCResponse {
         if (!gmidValid()) {
             val ids = getIDs()
+            if (ids.isError()) {
+                Log.e("AuthenticationApi", "getIds error: ${ids.errorCode()}")
+            }
         }
         return super.genericSend(api, parameters, method, headers)
     }

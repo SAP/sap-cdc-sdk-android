@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.example.ui.view
+package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import android.util.Log
 import androidx.annotation.ColorInt
@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,8 +42,9 @@ import androidx.core.graphics.ColorUtils
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelProfile
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfilePreview
+import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 import kotlin.math.absoluteValue
 
 /**
@@ -54,13 +57,14 @@ import kotlin.math.absoluteValue
  */
 
 @Composable
-fun ViewMyProfile(viewModel: IViewModelProfile) {
+fun ViewMyProfile(viewModel: IViewModelAuthentication) {
     val loading by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .background(Color.LightGray)
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .fillMaxHeight(),
     ) {
         // UI elements.
@@ -93,7 +97,9 @@ fun ViewMyProfile(viewModel: IViewModelProfile) {
                 )
             }
             UserHead(
-                id = "", firstName = viewModel.firstName(), lastName = viewModel.lastName(),
+                id = "",
+                firstName = viewModel.accountInfo()?.profile?.firstName ?: "",
+                lastName = viewModel.accountInfo()?.profile?.lastName ?: "",
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -112,7 +118,7 @@ fun ViewMyProfile(viewModel: IViewModelProfile) {
                 .height(44.dp), contentAlignment = Alignment.Center
         ) {
             Text(
-                "${viewModel.firstName()} ${viewModel.lastName()}",
+                "${viewModel.accountInfo()?.profile?.firstName ?: ""} ${viewModel.accountInfo()?.profile?.lastName ?: ""}",
                 fontSize = 34.sp, fontWeight = FontWeight.Bold
             )
         }
@@ -128,7 +134,12 @@ fun ViewMyProfile(viewModel: IViewModelProfile) {
                 .height(24.dp)
                 .fillMaxWidth()
         )
-        SelectionRow(title = "About Me", leadingIcon = R.drawable.ic_profile_row)
+        SelectionRow(
+            title = "About Me", leadingIcon = R.drawable.ic_profile_row,
+            onClick = {
+                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.AboutMe.route)
+            },
+        )
         SelectionRow(title = "Change Password", leadingIcon = R.drawable.ic_change_password_row)
         SelectionRow(title = "Payment Methods", leadingIcon = R.drawable.ic_payment_methods_row)
         SelectionRow(title = "Support", leadingIcon = R.drawable.ic_support_row)
@@ -257,5 +268,5 @@ fun String.toHslColor(saturation: Float = 0.5f, lightness: Float = 0.4f): Int {
 @Preview
 @Composable
 fun ViewMyProfilePreview() {
-    ViewMyProfile(ViewModelProfilePreview())
+    ViewMyProfile(ViewModelAuthenticationPreview())
 }

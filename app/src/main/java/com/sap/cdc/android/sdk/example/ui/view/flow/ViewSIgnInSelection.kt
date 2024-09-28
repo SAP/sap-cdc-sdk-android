@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.sap.cdc.android.sdk.example.ui.view
+package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
@@ -38,6 +38,8 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.extensions.parseRequiredMissingFieldsForRegistration
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
+import com.sap.cdc.android.sdk.example.ui.view.custom.ViewSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 import kotlinx.serialization.encodeToString

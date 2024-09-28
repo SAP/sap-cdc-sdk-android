@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.example.ui.view
+package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 

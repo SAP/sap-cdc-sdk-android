@@ -9,11 +9,9 @@ import com.sap.cdc.android.sdk.example.R
 /**
  * Helper extension method to split first/last name.
  */
-fun String.splitFullName(name: String): Pair<String, String> {
-    val index = name.lastIndexOf("")
-    val firstName = index.let { it1 -> name.substring(0, it1) }
-    val lastName = index.plus(1).let { it1 -> name.substring(it1) }
-    return Pair(firstName, lastName)
+fun String.splitFullName(): Pair<String?, String?> {
+    val names = this.trim().split(Regex("\\s+"))
+    return names.firstOrNull() to names.lastOrNull()
 }
 
 /**

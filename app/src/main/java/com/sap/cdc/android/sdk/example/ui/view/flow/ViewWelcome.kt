@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.example.ui.view
+package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -24,6 +24,7 @@ import com.sap.cdc.android.sdk.example.ApplicationConfig
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.route.ScreenSetsRoute
+import com.sap.cdc.android.sdk.example.ui.view.custom.ViewSocialSelection
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

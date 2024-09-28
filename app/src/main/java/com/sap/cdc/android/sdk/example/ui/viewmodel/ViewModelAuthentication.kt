@@ -2,6 +2,9 @@ package com.sap.cdc.android.sdk.example.ui.viewmodel
 
 import android.content.Context
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.auth.AuthState
@@ -9,9 +12,13 @@ import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.example.cdc.model.AccountEntity
+import com.sap.cdc.android.sdk.example.cdc.model.ProfileEntity
+import com.sap.cdc.android.sdk.example.extensions.splitFullName
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
 
 /**
  * Created by Tal Mirmelshtein on 20/06/2024
@@ -23,9 +30,14 @@ import kotlinx.serialization.json.JsonPrimitive
  */
 interface IViewModelAuthentication {
 
+    fun validSession(): Boolean = false
+
+    fun accountInfo(): AccountEntity?
+
     fun register(
         email: String,
         password: String,
+        name: String,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
@@ -75,12 +87,17 @@ interface IViewModelAuthentication {
 
     }
 
-}
+    fun getAccountInfo(
+        parameters: MutableMap<String, String>? = mutableMapOf(),
+        success: () -> Unit, onFailed: (CDCError) -> Unit
+    ) {
+    }
 
-/**
- * Preview mock view model.
- */
-class ViewModelAuthenticationPreview : IViewModelAuthentication
+    fun updateAccountInfoWith(name: String, success: () -> Unit, onFailed: (CDCError) -> Unit) {}
+
+    fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {}
+
+}
 
 /**
  * Authentication view model.
@@ -88,14 +105,33 @@ class ViewModelAuthenticationPreview : IViewModelAuthentication
  */
 class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewModelAuthentication {
 
+    private var accountInfo by mutableStateOf<AccountEntity?>(null)
+
+    override fun accountInfo(): AccountEntity? = accountInfo
+
+    /**
+     * Check Identity session state.
+     */
+    override
+    fun validSession(): Boolean = identityService.getSession() != null
+
     override fun register(
         email: String,
         password: String,
+        name: String,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
-            val authResponse = identityService.register(email, password)
+            val namePair = name.splitFullName()
+            val profileObject =
+                json.encodeToJsonElement(
+                    mutableMapOf(
+                        "firstName" to namePair.first,
+                        "lastName" to namePair.second
+                    )
+                )
+            val authResponse = identityService.register(email, password, profileObject.toString())
             // Check response state for flow success/error/continuation.
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
@@ -214,6 +250,72 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         return identityService.getAuthenticationProvider(name)
     }
 
+    override fun getAccountInfo(
+        parameters: MutableMap<String, String>?,
+        success: () -> Unit,
+        onFailed: (CDCError) -> Unit
+    ) {
+        if (!identityService.validSession()) {
+            return
+        }
+        viewModelScope.launch {
+            val authResponse = identityService.getAccountInfo()
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    // Deserialize account data.
+                    accountInfo =
+                        json.decodeFromString<AccountEntity>(authResponse.asJsonString()!!)
+                    success()
+                }
+
+                else -> {
+                    onFailed(authResponse.toDisplayError()!!)
+                }
+            }
+        }
+    }
+
+    override fun updateAccountInfoWith(
+        name: String,
+        success: () -> Unit,
+        onFailed: (CDCError) -> Unit
+    ) {
+        val newName = name.splitFullName()
+        val profileObject =
+            json.encodeToJsonElement(
+                mutableMapOf(
+                    "firstName" to newName.first,
+                    "lastName" to newName.second
+                )
+            )
+        val parameters = mutableMapOf("profile" to profileObject.toString())
+        viewModelScope.launch {
+            val setAuthResponse = identityService.setAccountInfo(parameters)
+            when (setAuthResponse.state()) {
+                AuthState.SUCCESS -> {
+                    getAccountInfo(success = success, onFailed = onFailed)
+                }
+
+                else -> onFailed(setAuthResponse.toDisplayError()!!)
+            }
+        }
+    }
+
+    override fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {
+        viewModelScope.launch {
+            val authResponse = identityService.logout()
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    success()
+                }
+
+                else -> {
+                    onFailed(authResponse.toDisplayError()!!)
+                }
+            }
+        }
+    }
+
     override fun resolvePendingRegistrationWithMissingProfileFields(
         map: MutableMap<String, String>,
         regToken: String,
@@ -240,5 +342,16 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+}
+
+
+/**
+ * Preview mock view model.
+ */
+class ViewModelAuthenticationPreview : IViewModelAuthentication {
+    override fun accountInfo(): AccountEntity = AccountEntity(
+        uid = "1234",
+        profile = ProfileEntity(firstName = "John", lastName = "Doe", email = "johndoe@gmail.com")
+    )
 }
 

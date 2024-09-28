@@ -1,6 +1,7 @@
-package com.sap.cdc.android.sdk.example.ui.view
+package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,10 +21,10 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,18 +44,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
+
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Created by Tal Mirmelshtein on 19/06/2024
  * Copyright: SAP LTD.
  *
- * Credentials registration basic view.
+ * Credentials sign in basic view.
  */
 
 @Composable
-fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
+fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -62,74 +65,37 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-        // Editable variables.
-        var name by remember {
-            mutableStateOf("")
-        }
+        var loading by remember { mutableStateOf(false) }
+
         var email by remember {
             mutableStateOf("")
         }
         var password by remember {
             mutableStateOf("")
         }
-        var confirmPassword by remember {
-            mutableStateOf("")
-        }
-        // State modifiers.
-        var passwordVisible: Boolean by remember { mutableStateOf(false) }
-        val isNotMatching = remember {
-            derivedStateOf {
-                password != confirmPassword
-            }
-        }
 
-        var registerError by remember { mutableStateOf("") }
+        var signInError by remember { mutableStateOf("") }
+
+        var passwordVisible: Boolean by remember { mutableStateOf(false) }
 
         val focusManager = LocalFocusManager.current
 
-        var loading by remember { mutableStateOf(false) }
         // UI elements.
         IndeterminateLinearIndicator(loading)
-
         Spacer(modifier = Modifier.size(30.dp))
-        Text("Create your account", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text("Sign In with Email", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.size(12.dp))
-        Text("Please fill out the listed inputs", fontSize = 16.sp, fontWeight = FontWeight.Light)
+        Text(
+            "Please enter your email and password",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Light
+        )
         Spacer(modifier = Modifier.size(12.dp))
         Column(
             modifier = Modifier
                 .padding(start = 48.dp, end = 48.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Name Input.
-            Text(
-                "Name: *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light,
-            )
-            TextField(
-                name,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    Text(
-                        "Name Placeholder",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                    )
-                },
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                onValueChange = {
-                    name = it
-                },
-                keyboardActions = KeyboardActions {
-                    focusManager.moveFocus(FocusDirection.Next)
-                },
-            )
-            // Email input.
             Spacer(modifier = Modifier.size(12.dp))
             Text(
                 "Email: *",
@@ -154,9 +120,16 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
                 onValueChange = {
                     email = it
                 },
-                keyboardActions = KeyboardActions {
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ) {
                     focusManager.moveFocus(FocusDirection.Next)
                 },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                )
             )
             // Password input.
             Spacer(modifier = Modifier.size(12.dp))
@@ -173,6 +146,13 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 ),
+                placeholder = {
+                    Text(
+                        "Password Placeholder",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                    )
+                },
                 visualTransformation = if (passwordVisible) {
                     VisualTransformation.None
                 } else {
@@ -181,50 +161,16 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
                 onValueChange = {
                     password = it
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions {
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ) {
                     focusManager.moveFocus(FocusDirection.Next)
                 },
-                trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
-
-                    // Please provide localized description for accessibility services
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, description)
-                    }
-                }
-            )
-            // Confirm password input.
-            Spacer(modifier = Modifier.size(12.dp))
-            Text(
-                "Confirm password: *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light,
-            )
-            TextField(
-                confirmPassword,
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
                 ),
-                visualTransformation = if (passwordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                onValueChange = {
-                    confirmPassword = it
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions {
-                    focusManager.clearFocus()
-                },
                 trailingIcon = {
                     val image = if (passwordVisible)
                         Icons.Filled.Visibility
@@ -238,7 +184,16 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
                     }
                 }
             )
-            if (isNotMatching.value) {
+            Spacer(modifier = Modifier.size(12.dp))
+            Box(modifier = Modifier.align(Alignment.End)) {
+                Surface(onClick = {
+                    // Forgot password route.
+                }) {
+                    Text("Forgot password?", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(modifier = Modifier.size(6.dp))
+            if (signInError.isNotEmpty()) {
                 Spacer(modifier = Modifier.size(12.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -250,57 +205,34 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = "Your passwords do not match!",
+                        text = signInError,
                         color = Color.Red,
                     )
                 }
             }
-            if (registerError.isNotEmpty()) {
-                Spacer(modifier = Modifier.size(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Cancel,
-                        contentDescription = "",
-                        tint = Color.Red
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = registerError,
-                        color = Color.Red,
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.size(14.dp))
-            Text(
-                "By clicking on \"register\", you conform that you have read and agree to the privacy policy and terms of use.",
-            )
-            Spacer(modifier = Modifier.size(24.dp))
             OutlinedButton(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 12.dp, end = 12.dp),
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
-                    registerError = ""
                     loading = true
-                    // Credentials registration.
-                    viewModel.register(
-                        email, password,
+                    viewModel.login(
+                        email = email, password = password,
                         onLogin = {
+                            signInError = ""
                             loading = false
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         },
                         onFailedWith = { error ->
-                            if (error != null) {
-                                // Need to display error information.
-                                registerError = error.errorDetails!!
-                            }
+                            loading = false
+                            signInError = error?.errorDetails!!
+                        },
+                        onLoginIdentifierExists = {
+                            loading = false
                         }
                     )
                 }) {
-                Text("Register")
+                Text("Login")
             }
         }
     }
@@ -309,6 +241,6 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
 
 @Preview
 @Composable
-fun CreateYourAccountPreview() {
-    CredentialsRegistrationView(ViewModelAuthenticationPreview())
+fun SignInWithEmailViewPreview() {
+    SignInWithEmailView(ViewModelAuthenticationPreview())
 }

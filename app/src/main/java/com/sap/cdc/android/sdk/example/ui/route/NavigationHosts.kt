@@ -7,18 +7,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
-import com.sap.cdc.android.sdk.example.ui.view.AuthenticationTabView
-import com.sap.cdc.android.sdk.example.ui.view.ResolveLinkAccount
-import com.sap.cdc.android.sdk.example.ui.view.ResolvePendingRegistrationWithMissingFields
-import com.sap.cdc.android.sdk.example.ui.view.SignInWithEmailView
-import com.sap.cdc.android.sdk.example.ui.view.ViewAboutMe
-import com.sap.cdc.android.sdk.example.ui.view.ViewHome
-import com.sap.cdc.android.sdk.example.ui.view.ViewMyProfile
-import com.sap.cdc.android.sdk.example.ui.view.ViewScreenSet
-import com.sap.cdc.android.sdk.example.ui.view.ViewWelcome
+import com.sap.cdc.android.sdk.example.ui.view.custom.AuthenticationTabView
+import com.sap.cdc.android.sdk.example.ui.view.flow.ResolveLinkAccount
+import com.sap.cdc.android.sdk.example.ui.view.flow.ResolvePendingRegistrationWithMissingFields
+import com.sap.cdc.android.sdk.example.ui.view.flow.SignInWithEmailView
+import com.sap.cdc.android.sdk.example.ui.view.flow.ViewAboutMe
+import com.sap.cdc.android.sdk.example.ui.view.flow.ViewHome
+import com.sap.cdc.android.sdk.example.ui.view.flow.ViewMyProfile
+import com.sap.cdc.android.sdk.example.ui.view.flow.ViewScreenSet
+import com.sap.cdc.android.sdk.example.ui.view.flow.ViewWelcome
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelHome
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelProfile
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
 import kotlinx.serialization.json.Json
 
@@ -82,9 +80,8 @@ fun ProfileNavHost() {
     val profileNavController = rememberNavController()
     NavigationCoordinator.INSTANCE.setNavController(profileNavController)
 
-    val context = LocalContext.current
-    val viewModel = ViewModelHome(context)
-    val isLoggedIn = viewModel.validSession()
+    val authenticationViewModel = ViewModelAuthentication(LocalContext.current)
+    val isLoggedIn = authenticationViewModel.validSession()
 
     NavHost(
         profileNavController, startDestination =
@@ -99,19 +96,19 @@ fun ProfileNavHost() {
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
             AuthenticationTabView(
-                viewModel = ViewModelAuthentication(context),
+                viewModel = authenticationViewModel,
                 selected = selected!!.toInt(),
             )
         }
         composable(ProfileScreenRoute.EmailSignIn.route) {
-            SignInWithEmailView(viewModel = ViewModelAuthentication(context))
+            SignInWithEmailView(viewModel = authenticationViewModel)
         }
         composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{missingFields}/{regToken}") { backStackEntry ->
             val missingFieldsJson = backStackEntry.arguments?.getString("missingFields")
             val missingFields = Json.decodeFromString<List<String>>(missingFieldsJson!!)
             val regToken = backStackEntry.arguments?.getString("regToken")
             ResolvePendingRegistrationWithMissingFields(
-                viewModel = ViewModelAuthentication(context),
+                viewModel = authenticationViewModel,
                 missingFields,
                 regToken!!
             )
@@ -122,16 +119,16 @@ fun ProfileNavHost() {
                 Json.decodeFromString<ConflictingAccountsEntity>(conflictingAccountsJson!!)
             val regToken = backStackEntry.arguments?.getString("regToken")
             ResolveLinkAccount(
-                viewModel = ViewModelAuthentication(context),
+                viewModel = authenticationViewModel,
                 conflictingAccounts,
                 regToken!!
             )
         }
         composable(ProfileScreenRoute.MyProfile.route) {
-            ViewMyProfile(viewModel = ViewModelProfile(context))
+            ViewMyProfile(viewModel = authenticationViewModel)
         }
         composable(ProfileScreenRoute.AboutMe.route) {
-            ViewAboutMe(viewModel = ViewModelProfile(context))
+            ViewAboutMe(viewModel = authenticationViewModel)
         }
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route) {
             ViewScreenSet(

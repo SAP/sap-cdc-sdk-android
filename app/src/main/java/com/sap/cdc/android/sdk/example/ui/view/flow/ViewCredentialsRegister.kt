@@ -1,7 +1,6 @@
-package com.sap.cdc.android.sdk.example.ui.view
+package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,10 +20,10 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,19 +43,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
-
 /**
- * Created by Tal Mirmelshtein on 19/06/2024
+ * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  *
- * Credentials sign in basic view.
+ * Credentials registration basic view.
  */
 
 @Composable
-fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
+fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -64,37 +63,74 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-        var loading by remember { mutableStateOf(false) }
-
+        // Editable variables.
+        var name by remember {
+            mutableStateOf("")
+        }
         var email by remember {
             mutableStateOf("")
         }
         var password by remember {
             mutableStateOf("")
         }
-
-        var signInError by remember { mutableStateOf("") }
-
+        var confirmPassword by remember {
+            mutableStateOf("")
+        }
+        // State modifiers.
         var passwordVisible: Boolean by remember { mutableStateOf(false) }
+        val isNotMatching = remember {
+            derivedStateOf {
+                password != confirmPassword
+            }
+        }
+
+        var registerError by remember { mutableStateOf("") }
 
         val focusManager = LocalFocusManager.current
 
+        var loading by remember { mutableStateOf(false) }
         // UI elements.
         IndeterminateLinearIndicator(loading)
+
         Spacer(modifier = Modifier.size(30.dp))
-        Text("Sign In with Email", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text("Create your account", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.size(12.dp))
-        Text(
-            "Please enter your email and password",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Light
-        )
+        Text("Please fill out the listed inputs", fontSize = 16.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.size(12.dp))
         Column(
             modifier = Modifier
                 .padding(start = 48.dp, end = 48.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Name Input.
+            Text(
+                "Name: *",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Light,
+            )
+            TextField(
+                name,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = {
+                    Text(
+                        "Name Placeholder",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                    )
+                },
+                textStyle = TextStyle(
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal
+                ),
+                onValueChange = {
+                    name = it
+                },
+                keyboardActions = KeyboardActions {
+                    focusManager.moveFocus(FocusDirection.Next)
+                },
+            )
+            // Email input.
             Spacer(modifier = Modifier.size(12.dp))
             Text(
                 "Email: *",
@@ -119,16 +155,9 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                 onValueChange = {
                     email = it
                 },
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    }
-                ) {
+                keyboardActions = KeyboardActions {
                     focusManager.moveFocus(FocusDirection.Next)
                 },
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                )
             )
             // Password input.
             Spacer(modifier = Modifier.size(12.dp))
@@ -145,13 +174,6 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 ),
-                placeholder = {
-                    Text(
-                        "Password Placeholder",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                    )
-                },
                 visualTransformation = if (passwordVisible) {
                     VisualTransformation.None
                 } else {
@@ -160,16 +182,10 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                 onValueChange = {
                     password = it
                 },
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    }
-                ) {
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardActions = KeyboardActions {
                     focusManager.moveFocus(FocusDirection.Next)
                 },
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                ),
                 trailingIcon = {
                     val image = if (passwordVisible)
                         Icons.Filled.Visibility
@@ -183,16 +199,47 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                     }
                 }
             )
+            // Confirm password input.
             Spacer(modifier = Modifier.size(12.dp))
-            Box(modifier = Modifier.align(Alignment.End)) {
-                Surface(onClick = {
-                    // Forgot password route.
-                }) {
-                    Text("Forgot password?", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "Confirm password: *",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Light,
+            )
+            TextField(
+                confirmPassword,
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal
+                ),
+                visualTransformation = if (passwordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                onValueChange = {
+                    confirmPassword = it
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardActions = KeyboardActions {
+                    focusManager.clearFocus()
+                },
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        Icons.Filled.Visibility
+                    else Icons.Filled.VisibilityOff
+
+                    // Please provide localized description for accessibility services
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, description)
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.size(6.dp))
-            if (signInError.isNotEmpty()) {
+            )
+            if (isNotMatching.value) {
                 Spacer(modifier = Modifier.size(12.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -204,34 +251,59 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = signInError,
+                        text = "Your passwords do not match!",
                         color = Color.Red,
                     )
                 }
             }
+            if (registerError.isNotEmpty()) {
+                Spacer(modifier = Modifier.size(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Cancel,
+                        contentDescription = "",
+                        tint = Color.Red
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = registerError,
+                        color = Color.Red,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.size(14.dp))
+            Text(
+                "By clicking on \"register\", you conform that you have read and agree to the privacy policy and terms of use.",
+            )
+            Spacer(modifier = Modifier.size(24.dp))
             OutlinedButton(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
+                    registerError = ""
                     loading = true
-                    viewModel.login(
-                        email = email, password = password,
+                    // Credentials registration.
+                    viewModel.register(
+                        email = email,
+                        password = password,
+                        name = name,
                         onLogin = {
-                            signInError = ""
                             loading = false
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         },
                         onFailedWith = { error ->
-                            loading = false
-                            signInError = error?.errorDetails!!
-                        },
-                        onLoginIdentifierExists = {
-                            loading = false
+                            if (error != null) {
+                                // Need to display error information.
+                                registerError = error.errorDetails!!
+                            }
                         }
                     )
                 }) {
-                Text("Login")
+                Text("Register")
             }
         }
     }
@@ -240,6 +312,6 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
 
 @Preview
 @Composable
-fun SignInWithEmailViewPreview() {
-    SignInWithEmailView(ViewModelAuthenticationPreview())
+fun CreateYourAccountPreview() {
+    CredentialsRegistrationView(ViewModelAuthenticationPreview())
 }
