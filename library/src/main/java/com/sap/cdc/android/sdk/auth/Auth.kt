@@ -234,7 +234,7 @@ interface IAuthResolvers {
      * 1. Flow will initiate a "setAccount" flow to update account information.
      * 2. Flow will attempt to finalize the registration to complete registration process.
      */
-    suspend fun pendingRegistrationWith(missingFields: MutableMap<String, String>): IAuthResponse
+    suspend fun pendingRegistrationWith(regToken: String, missingFields: MutableMap<String, String>): IAuthResponse
 
     fun parseConflictingAccounts(authResponse: IAuthResponse): ConflictingAccountsEntity
 }
@@ -298,13 +298,15 @@ internal class AuthResolvers(
      * 1. Flow will initiate a "setAccount" flow to update account information.
      * 2. Flow will attempt to finalize the registration to complete registration process.
      */
-    override suspend fun pendingRegistrationWith(missingFields: MutableMap<String, String>): IAuthResponse {
+    override suspend fun pendingRegistrationWith(regToken: String, missingFields: MutableMap<String, String>): IAuthResponse {
         val setAccountResolver = AccountAuthFlow(coreClient, sessionService)
+        setAccountResolver.parameters["regToken"] = regToken
         val setAccountAuthResponse = setAccountResolver.setAccountInfo(missingFields)
         when (setAccountAuthResponse.state()) {
             AuthState.SUCCESS -> {
                 // Error in flow.
                 val finalizeRegistrationResolver = RegistrationAuthFlow(coreClient, sessionService)
+                finalizeRegistrationResolver.parameters["regToken"] = regToken
                 return finalizeRegistrationResolver.finalize()
             }
 

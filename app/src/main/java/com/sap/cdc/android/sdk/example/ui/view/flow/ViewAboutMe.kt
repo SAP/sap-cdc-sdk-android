@@ -11,15 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,8 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +38,9 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 /**
  * Created by Tal Mirmelshtein on 20/06/2024
  * Copyright: SAP LTD.
+ *
+ * Account information view.
+ * Allow user to update the name of the account using setAccountInfo API.
  */
 
 @Composable
@@ -51,8 +49,12 @@ fun ViewAboutMe(viewModel: IViewModelAuthentication) {
     var loading by remember { mutableStateOf(false) }
     var setError by remember { mutableStateOf("") }
 
-    var name by remember { mutableStateOf("${viewModel.accountInfo()?.profile?.firstName ?: ""} " +
-            (viewModel.accountInfo()?.profile?.lastName ?: "")) }
+    var name by remember {
+        mutableStateOf(
+            "${viewModel.accountInfo()?.profile?.firstName ?: ""} " +
+                    (viewModel.accountInfo()?.profile?.lastName ?: "")
+        )
+    }
 
     Column(
         modifier = Modifier

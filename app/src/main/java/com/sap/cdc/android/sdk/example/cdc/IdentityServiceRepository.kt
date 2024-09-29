@@ -125,7 +125,8 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Initiate cdc SDK credentials registration.
      */
     suspend fun register(email: String, password: String, profileObject: String): IAuthResponse {
-        val params = mutableMapOf("email" to email, "password" to password, "profile" to profileObject)
+        val params =
+            mutableMapOf("email" to email, "password" to password, "profile" to profileObject)
         return authenticationService.authenticate().register(params)
     }
 
@@ -206,8 +207,7 @@ class IdentityServiceRepository private constructor(context: Context) {
         regToken: String,
     ): IAuthResponse {
         val params = mutableMapOf(key to serializedJsonValue)
-        params["regToken"] = regToken
-        return authenticationService.resolve().pendingRegistrationWith(params)
+        return authenticationService.resolve().pendingRegistrationWith(regToken, params)
     }
 
     //region SOCIAL PROVIDERS

@@ -9,8 +9,6 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSConfig
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import java.lang.ref.WeakReference

@@ -33,13 +33,13 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSConfig
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.CANCELED
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.HIDE
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGOUT
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebChromeClient
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSWebViewClient
+import com.sap.cdc.android.sdk.screensets.WebBridgeJSConfig
+import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.CANCELED
+import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.HIDE
+import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGIN
+import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGOUT
+import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebChromeClient
+import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
 import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 
@@ -141,6 +141,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                             webView.post {
                                 webView.destroy()
                             }
+                            NavigationCoordinator.INSTANCE.navigateUp()
                         }
 
                         LOGIN -> {

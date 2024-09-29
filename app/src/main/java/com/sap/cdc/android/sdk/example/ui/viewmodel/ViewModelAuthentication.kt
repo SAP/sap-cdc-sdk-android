@@ -84,18 +84,23 @@ interface IViewModelAuthentication {
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
-
+        //Stub
     }
 
     fun getAccountInfo(
         parameters: MutableMap<String, String>? = mutableMapOf(),
         success: () -> Unit, onFailed: (CDCError) -> Unit
     ) {
+        //Stub
     }
 
-    fun updateAccountInfoWith(name: String, success: () -> Unit, onFailed: (CDCError) -> Unit) {}
+    fun updateAccountInfoWith(name: String, success: () -> Unit, onFailed: (CDCError) -> Unit) {
+        //Stub
+    }
 
-    fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {}
+    fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {
+        //Stub
+    }
 
 }
 
@@ -105,8 +110,14 @@ interface IViewModelAuthentication {
  */
 class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewModelAuthentication {
 
+    /**
+     * Holding reference to account information object.
+     */
     private var accountInfo by mutableStateOf<AccountEntity?>(null)
 
+    /**
+     * Getter for account information view model interactions.
+     */
     override fun accountInfo(): AccountEntity? = accountInfo
 
     /**
@@ -115,6 +126,10 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     override
     fun validSession(): Boolean = identityService.getSession() != null
 
+    /**
+     * Register new account using credentials (email,password)
+     * Additional profile fields are included to set profile.firstName & profile.lastName fields.
+     */
     override fun register(
         email: String,
         password: String,
@@ -145,6 +160,10 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+    /**
+     * Login to existing account using credentials (email/password)
+     * ViewModel example flow allows account linking interruption handling on login.
+     */
     override fun login(
         email: String,
         password: String,
@@ -174,6 +193,10 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+    /**
+     * Social sign in flow.
+     * ViewModel example flow allows both account linking & pending registration interruption handling.
+     */
     override fun socialSignInWith(
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider?,
@@ -223,7 +246,11 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
-
+    /**
+     * Social sign in with web provider flow.
+     * ViewModel example for signing in with a provider giving provider name only. This flow will
+     * default to the WebAuthenticationProvider class.
+     */
     override fun socialWebSignInWith(
         hostActivity: ComponentActivity,
         provider: String,
@@ -246,10 +273,16 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+    /**
+     * Helper method to fetch a registered authentication provider.
+     */
     override fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
         return identityService.getAuthenticationProvider(name)
     }
 
+    /**
+     * Request account information.
+     */
     override fun getAccountInfo(
         parameters: MutableMap<String, String>?,
         success: () -> Unit,
@@ -275,6 +308,10 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+    /**
+     * Update account information with new name.
+     * Name parameter will be split to firstName & lastName to update profile fields.
+     */
     override fun updateAccountInfoWith(
         name: String,
         success: () -> Unit,

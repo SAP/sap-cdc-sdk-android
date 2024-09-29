@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.sceensets
+package com.sap.cdc.android.sdk.screensets
 
 class WebBridgeJSConfig private constructor(
     val obfuscate: Boolean = true

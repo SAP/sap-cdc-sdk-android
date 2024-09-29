@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.sceensets
+package com.sap.cdc.android.sdk.screensets
 
 import android.net.Uri
 import android.webkit.WebResourceError
@@ -7,7 +7,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder.Companion.JS_EXCEPTION_SCHEME_DEFAULT
 import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder.Companion.JS_LOAD_ERROR_SCHEME_DEFAULT
-import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS.Companion.URI_REDIRECT_SCHEME
 
 /**

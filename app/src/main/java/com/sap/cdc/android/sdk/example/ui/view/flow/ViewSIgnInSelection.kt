@@ -66,6 +66,9 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
             .fillMaxHeight()
     ) {
 
+        // UI elements.
+        IndeterminateLinearIndicator(loading)
+
         Spacer(modifier = Modifier.size(80.dp))
         Text("Sign In", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.size(12.dp))
@@ -83,6 +86,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             onLogin = {
                                 loading = false
                                 signInError = ""
+                                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                             },
                             onFailedWith = { error ->
                                 loading = false
@@ -104,6 +108,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             onLogin = {
                                 loading = false
                                 signInError = ""
+                                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                             },
                             onFailedWith = { error ->
                                 loading = false
@@ -127,12 +132,14 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             onLogin = {
                                 loading = false
                                 signInError = ""
+                                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                             },
                             onFailedWith = { error ->
                                 loading = false
                                 signInError = error?.errorDetails!!
                             },
                             onPendingRegistration = { authResponse ->
+                                loading = false
                                 val errorDetails = authResponse!!.cdcResponse().errorDetails()
                                 val missingFields =
                                     errorDetails?.parseRequiredMissingFieldsForRegistration()
@@ -144,6 +151,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                                     )
                             },
                             onLoginIdentifierExists = { regToken, conflictingAccounts ->
+                                loading = false
                                 NavigationCoordinator.INSTANCE
                                     .navigate(
                                         "${ProfileScreenRoute.ResolveLinkAccount.route}/${
@@ -274,9 +282,6 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
             }
         }
     }
-
-    // Loading indicator on top of all views.
-    IndeterminateLinearIndicator(loading)
 }
 
 @Preview

@@ -17,13 +17,6 @@ import com.sap.cdc.android.sdk.core.CoreClient
 class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {
 
-    init {
-        // Add default finalize registration parameter.
-        if (!parameters.containsKey("finalizeRegistration")) {
-            parameters["finalizeRegistration"] = true.toString()
-        }
-    }
-
     /**
      * Initiate registration authentication flow.
      * Flow consists of the following api calls:
@@ -38,6 +31,10 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
      * @see [accounts.finalizeRegistration](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/228cd8bc68dc477094b3e0e9fe108e23.html?q=accounts.getAccountInfo)
      */
     override suspend fun authenticate(): IAuthResponse {
+        // Add default finalize registration parameter.
+        if (!parameters.containsKey("finalizeRegistration")) {
+            parameters["finalizeRegistration"] = true.toString()
+        }
         // Init registration.
         val initResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_INIT_REGISTRATION)
@@ -74,6 +71,9 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
                 EP_ACCOUNTS_FINALIZE_REGISTRATION,
                 parameters
             )
+        if (!finalizeRegistrationResponse.isError()) {
+            secureNewSession(finalizeRegistrationResponse)
+        }
         return AuthResponse(finalizeRegistrationResponse)
     }
 

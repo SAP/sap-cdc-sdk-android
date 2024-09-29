@@ -13,8 +13,7 @@ import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.extensions.capitalFirst
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent
-import com.sap.cdc.android.sdk.sceensets.WebBridgeJSEvent.Companion.LOGIN
+import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGIN
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

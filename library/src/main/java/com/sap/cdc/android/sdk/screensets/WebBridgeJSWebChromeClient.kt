@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.sceensets
+package com.sap.cdc.android.sdk.screensets
 
 import android.net.Uri
 import android.webkit.ValueCallback
