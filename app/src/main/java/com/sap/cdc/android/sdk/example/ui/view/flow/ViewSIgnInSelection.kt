@@ -104,7 +104,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                     "google" -> {
                         viewModel.socialSignInWith(
                             context as ComponentActivity,
-                            viewModel.getAuthenticationProvider("linkedin"),
+                            viewModel.getAuthenticationProvider("google"),
                             onLogin = {
                                 loading = false
                                 signInError = ""
@@ -115,11 +115,16 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                                 signInError = error?.errorDetails!!
                             },
                             onPendingRegistration = { error ->
-
-
+                                //Stub
                             },
                             onLoginIdentifierExists = { regToken, conflictingAccounts ->
-
+                                loading = false
+                                NavigationCoordinator.INSTANCE
+                                    .navigate(
+                                        "${ProfileScreenRoute.ResolveLinkAccount.route}/${
+                                            Json.encodeToString(conflictingAccounts)
+                                        }/${regToken}"
+                                    )
                             }
 
                         )

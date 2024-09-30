@@ -197,7 +197,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     }
 
     /**
-     * Attempt to resolve "Account Pending Registration" interruption bt providing the necessary
+     * Attempt to resolve "Account Pending Registration" interruption by providing the necessary
      * missing fields.
      * Note: regToken is required for authenticating the request.
      */
@@ -209,6 +209,22 @@ class IdentityServiceRepository private constructor(context: Context) {
         val params = mutableMapOf(key to serializedJsonValue)
         return authenticationService.resolve().pendingRegistrationWith(regToken, params)
     }
+
+    /**
+     * Attempt to resolve account linking interruption to an existing site account.
+     */
+    suspend fun resolveLinkToSiteAccount(
+        regToken: String,
+        loginId: String,
+        password: String
+    ): IAuthResponse {
+        return authenticationService.resolve().linkSiteAccount(
+            mutableMapOf(
+                "regToken" to regToken, "loginID" to loginId, "password" to password
+            )
+        )
+    }
+
 
     //region SOCIAL PROVIDERS
 

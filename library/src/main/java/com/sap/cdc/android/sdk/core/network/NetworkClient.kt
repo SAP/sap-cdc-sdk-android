@@ -52,25 +52,25 @@ class NetworkClient(
             level = LogLevel.ALL
         }
 
-        HttpResponseValidator {
-            validateResponse { response: HttpResponse ->
-                if (!response.status.isSuccess()) {
-                    val httpFailureReason = when (response.status) {
-                        HttpStatusCode.Unauthorized -> HttpStatusCode.Unauthorized.description
-                        HttpStatusCode.Forbidden -> HttpStatusCode.Forbidden.description
-                        HttpStatusCode.RequestTimeout -> HttpStatusCode.RequestTimeout.description
-                        in HttpStatusCode.InternalServerError..HttpStatusCode.GatewayTimeout -> "${response.status.value} Server Error"
-                        else -> "Network error!"
-                    }
-
-                    throw HttpExceptions(
-                        response = response,
-                        cachedResponseText = response.bodyAsText(),
-                        failureReason = httpFailureReason,
-                    )
-                }
-            }
-        }
+//        HttpResponseValidator {
+//            validateResponse { response: HttpResponse ->
+//                if (!response.status.isSuccess()) {
+//                    val httpFailureReason = when (response.status) {
+//                        HttpStatusCode.Unauthorized -> HttpStatusCode.Unauthorized.description
+//                        HttpStatusCode.Forbidden -> HttpStatusCode.Forbidden.description
+//                        HttpStatusCode.RequestTimeout -> HttpStatusCode.RequestTimeout.description
+//                        in HttpStatusCode.InternalServerError..HttpStatusCode.GatewayTimeout -> "${response.status.value} Server Error"
+//                        else -> "Network error!"
+//                    }
+//
+//                    throw HttpExceptions(
+//                        response = response,
+//                        cachedResponseText = response.bodyAsText(),
+//                        failureReason = httpFailureReason,
+//                    )
+//                }
+//            }
+//        }
 
         install(ResponseObserver) {
             onResponse { response ->

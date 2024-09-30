@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -122,7 +123,20 @@ fun ResolveLinkAccount(
                 onClick = {
                     loading = true
                     // Link to site account using password.
-
+                    viewModel.resolveLinkToSiteAccount(
+                        regToken = regToken,
+                        loginId = conflictingAccounts.loginID!!,
+                        password = password,
+                        onLogin = {
+                            loading = false
+                            NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                                route = ProfileScreenRoute.MyProfile.route,
+                                rootRoute = ProfileScreenRoute.Welcome.route
+                            )                        },
+                        onFailedWith = { error ->
+                            loading = false
+                        }
+                    )
                 }) {
                 Text("Link Account")
             }

@@ -87,6 +87,17 @@ interface IViewModelAuthentication {
         //Stub
     }
 
+    fun resolveLinkToSiteAccount(
+        regToken: String, loginId: String, password: String, onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        //Stub
+    }
+
+    fun resolveLinkToSocialAccount() {
+        //Stub
+    }
+
     fun getAccountInfo(
         parameters: MutableMap<String, String>? = mutableMapOf(),
         success: () -> Unit, onFailed: (CDCError) -> Unit
@@ -320,10 +331,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         val newName = name.splitFullName()
         val profileObject =
             json.encodeToJsonElement(
-                mutableMapOf(
-                    "firstName" to newName.first,
-                    "lastName" to newName.second
-                )
+                mutableMapOf("firstName" to newName.first, "lastName" to newName.second)
             )
         val parameters = mutableMapOf("profile" to profileObject.toString())
         viewModelScope.launch {
@@ -349,6 +357,26 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
                 else -> {
                     onFailed(authResponse.toDisplayError()!!)
                 }
+            }
+        }
+    }
+
+    override fun resolveLinkToSiteAccount(
+        regToken: String,
+        loginId: String,
+        password: String,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val authResponse = identityService.resolveLinkToSiteAccount(
+                regToken, loginId, password
+            )
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
+                }
+                else -> onFailedWith(authResponse.toDisplayError())
             }
         }
     }

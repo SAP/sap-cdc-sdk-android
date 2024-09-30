@@ -234,7 +234,10 @@ interface IAuthResolvers {
      * 1. Flow will initiate a "setAccount" flow to update account information.
      * 2. Flow will attempt to finalize the registration to complete registration process.
      */
-    suspend fun pendingRegistrationWith(regToken: String, missingFields: MutableMap<String, String>): IAuthResponse
+    suspend fun pendingRegistrationWith(
+        regToken: String,
+        missingFields: MutableMap<String, String>
+    ): IAuthResponse
 
     fun parseConflictingAccounts(authResponse: IAuthResponse): ConflictingAccountsEntity
 }
@@ -272,7 +275,25 @@ internal class AuthResolvers(
         val linkAccountResolver = LoginAuthFlow(coreClient, sessionService)
         parameters["loginMode"] = "link" // Making sure login mode is link
         linkAccountResolver.withParameters(parameters)
-        return linkAccountResolver.authenticate()
+        val linkAccountResolverAuthResponse = linkAccountResolver.authenticate()
+        when (linkAccountResolverAuthResponse.state()) {
+            AuthState.INTERRUPTED -> {
+                when (linkAccountResolverAuthResponse.cdcResponse().errorCode()) {
+                    AuthResolvable.ERR_ACCOUNT_LINKED -> {
+                        val finalizeRegistrationResolver =
+                            RegistrationAuthFlow(coreClient, sessionService)
+                        val regToken =
+                            linkAccountResolverAuthResponse.cdcResponse().stringField("regToken")
+                        finalizeRegistrationResolver.parameters["regToken"] = regToken!!
+                        return finalizeRegistrationResolver.finalize()
+                    }
+
+                    else -> return linkAccountResolverAuthResponse
+                }
+            }
+
+            else -> return linkAccountResolverAuthResponse
+        }
     }
 
     /**
@@ -298,7 +319,10 @@ internal class AuthResolvers(
      * 1. Flow will initiate a "setAccount" flow to update account information.
      * 2. Flow will attempt to finalize the registration to complete registration process.
      */
-    override suspend fun pendingRegistrationWith(regToken: String, missingFields: MutableMap<String, String>): IAuthResponse {
+    override suspend fun pendingRegistrationWith(
+        regToken: String,
+        missingFields: MutableMap<String, String>
+    ): IAuthResponse {
         val setAccountResolver = AccountAuthFlow(coreClient, sessionService)
         setAccountResolver.parameters["regToken"] = regToken
         val setAccountAuthResponse = setAccountResolver.setAccountInfo(missingFields)
