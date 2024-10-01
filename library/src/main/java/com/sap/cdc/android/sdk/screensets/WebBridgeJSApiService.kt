@@ -21,6 +21,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import org.jetbrains.annotations.ApiStatus.Experimental
 import java.lang.ref.WeakReference
 
 
@@ -85,7 +86,14 @@ class WebBridgeJSApiService(
             EP_SOCIALIZE_REMOVE_CONNECTION -> {
                 val provider = params["provider"]
                 if (provider == null) {
-                    //TODO: throttle error.
+                    Log.d(
+                        LOG_TAG,
+                        "Missing provider parameter in social remove connection attempt. Flow broken"
+                    )
+                    evaluateResult(
+                        Pair(containerId, ""),
+                        WebBridgeJSEvent.canceledEvent()
+                    )
                 }
                 sendRequest(
                     api = EP_SOCIALIZE_REMOVE_CONNECTION,
@@ -149,7 +157,7 @@ class WebBridgeJSApiService(
                 if (sessionInfo == null) {
                     Log.d(
                         LOG_TAG,
-                        "sendRequest: $api - request error: faild to serialize session Info"
+                        "sendRequest: $api - request error: failed to serialize session Info"
                     )
                     evaluateResult(
                         Pair(containerId, response.jsonResponse ?: ""),
@@ -199,7 +207,11 @@ class WebBridgeJSApiService(
             if (provider == null) {
                 // Fail with error.
                 Log.d(LOG_TAG, "Missing provider parameter in social login attempt. Flow broken")
-                //TODO: throttle error
+                evaluateResult(
+                    Pair(containerId, ""),
+                    WebBridgeJSEvent.canceledEvent()
+                )
+                this.coroutineContext.cancel()
             }
 
             // Vary selected authentication provider. If no native provider is available, the
@@ -216,16 +228,26 @@ class WebBridgeJSApiService(
             val authResponse = authenticationService.authenticate().providerLogin(
                 weakHostActivity.get()!!, authProvider, params.toMutableMap()
             )
-            if (authResponse.toDisplayError() != null) {
+            if (authResponse.cdcResponse().isError()) {
                 // Fail with error.
-                //TODO: throttle error
+                Log.d(
+                    LOG_TAG,
+                    "sendRequest: $api - request error: ${
+                        authResponse.cdcResponse().errorCode()
+                    } - ${authResponse.cdcResponse().errorDetails()}"
+                )
+                evaluateResult(
+                    Pair(containerId, authResponse.cdcResponse().jsonResponse ?: ""),
+                    WebBridgeJSEvent.errorEvent(authResponse.cdcResponse().serializeTo<CDCError>())
+                )
+                this.coroutineContext.cancel()
             }
 
             //Optional completion handler.
             completion()
 
             // Evaluate response.
-//            evaluateResult(Pair(containerId, authResponse.authenticationJson() ?: ""))
+            evaluateResult(Pair(containerId, authResponse.cdcResponse().asJson() ?: ""), null)
         }
     }
 
@@ -245,6 +267,7 @@ class WebBridgeJSApiService(
      * "${capitalized name}AuthenticatorProvider" String.
      * Will use Java reflection to instantiate new instance.
      */
+    @Experimental
     private fun getNewNativeProviderInstance(provider: String): IAuthenticationProvider? {
         try {
             val context = authenticationService.sessionService.siteConfig.applicationContext

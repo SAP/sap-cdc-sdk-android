@@ -2,8 +2,6 @@ package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
 import android.webkit.WebView
@@ -33,6 +31,8 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
+import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder
+import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSConfig
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.CANCELED
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.HIDE
@@ -40,8 +40,6 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGIN
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGOUT
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
-import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder
-import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -160,7 +158,6 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                             webView.post {
                                 webView.destroy()
                                 NavigationCoordinator.INSTANCE.navigateUp()
-
                             }
                         }
                     }
