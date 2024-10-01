@@ -94,7 +94,12 @@ interface IViewModelAuthentication {
         //Stub
     }
 
-    fun resolveLinkToSocialAccount() {
+    fun resolveLinkToSocialAccount(
+        hostActivity: ComponentActivity,
+        provider: String, regToken: String,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
         //Stub
     }
 
@@ -376,7 +381,31 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
                 AuthState.SUCCESS -> {
                     onLogin()
                 }
+
                 else -> onFailedWith(authResponse.toDisplayError())
+            }
+        }
+    }
+
+    override fun resolveLinkToSocialAccount(
+        hostActivity: ComponentActivity,
+        provider: String,
+        regToken: String,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val authResponse = identityService.resolveLinkToSocialAccount(
+                hostActivity, identityService.getAuthenticationProvider(provider)!!, regToken
+            )
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
+                }
+
+                else -> {
+                    onFailedWith(authResponse.toDisplayError())
+                }
             }
         }
     }

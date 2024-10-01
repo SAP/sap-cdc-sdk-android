@@ -311,7 +311,25 @@ internal class AuthResolvers(
         )
         parameters["loginMode"] = "link"  // Making sure login mode is link
         linkAccountResolver.withParameters(parameters)
-        return linkAccountResolver.authenticate()
+        val linkAccountResolverAuthResponse = linkAccountResolver.authenticate()
+        when (linkAccountResolverAuthResponse.state()) {
+            AuthState.INTERRUPTED -> {
+                when (linkAccountResolverAuthResponse.cdcResponse().errorCode()) {
+                    AuthResolvable.ERR_ACCOUNT_LINKED -> {
+                        val finalizeRegistrationResolver =
+                            RegistrationAuthFlow(coreClient, sessionService)
+                        val regToken =
+                            linkAccountResolverAuthResponse.cdcResponse().stringField("regToken")
+                        finalizeRegistrationResolver.parameters["regToken"] = regToken!!
+                        return finalizeRegistrationResolver.finalize()
+                    }
+
+                    else -> return linkAccountResolverAuthResponse
+                }
+            }
+
+            else -> return linkAccountResolverAuthResponse
+        }
     }
 
     /**

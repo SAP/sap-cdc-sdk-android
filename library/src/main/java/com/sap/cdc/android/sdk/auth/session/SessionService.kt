@@ -17,8 +17,8 @@ class SessionService(
         const val LOG_TAG = "CDC_SessionService"
     }
 
-    var sessionSecure: com.sap.cdc.android.sdk.auth.session.SessionSecure =
-        com.sap.cdc.android.sdk.auth.session.SessionSecure(
+    var sessionSecure: SessionSecure =
+        SessionSecure(
             siteConfig
         )
 
@@ -38,7 +38,7 @@ class SessionService(
      */
     fun reloadWithSiteConfig(config: SiteConfig) = apply {
         this.siteConfig = config
-        this.sessionSecure = com.sap.cdc.android.sdk.auth.session.SessionSecure(siteConfig)
+        this.sessionSecure = SessionSecure(siteConfig)
     }
 
     /**

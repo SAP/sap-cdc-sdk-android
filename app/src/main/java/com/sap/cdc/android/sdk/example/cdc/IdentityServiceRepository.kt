@@ -225,6 +225,20 @@ class IdentityServiceRepository private constructor(context: Context) {
         )
     }
 
+    /**
+     * Attempt to resolve account linking interruption to an existing social account.
+     */
+    suspend fun resolveLinkToSocialAccount(
+        hostActivity: ComponentActivity,
+        authenticationProvider: IAuthenticationProvider,
+        regToken: String
+    ): IAuthResponse {
+        return authenticationService.resolve().linkSocialAccount(
+            hostActivity, authenticationProvider, mutableMapOf(
+                "regToken" to regToken
+            )
+        )
+    }
 
     //region SOCIAL PROVIDERS
 

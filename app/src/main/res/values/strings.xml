@@ -23,9 +23,9 @@
     <string name="home_img_macbook_content_description">Macbook image</string>
 
     <!-- Social providers -->
-    <string name="facebook_app_id"></string>
-    <string name="fb_login_protocol_scheme"></string>
-    <string name="facebook_client_token"></string>
+    <string name="facebook_app_id">720188262037015 </string>
+    <string name="fb_login_protocol_scheme">fb720188262037015</string>
+    <string name="facebook_client_token">242d446e866f086fdfb11729e548f958</string>
 
     <string name="line_channel_id">1618046855</string>
 

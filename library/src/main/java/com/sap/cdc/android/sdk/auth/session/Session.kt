@@ -13,7 +13,7 @@ import kotlinx.serialization.json.Json
 data class Session(
     @SerialName("sessionToken") var token: String,
     @SerialName("sessionSecret") var secret: String,
-    @SerialName("expires_in") var expiration: Long,
+    @SerialName("expires_in") var expiration: Long? = 0,
     @SerialName("encryptionType") var encryptionType: SessionEncryption = SessionEncryption.DEFAULT
 ) {
 

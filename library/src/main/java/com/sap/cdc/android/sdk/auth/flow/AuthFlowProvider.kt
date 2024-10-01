@@ -38,7 +38,9 @@ class ProviderAuthFow(
             return AuthResponse(CDCResponse().providerError())
         try {
             val result: AuthenticatorProviderResult = provider.providerSignIn(weakActivity?.get())
-            parameters["loginMode"] = "standard"
+            if (!parameters.containsKey("loginMode")) {
+                parameters["loginMode"] = "standard"
+            }
             parameters["provider"] = result.provider
 
             when (result.type) {
@@ -49,6 +51,9 @@ class ProviderAuthFow(
                             EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,
                             parameters
                         )
+                    if (!notifyResponse.isError()) {
+                        secureNewSession(notifyResponse)
+                    }
                     dispose()
                     return AuthResponse(notifyResponse)
                 }
@@ -64,6 +69,9 @@ class ProviderAuthFow(
                             EP_ACCOUNTS_GET_ACCOUNT_INFO,
                             mutableMapOf("include" to "data,profile,emails")
                         )
+                    if (!accountResponse.isError()) {
+                        secureNewSession(accountResponse)
+                    }
                     dispose()
                     return AuthResponse(accountResponse)
                 }
@@ -83,9 +91,5 @@ class ProviderAuthFow(
 
     override fun dispose() {
         weakActivity?.clear()
-    }
-
-    suspend fun link() {
-
     }
 }

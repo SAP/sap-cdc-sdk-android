@@ -1,11 +1,10 @@
 package com.sap.cdc.android.sdk.core.network
 
 import android.util.Log
-import com.sap.cdc.android.sdk.core.api.CDCRequest
+import com.sap.cdc.android.sdk.core.api.Api
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.DefaultRequest
-import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -13,12 +12,10 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.observer.ResponseObserver
 import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.isSuccess
-import kotlinx.coroutines.channels.Channel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 
 /**
@@ -27,9 +24,6 @@ import kotlinx.coroutines.channels.Channel
  */
 class NetworkClient(
 ) {
-
-    internal val networkChannel = Channel<CDCRequest>(capacity = 100)
-
     companion object {
         private const val LOG_TAG = "NetworkClient"
         private const val TIME_OUT = 30_000

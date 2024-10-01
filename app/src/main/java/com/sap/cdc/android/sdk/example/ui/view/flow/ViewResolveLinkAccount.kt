@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -66,6 +68,8 @@ fun ResolveLinkAccount(
     var password by remember {
         mutableStateOf("")
     }
+
+    val context = LocalContext.current
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -132,7 +136,8 @@ fun ResolveLinkAccount(
                             NavigationCoordinator.INSTANCE.popToRootAndNavigate(
                                 route = ProfileScreenRoute.MyProfile.route,
                                 rootRoute = ProfileScreenRoute.Welcome.route
-                            )                        },
+                            )
+                        },
                         onFailedWith = { error ->
                             loading = false
                         }
@@ -153,7 +158,22 @@ fun ResolveLinkAccount(
             ViewDynamicSocialSelection(
                 socialProviders = socialProvidersOnly,
             ) { provider ->
-
+                loading = true
+                viewModel.resolveLinkToSocialAccount(
+                    hostActivity = context as ComponentActivity,
+                    provider = provider,
+                    regToken = regToken,
+                    onLogin = {
+                        loading = false
+                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                            route = ProfileScreenRoute.MyProfile.route,
+                            rootRoute = ProfileScreenRoute.Welcome.route
+                        )
+                    },
+                    onFailedWith = { error ->
+                        loading = false
+                    }
+                )
             }
         }
 

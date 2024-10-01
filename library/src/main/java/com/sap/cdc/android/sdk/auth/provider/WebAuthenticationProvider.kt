@@ -151,7 +151,7 @@ class WebAuthenticationProvider(
         val session = sessionService.sessionSecure.getSession()
         if (session != null) {
             uriParameters["oauth_token"] = session.token
-            uriParameters["timestamp"] = Api.getServerTimestamp(hostActivity)
+            uriParameters["timestamp"] = sessionService.siteConfig.getServerTimestamp()
             Signing().newSignature(
                 SigningSpec(
                     session.secret,
