@@ -131,9 +131,9 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                     when (eventName) {
                         CANCELED -> {
                             screenSetError = "Operation canceled"
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                screenSetError = ""
-                            }, 2000)
+                            webView.post {
+                                webView.destroy()
+                            }
                         }
 
                         HIDE -> {
@@ -147,13 +147,21 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                         LOGIN -> {
                             // Flow successful. Navigate to profile screen.
                             webView.post {
-                                NavigationCoordinator.INSTANCE.popAndNavigate(ProfileScreenRoute.MyProfile.route)
+                                webView.destroy()
+                                NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                                    route = ProfileScreenRoute.MyProfile.route,
+                                    rootRoute = ProfileScreenRoute.Welcome.route
+                                )
                             }
                         }
 
                         LOGOUT -> {
                             // Navigate back to close the screen set view.
-                            NavigationCoordinator.INSTANCE.navigateUp()
+                            webView.post {
+                                webView.destroy()
+                                NavigationCoordinator.INSTANCE.navigateUp()
+
+                            }
                         }
                     }
                 }
