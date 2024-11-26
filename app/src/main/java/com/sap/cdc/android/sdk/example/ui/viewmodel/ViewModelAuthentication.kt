@@ -9,16 +9,21 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.cdc.model.AccountEntity
 import com.sap.cdc.android.sdk.example.cdc.model.ProfileEntity
 import com.sap.cdc.android.sdk.example.extensions.splitFullName
+import com.sap.cdc.android.sdk.example.ui.view.flow.OTPType
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by Tal Mirmelshtein on 20/06/2024
@@ -59,7 +64,7 @@ interface IViewModelAuthentication {
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
-        onLoginIdentifierExists: (regToken: String, conflictingAccounts: ConflictingAccountsEntity) -> Unit,
+        onLoginIdentifierExists: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -88,7 +93,9 @@ interface IViewModelAuthentication {
     }
 
     fun resolveLinkToSiteAccount(
-        regToken: String, loginId: String, password: String, onLogin: () -> Unit,
+        loginId: String, password: String,
+        authResolvable: AuthResolvable,
+        onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -96,7 +103,8 @@ interface IViewModelAuthentication {
 
     fun resolveLinkToSocialAccount(
         hostActivity: ComponentActivity,
-        provider: String, regToken: String,
+        provider: String,
+        authResolvable: AuthResolvable,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
@@ -118,6 +126,26 @@ interface IViewModelAuthentication {
         //Stub
     }
 
+    fun otpSignIn(
+        otpType: OTPType,
+        inputField: String,
+        success: (AuthResolvable) -> Unit, onFailed: (CDCError) -> Unit
+    ) {
+        //Stub
+    }
+
+    fun resolveLoginWithCode(
+        code: String,
+        resolvable: AuthResolvable,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        //Stub
+    }
+
+    fun startOtpTimer(whenEnded: () -> Unit) {
+        // Stub
+    }
 }
 
 /**
@@ -141,6 +169,11 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
      */
     override
     fun validSession(): Boolean = identityService.getSession() != null
+
+    override fun onCleared() {
+        super.onCleared()
+        timerJob?.cancel()
+    }
 
     /**
      * Register new account using credentials (email,password)
@@ -200,7 +233,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
 
                 AuthState.INTERRUPTED -> {
                     when (authResponse.cdcResponse().errorCode()) {
-                        AuthResolvable.ERR_LOGIN_IDENTIFIER_EXISTS -> {
+                        AuthResolvable.ERR_ENTITY_EXIST_CONFLICT -> {
                             onLoginIdentifierExists()
                         }
                     }
@@ -218,7 +251,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         provider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
-        onLoginIdentifierExists: (regToken: String, conflictingAccounts: ConflictingAccountsEntity) -> Unit,
+        onLoginIdentifierExists: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         if (provider == null) {
@@ -246,15 +279,8 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
                             onPendingRegistration(authResponse)
                         }
 
-                        AuthResolvable.ERR_LOGIN_IDENTIFIER_EXISTS -> {
-                            val regToken = authResponse.cdcResponse().stringField("regToken")
-                            if (regToken == null) {
-                                onFailedWith(authResponse.toDisplayError())
-                                return@launch
-                            }
-                            val conflictingAccounts =
-                                identityService.getConflictingAccounts(regToken)
-                            onLoginIdentifierExists(regToken, conflictingAccounts)
+                        AuthResolvable.ERR_ENTITY_EXIST_CONFLICT -> {
+                            onLoginIdentifierExists(authResponse)
                         }
                     }
                 }
@@ -351,6 +377,9 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+    /**
+     * Log out of current session.
+     */
     override fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {
         viewModelScope.launch {
             val authResponse = identityService.logout()
@@ -366,16 +395,19 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+    /**
+     * Resolve link account interruption with credentials input.
+     */
     override fun resolveLinkToSiteAccount(
-        regToken: String,
         loginId: String,
         password: String,
+        authResolvable: AuthResolvable,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
             val authResponse = identityService.resolveLinkToSiteAccount(
-                regToken, loginId, password
+                loginId = loginId, password = password, authResolvable = authResolvable
             )
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
@@ -387,16 +419,19 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+    /**
+     * Resolve link account interruption to social account.
+     */
     override fun resolveLinkToSocialAccount(
         hostActivity: ComponentActivity,
         provider: String,
-        regToken: String,
+        authResolvable: AuthResolvable,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
             val authResponse = identityService.resolveLinkToSocialAccount(
-                hostActivity, identityService.getAuthenticationProvider(provider)!!, regToken
+                hostActivity, identityService.getAuthenticationProvider(provider)!!, authResolvable,
             )
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
@@ -410,6 +445,9 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         }
     }
 
+    /**
+     * Resolve pending registration interruption with provided missing fields for registration.
+     */
     override fun resolvePendingRegistrationWithMissingProfileFields(
         map: MutableMap<String, String>,
         regToken: String,
@@ -435,6 +473,102 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             }
         }
     }
+
+    /**
+     * Sign in with phone number.
+     */
+    override fun otpSignIn(
+        otpType: OTPType,
+        inputField: String,
+        success: (AuthResolvable) -> Unit,
+        onFailed: (CDCError) -> Unit
+    ) {
+        viewModelScope.launch {
+            val parameters = mutableMapOf<String, String>()
+            when (otpType) {
+                OTPType.PHONE -> {
+                    parameters["phoneNumber"] = inputField
+                }
+
+                OTPType.Email -> {
+                    parameters["email"] = inputField
+                }
+            }
+            val authResponse = identityService.otpSignIn(parameters)
+            when (authResponse.state()) {
+                AuthState.INTERRUPTED, AuthState.SUCCESS -> {
+                    success(authResponse.resolvable()!!)
+                }
+
+                else -> {
+                    onFailed(authResponse.toDisplayError()!!)
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolve phone login. Verify code sent to phone number.
+     */
+    override fun resolveLoginWithCode(
+        code: String,
+        resolvable: AuthResolvable,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val authResponse = identityService.resolveLoginWithCode(code, resolvable)
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
+                }
+
+                else -> {
+                    onFailedWith(authResponse.toDisplayError()!!)
+                }
+            }
+        }
+    }
+
+    //regin OTP code timer
+
+    override fun startOtpTimer(whenEnded: () -> Unit) {
+        startTimer {
+            whenEnded()
+        }
+    }
+
+    private val _timer = MutableStateFlow(0L)
+    val timer = _timer.asStateFlow()
+
+    private var timerJob: Job? = null
+
+    private fun startTimer(finished: () -> Unit) {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (true) {
+                delay(TimeUnit.SECONDS.toMillis(10))
+                _timer.value++
+                finished()
+            }
+        }
+    }
+
+    fun pauseTimer() {
+        timerJob?.cancel()
+    }
+
+    private fun stopTimer() {
+        _timer.value = 0
+        timerJob?.cancel()
+    }
+
+    override fun cancelAllTimers() {
+        stopTimer()
+    }
+
+    //endregion
+
 
 }
 

@@ -57,9 +57,10 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
+    implementation(libs.androidx.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-inline:5.0.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
@@ -67,19 +68,19 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 
     // HTTP engine: that handles network requests.
-    api("io.ktor:ktor-client-android:2.3.5")
+    api(libs.ktor.client.android)
     // JSON serialization and deserialization settings and //is recommended for multiplatform projects
-    api("io.ktor:ktor-client-serialization:2.3.5")
+    api(libs.ktor.client.serialization)
     // kotlinx.serialization, which is used for entity //serialization
-    api("io.ktor:ktor-serialization-kotlinx-json:2.3.5")
+    api(libs.ktor.serialization.kotlinx.json)
     // Logging HTTP requests
-    api("io.ktor:ktor-client-logging-jvm:2.3.5")
+    api(libs.ktor.client.logging.jvm)
     // Jetpack security.
-    api("androidx.security:security-crypto:1.0.0")
-    //
-    api("androidx.biometric:biometric:1.1.0")
-
-    api("androidx.work:work-runtime-ktx:2.9.1")
+    api(libs.androidx.security.crypto)
+    // Jetpack biometric
+    api(libs.androidx.biometric)
+    // Jetpack work manager
+    api(libs.androidx.work.runtime.ktx)
 }
 
 apply(from = "../publish-package.gradle")

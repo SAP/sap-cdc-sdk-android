@@ -46,6 +46,14 @@ fun String.prepareApiUrl(siteConfig: SiteConfig): String {
     return sb.toString()
 }
 
+/**
+ * Helper extension method to parse String value for required missing fields list.
+ */
+fun String.parseRequiredMissingFieldsForRegistration(): List<String> {
+    val fields = this.substringAfterLast(": ")
+    return fields.split(", ")
+}
+
 fun String.parseQueryStringParams(): Map<String, String> =
     this.split("&")
         .mapNotNull { keyAndValue ->

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -35,15 +36,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.R
-import com.sap.cdc.android.sdk.example.extensions.parseRequiredMissingFieldsForRegistration
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -95,7 +93,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             onPendingRegistration = { error ->
 
                             },
-                            onLoginIdentifierExists = { regToken, conflictingAccounts ->
+                            onLoginIdentifierExists = { authResponse ->
 
                             }
                         )
@@ -117,13 +115,13 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             onPendingRegistration = { error ->
                                 //Stub
                             },
-                            onLoginIdentifierExists = { regToken, conflictingAccounts ->
+                            onLoginIdentifierExists = { authResponse ->
                                 loading = false
                                 NavigationCoordinator.INSTANCE
                                     .navigate(
                                         "${ProfileScreenRoute.ResolveLinkAccount.route}/${
-                                            Json.encodeToString(conflictingAccounts)
-                                        }/${regToken}"
+                                            authResponse?.resolvable()?.toJson()
+                                        }"
                                     )
                             }
 
@@ -145,23 +143,20 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
                             },
                             onPendingRegistration = { authResponse ->
                                 loading = false
-                                val errorDetails = authResponse!!.cdcResponse().errorDetails()
-                                val missingFields =
-                                    errorDetails?.parseRequiredMissingFieldsForRegistration()
                                 NavigationCoordinator.INSTANCE
                                     .navigate(
                                         "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                            Json.encodeToString(missingFields)
-                                        }/${authResponse.cdcResponse().stringField("regToken")}"
+                                            authResponse?.resolvable()?.toJson()
+                                        }"
                                     )
                             },
-                            onLoginIdentifierExists = { regToken, conflictingAccounts ->
+                            onLoginIdentifierExists = { authResponse ->
                                 loading = false
                                 NavigationCoordinator.INSTANCE
                                     .navigate(
                                         "${ProfileScreenRoute.ResolveLinkAccount.route}/${
-                                            Json.encodeToString(conflictingAccounts)
-                                        }/${regToken}"
+                                            authResponse?.resolvable()?.toJson()
+                                        }"
                                     )
                             }
                         )
@@ -197,7 +192,7 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 240.dp, height = 44.dp),
+        OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
@@ -222,11 +217,37 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
 
         Spacer(modifier = Modifier.size(10.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 240.dp, height = 44.dp),
+        OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.EmailSignIn.route)
             }) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.Rounded.Password,
+                    contentDescription = "Localized description",
+                    modifier = Modifier.size(width = 20.dp, height = 20.dp),
+                    tint = Color.Unspecified
+                )
+                Spacer(modifier = Modifier.width(24.dp))
+                Text("Sign in with Credentials")
+            }
+
+        }
+
+        Spacer(modifier = Modifier.size(10.dp))
+
+        OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
+            shape = RoundedCornerShape(6.dp),
+            onClick = {
+                NavigationCoordinator.INSTANCE.navigate(
+                    "${ProfileScreenRoute.OTPSignIn.route}/${OTPType.Email.value}"
+                )            }) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
@@ -247,10 +268,12 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
 
         Spacer(modifier = Modifier.size(10.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 240.dp, height = 44.dp),
+        OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
-                NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
+                NavigationCoordinator.INSTANCE.navigate(
+                    "${ProfileScreenRoute.OTPSignIn.route}/${OTPType.PHONE.value}"
+                )
             }) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

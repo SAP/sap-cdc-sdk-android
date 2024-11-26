@@ -225,7 +225,7 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
                         },
                         onFailedWith = { error ->
                             loading = false
-                            signInError = error?.errorDetails!!
+                            signInError = error?.errorDescription!!
                         },
                         onLoginIdentifierExists = {
                             loading = false

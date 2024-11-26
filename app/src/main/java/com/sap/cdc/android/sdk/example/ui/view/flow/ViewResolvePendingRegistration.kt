@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
@@ -49,8 +50,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 @Composable
 fun ResolvePendingRegistrationWithMissingFields(
     viewModel: IViewModelAuthentication,
-    missingFields: List<String>,
-    regToken: String,
+    authResolvable: AuthResolvable
 ) {
     var loading by remember { mutableStateOf(false) }
 
@@ -59,7 +59,7 @@ fun ResolvePendingRegistrationWithMissingFields(
     var registerError by remember { mutableStateOf("") }
 
     val values = remember {
-        mutableStateMapOf(*missingFields.map { it to "" }.toTypedArray())
+        mutableStateMapOf(*authResolvable.missingRequiredFields!!.map { it to "" }.toTypedArray())
     }
 
     Column(
@@ -84,7 +84,7 @@ fun ResolvePendingRegistrationWithMissingFields(
                 .padding(start = 48.dp, end = 48.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            missingFields.forEach { field ->
+            authResolvable.missingRequiredFields?.forEach { field ->
                 Text(
                     "${field.replaceFirstChar { it.uppercase() }}: *",
                     fontSize = 16.sp,
@@ -127,7 +127,7 @@ fun ResolvePendingRegistrationWithMissingFields(
                     // Resolve pending registration.
                     viewModel.resolvePendingRegistrationWithMissingProfileFields(
                         values,
-                        regToken,
+                        authResolvable.regToken!!,
                         onLogin = {
                             loading = false
                             // Route to profile page and pop all routes inclusively so
@@ -161,8 +161,7 @@ fun ResolvePendingRegistrationWithMissingFields(
 fun ResolvePendingRegistrationWithMissingFieldsPreview() {
     ResolvePendingRegistrationWithMissingFields(
         viewModel = ViewModelAuthenticationPreview(),
-        missingFields = listOf("email"),
-        ""
+        AuthResolvable("", "", "", null, listOf("firstName", "lastName")),
     )
 }
 

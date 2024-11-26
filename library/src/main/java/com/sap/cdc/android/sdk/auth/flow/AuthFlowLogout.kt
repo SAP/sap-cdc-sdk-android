@@ -22,7 +22,7 @@ class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      *
      * @see [accounts.logout](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/41376ba570b21014bbc5a10ce4041860.html?q=accounts.getAccountInfo)
      */
-    override suspend fun authenticate(): IAuthResponse {
+    suspend fun logout(): IAuthResponse {
         val logoutResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGOUT)
         if (!logoutResponse.isError()) {

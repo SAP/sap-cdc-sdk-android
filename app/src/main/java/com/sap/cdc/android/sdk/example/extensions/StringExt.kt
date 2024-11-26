@@ -15,14 +15,6 @@ fun String.splitFullName(): Pair<String?, String?> {
 }
 
 /**
- * Helper extension method to parse String value for required missing fields list.
- */
-fun String.parseRequiredMissingFieldsForRegistration(): List<String> {
-    val fields = this.substringAfterLast(": ")
-    return fields.split(", ")
-}
-
-/**
  * Helper extension method for composable view to provide the correct painter resource for
  * String social provider name.
  */

@@ -18,11 +18,18 @@ import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
  * Created by Tal Mirmelshtein on 18/06/2024
  * Copyright: SAP LTD.
  */
+
+/**
+ * Base class for authentication APIs.
+ */
 class AuthenticationApi(
     private val coreClient: CoreClient,
     private val sessionService: SessionService
 ) : Api(coreClient) {
 
+    /**
+     * Generic send request method.
+     */
     override suspend fun genericSend(
         api: String,
         parameters: MutableMap<String, String>,
@@ -38,16 +45,25 @@ class AuthenticationApi(
         return super.genericSend(api, parameters, method, headers)
     }
 
+    /**
+     * Perform get request.
+     */
     override suspend fun get(request: CDCRequest): CDCResponse {
         signRequestIfNeeded(request)
         return super.get(request)
     }
 
+    /**
+     * Perform post request.
+     */
     override suspend fun post(request: CDCRequest): CDCResponse {
         signRequestIfNeeded(request)
         return super.post(request)
     }
 
+    /**
+     * Sign the request if session is valid.
+     */
     private fun signRequestIfNeeded(request: CDCRequest) {
         if (sessionService.validSession()) {
             val session = sessionService.getSession()
@@ -56,6 +72,9 @@ class AuthenticationApi(
         }
     }
 
+    /**
+     * Request GMID from server required for authentication/security.
+     */
     private suspend fun getIDs(): CDCResponse {
         val response = Api(coreClient).genericSend(EP_SOCIALIZE_GET_IDS)
         val gmidEntity = response.serializeTo<GMIDEntity>()

@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
@@ -57,8 +58,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 @Composable
 fun ResolveLinkAccount(
     viewModel: IViewModelAuthentication,
-    conflictingAccounts: ConflictingAccountsEntity,
-    regToken: String,
+    resolvable: AuthResolvable,
 ) {
     var loading by remember { mutableStateOf(false) }
 
@@ -90,7 +90,7 @@ fun ResolveLinkAccount(
         Spacer(modifier = Modifier.size(24.dp))
 
         // Vary login providers list to display the correct link path (social or site).
-        if (conflictingAccounts.loginProviders.contains("site")) {
+        if (resolvable.conflictingAccounts!!.loginProviders.contains("site")) {
             // Login to site.
             Text("Link with account password")
             Spacer(modifier = Modifier.size(12.dp))
@@ -128,9 +128,9 @@ fun ResolveLinkAccount(
                     loading = true
                     // Link to site account using password.
                     viewModel.resolveLinkToSiteAccount(
-                        regToken = regToken,
-                        loginId = conflictingAccounts.loginID!!,
+                        loginId = resolvable.conflictingAccounts?.loginID!!,
                         password = password,
+                        authResolvable = resolvable,
                         onLogin = {
                             loading = false
                             NavigationCoordinator.INSTANCE.popToRootAndNavigate(
@@ -149,7 +149,7 @@ fun ResolveLinkAccount(
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        val socialProvidersOnly = conflictingAccounts.loginProviders.toMutableList()
+        val socialProvidersOnly = resolvable.conflictingAccounts!!.loginProviders.toMutableList()
         socialProvidersOnly.remove("site")
         if (socialProvidersOnly.size > 0) {
             Text("Link with existing social accounts")
@@ -162,7 +162,7 @@ fun ResolveLinkAccount(
                 viewModel.resolveLinkToSocialAccount(
                     hostActivity = context as ComponentActivity,
                     provider = provider,
-                    regToken = regToken,
+                    authResolvable = resolvable,
                     onLogin = {
                         loading = false
                         NavigationCoordinator.INSTANCE.popToRootAndNavigate(
@@ -270,10 +270,11 @@ fun ResolveLinkAccount(
 fun ResolveLinkAccountPreview() {
     ResolveLinkAccount(
         viewModel = ViewModelAuthenticationPreview(),
-        conflictingAccounts = ConflictingAccountsEntity(
-            mutableListOf("site", "google", "facebook"),
-            null
+        resolvable = AuthResolvable(
+            "", "", "", conflictingAccounts = ConflictingAccountsEntity(
+                mutableListOf("site", "google", "facebook"),
+                null
+            ), listOf("", "")
         ),
-        regToken = "",
     )
 }

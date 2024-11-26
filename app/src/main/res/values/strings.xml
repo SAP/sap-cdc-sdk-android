@@ -18,8 +18,6 @@
 
     <string name="about_me">About Me</string>
 
-    <string name="resolve_pending_registration_with_missing_fields">Resolve Pending Registration</string>
-
     <string name="home_img_macbook_content_description">Macbook image</string>
 
     <!-- Social providers -->
@@ -29,7 +27,7 @@
 
     <string name="line_channel_id">1618046855</string>
 
-    <string name="wechat_app_id"></string>
+    <string name="wechat_app_id">WECHAT_ID_HERE</string>
 
     <string name="google_server_client_id">977811956095-t72doari7i8iuv9r6qf3kbhh2ns3u7cj.apps.googleusercontent.com</string>
     <string name="resolve_link_account">Resolve Link Account\n</string>

@@ -2,9 +2,6 @@ package com.sap.cdc.android.sdk.auth
 
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

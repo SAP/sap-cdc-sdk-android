@@ -6,14 +6,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
+import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.example.ui.view.custom.AuthenticationTabView
+import com.sap.cdc.android.sdk.example.ui.view.flow.OTPType
 import com.sap.cdc.android.sdk.example.ui.view.flow.ResolveLinkAccount
 import com.sap.cdc.android.sdk.example.ui.view.flow.ResolvePendingRegistrationWithMissingFields
 import com.sap.cdc.android.sdk.example.ui.view.flow.SignInWithEmailView
 import com.sap.cdc.android.sdk.example.ui.view.flow.ViewAboutMe
 import com.sap.cdc.android.sdk.example.ui.view.flow.ViewHome
 import com.sap.cdc.android.sdk.example.ui.view.flow.ViewMyProfile
+import com.sap.cdc.android.sdk.example.ui.view.flow.OtpSignInView
+import com.sap.cdc.android.sdk.example.ui.view.flow.OtpVerifyView
 import com.sap.cdc.android.sdk.example.ui.view.flow.ViewScreenSet
 import com.sap.cdc.android.sdk.example.ui.view.flow.ViewWelcome
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthentication
@@ -103,25 +106,20 @@ fun ProfileNavHost() {
         composable(ProfileScreenRoute.EmailSignIn.route) {
             SignInWithEmailView(viewModel = authenticationViewModel)
         }
-        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{missingFields}/{regToken}") { backStackEntry ->
-            val missingFieldsJson = backStackEntry.arguments?.getString("missingFields")
-            val missingFields = Json.decodeFromString<List<String>>(missingFieldsJson!!)
-            val regToken = backStackEntry.arguments?.getString("regToken")
+        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{authResolvable}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("authResolvable")
+            val resolvable = Json.decodeFromString<AuthResolvable>(resolvableJson!!)
             ResolvePendingRegistrationWithMissingFields(
                 viewModel = authenticationViewModel,
-                missingFields,
-                regToken!!
+                resolvable,
             )
         }
-        composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{conflictingAccounts}/{regToken}") { backStackEntry ->
-            val conflictingAccountsJson = backStackEntry.arguments?.getString("conflictingAccounts")
-            val conflictingAccounts =
-                Json.decodeFromString<ConflictingAccountsEntity>(conflictingAccountsJson!!)
-            val regToken = backStackEntry.arguments?.getString("regToken")
+        composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{authResolvable}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("authResolvable")
+            val resolvable = Json.decodeFromString<AuthResolvable>(resolvableJson!!)
             ResolveLinkAccount(
                 viewModel = authenticationViewModel,
-                conflictingAccounts,
-                regToken!!
+                resolvable,
             )
         }
         composable(ProfileScreenRoute.MyProfile.route) {
@@ -142,6 +140,24 @@ fun ProfileNavHost() {
                 ViewModelScreenSet(LocalContext.current),
                 "Default-RegistrationLogin",
                 "gigya-register-screen"
+            )
+        }
+        composable("${ProfileScreenRoute.OTPSignIn.route}/{type}") { backStackEntry ->
+            val type = backStackEntry.arguments?.getString("type")
+            val otpType = OTPType.getByValue(type!!.toInt())
+            OtpSignInView(viewModel = authenticationViewModel, otpType = otpType!!)
+        }
+        composable("${ProfileScreenRoute.OTPVerify.route}/{authResolvable}/{type}/{inputField}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("authResolvable")
+            val input = backStackEntry.arguments?.getString("inputField")
+            val type = backStackEntry.arguments?.getString("type")
+            val otpType = OTPType.getByValue(type!!.toInt())
+            val resolvable = Json.decodeFromString<AuthResolvable>(resolvableJson!!)
+            OtpVerifyView(
+                viewModel = authenticationViewModel,
+                resolvable,
+                otpType = otpType!!,
+                inputField = input!!
             )
         }
     }

@@ -30,7 +30,7 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
      * 3. Finalize registration (True by default unless requested otherwise).
      * @see [accounts.finalizeRegistration](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/228cd8bc68dc477094b3e0e9fe108e23.html?q=accounts.getAccountInfo)
      */
-    override suspend fun authenticate(): IAuthResponse {
+    suspend fun register(): IAuthResponse {
         // Add default finalize registration parameter.
         if (!parameters.containsKey("finalizeRegistration")) {
             parameters["finalizeRegistration"] = true.toString()
@@ -53,7 +53,10 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
             if (!registrationResponse.isError()) {
                 secureNewSession(registrationResponse)
             }
-            return AuthResponse(registrationResponse)
+            val authResponse = AuthResponse(registrationResponse)
+            // Check resolvable flow state.
+            initResolvableState(authResponse)
+            return authResponse
         }
         return AuthResponse(initResponse)
     }

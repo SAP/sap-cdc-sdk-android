@@ -28,4 +28,9 @@ open class ViewModelBase(context: Context) : ViewModel() {
      */
     val identityService: IdentityServiceRepository =
         IdentityServiceRepository.getInstance(context)
+
+
+    open fun cancelAllTimers() {
+        // Stub.
+    }
 }

@@ -23,6 +23,10 @@ class AuthEndpoints {
         const val EP_SOCIALIZE_LOGOUT = "socialize.logout"
         const val EP_SOCIALIZE_REMOVE_CONNECTION = "socialize.removeConnection"
 
+        const val EP_OTP_SEND_CODE = "accounts.otp.sendCode"
+        const val EP_OTP_LOGIN = "accounts.otp.login"
+        const val EP_OTP_UPDATE = "accounts.otp.update"
+
         // May be redundant cause connection can be done using notifySocialLogin with
         // loginMode = connect.
         const val EP_SOCIALIZE_ADD_CONNECTION = "socialize.addConnection"

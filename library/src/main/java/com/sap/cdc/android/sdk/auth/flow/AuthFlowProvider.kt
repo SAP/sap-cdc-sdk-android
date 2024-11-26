@@ -33,7 +33,7 @@ class ProviderAuthFow(
         const val LOG_TAG = "CDC_ProviderAuthFow"
     }
 
-    override suspend fun authenticate(): IAuthResponse {
+    suspend fun signIn(): IAuthResponse {
         if (provider == null)
             return AuthResponse(CDCResponse().providerError())
         try {
@@ -46,6 +46,7 @@ class ProviderAuthFow(
             when (result.type) {
                 ProviderType.NATIVE -> {
                     parameters["providerSessions"] = result.providerSessions!!
+                    parameters["conflictHandling"] = "fail"
                     val notifyResponse =
                         AuthenticationApi(coreClient, sessionService).genericSend(
                             EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,
@@ -55,7 +56,9 @@ class ProviderAuthFow(
                         secureNewSession(notifyResponse)
                     }
                     dispose()
-                    return AuthResponse(notifyResponse)
+                    val authResponse = AuthResponse(notifyResponse)
+                    initResolvableState(authResponse)
+                    return authResponse
                 }
 
                 ProviderType.WEB -> {

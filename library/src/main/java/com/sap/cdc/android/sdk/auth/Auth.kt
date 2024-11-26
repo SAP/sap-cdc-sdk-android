@@ -13,6 +13,7 @@ import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import java.lang.ref.WeakReference
 
@@ -22,10 +23,14 @@ import java.lang.ref.WeakReference
  */
 
 
+/**
+ * Authentication result state enum.
+ * ERROR - Indicates an unresolvable error in the the API response.
+ * SUCCESS - API success or end of flow.
+ * INTERRUPTED - Indicates an resolvable error occurred in the the API response. Flow can continue according to the error.
+ */
 enum class AuthState {
-    ERROR, // Indicates an unresolvable error in the the API response.
-    SUCCESS, // API success or end of flow.
-    INTERRUPTED // Indicates an resolvable error occurred in the the API response. Flow can continue according to the error.
+    ERROR, SUCCESS, INTERRUPTED
 }
 
 /**
@@ -38,12 +43,16 @@ interface IAuthResponse {
     fun asJsonObject(): JsonObject?
     fun toDisplayError(): CDCError?
     fun state(): AuthState
+    fun resolvable(): AuthResolvable?
 }
+
 
 /**
  * Authentication flow main response class.
  */
 class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
+
+    var authResolvable: AuthResolvable? = null
 
     override fun cdcResponse(): CDCResponse = cdcResponse
 
@@ -55,8 +64,8 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
 
     override fun toDisplayError(): CDCError = this.cdcResponse.toCDCError()
 
-    private fun isResolvable(): Boolean =
-        AuthResolvable.resolvables.containsKey(cdcResponse.errorCode())
+    fun isResolvable(): Boolean =
+        AuthResolvable.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey("vToken")
 
     /**
      * Defines flow state.
@@ -73,6 +82,12 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
         }
         return AuthState.SUCCESS
     }
+
+    /**
+     * Get reference to resolvable data entity.
+     * This data is required to complete interrupted flows.
+     */
+    override fun resolvable(): AuthResolvable? = authResolvable
 }
 
 /**
@@ -80,54 +95,74 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
  */
 interface IAuthApis {
 
+    /**
+     * initiate credentials registration flow interface.
+     */
     suspend fun register(
         parameters: MutableMap<String, String>
     ): IAuthResponse
 
+    /**
+     * initiate credentials login flow interface.
+     */
     suspend fun login(
         parameters: MutableMap<String, String>
     ): IAuthResponse
 
+    /**
+     * initiate provider authentication flow interface.
+     */
     suspend fun providerLogin(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
         parameters: MutableMap<String, String>? = mutableMapOf(),
     ): IAuthResponse
 
+    /**
+     * Initiate phone number sign in flow.
+     */
+    suspend fun otpSignIn(parameters: MutableMap<String, String>): IAuthResponse
+
+    /**
+     * Remove social connection from current account interface.
+     */
     suspend fun removeConnection(
         provider: String
     ): CDCResponse
 
+    /**
+     * Log out of current account interface
+     */
     suspend fun logout(): IAuthResponse
 }
 
 /**
- * Authentication APIs initiators.
+ * Authentication APIs initiators/implementors.
  */
 internal class AuthApis(
     private val coreClient: CoreClient, private val sessionService: SessionService
 ) : IAuthApis {
 
     /**
-     * initiate credentials registration flow
+     * initiate credentials registration flow implementation.
      */
     override suspend fun register(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = RegistrationAuthFlow(coreClient, sessionService)
         flow.withParameters(parameters)
-        return flow.authenticate()
+        return flow.register()
     }
 
     /**
-     * initiate credentials login flow.
+     * initiate credentials login flow implementation.
      */
     override suspend fun login(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = LoginAuthFlow(coreClient, sessionService)
         flow.withParameters(parameters)
-        return flow.authenticate()
+        return flow.login()
     }
 
     /**
-     * initiate provider authentication flow.
+     * initiate provider authentication flow implementation.
      */
     override suspend fun providerLogin(
         hostActivity: ComponentActivity,
@@ -138,23 +173,32 @@ internal class AuthApis(
             coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
         )
         flow.withParameters(parameters ?: mutableMapOf())
-        return flow.authenticate()
+        return flow.signIn()
     }
 
     /**
-     * Remove social connection from current account.
+     * Initiate phone number sign in flow.
+     */
+    override suspend fun otpSignIn(parameters: MutableMap<String, String>): IAuthResponse {
+        val flow = LoginAuthFlow(coreClient, sessionService)
+        flow.withParameters(parameters)
+        return flow.otpSignIn()
+    }
+
+    /**
+     * Remove social connection from current account implementation.
      */
     override suspend fun removeConnection(provider: String): CDCResponse = ProviderAuthFow(
         coreClient, sessionService
     ).removeConnection(provider)
 
     /**
-     * Log out of current account.
+     * Log out of current account implementation.
      * Logging out will remove all session data.
      */
     override suspend fun logout(): IAuthResponse {
         val flow = LogoutAuthFlow(coreClient, sessionService)
-        return flow.authenticate()
+        return flow.logout()
     }
 
 }
@@ -215,18 +259,30 @@ internal class AuthApisGet(
 interface IAuthResolvers {
 
     /**
-     * Finalize registration to complete registration process.
+     * Finalize registration process interface.
      */
     suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse
 
+    /**
+     * Get conflicting accounts interface.
+     */
     suspend fun getConflictingAccounts(parameters: MutableMap<String, String>): IAuthResponse
 
-    suspend fun linkSiteAccount(parameters: MutableMap<String, String>): IAuthResponse
+    /**
+     * Link account using site credentials interface.
+     */
+    suspend fun linkSiteAccount(
+        parameters: MutableMap<String, String>,
+        authResolvable: AuthResolvable,
+    ): IAuthResponse
 
+    /**
+     * Link account using a social provider interface.
+     */
     suspend fun linkSocialAccount(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
-        parameters: MutableMap<String, String>
+        authResolvable: AuthResolvable,
     ): IAuthResponse
 
     /**
@@ -239,6 +295,17 @@ interface IAuthResolvers {
         missingFields: MutableMap<String, String>
     ): IAuthResponse
 
+
+    suspend fun otpLogin(
+        code: String,
+        authResolvable: AuthResolvable
+    ): IAuthResponse
+
+    suspend fun otpUpdate(
+        code: String,
+        authResolvable: AuthResolvable
+    ): IAuthResponse
+
     fun parseConflictingAccounts(authResponse: IAuthResponse): ConflictingAccountsEntity
 }
 
@@ -246,11 +313,12 @@ interface IAuthResolvers {
  * Authentication resolvers initiators.
  */
 internal class AuthResolvers(
-    private val coreClient: CoreClient, private val sessionService: SessionService
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService,
 ) : IAuthResolvers {
 
     /**
-     * Finalize registration to complete registration process.
+     * Finalize registration process implementation.
      */
     override suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse {
         val resolver = RegistrationAuthFlow(coreClient, sessionService)
@@ -259,7 +327,7 @@ internal class AuthResolvers(
     }
 
     /**
-     * Request conflicting accounts information required for linking to site/social account.
+     * Request conflicting accounts information required for linking to site/social account implementation.
      */
     override suspend fun getConflictingAccounts(parameters: MutableMap<String, String>): IAuthResponse {
         val conflictingAccountsResolver = AccountAuthFlow(coreClient, sessionService)
@@ -271,28 +339,20 @@ internal class AuthResolvers(
      * Will initiate a login call using loginMode = link.
      * RegToken is required.
      */
-    override suspend fun linkSiteAccount(parameters: MutableMap<String, String>): IAuthResponse {
+    override suspend fun linkSiteAccount(
+        parameters: MutableMap<String, String>,
+        authResolvable: AuthResolvable,
+    ): IAuthResponse {
         val linkAccountResolver = LoginAuthFlow(coreClient, sessionService)
         parameters["loginMode"] = "link" // Making sure login mode is link
         linkAccountResolver.withParameters(parameters)
-        val linkAccountResolverAuthResponse = linkAccountResolver.authenticate()
-        when (linkAccountResolverAuthResponse.state()) {
-            AuthState.INTERRUPTED -> {
-                when (linkAccountResolverAuthResponse.cdcResponse().errorCode()) {
-                    AuthResolvable.ERR_ACCOUNT_LINKED -> {
-                        val finalizeRegistrationResolver =
-                            RegistrationAuthFlow(coreClient, sessionService)
-                        val regToken =
-                            linkAccountResolverAuthResponse.cdcResponse().stringField("regToken")
-                        finalizeRegistrationResolver.parameters["regToken"] = regToken!!
-                        return finalizeRegistrationResolver.finalize()
-                    }
-
-                    else -> return linkAccountResolverAuthResponse
-                }
+        val linkAccountResolverAuthResponse = linkAccountResolver.login()
+        return when (linkAccountResolverAuthResponse.state()) {
+            AuthState.SUCCESS -> {
+                connectAccount(authResolvable.provider, authResolvable.authToken)
             }
 
-            else -> return linkAccountResolverAuthResponse
+            else -> linkAccountResolverAuthResponse
         }
     }
 
@@ -304,31 +364,19 @@ internal class AuthResolvers(
     override suspend fun linkSocialAccount(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
-        parameters: MutableMap<String, String>
+        authResolvable: AuthResolvable,
     ): IAuthResponse {
         val linkAccountResolver = ProviderAuthFow(
             coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
         )
-        parameters["loginMode"] = "link"  // Making sure login mode is link
-        linkAccountResolver.withParameters(parameters)
-        val linkAccountResolverAuthResponse = linkAccountResolver.authenticate()
-        when (linkAccountResolverAuthResponse.state()) {
-            AuthState.INTERRUPTED -> {
-                when (linkAccountResolverAuthResponse.cdcResponse().errorCode()) {
-                    AuthResolvable.ERR_ACCOUNT_LINKED -> {
-                        val finalizeRegistrationResolver =
-                            RegistrationAuthFlow(coreClient, sessionService)
-                        val regToken =
-                            linkAccountResolverAuthResponse.cdcResponse().stringField("regToken")
-                        finalizeRegistrationResolver.parameters["regToken"] = regToken!!
-                        return finalizeRegistrationResolver.finalize()
-                    }
-
-                    else -> return linkAccountResolverAuthResponse
-                }
+        linkAccountResolver.withParameters(mutableMapOf("provider" to authResolvable.provider!!))
+        val linkAccountResolverAuthResponse = linkAccountResolver.signIn()
+        return when (linkAccountResolverAuthResponse.state()) {
+            AuthState.SUCCESS -> {
+                connectAccount(authResolvable.provider, authResolvable.authToken)
             }
 
-            else -> return linkAccountResolverAuthResponse
+            else -> linkAccountResolverAuthResponse
         }
     }
 
@@ -359,6 +407,28 @@ internal class AuthResolvers(
     }
 
     /**
+     * Resolve phone login flow using provided code/vToken available in the "AuthResolvable" entity.
+     */
+    override suspend fun otpLogin(code: String, authResolvable: AuthResolvable): IAuthResponse {
+        //TODO: Return error if missing required field.
+        val codeVerify = LoginAuthFlow(coreClient, sessionService)
+        codeVerify.parameters["vToken"] = authResolvable.vToken!!
+        codeVerify.parameters["code"] = code
+        return codeVerify.otpLogin()
+    }
+
+    /**
+     * Resolve phone update flow provided code/vToken available in the "AuthResolvable" entity.
+     */
+    override suspend fun otpUpdate(code: String, authResolvable: AuthResolvable): IAuthResponse {
+        //TODO: Return error if missing required field.
+        val codeVerify = LoginAuthFlow(coreClient, sessionService)
+        codeVerify.parameters["vToken"] = authResolvable.vToken!!
+        codeVerify.parameters["code"] = code
+        return codeVerify.otpUpdate()
+    }
+
+    /**
      * Get login providers list required for link account continuation flow.
      * The method will serialize the conflicting accounts response.
      */
@@ -369,6 +439,27 @@ internal class AuthResolvers(
             conflictingAccountJson.jsonObject.toString()
         )
         return caEntity
+    }
+
+    /**
+     * Connect accounts.
+     * This method is the last step of the linking account flow.
+     */
+    private suspend fun connectAccount(provider: String?, authToken: String?): IAuthResponse {
+        val json = JsonObject(
+            mapOf(
+                "provider" to JsonPrimitive(provider),
+                "authToken" to JsonPrimitive(authToken),
+            )
+        )
+        val providerSession = json.toString()
+        val parameters =
+            mutableMapOf("providerSession" to providerSession, "loginMode" to "connect")
+
+        val connectResolver = LoginAuthFlow(coreClient, sessionService)
+        connectResolver.withParameters(parameters)
+        val authResponse = connectResolver.notifySocialLogin()
+        return authResponse
     }
 
 }

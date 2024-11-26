@@ -3,8 +3,8 @@ package com.sap.cdc.android.sdk.example.cdc
 import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
+import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
@@ -185,16 +185,18 @@ class IdentityServiceRepository private constructor(context: Context) {
     }
 
     /**
-     * Initiate call to retrieve conflicting account information and parse login providers list.
+     * Initiate cdc phone number sign in flow.
+     * This is a 2 step flow.
+     * 1. call signInWithPhone to request authentication code to be sent to the phone number provided.
+     * 2. login/update using the code received.
      */
-    suspend fun getConflictingAccounts(regToken: String): ConflictingAccountsEntity {
-        val conflictingAccountsAuthResponse =
-            authenticationService.resolve().getConflictingAccounts(
-                mutableMapOf("regToken" to regToken)
-            )
-        return authenticationService.resolve()
-            .parseConflictingAccounts(conflictingAccountsAuthResponse)
-    }
+    suspend fun otpSignIn(
+        parameters: MutableMap<String, String>
+    ): IAuthResponse = authenticationService.authenticate().otpSignIn(parameters)
+
+    //endregion
+
+    //region RESOLVE INTERRUPTIONS
 
     /**
      * Attempt to resolve "Account Pending Registration" interruption by providing the necessary
@@ -214,14 +216,13 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Attempt to resolve account linking interruption to an existing site account.
      */
     suspend fun resolveLinkToSiteAccount(
-        regToken: String,
         loginId: String,
-        password: String
+        password: String,
+        authResolvable: AuthResolvable
     ): IAuthResponse {
         return authenticationService.resolve().linkSiteAccount(
-            mutableMapOf(
-                "regToken" to regToken, "loginID" to loginId, "password" to password
-            )
+            mutableMapOf("loginID" to loginId, "password" to password),
+            authResolvable,
         )
     }
 
@@ -231,14 +232,24 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun resolveLinkToSocialAccount(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
-        regToken: String
+        authResolvable: AuthResolvable
     ): IAuthResponse {
         return authenticationService.resolve().linkSocialAccount(
-            hostActivity, authenticationProvider, mutableMapOf(
-                "regToken" to regToken
-            )
+            hostActivity, authenticationProvider, authResolvable,
         )
     }
+
+    /**
+     * Attempt to resolve phone number sign in flow.
+     */
+    suspend fun resolveLoginWithCode(
+        code: String,
+        authResolvable: AuthResolvable
+    ): IAuthResponse {
+        return authenticationService.resolve().otpLogin(code, authResolvable)
+    }
+
+    //endregion
 
     //region SOCIAL PROVIDERS
 
