@@ -32,7 +32,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -46,6 +48,9 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.utils.AutoFillRequestHandler
+import com.sap.cdc.android.sdk.example.ui.utils.connectNode
+import com.sap.cdc.android.sdk.example.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
@@ -55,6 +60,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  * Copyright: SAP LTD.
  */
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun OtpVerifyView(
     viewModel: IViewModelAuthentication,
@@ -138,9 +144,20 @@ fun OtpVerifyView(
             Spacer(modifier = Modifier.size(10.dp))
 
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                OtpTextField(otpText = otpValue, onOtpTextChange = { value, _ ->
-                    otpValue = value
-                })
+                val autoFillHandler =
+                    AutoFillRequestHandler(autofillTypes = listOf(AutofillType.SmsOtpCode),
+                        onFill = {
+                            otpValue = it
+                        }
+                    )
+                OtpTextField(
+                    modifier = Modifier
+                        .connectNode(handler = autoFillHandler)
+                        .defaultFocusChangeAutoFill(handler = autoFillHandler),
+                    otpText = otpValue, onOtpTextChange = { value, _ ->
+                        otpValue = value
+                        if (value.isEmpty()) autoFillHandler.requestVerifyManual()
+                    })
             }
 
             Spacer(modifier = Modifier.size(6.dp))
@@ -175,6 +192,9 @@ fun OtpVerifyView(
                             loading = false
                             signInError = ""
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                        },
+                        onPendingRegistration =  { authResponse ->  
+
                         },
                         onFailedWith = { error ->
                             signInError = error?.errorDescription!!

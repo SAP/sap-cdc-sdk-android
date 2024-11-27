@@ -138,6 +138,7 @@ interface IViewModelAuthentication {
         code: String,
         resolvable: AuthResolvable,
         onLogin: () -> Unit,
+        onPendingRegistration: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -514,6 +515,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         code: String,
         resolvable: AuthResolvable,
         onLogin: () -> Unit,
+        onPendingRegistration: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
@@ -521,6 +523,13 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
                     onLogin()
+                }
+                AuthState.INTERRUPTED -> {
+                    when (authResponse.cdcResponse().errorCode()) {
+                        AuthResolvable.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+                            onPendingRegistration(authResponse)
+                        }
+                    }
                 }
 
                 else -> {

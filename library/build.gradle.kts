@@ -61,20 +61,14 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-inline:5.0.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    testImplementation(libs.junit)
+    testImplementation(libs.mockito.inline)
+    testImplementation(libs.mockito.kotlin)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 
-    // HTTP engine: that handles network requests.
-    api(libs.ktor.client.android)
-    // JSON serialization and deserialization settings and //is recommended for multiplatform projects
-    api(libs.ktor.client.serialization)
-    // kotlinx.serialization, which is used for entity //serialization
-    api(libs.ktor.serialization.kotlinx.json)
-    // Logging HTTP requests
-    api(libs.ktor.client.logging.jvm)
+    // Http engine, JSON serialization/deserialization, kotlinx.serialization, Logging HTTP requests
+    api(libs.bundles.ktor)
     // Jetpack security.
     api(libs.androidx.security.crypto)
     // Jetpack biometric
