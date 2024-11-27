@@ -1,8 +1,8 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("kotlinx-serialization")
-    id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -94,12 +94,11 @@ dependencies {
     implementation(project(":library"))
 
     // Used social providers.
-    implementation("com.facebook.android:facebook-login:latest.release")
-    implementation("com.linecorp.linesdk:linesdk:latest.release")
-    implementation("com.tencent.mm.opensdk:wechat-sdk-android-without-mta:6.8.0")
-    //noinspection CredentialDependency
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation(libs.facebook.login)
+    implementation(libs.linesdk)
+    implementation(libs.wechat)
+
+    implementation(libs.bundles.credentials)
+    implementation(libs.googleid)
 
 }
