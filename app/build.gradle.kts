@@ -6,7 +6,6 @@ plugins {
 }
 
 android {
-    namespace = "com.sap.cdc.android.sdk.example"
     compileSdk = 35
 
     defaultConfig {
@@ -71,6 +70,8 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    namespace = "com.sap.cdc.android.sdk.example"
 }
 
 dependencies {

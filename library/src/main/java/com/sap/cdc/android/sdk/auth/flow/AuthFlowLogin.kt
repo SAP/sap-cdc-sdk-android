@@ -81,6 +81,7 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
                 parameters
             )
         val authResponse = AuthResponse(phoneLoginResponse)
+        initResolvableState(authResponse)
         return authResponse
     }
 
@@ -91,6 +92,7 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
                 parameters
             )
         val authResponse = AuthResponse(phoneLoginUpdate)
+        initResolvableState(authResponse)
         return authResponse
     }
 

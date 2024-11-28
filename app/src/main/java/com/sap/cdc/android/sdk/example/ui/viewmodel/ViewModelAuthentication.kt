@@ -458,7 +458,9 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
         viewModelScope.launch {
             val jsonMap = mutableMapOf<String, JsonPrimitive>()
             map.forEach { (key, value) ->
-                jsonMap[key] = JsonPrimitive(value)
+                // Removing "profile.+" prefix for value... This is dynamic and should not be taken
+                // as a best practice form.
+                jsonMap[key] = JsonPrimitive(value.substring(0, value.lastIndexOf(".")))
             }
             val authResponse = identityService.resolvePendingRegistrationWithMissingFields(
                 "profile", JsonObject(jsonMap).toString(), regToken,

@@ -2,9 +2,7 @@
 
 package com.sap.cdc.android.sdk.example.ui.utils
 
-import android.os.Build
 import android.view.autofill.AutofillManager
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -39,7 +37,7 @@ fun Modifier.defaultFocusChangeAutoFill(handler: AutoFillHandler): Modifier {
 }
 
 @Composable
-fun AutoFillRequestHandler(
+fun autoFillRequestHandler(
     autofillTypes: List<AutofillType> = listOf(),
     onFill: (String) -> Unit,
 ): AutoFillHandler {

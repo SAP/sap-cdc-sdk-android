@@ -163,6 +163,10 @@ fun ViewMyProfile(viewModel: IViewModelAuthentication) {
                     onFailed = {
                         // Stub.
                         Log.e("ViewMyProfile", "Logout failed")
+                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                            route = ProfileScreenRoute.Welcome.route,
+                            rootRoute = ProfileScreenRoute.Welcome.route
+                        )
                     }
                 )
             },

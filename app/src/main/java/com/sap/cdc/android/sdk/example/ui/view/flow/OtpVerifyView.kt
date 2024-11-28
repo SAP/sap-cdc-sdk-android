@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -48,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.auth.AuthResolvable
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
-import com.sap.cdc.android.sdk.example.ui.utils.AutoFillRequestHandler
+import com.sap.cdc.android.sdk.example.ui.utils.autoFillRequestHandler
 import com.sap.cdc.android.sdk.example.ui.utils.connectNode
 import com.sap.cdc.android.sdk.example.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
@@ -145,7 +144,7 @@ fun OtpVerifyView(
 
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 val autoFillHandler =
-                    AutoFillRequestHandler(autofillTypes = listOf(AutofillType.SmsOtpCode),
+                    autoFillRequestHandler(autofillTypes = listOf(AutofillType.SmsOtpCode),
                         onFill = {
                             otpValue = it
                         }
@@ -193,8 +192,14 @@ fun OtpVerifyView(
                             signInError = ""
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         },
-                        onPendingRegistration =  { authResponse ->  
-
+                        onPendingRegistration =  { authResponse ->
+                            loading = false
+                            NavigationCoordinator.INSTANCE
+                                .navigate(
+                                    "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                        authResponse?.resolvable()?.toJson()
+                                    }"
+                                )
                         },
                         onFailedWith = { error ->
                             signInError = error?.errorDescription!!
