@@ -144,7 +144,7 @@ fun OtpVerifyView(
 
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 val autoFillHandler =
-                    autoFillRequestHandler(autofillTypes = listOf(AutofillType.SmsOtpCode),
+                    autoFillRequestHandler(autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
                         onFill = {
                             otpValue = it
                         }
