@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.CXCDCAndroidSDK" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.BitsNBytes.Splash" parent="Theme.SplashScreen">
+
+        <item name="windowSplashScreenBackground">#FFF</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/v_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.CXCDCAndroidSDK</item>
+
+    </style>
+
+</resources>
