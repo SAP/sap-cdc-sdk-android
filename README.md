@@ -8,7 +8,7 @@ SAP Customer Data Cloud SDK for Android. The SDK provides an interface to integr
 
 ## Requirements and Setup
 
-*Insert a short description what is required to get your project running...*
+Android minSDK 24
 
 ## Support, Feedback, Contributing
 
