@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.example
 
 import android.app.Application
 import android.webkit.WebView
+import com.sap.cdc.android.sdk.CDCDebuggable
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -14,6 +15,7 @@ class MainApplication : Application() {
         super.onCreate()
 
         // Allow WebView debugging.
-        WebView.setWebContentsDebuggingEnabled(true)
+        CDCDebuggable.setLogs(true)
+        CDCDebuggable.setWebViewDebuggable(true)
     }
 }

@@ -10,8 +10,11 @@ import kotlinx.serialization.json.Json
  * Copyright: SAP LTD.
  */
 
+/**
+ * Helper class containing required resolvable data for authentication interrupted flows.
+ */
 @Serializable
-class AuthResolvable(
+class ResolvableContext(
     var regToken: String? = null,
     var provider: String? = null,
     var authToken: String? = null,

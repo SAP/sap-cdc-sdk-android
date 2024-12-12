@@ -8,8 +8,10 @@ import com.sap.cdc.android.sdk.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.auth.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.serialization.json.JsonObject
@@ -43,7 +45,7 @@ interface IAuthResponse {
     fun asJsonObject(): JsonObject?
     fun toDisplayError(): CDCError?
     fun state(): AuthState
-    fun resolvable(): AuthResolvable?
+    fun resolvable(): ResolvableContext?
 }
 
 
@@ -52,7 +54,7 @@ interface IAuthResponse {
  */
 class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
 
-    var authResolvable: AuthResolvable? = null
+    var resolvableContext: ResolvableContext? = null
 
     override fun cdcResponse(): CDCResponse = cdcResponse
 
@@ -65,7 +67,7 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
     override fun toDisplayError(): CDCError = this.cdcResponse.toCDCError()
 
     fun isResolvable(): Boolean =
-        AuthResolvable.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey("vToken")
+        ResolvableContext.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey("vToken")
 
     /**
      * Defines flow state.
@@ -87,8 +89,42 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
      * Get reference to resolvable data entity.
      * This data is required to complete interrupted flows.
      */
-    override fun resolvable(): AuthResolvable? = authResolvable
+    override fun resolvable(): ResolvableContext? = resolvableContext
 }
+
+interface IAuthSession {
+
+    fun isSessionValid(): Boolean
+
+    fun getSession(): Session?
+
+    fun clearSession()
+
+    fun setSession(session: Session)
+
+    fun setSession(sessionJson: String)
+
+    fun resetWithConfig(siteConfig: SiteConfig)
+
+}
+
+internal class AuthSession(private val sessionService: SessionService) : IAuthSession {
+
+    override fun isSessionValid(): Boolean = sessionService.validSession()
+
+    override fun getSession(): Session? = sessionService.getSession()
+
+    override fun clearSession() = sessionService.clearSession()
+
+    override fun setSession(session: Session) = sessionService.setSession(session)
+
+    override fun setSession(sessionJson: String) = sessionService.setSession(sessionJson)
+
+    override fun resetWithConfig(siteConfig: SiteConfig) {
+        sessionService.reloadWithSiteConfig(siteConfig)
+    }
+}
+
 
 /**
  * Authentication APIs interface.
@@ -112,7 +148,7 @@ interface IAuthApis {
     /**
      * initiate provider authentication flow interface.
      */
-    suspend fun providerLogin(
+    suspend fun providerSignIn(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
         parameters: MutableMap<String, String>? = mutableMapOf(),
@@ -164,7 +200,7 @@ internal class AuthApis(
     /**
      * initiate provider authentication flow implementation.
      */
-    override suspend fun providerLogin(
+    override suspend fun providerSignIn(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
         parameters: MutableMap<String, String>?
@@ -233,6 +269,8 @@ internal class AuthApisSet(
  */
 interface IAuthApisGet {
     suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse
+
+    suspend fun getAuthCode(parameters: MutableMap<String, String>): IAuthResponse
 }
 
 /**
@@ -249,6 +287,15 @@ internal class AuthApisGet(
         val flow = AccountAuthFlow(coreClient, sessionService)
         flow.withParameters(parameters)
         return flow.getAccountInfo()
+    }
+
+    /**
+     * Request session exchange auth code.
+     */
+    override suspend fun getAuthCode(parameters: MutableMap<String, String>): IAuthResponse {
+        val flow = AccountAuthFlow(coreClient, sessionService)
+        flow.withParameters(parameters)
+        return flow.getAuthCode()
     }
 
 }
@@ -273,7 +320,7 @@ interface IAuthResolvers {
      */
     suspend fun linkSiteAccount(
         parameters: MutableMap<String, String>,
-        authResolvable: AuthResolvable,
+        resolvableContext: ResolvableContext,
     ): IAuthResponse
 
     /**
@@ -282,7 +329,7 @@ interface IAuthResolvers {
     suspend fun linkSocialAccount(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
-        authResolvable: AuthResolvable,
+        resolvableContext: ResolvableContext,
     ): IAuthResponse
 
     /**
@@ -298,12 +345,12 @@ interface IAuthResolvers {
 
     suspend fun otpLogin(
         code: String,
-        authResolvable: AuthResolvable
+        resolvableContext: ResolvableContext
     ): IAuthResponse
 
     suspend fun otpUpdate(
         code: String,
-        authResolvable: AuthResolvable
+        resolvableContext: ResolvableContext
     ): IAuthResponse
 
     fun parseConflictingAccounts(authResponse: IAuthResponse): ConflictingAccountsEntity
@@ -341,7 +388,7 @@ internal class AuthResolvers(
      */
     override suspend fun linkSiteAccount(
         parameters: MutableMap<String, String>,
-        authResolvable: AuthResolvable,
+        resolvableContext: ResolvableContext,
     ): IAuthResponse {
         val linkAccountResolver = LoginAuthFlow(coreClient, sessionService)
         parameters["loginMode"] = "link" // Making sure login mode is link
@@ -349,7 +396,7 @@ internal class AuthResolvers(
         val linkAccountResolverAuthResponse = linkAccountResolver.login()
         return when (linkAccountResolverAuthResponse.state()) {
             AuthState.SUCCESS -> {
-                connectAccount(authResolvable.provider, authResolvable.authToken)
+                connectAccount(resolvableContext.provider, resolvableContext.authToken)
             }
 
             else -> linkAccountResolverAuthResponse
@@ -364,16 +411,16 @@ internal class AuthResolvers(
     override suspend fun linkSocialAccount(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
-        authResolvable: AuthResolvable,
+        resolvableContext: ResolvableContext,
     ): IAuthResponse {
         val linkAccountResolver = ProviderAuthFow(
             coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
         )
-        linkAccountResolver.withParameters(mutableMapOf("provider" to authResolvable.provider!!))
+        linkAccountResolver.withParameters(mutableMapOf("provider" to resolvableContext.provider!!))
         val linkAccountResolverAuthResponse = linkAccountResolver.signIn()
         return when (linkAccountResolverAuthResponse.state()) {
             AuthState.SUCCESS -> {
-                connectAccount(authResolvable.provider, authResolvable.authToken)
+                connectAccount(resolvableContext.provider, resolvableContext.authToken)
             }
 
             else -> linkAccountResolverAuthResponse
@@ -409,10 +456,10 @@ internal class AuthResolvers(
     /**
      * Resolve phone login flow using provided code/vToken available in the "AuthResolvable" entity.
      */
-    override suspend fun otpLogin(code: String, authResolvable: AuthResolvable): IAuthResponse {
+    override suspend fun otpLogin(code: String, resolvableContext: ResolvableContext): IAuthResponse {
         //TODO: Return error if missing required field.
         val codeVerify = LoginAuthFlow(coreClient, sessionService)
-        codeVerify.parameters["vToken"] = authResolvable.vToken!!
+        codeVerify.parameters["vToken"] = resolvableContext.vToken!!
         codeVerify.parameters["code"] = code
         return codeVerify.otpLogin()
     }
@@ -420,10 +467,10 @@ internal class AuthResolvers(
     /**
      * Resolve phone update flow provided code/vToken available in the "AuthResolvable" entity.
      */
-    override suspend fun otpUpdate(code: String, authResolvable: AuthResolvable): IAuthResponse {
+    override suspend fun otpUpdate(code: String, resolvableContext: ResolvableContext): IAuthResponse {
         //TODO: Return error if missing required field.
         val codeVerify = LoginAuthFlow(coreClient, sessionService)
-        codeVerify.parameters["vToken"] = authResolvable.vToken!!
+        codeVerify.parameters["vToken"] = resolvableContext.vToken!!
         codeVerify.parameters["code"] = code
         return codeVerify.otpUpdate()
     }

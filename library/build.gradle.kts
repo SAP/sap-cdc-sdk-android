@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.sap.cdc.android"
-version = "0.0.1"
+version = "0.1.0"
 
 ext["name"] = "SAP Customer Data Cloud for Android"
 ext["artifactId"] = "sdk"
@@ -75,6 +75,8 @@ dependencies {
     api(libs.androidx.biometric)
     // Jetpack work manager
     api(libs.androidx.work.runtime.ktx)
+    // Browser (CustomTabs)
+    api(libs.androidx.browser)
 }
 
 apply(from = "../publish-package.gradle")

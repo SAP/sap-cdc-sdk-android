@@ -2,14 +2,17 @@ package com.sap.cdc.android.sdk.auth
 
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.SiteConfig
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  */
-class AuthenticationService(val sessionService: SessionService) {
-
-    val coreClient: CoreClient = CoreClient(sessionService.siteConfig)
+class AuthenticationService(
+    val siteConfig: SiteConfig,
+) {
+    val coreClient: CoreClient = CoreClient(siteConfig)
+    val sessionService: SessionService = SessionService(siteConfig)
 
     companion object {
         const val CDC_AUTHENTICATION_SERVICE_SECURE_PREFS =
@@ -31,5 +34,8 @@ class AuthenticationService(val sessionService: SessionService) {
     fun set(): IAuthApisSet =
         AuthApisSet(coreClient, sessionService)
 
+    fun session(): IAuthSession = AuthSession(
+        sessionService
+    )
 
 }

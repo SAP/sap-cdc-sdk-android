@@ -13,8 +13,8 @@ import com.linecorp.linesdk.auth.LineAuthenticationParams
 import com.linecorp.linesdk.auth.LineLoginApi
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.auth.provider.ProviderException
-import com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.R
@@ -36,7 +36,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
 
     override fun getProvider(): String = "line"
 
-    override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult =
+    override suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult =
         suspendCoroutine { continuation ->
 
             if (hostActivity == null) {
@@ -57,6 +57,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                     .scopes(listOf(Scope.PROFILE))
                     .build()
             )
+
 
             launcher = hostActivity.activityResultRegistry.register(
                 "line-login",
@@ -131,7 +132,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
             launcher?.launch(loginIntent)
         }
 
-    override suspend fun providerSignOut(hostActivity: ComponentActivity?) {
+    override suspend fun signOut(hostActivity: ComponentActivity?) {
         if (hostActivity == null) return
         val channelId = ""// hostActivity.getString(R.string.line_channel_id)
         val client = LineApiClientBuilder(hostActivity, channelId).build()

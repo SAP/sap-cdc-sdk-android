@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.auth.AuthResolvable
+import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
@@ -79,6 +79,15 @@ interface IViewModelAuthentication {
         //Stub
     }
 
+    fun singleSignOn(
+        hostActivity: ComponentActivity,
+        parameters: MutableMap<String, String>?,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        //Stub
+    }
+
     fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
         return null
     }
@@ -94,7 +103,7 @@ interface IViewModelAuthentication {
 
     fun resolveLinkToSiteAccount(
         loginId: String, password: String,
-        authResolvable: AuthResolvable,
+        resolvableContext: ResolvableContext,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
@@ -104,7 +113,7 @@ interface IViewModelAuthentication {
     fun resolveLinkToSocialAccount(
         hostActivity: ComponentActivity,
         provider: String,
-        authResolvable: AuthResolvable,
+        resolvableContext: ResolvableContext,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
@@ -129,14 +138,14 @@ interface IViewModelAuthentication {
     fun otpSignIn(
         otpType: OTPType,
         inputField: String,
-        success: (AuthResolvable) -> Unit, onFailed: (CDCError) -> Unit
+        success: (ResolvableContext) -> Unit, onFailed: (CDCError) -> Unit
     ) {
         //Stub
     }
 
     fun resolveLoginWithCode(
         code: String,
-        resolvable: AuthResolvable,
+        resolvable: ResolvableContext,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
@@ -234,7 +243,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
 
                 AuthState.INTERRUPTED -> {
                     when (authResponse.cdcResponse().errorCode()) {
-                        AuthResolvable.ERR_ENTITY_EXIST_CONFLICT -> {
+                        ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
                             onLoginIdentifierExists()
                         }
                     }
@@ -276,11 +285,11 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
                 AuthState.INTERRUPTED -> {
                     // Handle available interruption.
                     when (authResponse.cdcResponse().errorCode()) {
-                        AuthResolvable.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+                        ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
                             onPendingRegistration(authResponse)
                         }
 
-                        AuthResolvable.ERR_ENTITY_EXIST_CONFLICT -> {
+                        ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
                             onLoginIdentifierExists(authResponse)
                         }
                     }
@@ -288,6 +297,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             }
         }
     }
+
 
     /**
      * Social sign in with web provider flow.
@@ -315,6 +325,31 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
             }
         }
     }
+
+    /**
+     * Single sign on provider flow.
+     */
+    override fun singleSignOn(
+        hostActivity: ComponentActivity,
+        parameters: MutableMap<String, String>?,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val authResponse = identityService.sso(hostActivity, parameters ?: mutableMapOf())
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onLogin()
+                }
+
+                else -> {
+                    onFailedWith(authResponse.toDisplayError())
+                }
+            }
+        }
+
+    }
+
 
     /**
      * Helper method to fetch a registered authentication provider.
@@ -402,13 +437,13 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     override fun resolveLinkToSiteAccount(
         loginId: String,
         password: String,
-        authResolvable: AuthResolvable,
+        resolvableContext: ResolvableContext,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
             val authResponse = identityService.resolveLinkToSiteAccount(
-                loginId = loginId, password = password, authResolvable = authResolvable
+                loginId = loginId, password = password, resolvableContext = resolvableContext
             )
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
@@ -426,13 +461,15 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     override fun resolveLinkToSocialAccount(
         hostActivity: ComponentActivity,
         provider: String,
-        authResolvable: AuthResolvable,
+        resolvableContext: ResolvableContext,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
             val authResponse = identityService.resolveLinkToSocialAccount(
-                hostActivity, identityService.getAuthenticationProvider(provider)!!, authResolvable,
+                hostActivity,
+                identityService.getAuthenticationProvider(provider)!!,
+                resolvableContext,
             )
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
@@ -483,7 +520,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     override fun otpSignIn(
         otpType: OTPType,
         inputField: String,
-        success: (AuthResolvable) -> Unit,
+        success: (ResolvableContext) -> Unit,
         onFailed: (CDCError) -> Unit
     ) {
         viewModelScope.launch {
@@ -515,7 +552,7 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
      */
     override fun resolveLoginWithCode(
         code: String,
-        resolvable: AuthResolvable,
+        resolvable: ResolvableContext,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
@@ -526,9 +563,10 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
                 AuthState.SUCCESS -> {
                     onLogin()
                 }
+
                 AuthState.INTERRUPTED -> {
                     when (authResponse.cdcResponse().errorCode()) {
-                        AuthResolvable.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+                        ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
                             onPendingRegistration(authResponse)
                         }
                     }
@@ -579,7 +617,6 @@ class ViewModelAuthentication(context: Context) : ViewModelBase(context), IViewM
     }
 
     //endregion
-
 
 }
 

@@ -44,7 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.AuthResolvable
+import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.utils.autoFillRequestHandler
@@ -63,7 +63,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 @Composable
 fun OtpVerifyView(
     viewModel: IViewModelAuthentication,
-    authResolvable: AuthResolvable,
+    resolvableContext: ResolvableContext,
     otpType: OTPType,
     inputField: String? = null,
 ) {
@@ -186,7 +186,7 @@ fun OtpVerifyView(
                 onClick = {
                     loading = true
                     viewModel.resolveLoginWithCode(code = otpValue,
-                        resolvable = authResolvable,
+                        resolvable = resolvableContext,
                         onLogin = {
                             loading = false
                             signInError = ""
@@ -243,7 +243,7 @@ fun OtpVerifyView(
 fun ViewPhoneSignInCodeVerificationPreview() {
     OtpVerifyView(
         viewModel = ViewModelAuthenticationPreview(),
-        authResolvable = AuthResolvable(),
+        resolvableContext = ResolvableContext(),
         otpType = OTPType.PHONE,
         inputField = ""
     )

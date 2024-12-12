@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.auth.provider
+package com.sap.cdc.android.sdk.auth.provider.util
 
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 

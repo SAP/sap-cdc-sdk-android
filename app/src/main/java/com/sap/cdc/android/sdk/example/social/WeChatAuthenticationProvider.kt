@@ -10,10 +10,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.auth.provider.ProviderException
-import com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
-import com.sap.cdc.android.sdk.auth.provider.ResultHostActivity
+import com.sap.cdc.android.sdk.auth.provider.ui.ResultHostActivity
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider.Companion.LOG_TAG
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.wxapi.WXEntryActivity
@@ -37,13 +37,13 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
 
     override fun getProvider(): String = "wechat"
 
-    override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult =
+    override suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult =
         suspendCoroutine { continuation ->
 
             if (hostActivity == null) {
                 continuation.resumeWithException(
-                    com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                        com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.CANCELED,
+                    ProviderException(
+                        ProviderExceptionType.CANCELED,
                         CDCError.operationCanceled()
                     )
                 )
@@ -77,8 +77,8 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                     RESULT_CANCELED -> {
                         dispose()
                         continuation.resumeWithException(
-                            com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                                com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.CANCELED,
+                            ProviderException(
+                                ProviderExceptionType.CANCELED,
                                 CDCError.operationCanceled()
                             )
                         )
@@ -89,8 +89,8 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                         if (resultData.hasExtra("canceled")) {
                             dispose()
                             continuation.resumeWithException(
-                                com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                                    com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.CANCELED,
+                                ProviderException(
+                                    ProviderExceptionType.CANCELED,
                                     CDCError.operationCanceled()
                                 )
                             )
@@ -101,8 +101,8 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                             // Make sure to resumeWithException.
                             dispose()
                             continuation.resumeWithException(
-                                com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                                    com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.PROVIDER_FAILURE,
+                                ProviderException(
+                                    ProviderExceptionType.PROVIDER_FAILURE,
                                     CDCError.providerError()
                                 )
                             )
@@ -149,7 +149,7 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
             weChatApi.sendReq(request)
         }
 
-    override suspend fun providerSignOut(hostActivity: ComponentActivity?) {
+    override suspend fun signOut(hostActivity: ComponentActivity?) {
         val weChatApi: IWXAPI =
             WXAPIFactory.createWXAPI(hostActivity, WXEntryActivity.API_ID, false)
         weChatApi.detach()

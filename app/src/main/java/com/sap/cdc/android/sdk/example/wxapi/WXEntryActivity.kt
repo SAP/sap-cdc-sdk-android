@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import com.sap.cdc.android.sdk.auth.provider.ResultHostActivity
+import com.sap.cdc.android.sdk.auth.provider.ui.ResultHostActivity
 import com.tencent.mm.opensdk.modelbase.BaseReq
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelmsg.SendAuth
@@ -24,7 +24,7 @@ class WXEntryActivity : Activity(), IWXAPIEventHandler {
     companion object {
 
         const val LOG_TAG = "WXEntryActivity"
-        const val API_ID: String = "wx222c4ccaa989aa00"
+        const val API_ID: String = "WECHAT_APP_ID_HERE"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,10 +1,8 @@
 package com.sap.cdc.android.sdk.auth.flow
 
-import com.sap.cdc.android.sdk.auth.AuthResolvable
+import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.AuthResolvers
 import com.sap.cdc.android.sdk.auth.AuthResponse
-import com.sap.cdc.android.sdk.auth.IAuthResolvers
-import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
@@ -55,33 +53,33 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     suspend fun initResolvableState(authResponse: AuthResponse) {
         // Init auth resolvable entity with RegToken field.
         if (authResponse.isResolvable()) {
-            val authResolvable = AuthResolvable(authResponse.cdcResponse().stringField("regToken"))
+            val resolvableContext = ResolvableContext(authResponse.cdcResponse().stringField("regToken"))
             val resolve = AuthResolvers(coreClient, sessionService)
             when (authResponse.cdcResponse().errorCode()) {
-                AuthResolvable.ERR_NONE -> {
+                ResolvableContext.ERR_NONE -> {
                     // Resolvable state can occur on successful call in OTP flows.
-                    authResolvable.vToken = authResponse.cdcResponse().stringField("vToken")
+                    resolvableContext.vToken = authResponse.cdcResponse().stringField("vToken")
                 }
 
-                AuthResolvable.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+                ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
                     val missingFields =
                         authResponse.cdcResponse().errorDetails()
                             ?.parseRequiredMissingFieldsForRegistration()
-                    authResolvable.missingRequiredFields = missingFields
+                    resolvableContext.missingRequiredFields = missingFields
                 }
 
-                AuthResolvable.ERR_ENTITY_EXIST_CONFLICT -> {
-                    authResolvable.provider = authResponse.cdcResponse().stringField("provider")
-                    authResolvable.authToken =
+                ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
+                    resolvableContext.provider = authResponse.cdcResponse().stringField("provider")
+                    resolvableContext.authToken =
                         authResponse.cdcResponse().stringField("access_token")
                     // Request conflicting accounts.
                     val conflictingAccounts =
-                        resolve.getConflictingAccounts(mutableMapOf("regToken" to authResolvable.regToken!!))
-                    authResolvable.conflictingAccounts =
+                        resolve.getConflictingAccounts(mutableMapOf("regToken" to resolvableContext.regToken!!))
+                    resolvableContext.conflictingAccounts =
                         resolve.parseConflictingAccounts(conflictingAccounts)
                 }
             }
-            authResponse.authResolvable = authResolvable
+            authResponse.resolvableContext = resolvableContext
         }
     }
 

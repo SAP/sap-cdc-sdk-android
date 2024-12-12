@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.auth
 
-import android.util.Log
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_GMID
@@ -39,7 +39,7 @@ class AuthenticationApi(
         if (!gmidValid()) {
             val ids = getIDs()
             if (ids.isError()) {
-                Log.e("AuthenticationApi", "getIds error: ${ids.errorCode()}")
+                CDCDebuggable.log("CDC_AuthenticationApi", "getIds error: ${ids.errorCode()}")
             }
         }
         return super.genericSend(api, parameters, method, headers)
@@ -78,6 +78,7 @@ class AuthenticationApi(
     private suspend fun getIDs(): CDCResponse {
         val response = Api(coreClient).genericSend(EP_SOCIALIZE_GET_IDS)
         val gmidEntity = response.serializeTo<GMIDEntity>()
+        CDCDebuggable.log("GMID", "gmid: ${gmidEntity?.gmid}")
         if (gmidEntity != null) {
             val esp =
                 coreClient.siteConfig.applicationContext.getEncryptedPreferences(
@@ -98,13 +99,19 @@ class AuthenticationApi(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
         if (!esp.contains(CDC_GMID)) {
+            CDCDebuggable.log("CDC_GMID", "Invalid - no gmid found")
             return false
         }
         val gmidRefreshTimestamp = esp.getLong(CDC_GMID_REFRESH_TS, 0L)
         if (gmidRefreshTimestamp == 0L) {
+            CDCDebuggable.log("CDC_GMID", "Invalid - no refresh timestamp found")
             return false
         }
         val currentTimestamp = System.currentTimeMillis()
-        return gmidRefreshTimestamp >= currentTimestamp
+        if (gmidRefreshTimestamp < currentTimestamp) {
+            CDCDebuggable.log("CDC_GMID", "Invalid - refresh timestamp expired")
+            return false
+        }
+        return true
     }
 }

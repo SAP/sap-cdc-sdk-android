@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Bits n Bytes</string>
 
-    <string name="com.sap.cxcdc.apikey">API_KEY_HERE</string>
+    <string name="com.sap.cxcdc.apikey">4_SEpA_W3UzOTWQZKSXi1ATw</string>
     <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
 
     <string name="home">Bits \u0026 Bytes</string>
@@ -22,12 +22,12 @@
 
     <!-- Social providers -->
     <string name="facebook_app_id">FB_APP_ID_HERE</string>
-<string name="fb_login_protocol_scheme">FB_LOGIN_PROTOCOL_SCHEME_HERE</string>
+    <string name="fb_login_protocol_scheme">FB_LOGIN_PROTOCOL_SCHEME_HERE</string>
     <string name="facebook_client_token">FB_CLIENT_TOKEN_HERE</string>
 
     <string name="line_channel_id">LINE_CHANNEL_ID_HERE</string>
 
-    <string name="wechat_app_id">WECHAT_ID_HERE</string>
+    <string name="wechat_app_id">WECHAT_APP_ID_HERE</string>
 
     <string name="google_server_client_id">GOOGLE_WEB_CLIENT_ID_HERE</string>
     <string name="resolve_link_account">Resolve Link Account\n</string>

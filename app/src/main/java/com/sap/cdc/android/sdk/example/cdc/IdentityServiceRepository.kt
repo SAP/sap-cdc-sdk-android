@@ -3,9 +3,11 @@ package com.sap.cdc.android.sdk.example.cdc
 import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.auth.AuthResolvable
+import com.sap.cdc.android.sdk.auth.ResolvableContext
+import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
@@ -34,16 +36,13 @@ class IdentityServiceRepository private constructor(context: Context) {
         }
     }
 
-    /**
-     * Initialize session service.
-     */
-    private var sessionService = SessionService(SiteConfig(context))
+    private var siteConfig = SiteConfig(context)
 
     /**
      * Initialize authentication service.
      */
     private var authenticationService =
-        com.sap.cdc.android.sdk.auth.AuthenticationService(sessionService)
+        AuthenticationService(siteConfig)
 
     /**
      * Authentication providers map.
@@ -60,7 +59,7 @@ class IdentityServiceRepository private constructor(context: Context) {
                 success = { session ->
                     if (session != null) {
                         // Set the session.
-                        sessionService.sessionSecure.setSession(session)
+                        authenticationService.session().setSession(session)
                     }
                 },
                 error = { message ->
@@ -81,14 +80,14 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Re-init the session service with new site configuration.
      */
-    fun reinitializeSessionService(siteConfig: SiteConfig) {
-        sessionService.reloadWithSiteConfig(siteConfig)
-    }
+    fun reinitializeSessionService(siteConfig: SiteConfig) =
+        authenticationService.session().resetWithConfig(siteConfig)
+
 
     /**
      * Get current instance of the current SiteConfig class.
      */
-    fun getConfig() = sessionService.siteConfig
+    fun getConfig() = siteConfig
 
     //endregion
 
@@ -98,24 +97,24 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Set a new session (secure it).
      */
     fun setSession(session: Session) {
-        sessionService.sessionSecure.setSession(session)
+        authenticationService.session().setSession(session)
     }
 
     /**
      * Get current secured session.
      */
-    fun getSession(): Session? {
-        return sessionService.sessionSecure.getSession()
-    }
+    fun getSession(): Session? = authenticationService.session().getSession()
+
 
     /**
      * Clear session secure session.
      */
-    fun invalidateSession() {
-        sessionService.sessionSecure.clearSession()
-    }
+    fun invalidateSession() = authenticationService.session().clearSession()
 
-    fun validSession(): Boolean = sessionService.sessionSecure.getSession() != null
+    /**
+     * Check if a valid session is available.
+     */
+    fun validSession(): Boolean = authenticationService.session().isSessionValid()
 
     //endregion
 
@@ -165,11 +164,25 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun nativeSocialSignIn(
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider
-    ): IAuthResponse {
-        return authenticationService.authenticate().providerLogin(
+    ): IAuthResponse =
+        authenticationService.authenticate().providerSignIn(
             hostActivity, provider
         )
-    }
+
+    /**
+     * Initiate single sign on provider flow.
+     */
+    suspend fun sso(
+        hostActivity: ComponentActivity,
+        parameters: MutableMap<String, String>,
+    ): IAuthResponse =
+        authenticationService.authenticate().providerSignIn(
+            hostActivity, SSOAuthenticationProvider(
+                siteConfig = authenticationService.siteConfig,
+                mutableMapOf()
+            )
+        )
+
 
     /**
      * Initiate cdc Web social provider login (any provider that is currently noy native).
@@ -178,8 +191,12 @@ class IdentityServiceRepository private constructor(context: Context) {
         hostActivity: ComponentActivity,
         socialProvider: String
     ): IAuthResponse {
-        val webAuthenticationProvider = WebAuthenticationProvider(socialProvider, sessionService)
-        return authenticationService.authenticate().providerLogin(
+        val webAuthenticationProvider = WebAuthenticationProvider(
+            socialProvider,
+            siteConfig,
+            authenticationService.session().getSession()
+        )
+        return authenticationService.authenticate().providerSignIn(
             hostActivity, webAuthenticationProvider
         )
     }
@@ -218,11 +235,11 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun resolveLinkToSiteAccount(
         loginId: String,
         password: String,
-        authResolvable: AuthResolvable
+        resolvableContext: ResolvableContext
     ): IAuthResponse {
         return authenticationService.resolve().linkSiteAccount(
             mutableMapOf("loginID" to loginId, "password" to password),
-            authResolvable,
+            resolvableContext,
         )
     }
 
@@ -232,10 +249,10 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun resolveLinkToSocialAccount(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
-        authResolvable: AuthResolvable
+        resolvableContext: ResolvableContext
     ): IAuthResponse {
         return authenticationService.resolve().linkSocialAccount(
-            hostActivity, authenticationProvider, authResolvable,
+            hostActivity, authenticationProvider, resolvableContext,
         )
     }
 
@@ -244,9 +261,9 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     suspend fun resolveLoginWithCode(
         code: String,
-        authResolvable: AuthResolvable
+        resolvableContext: ResolvableContext
     ): IAuthResponse {
-        return authenticationService.resolve().otpLogin(code, authResolvable)
+        return authenticationService.resolve().otpLogin(code, resolvableContext)
     }
 
     //endregion
@@ -258,7 +275,11 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
         if (!authenticationProviderMap.containsKey(name)) {
-            return WebAuthenticationProvider(name, sessionService)
+            return WebAuthenticationProvider(
+                name,
+                siteConfig,
+                authenticationService.session().getSession()
+            )
         }
         return authenticationProviderMap[name]
     }

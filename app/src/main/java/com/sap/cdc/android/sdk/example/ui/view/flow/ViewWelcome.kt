@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,10 +13,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,7 +27,8 @@ import com.sap.cdc.android.sdk.example.ApplicationConfig
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.route.ScreenSetsRoute
-import com.sap.cdc.android.sdk.example.ui.view.custom.ViewSocialSelection
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -33,9 +37,9 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.ViewSocialSelection
  * Welcome view.
  */
 
-@Preview
 @Composable
-fun ViewWelcome() {
+fun ViewWelcome(viewModel: IViewModelAuthentication) {
+    val context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -48,15 +52,6 @@ fun ViewWelcome() {
         Text("Welcome!", fontSize = 36.sp, fontWeight = FontWeight.Bold)
         Text("Manage your profile", fontSize = 16.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.size(20.dp))
-
-        ViewSocialSelection(
-            onMutableValueChange = {
-
-            },
-            onSocialProviderSelection = {
-
-            },
-        )
 
         Spacer(modifier = Modifier.size(20.dp))
 
@@ -97,9 +92,26 @@ fun ViewWelcome() {
             )
         )
         Spacer(modifier = Modifier.size(28.dp))
-        Text("Sign in with SSO", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        TextButton(onClick = {
+            viewModel.singleSignOn(
+                context as ComponentActivity,
+                mutableMapOf(),
+                onLogin = {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                },
+                onFailedWith = { error ->
+
+                }
+            )
+        }) {
+            Text("Sign in with SSO", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
     }
 }
 
-
-
+@Preview
+@Composable
+fun WelcomeViewPreview() {
+    ViewWelcome(ViewModelAuthenticationPreview())
+}

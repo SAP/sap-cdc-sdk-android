@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
@@ -113,7 +114,7 @@ fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                 }
             }, update = { webView ->
                 Log.d("ScreenSetView", "update")
-                webBridgeJS.attachBridgeTo(webView)
+                webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)
 
                 // Set external authenticators. SDK will no longer use reflection to
                 // retrieve external providers.

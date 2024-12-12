@@ -1,6 +1,5 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.AuthResolvable
+import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
@@ -58,7 +57,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 @Composable
 fun ResolveLinkAccount(
     viewModel: IViewModelAuthentication,
-    resolvable: AuthResolvable,
+    resolvable: ResolvableContext,
 ) {
     var loading by remember { mutableStateOf(false) }
 
@@ -130,7 +129,7 @@ fun ResolveLinkAccount(
                     viewModel.resolveLinkToSiteAccount(
                         loginId = resolvable.conflictingAccounts?.loginID!!,
                         password = password,
-                        authResolvable = resolvable,
+                        resolvableContext = resolvable,
                         onLogin = {
                             loading = false
                             NavigationCoordinator.INSTANCE.popToRootAndNavigate(
@@ -162,7 +161,7 @@ fun ResolveLinkAccount(
                 viewModel.resolveLinkToSocialAccount(
                     hostActivity = context as ComponentActivity,
                     provider = provider,
-                    authResolvable = resolvable,
+                    resolvableContext = resolvable,
                     onLogin = {
                         loading = false
                         NavigationCoordinator.INSTANCE.popToRootAndNavigate(
@@ -270,7 +269,7 @@ fun ResolveLinkAccount(
 fun ResolveLinkAccountPreview() {
     ResolveLinkAccount(
         viewModel = ViewModelAuthenticationPreview(),
-        resolvable = AuthResolvable(
+        resolvable = ResolvableContext(
             "", "", "", conflictingAccounts = ConflictingAccountsEntity(
                 mutableListOf("site", "google", "facebook"),
                 null

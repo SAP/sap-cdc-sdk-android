@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.auth.provider
+package com.sap.cdc.android.sdk.auth.provider.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent

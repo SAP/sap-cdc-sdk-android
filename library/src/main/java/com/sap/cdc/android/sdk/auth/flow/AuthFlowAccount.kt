@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
+import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_ID_TOKEN_EXCHANGE
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
@@ -61,5 +62,22 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
             this.parameters
         )
         return AuthResponse(conflictingAccountsResponse)
+    }
+
+    /**
+     * Applications (mobile/web) within the same site group are now able to share a session from the mobile application to a web page running the JS SDK.
+     * Request code required to exchange the session.
+     */
+    suspend fun getAuthCode(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
+        withParameters(parameters!!)
+        parameters["resource"] = "urn:gigya:account"
+        parameters["subject_token_type"] = "urn:gigya:token-type:mobile"
+        parameters["response_type"] = "code"
+        val exchangeAuthCodeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
+            EP_ACCOUNTS_ID_TOKEN_EXCHANGE,
+            this.parameters
+        )
+        return AuthResponse(exchangeAuthCodeResponse)
+
     }
 }

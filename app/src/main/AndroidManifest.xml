@@ -32,20 +32,43 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
 
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.WebLoginActivity"
+            android:name="com.sap.cdc.android.sdk.auth.provider.ui.WebLoginActivity"
             android:allowTaskReparenting="true"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.CXCDCAndroidSDK" />
 
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.ResultHostActivity"
+            android:name="com.sap.cdc.android.sdk.auth.provider.ui.SSOLoginActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.CDC.NoAnimationActivity">
+
+            <intent-filter>
+
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="${applicationId}"
+                    android:path="/login/"
+                    android:scheme="gsapi" />
+
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.sap.cdc.android.sdk.auth.provider.ui.ResultHostActivity"
             android:exported="true"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.CDC.NoAnimationActivity" />
+
 
         <activity
             android:name=".wxapi.WXEntryActivity"

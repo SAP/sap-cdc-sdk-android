@@ -12,8 +12,8 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.auth.provider.ProviderException
-import com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.R
@@ -30,7 +30,7 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
 
     override fun getProvider(): String = "google"
 
-    override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
+    override suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
         if (hostActivity == null) {
             val exception = ProviderException(
                 ProviderExceptionType.HOST_NULL,
@@ -129,7 +129,7 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
         }
     }
 
-    override suspend fun providerSignOut(hostActivity: ComponentActivity?) {
+    override suspend fun signOut(hostActivity: ComponentActivity?) {
         if (hostActivity == null) {
             Log.d("GoogleAuthenticationProvider", "Context missing. Cannot sign out")
         }

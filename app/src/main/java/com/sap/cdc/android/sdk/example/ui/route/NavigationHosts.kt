@@ -6,7 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.sap.cdc.android.sdk.auth.AuthResolvable
+import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.example.ui.view.custom.AuthenticationTabView
 import com.sap.cdc.android.sdk.example.ui.view.flow.OTPType
 import com.sap.cdc.android.sdk.example.ui.view.flow.ResolveLinkAccount
@@ -94,7 +94,9 @@ fun ProfileNavHost() {
         }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
-            ViewWelcome()
+            ViewWelcome(
+                viewModel = authenticationViewModel,
+            )
         }
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
@@ -106,17 +108,17 @@ fun ProfileNavHost() {
         composable(ProfileScreenRoute.EmailSignIn.route) {
             SignInWithEmailView(viewModel = authenticationViewModel)
         }
-        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{authResolvable}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("authResolvable")
-            val resolvable = Json.decodeFromString<AuthResolvable>(resolvableJson!!)
+        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{resolvableContext}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
+            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
             ResolvePendingRegistrationWithMissingFields(
                 viewModel = authenticationViewModel,
                 resolvable,
             )
         }
-        composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{authResolvable}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("authResolvable")
-            val resolvable = Json.decodeFromString<AuthResolvable>(resolvableJson!!)
+        composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{resolvableContext}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
+            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
             ResolveLinkAccount(
                 viewModel = authenticationViewModel,
                 resolvable,
@@ -147,12 +149,12 @@ fun ProfileNavHost() {
             val otpType = OTPType.getByValue(type!!.toInt())
             OtpSignInView(viewModel = authenticationViewModel, otpType = otpType!!)
         }
-        composable("${ProfileScreenRoute.OTPVerify.route}/{authResolvable}/{type}/{inputField}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("authResolvable")
+        composable("${ProfileScreenRoute.OTPVerify.route}/{resolvableContext}/{type}/{inputField}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val input = backStackEntry.arguments?.getString("inputField")
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
-            val resolvable = Json.decodeFromString<AuthResolvable>(resolvableJson!!)
+            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
             OtpVerifyView(
                 viewModel = authenticationViewModel,
                 resolvable,

@@ -22,9 +22,9 @@ class SessionService(
             siteConfig
         )
 
-    fun validSession() : Boolean = sessionSecure.getSession() != null
+    fun validSession(): Boolean = sessionSecure.getSession() != null
 
-    fun getSession() : Session? = sessionSecure.getSession()
+    fun getSession(): Session? = sessionSecure.getSession()
 
     fun clearSession() = sessionSecure.clearSession()
 

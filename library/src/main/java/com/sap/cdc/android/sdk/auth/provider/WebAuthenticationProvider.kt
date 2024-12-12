@@ -11,10 +11,12 @@ import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_LOGIN
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_GMID
+import com.sap.cdc.android.sdk.auth.provider.ui.WebLoginActivity
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionEncryption
-import com.sap.cdc.android.sdk.auth.session.SessionService
-import com.sap.cdc.android.sdk.core.api.Api
+import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.Signing
 import com.sap.cdc.android.sdk.core.api.SigningSpec
 import com.sap.cdc.android.sdk.core.api.model.CDCError
@@ -32,7 +34,8 @@ import kotlin.coroutines.suspendCoroutine
  */
 class WebAuthenticationProvider(
     private val socialProvider: String,
-    private val sessionService: SessionService
+    private val siteConfig: SiteConfig,
+    private val session: Session?,
 ) :
     IAuthenticationProvider {
 
@@ -44,13 +47,13 @@ class WebAuthenticationProvider(
 
     override fun getProvider(): String = this.socialProvider
 
-    override suspend fun providerSignIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
+    override suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
         return suspendCoroutine { continuation ->
 
             if (hostActivity == null) {
                 continuation.resumeWithException(
-                    com.sap.cdc.android.sdk.auth.provider.ProviderException(
-                        com.sap.cdc.android.sdk.auth.provider.ProviderExceptionType.HOST_NULL,
+                    ProviderException(
+                        ProviderExceptionType.HOST_NULL,
                         CDCError.contextError()
                     )
                 )
@@ -131,7 +134,7 @@ class WebAuthenticationProvider(
     private fun generateUri(hostActivity: ComponentActivity): String {
         // Fetch gmid
         val esp =
-            sessionService.siteConfig.applicationContext.getEncryptedPreferences(
+            siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
         val gmid = esp.getString(CDC_GMID, "")
@@ -139,7 +142,7 @@ class WebAuthenticationProvider(
         val uriParameters = mutableMapOf(
             "redirect_uri" to "gigya://gsapi/" + hostActivity.packageName + "/login_result",
             "response_type" to "token",
-            "client_id" to sessionService.siteConfig.apiKey,
+            "client_id" to siteConfig.apiKey,
             "gmid" to gmid!!,
             "x_secret_type" to "oauth1",
             "x_sdk" to "Android_1.0.0",
@@ -148,10 +151,9 @@ class WebAuthenticationProvider(
         )
 
         // Check session state to apply authentication parameters.
-        val session = sessionService.sessionSecure.getSession()
         if (session != null) {
             uriParameters["oauth_token"] = session.token
-            uriParameters["timestamp"] = sessionService.siteConfig.getServerTimestamp()
+            uriParameters["timestamp"] = siteConfig.getServerTimestamp()
             Signing().newSignature(
                 SigningSpec(
                     session.secret,
@@ -163,7 +165,7 @@ class WebAuthenticationProvider(
         }
 
         return String.format(
-            "%s://%s.%s/%s?%s", "https", "socialize", sessionService.siteConfig.domain,
+            "%s://%s.%s/%s?%s", "https", "socialize", siteConfig.domain,
             EP_SOCIALIZE_LOGIN, uriParameters.toEncodedQuery()
         )
     }
@@ -209,7 +211,7 @@ class WebAuthenticationProvider(
         return error
     }
 
-    override suspend fun providerSignOut(hostActivity: ComponentActivity?) {
+    override suspend fun signOut(hostActivity: ComponentActivity?) {
         // Stub. Not implemented via web authentication provider.
     }
 

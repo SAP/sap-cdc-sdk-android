@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.auth.session
 
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
@@ -70,7 +71,7 @@ class SessionSecure(
     /**
      * Write session object (as JSON) in encrypted shared preferences.
      */
-    private fun secure(session: com.sap.cdc.android.sdk.auth.session.Session) {
+    private fun secure(session: Session) {
         val esp =
             siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
@@ -89,6 +90,7 @@ class SessionSecure(
      * Load session from encrypted shared preferences file.
      */
     private fun loadToMem() {
+        CDCDebuggable.log(LOG_TAG, "loadToMem:..")
         val esp =
             siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
@@ -97,6 +99,7 @@ class SessionSecure(
             val json = esp.getString(CDC_SESSIONS, null)
             if (json != null) {
                 val sessionMap = Json.decodeFromString<Map<String, String>>(json)
+                CDCDebuggable.log(LOG_TAG, "loadToMem: session map = $sessionMap")
                 this.session = sessionMap[siteConfig.apiKey]?.let {
                     Session.fromJson(it)
                 }
@@ -110,6 +113,6 @@ enum class SessionSecureLevel(val value: Int) {
     STANDARD(0), BIOMETRIC(1);
 
     companion object {
-        fun getByValue(value: Int) = values().firstOrNull { it.value == value }
+        fun getByValue(value: Int) = entries.firstOrNull { it.value == value }
     }
 }

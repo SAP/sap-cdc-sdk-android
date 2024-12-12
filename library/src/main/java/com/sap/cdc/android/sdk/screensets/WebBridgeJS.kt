@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import java.lang.ref.WeakReference
@@ -31,6 +32,13 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
         const val BASE_URL: String = "https://www.gigya.com"
         const val MIME_TYPE: String = "text/html"
         const val ENCODING: String = "utf-8"
+
+        const val ACTION_GET_IDS = "get_ids"
+        const val ACTION_IS_SESSION_VALID = "is_session_valid"
+        const val ACTION_SEND_REQUEST = "send_request"
+        const val ACTION_SEND_OAUTH_REQUEST = "send_oauth_request"
+        const val ACTION_ON_PLUGIN_EVENT = "on_plugin_event"
+
     }
 
     private var bridgedWebView: WebView? = null
@@ -85,7 +93,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     /**
      * Attach JS bridge to given WebView widget.
      */
-    fun attachBridgeTo(webView: WebView) {
+    fun attachBridgeTo(webView: WebView, viewModelScope: CoroutineScope? = null) {
         bridgedWebView = webView
         bridgedApiService = WebBridgeJSApiService(
             weakHostActivity = WeakReference(webView.context as ComponentActivity?),
@@ -179,26 +187,26 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
         val callbackID = data["callbackID"]
 
         when (action) {
-            "get_ids" -> {
+            ACTION_GET_IDS -> {
                 val ids = "{\"gmid\":\"${bridgedApiService.gmid()}\"}"
                 Log.d(LOG_TAG, "$action: $ids")
                 evaluateJS(callbackID!!, ids)
             }
 
-            "is_session_valid" -> {
+            ACTION_IS_SESSION_VALID -> {
                 val session = bridgedApiService.session()
                 Log.d(LOG_TAG, "$action: ${session != null}")
                 evaluateJS(callbackID!!, (session != null).toString())
             }
 
-            "send_request", "send_oauth_request" -> {
+            ACTION_SEND_REQUEST, ACTION_SEND_OAUTH_REQUEST -> {
                 Log.d(LOG_TAG, "$action: ")
                 // Specific mapping is required to handle legacy & new apis.
                 //TODO: A callback id is needed to JS evaluation of responses.
                 bridgedApiService.onRequest(action, method, params, callbackID!!)
             }
 
-            "on_plugin_event" -> {
+            ACTION_ON_PLUGIN_EVENT -> {
                 Log.d(LOG_TAG, "$action: ${params.toString()}")
                 val containerId = params["sourceContainerID"]
                 if (containerId != null) {
