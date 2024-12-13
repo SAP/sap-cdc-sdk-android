@@ -65,7 +65,9 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     }
 
     /**
-     * Applications (mobile/web) within the same site group are now able to share a session from the mobile application to a web page running the JS SDK.
+     * Applications (mobile/web) within the same site group are now able to share a session from the mobile application
+     * to a web page running the JS SDK.
+     *
      * Request code required to exchange the session.
      */
     suspend fun getAuthCode(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {

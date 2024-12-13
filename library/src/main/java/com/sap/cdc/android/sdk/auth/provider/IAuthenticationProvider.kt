@@ -24,11 +24,17 @@ interface IAuthenticationProvider {
 
 }
 
+/**
+ * Result provided from provider authentication flow.
+ * providerSessions - used for social provider authentication.
+ * session - used for web based social provider authentication - sdk internal use.
+ * ssoData - used for sso flow - sdk internal use.
+ */
 class AuthenticatorProviderResult(val provider: String, val type: ProviderType) {
 
     var providerSessions: String? = null
-    var session: Session? = null
-    var ssoData: SSOAuthenticationData? = null
+    internal var session: Session? = null
+    internal var ssoData: SSOAuthenticationData? = null
 
     constructor(provider: String, type: ProviderType, providerSessions: String) : this(
         provider,
@@ -37,8 +43,19 @@ class AuthenticatorProviderResult(val provider: String, val type: ProviderType) 
         this.providerSessions = providerSessions
     }
 
-    constructor(provider: String, type: ProviderType, session: Session) : this(provider, type) {
+    internal constructor(provider: String, type: ProviderType, session: Session) : this(
+        provider,
+        type
+    ) {
         this.session = session
+    }
+
+    internal constructor(
+        provider: String,
+        type: ProviderType,
+        ssoData: SSOAuthenticationData
+    ) : this(provider, type) {
+        this.ssoData = ssoData
     }
 }
 

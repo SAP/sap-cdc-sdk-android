@@ -110,6 +110,8 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                         Log.d(LOG_TAG, "onActivityResult: intent null: ${resultData == null}")
                         val code = resultData.getStringExtra("code")
                         if (code != null) {
+
+                            // Generate the relevant providerSession object required for CDC servers to validate the token.
                             val data = JsonObject(
                                 mapOf(
                                     "wechat" to JsonObject(

@@ -77,6 +77,7 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
         val googleIdTokenCredential = GoogleIdTokenCredential
             .createFrom(credential.data)
 
+        // Generate the relevant providerSession object required for CDC servers to validate the token.
         val data = JsonObject(
             mapOf(
                 "google" to JsonObject(

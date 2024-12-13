@@ -46,7 +46,7 @@ class FacebookAuthenticationProvider : IAuthenticationProvider {
             loginManager.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
                 override fun onCancel() {
                     continuation.resumeWithException(
-                       ProviderException(
+                        ProviderException(
                             ProviderExceptionType.CANCELED,
                             CDCError.operationCanceled()
                         )
@@ -65,6 +65,7 @@ class FacebookAuthenticationProvider : IAuthenticationProvider {
                 override fun onSuccess(result: LoginResult) {
                     val accessToken = result.accessToken
 
+                    // Generate the relevant providerSession object required for CDC servers to validate the token.
                     val data = JsonObject(
                         mapOf(
                             "facebook" to JsonObject(
@@ -81,7 +82,7 @@ class FacebookAuthenticationProvider : IAuthenticationProvider {
                     val authenticatorProviderResult = AuthenticatorProviderResult(
                         provider = getProvider(),
                         type = ProviderType.NATIVE,
-                        providerSessions = providerSession
+                        providerSessions = providerSession,
                     )
                     continuation.resume(authenticatorProviderResult)
                 }

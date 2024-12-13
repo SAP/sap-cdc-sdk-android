@@ -58,7 +58,6 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                     .build()
             )
 
-
             launcher = hostActivity.activityResultRegistry.register(
                 "line-login",
                 object : ActivityResultContract<Intent, android.util.Pair<Int, Intent>>() {
@@ -79,6 +78,8 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                     LineApiResponseCode.SUCCESS -> {
                         Log.d("LineAuthenticationProvider", "SUCCESS")
                         val token = lineResult.lineCredential?.accessToken?.tokenString
+
+                        // Generate the relevant providerSession object required for CDC servers to validate the token.
                         val data = JsonObject(
                             mapOf(
                                 "line" to JsonObject(

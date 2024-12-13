@@ -102,11 +102,11 @@ class SSOAuthenticationProvider(
                                 val authenticatorProviderResult = AuthenticatorProviderResult(
                                     provider = getProvider(),
                                     type = ProviderType.SSO,
-                                )
-                                authenticatorProviderResult.ssoData = SSOAuthenticationData(
-                                    code = parsed["code"] as String,
-                                    redirectUri = redirectUri,
-                                    verifier = pkceHelper.verifier!!
+                                    ssoData = SSOAuthenticationData(
+                                        code = parsed["code"] as String,
+                                        redirectUri = redirectUri,
+                                        verifier = pkceHelper.verifier!!
+                                    )
                                 )
                                 continuation.resume(authenticatorProviderResult)
                             } else {
