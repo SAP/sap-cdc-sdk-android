@@ -27,7 +27,7 @@ android {
         getByName("debug") {
             keyAlias = findProperty("exampleComposeKeyAlias") as String
             keyPassword = findProperty("exampleComposeKeyPassword") as String
-            storeFile = file("keystore/debug-key.keystore")
+            storeFile = file("keystore/debug")
             storePassword = findProperty("exampleComposeStorePassword") as String
         }
     }
