@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.auth.provider.ui
+package com.sap.cdc.android.sdk.auth.provider.activity
 
 import android.content.Intent
 import android.net.Uri

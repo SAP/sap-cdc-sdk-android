@@ -1,6 +1,5 @@
 package com.sap.cdc.android.sdk.example.ui.view.custom
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.sap.cdc.android.sdk.example.ui.view.flow.CredentialsRegistrationView
-import com.sap.cdc.android.sdk.example.ui.view.flow.ViewSignInSelection
+import com.sap.cdc.android.sdk.example.ui.view.flow.RegisterView
+import com.sap.cdc.android.sdk.example.ui.view.flow.SignInView
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 import kotlinx.coroutines.launch
@@ -32,7 +31,6 @@ import kotlinx.coroutines.launch
  *
  * Horizontal tab view pager for native UI authentication flows (register,sign in).
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
     val tabs = listOf("Register", "Sign In")
@@ -69,11 +67,11 @@ fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
                 contentAlignment = Alignment.Center
             ) {
                 when (selectedTabIndex.value) {
-                    0 -> CredentialsRegistrationView(
+                    0 -> RegisterView(
                         viewModel = viewModel
                     )
 
-                    1 -> ViewSignInSelection(
+                    1 -> SignInView(
                         viewModel = viewModel
                     )
                 }

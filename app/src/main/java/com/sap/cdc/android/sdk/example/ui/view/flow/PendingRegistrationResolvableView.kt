@@ -48,7 +48,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 
 
 @Composable
-fun ResolvePendingRegistrationWithMissingFields(
+fun PendingRegistrationResolvableView(
     viewModel: IViewModelAuthentication,
     resolvableContext: ResolvableContext
 ) {
@@ -158,8 +158,8 @@ fun ResolvePendingRegistrationWithMissingFields(
 
 @Composable
 @Preview
-fun ResolvePendingRegistrationWithMissingFieldsPreview() {
-    ResolvePendingRegistrationWithMissingFields(
+fun PendingRegistrationResolvableViewPreview() {
+    PendingRegistrationResolvableView(
         viewModel = ViewModelAuthenticationPreview(),
         ResolvableContext("", "", "", null, listOf("firstName", "lastName")),
     )

@@ -11,7 +11,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_LOGIN
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_GMID
-import com.sap.cdc.android.sdk.auth.provider.ui.WebLoginActivity
+import com.sap.cdc.android.sdk.auth.provider.activity.WebLoginActivity
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.session.Session

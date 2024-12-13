@@ -5,7 +5,15 @@ import com.sap.cdc.android.sdk.core.SiteConfig
 import org.json.JSONObject
 import java.net.URLEncoder
 
-class SSOHelper {
+/**
+ * Created by Tal Mirmelshtein on 13/12/2024
+ * Copyright: SAP LTD.
+ */
+
+/**
+ * Single sign on util class.
+ */
+class SSOUtil {
 
     companion object {
 

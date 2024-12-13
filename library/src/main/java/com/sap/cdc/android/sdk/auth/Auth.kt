@@ -67,7 +67,9 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
     override fun toDisplayError(): CDCError = this.cdcResponse.toCDCError()
 
     fun isResolvable(): Boolean =
-        ResolvableContext.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey("vToken")
+        ResolvableContext.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey(
+            "vToken"
+        )
 
     /**
      * Defines flow state.
@@ -157,7 +159,7 @@ interface IAuthApis {
     /**
      * Initiate phone number sign in flow.
      */
-    suspend fun otpSignIn(parameters: MutableMap<String, String>): IAuthResponse
+    suspend fun otpSendCode(parameters: MutableMap<String, String>): IAuthResponse
 
     /**
      * Remove social connection from current account interface.
@@ -213,12 +215,12 @@ internal class AuthApis(
     }
 
     /**
-     * Initiate phone number sign in flow.
+     * Initiate OTP authentication flow.
      */
-    override suspend fun otpSignIn(parameters: MutableMap<String, String>): IAuthResponse {
+    override suspend fun otpSendCode(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = LoginAuthFlow(coreClient, sessionService)
         flow.withParameters(parameters)
-        return flow.otpSignIn()
+        return flow.otpSendCode()
     }
 
     /**
@@ -456,7 +458,10 @@ internal class AuthResolvers(
     /**
      * Resolve phone login flow using provided code/vToken available in the "AuthResolvable" entity.
      */
-    override suspend fun otpLogin(code: String, resolvableContext: ResolvableContext): IAuthResponse {
+    override suspend fun otpLogin(
+        code: String,
+        resolvableContext: ResolvableContext
+    ): IAuthResponse {
         //TODO: Return error if missing required field.
         val codeVerify = LoginAuthFlow(coreClient, sessionService)
         codeVerify.parameters["vToken"] = resolvableContext.vToken!!
@@ -467,7 +472,10 @@ internal class AuthResolvers(
     /**
      * Resolve phone update flow provided code/vToken available in the "AuthResolvable" entity.
      */
-    override suspend fun otpUpdate(code: String, resolvableContext: ResolvableContext): IAuthResponse {
+    override suspend fun otpUpdate(
+        code: String,
+        resolvableContext: ResolvableContext
+    ): IAuthResponse {
         //TODO: Return error if missing required field.
         val codeVerify = LoginAuthFlow(coreClient, sessionService)
         codeVerify.parameters["vToken"] = resolvableContext.vToken!!

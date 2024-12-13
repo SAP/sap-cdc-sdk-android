@@ -57,7 +57,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
+fun EmailSignInView(viewModel: IViewModelAuthentication) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -241,6 +241,6 @@ fun SignInWithEmailView(viewModel: IViewModelAuthentication) {
 
 @Preview
 @Composable
-fun SignInWithEmailViewPreview() {
-    SignInWithEmailView(ViewModelAuthenticationPreview())
+fun EmailSignInViewPreview() {
+    EmailSignInView(ViewModelAuthenticationPreview())
 }

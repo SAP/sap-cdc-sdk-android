@@ -55,12 +55,12 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     }
 
     /**
-     * Sign in using phone number.
-     * This call will initiate the flow for phone number sign in.
+     * Send OTP code.
+     * This call will initiate the OTP flow given provider parameters.
      * Either login or update is required to complete the flow using the "AuthResolvable" data
      * provided from this request.
      */
-    suspend fun otpSignIn(): IAuthResponse {
+    suspend fun otpSendCode(): IAuthResponse {
         val sendCodeResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(
                 EP_OTP_SEND_CODE,
@@ -74,6 +74,9 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         return authResponse
     }
 
+    /**
+     * OTP login to complete OTP authentication flow with given OTP code.
+     */
     suspend fun otpLogin(): IAuthResponse {
         val phoneLoginResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(
@@ -85,6 +88,9 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         return authResponse
     }
 
+    /**
+     * OTP update to complete OTP authentication flow with given OTP code.
+     */
     suspend fun otpUpdate(): IAuthResponse {
         val phoneLoginUpdate =
             AuthenticationApi(coreClient, sessionService).genericSend(

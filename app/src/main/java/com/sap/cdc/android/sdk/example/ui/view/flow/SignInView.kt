@@ -39,7 +39,7 @@ import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
-import com.sap.cdc.android.sdk.example.ui.view.custom.ViewSocialSelection
+import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
@@ -51,10 +51,12 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
+fun SignInView(viewModel: IViewModelAuthentication) {
     var loading by remember { mutableStateOf(false) }
 
     var signInError by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -73,116 +75,43 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
         Text("Use your preferred method", fontSize = 16.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.size(24.dp))
 
-        val context = LocalContext.current
-        ViewSocialSelection(
-            onSocialProviderSelection = { provider ->
-                when (provider) {
-                    "facebook" -> {
-                        viewModel.socialSignInWith(
-                            context as ComponentActivity,
-                            viewModel.getAuthenticationProvider("facebook"),
-                            onLogin = {
-                                loading = false
-                                signInError = ""
-                                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                            },
-                            onFailedWith = { error ->
-                                loading = false
-                                signInError = error?.errorDetails!!
-                            },
-                            onPendingRegistration = { error ->
 
-                            },
-                            onLoginIdentifierExists = { authResponse ->
-
-                            }
+        ViewDynamicSocialSelection(
+            listOf("facebook", "google", "apple", "line")
+        ) { provider ->
+            viewModel.socialSignInWith(
+                context as ComponentActivity,
+                viewModel.getAuthenticationProvider(provider),
+                onLogin = {
+                    loading = false
+                    signInError = ""
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                },
+                onFailedWith = { error ->
+                    loading = false
+                    signInError = error?.errorDetails!!
+                },
+                onPendingRegistration = { authResponse ->
+                    loading = false
+                    NavigationCoordinator.INSTANCE
+                        .navigate(
+                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                authResponse?.resolvable()?.toJson()
+                            }"
                         )
-                    }
-
-                    "google" -> {
-                        viewModel.socialSignInWith(
-                            context as ComponentActivity,
-                            viewModel.getAuthenticationProvider("google"),
-                            onLogin = {
-                                loading = false
-                                signInError = ""
-                                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                            },
-                            onFailedWith = { error ->
-                                loading = false
-                                signInError = error?.errorDetails!!
-                            },
-                            onPendingRegistration = { error ->
-                                //Stub
-                            },
-                            onLoginIdentifierExists = { authResponse ->
-                                loading = false
-                                NavigationCoordinator.INSTANCE
-                                    .navigate(
-                                        "${ProfileScreenRoute.ResolveLinkAccount.route}/${
-                                            authResponse?.resolvable()?.toJson()
-                                        }"
-                                    )
-                            }
-
+                },
+                onLoginIdentifierExists = { authResponse ->
+                    loading = false
+                    NavigationCoordinator.INSTANCE
+                        .navigate(
+                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
+                                authResponse?.resolvable()?.toJson()
+                            }"
                         )
-                    }
-
-                    "line" -> {
-                        viewModel.socialSignInWith(
-                            context as ComponentActivity,
-                            viewModel.getAuthenticationProvider("line"),
-                            onLogin = {
-                                loading = false
-                                signInError = ""
-                                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                            },
-                            onFailedWith = { error ->
-                                loading = false
-                                signInError = error?.errorDetails!!
-                            },
-                            onPendingRegistration = { authResponse ->
-                                loading = false
-                                NavigationCoordinator.INSTANCE
-                                    .navigate(
-                                        "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                            authResponse?.resolvable()?.toJson()
-                                        }"
-                                    )
-                            },
-                            onLoginIdentifierExists = { authResponse ->
-                                loading = false
-                                NavigationCoordinator.INSTANCE
-                                    .navigate(
-                                        "${ProfileScreenRoute.ResolveLinkAccount.route}/${
-                                            authResponse?.resolvable()?.toJson()
-                                        }"
-                                    )
-                            }
-                        )
-                    }
-
-                    "apple" -> {
-                        viewModel.socialWebSignInWith(
-                            context as ComponentActivity,
-                            "apple",
-                            onLogin = {
-                                loading = false
-                                signInError = ""
-                            },
-                            onFailedWith = { error ->
-                                loading = false
-                                signInError = error?.errorDetails!!
-                            }
-                        )
-                    }
                 }
-            },
-            onMutableValueChange = { value ->
-                loading = value
-            },
-        )
-
+            )
+        }
+        
         Spacer(modifier = Modifier.size(24.dp))
         HorizontalDivider(
             modifier = Modifier.size(
@@ -247,7 +176,8 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate(
                     "${ProfileScreenRoute.OTPSignIn.route}/${OTPType.Email.value}"
-                )            }) {
+                )
+            }) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
@@ -314,6 +244,6 @@ fun ViewSignInSelection(viewModel: IViewModelAuthentication) {
 
 @Preview
 @Composable
-fun ViewSignInSelectionPreview() {
-    ViewSignInSelection(viewModel = ViewModelAuthenticationPreview())
+fun SignInViewPreview() {
+    SignInView(viewModel = ViewModelAuthenticationPreview())
 }

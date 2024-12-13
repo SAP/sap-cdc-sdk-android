@@ -96,7 +96,7 @@ class BiometricAuth(private val sessionService: SessionService) {
      * Double encryption.
      */
     private fun secure(cipher: Cipher) {
-        val session = sessionService.sessionSecure.getSession()
+        val session = sessionService.getSession()
         if (session == null) {
             Log.e(
                 LOG_TAG,

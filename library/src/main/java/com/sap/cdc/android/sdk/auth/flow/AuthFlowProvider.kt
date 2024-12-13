@@ -13,7 +13,7 @@ import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationData
-import com.sap.cdc.android.sdk.auth.provider.util.SSOHelper
+import com.sap.cdc.android.sdk.auth.provider.util.SSOUtil
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.Api
@@ -68,7 +68,7 @@ class ProviderAuthFow(
                 ProviderType.WEB -> {
                     // Secure new acquired session.
                     val session = result.session!!
-                    sessionService.sessionSecure.setSession(session)
+                    sessionService.setSession(session)
 
                     // Refresh account information for flow response.
                     val accountResponse =
@@ -85,8 +85,8 @@ class ProviderAuthFow(
 
                 ProviderType.SSO -> {
                     val ssoData = result.ssoData!!
-                    val ssoHelper = SSOHelper()
-                    val tokenResponse = onSSOCodeReceived(ssoHelper, ssoData)
+                    val ssoUtil = SSOUtil()
+                    val tokenResponse = onSSOCodeReceived(ssoUtil, ssoData)
                     if (tokenResponse.containsKey("access_token")) {
                         // parse session info.
 
@@ -123,7 +123,7 @@ class ProviderAuthFow(
     }
 
     private suspend fun onSSOCodeReceived(
-        ssoHelper: SSOHelper,
+        ssoUtil: SSOUtil,
         data: SSOAuthenticationData
     ): CDCResponse {
         val headers = hashMapOf(
@@ -136,7 +136,7 @@ class ProviderAuthFow(
         serverParams["grant_type"] = "authorization_code"
         serverParams["code"] = data.code!!
         serverParams["code_verifier"] = data.verifier!!
-        val urlString = ssoHelper.getUrl(sessionService.siteConfig, SSOHelper.TOKEN)
+        val urlString = ssoUtil.getUrl(sessionService.siteConfig, SSOUtil.TOKEN)
         return Api(coreClient).post(
             CDCRequest(siteConfig = sessionService.siteConfig)
                 .api(urlString)

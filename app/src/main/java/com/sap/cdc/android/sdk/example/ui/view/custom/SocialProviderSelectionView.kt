@@ -25,7 +25,7 @@ import com.sap.cdc.android.sdk.example.extensions.providerIcon
  */
 
 @Composable
-fun ViewSocialSelection(
+fun SocialProviderSelectionView(
     onSocialProviderSelection: (String) -> Unit,
     onMutableValueChange: (Boolean) -> Unit
 ) {
@@ -97,7 +97,7 @@ fun ViewSocialSelection(
 @Preview
 @Composable
 fun SocialSelectionViewPreview() {
-    ViewSocialSelection({}, {})
+    SocialProviderSelectionView({}, {})
 }
 
 @Composable

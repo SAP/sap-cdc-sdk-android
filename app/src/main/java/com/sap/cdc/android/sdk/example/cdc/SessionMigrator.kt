@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
 import android.util.Log
+import com.sap.cdc.android.sdk.auth.AuthenticationService
+import com.sap.cdc.android.sdk.auth.session.SessionService
 import java.math.BigInteger
 import java.security.KeyStore
 import java.util.Arrays
@@ -40,13 +42,42 @@ class SessionMigrator(private val context: Context) {
         const val PREF_SESSION_IV_SPEC = "IV_session"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
 
-        const val TAG = "SessionMigrator"
+        const val LOG_TAG = "SessionMigrator"
+    }
+
+    /**
+     * Try to migrate an existing session created from an old version of the CDC SDK.
+     */
+    fun tryMigrateSession(
+        authenticationService: AuthenticationService,
+        success: () -> Unit,
+        failure: () -> Unit
+    ) {
+        if (!sessionAvailableForMigration()) {
+            failure()
+        }
+        getSession(
+            success = { session ->
+                if (session == null) {
+                    failure()
+                    return@getSession
+                }
+                // Set the session.
+                authenticationService.session().setSession(session!!)
+                success()
+            },
+            error = { message ->
+                Log.e(SessionService.LOG_TAG, message)
+                failure()
+            }
+        )
+
     }
 
     /**
      * Check if the Android Keystore has an old session alias.
      */
-    fun sessionAvailableForMigration(): Boolean = keyStore.containsAlias(ALIAS)
+    private fun sessionAvailableForMigration(): Boolean = keyStore.containsAlias(ALIAS)
 
     /**
      * Get session keystore key for decryption.
@@ -81,7 +112,7 @@ class SessionMigrator(private val context: Context) {
     /**
      * Try to fetch available session.
      */
-    fun getSession(
+    private fun getSession(
         success: (String?) -> Unit,
         error: (String) -> Unit
     ) {
@@ -89,16 +120,16 @@ class SessionMigrator(private val context: Context) {
 
         val encryptedSession: String? = preferences.getString(PREF_SESSION_ENTRY, null)
         if (encryptedSession == null) {
-            Log.e(TAG, "Session not available for migration")
-            error("$TAG: Session not available")
+            Log.e(LOG_TAG, "Session not available for migration")
+            error("$LOG_TAG: Session not available")
             return
         }
 
         val ivSpecString: String? =
             preferences.getString(PREF_SESSION_IV_SPEC, null)
         if (ivSpecString == null) {
-            Log.e(TAG, "Session not migrated to GCM. Cannot be migrated")
-            error("$TAG: Session not migrated to GCM. Cannot be migrated")
+            Log.e(LOG_TAG, "Session not migrated to GCM. Cannot be migrated")
+            error("$LOG_TAG: Session not migrated to GCM. Cannot be migrated")
             return
         }
 

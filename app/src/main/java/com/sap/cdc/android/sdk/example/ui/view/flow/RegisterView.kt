@@ -55,7 +55,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
+fun RegisterView(viewModel: IViewModelAuthentication) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -312,6 +312,6 @@ fun CredentialsRegistrationView(viewModel: IViewModelAuthentication) {
 
 @Preview
 @Composable
-fun CreateYourAccountPreview() {
-    CredentialsRegistrationView(ViewModelAuthenticationPreview())
+fun RegisterViewPreview() {
+    RegisterView(ViewModelAuthenticationPreview())
 }

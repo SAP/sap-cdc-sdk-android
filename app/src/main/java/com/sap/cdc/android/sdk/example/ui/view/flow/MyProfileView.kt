@@ -57,7 +57,7 @@ import kotlin.math.absoluteValue
  */
 
 @Composable
-fun ViewMyProfile(viewModel: IViewModelAuthentication) {
+fun MyProfileView(viewModel: IViewModelAuthentication) {
     val loading by remember { mutableStateOf(false) }
 
     Column(
@@ -271,6 +271,6 @@ fun String.toHslColor(saturation: Float = 0.5f, lightness: Float = 0.4f): Int {
 
 @Preview
 @Composable
-fun ViewMyProfilePreview() {
-    ViewMyProfile(ViewModelAuthenticationPreview())
+fun MyProfileViewPreview() {
+    MyProfileView(ViewModelAuthenticationPreview())
 }

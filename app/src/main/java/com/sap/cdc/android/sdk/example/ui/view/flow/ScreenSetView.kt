@@ -54,7 +54,7 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun ViewScreenSet(viewModel: ViewModelScreenSet, screenSet: String, startScreen: String) {
+fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen: String) {
 
     val context = LocalContext.current
 

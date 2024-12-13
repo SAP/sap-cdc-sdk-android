@@ -8,10 +8,21 @@ import com.sap.cdc.android.sdk.auth.session.Session
  * Copyright: SAP LTD.
  */
 
+/**
+ * Authentication provider type.
+ * Native - used for native social provider authentication. Native providers are providers that required
+ * their own SDK code base implementation for their oauth2 flows. Currently supporting Google, Facebook, WeChat, Line.
+ * Web - Any other social provider that is not native implemented.
+ * SSO - Single sign on authentication flow using a central login page.
+ *
+ */
 enum class ProviderType {
     NATIVE, WEB, SSO
 }
 
+/**
+ * Authentication provider default interface.
+ */
 interface IAuthenticationProvider {
 
     fun getProvider(): String
@@ -36,6 +47,9 @@ class AuthenticatorProviderResult(val provider: String, val type: ProviderType) 
     internal var session: Session? = null
     internal var ssoData: SSOAuthenticationData? = null
 
+    /**
+     * Public constructor for native social provider authentication.
+     */
     constructor(provider: String, type: ProviderType, providerSessions: String) : this(
         provider,
         type
@@ -43,6 +57,9 @@ class AuthenticatorProviderResult(val provider: String, val type: ProviderType) 
         this.providerSessions = providerSessions
     }
 
+    /**
+     * Internal constructor for web based social provider authentication.
+     */
     internal constructor(provider: String, type: ProviderType, session: Session) : this(
         provider,
         type
@@ -50,6 +67,9 @@ class AuthenticatorProviderResult(val provider: String, val type: ProviderType) 
         this.session = session
     }
 
+    /**
+     * Internal constructor for sso flow.
+     */
     internal constructor(
         provider: String,
         type: ProviderType,

@@ -44,7 +44,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun ViewAboutMe(viewModel: IViewModelAuthentication) {
+fun AboutMeView(viewModel: IViewModelAuthentication) {
 
     var loading by remember { mutableStateOf(false) }
     var setError by remember { mutableStateOf("") }
@@ -139,7 +139,7 @@ fun ViewAboutMe(viewModel: IViewModelAuthentication) {
 
 @Preview
 @Composable
-fun ViewAboutMePreview() {
-    ViewAboutMe(viewModel = ViewModelAuthenticationPreview())
+fun AboutMeViewPreview() {
+    AboutMeView(viewModel = ViewModelAuthenticationPreview())
 }
 

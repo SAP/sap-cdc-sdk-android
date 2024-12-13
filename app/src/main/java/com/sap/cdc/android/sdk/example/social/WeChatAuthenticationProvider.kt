@@ -13,7 +13,7 @@ import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
-import com.sap.cdc.android.sdk.auth.provider.ui.ResultHostActivity
+import com.sap.cdc.android.sdk.auth.provider.activity.ResultLoginActivity
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider.Companion.LOG_TAG
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.wxapi.WXEntryActivity
@@ -54,7 +54,7 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                 WXAPIFactory.createWXAPI(hostActivity, WXEntryActivity.API_ID, false)
             weChatApi.registerApp(WXEntryActivity.API_ID)
 
-            val launcherIntent = Intent(hostActivity, ResultHostActivity::class.java)
+            val launcherIntent = Intent(hostActivity, ResultLoginActivity::class.java)
             launcherIntent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
 
             launcher = hostActivity.activityResultRegistry.register(

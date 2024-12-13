@@ -17,7 +17,7 @@ class SessionService(
         const val LOG_TAG = "CDC_SessionService"
     }
 
-    var sessionSecure: SessionSecure =
+    private var sessionSecure: SessionSecure =
         SessionSecure(
             siteConfig
         )

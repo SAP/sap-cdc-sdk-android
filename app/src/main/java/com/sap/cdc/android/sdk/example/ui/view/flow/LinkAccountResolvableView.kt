@@ -55,7 +55,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun ResolveLinkAccount(
+fun LinkAccountResolvableView(
     viewModel: IViewModelAuthentication,
     resolvable: ResolvableContext,
 ) {
@@ -266,8 +266,8 @@ fun ResolveLinkAccount(
 
 @Preview
 @Composable
-fun ResolveLinkAccountPreview() {
-    ResolveLinkAccount(
+fun LinkAccountResolvableViewPreview() {
+    LinkAccountResolvableView(
         viewModel = ViewModelAuthenticationPreview(),
         resolvable = ResolvableContext(
             "", "", "", conflictingAccounts = ConflictingAccountsEntity(

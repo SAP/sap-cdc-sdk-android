@@ -10,7 +10,6 @@ import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
-import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
@@ -23,6 +22,9 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJS
  * Copyright: SAP LTD.
  */
 
+/**
+ * Singleton class for interacting with the CDC SDK.
+ */
 class IdentityServiceRepository private constructor(context: Context) {
 
     companion object {
@@ -36,37 +38,36 @@ class IdentityServiceRepository private constructor(context: Context) {
         }
     }
 
+    /**
+     * Initialize the site configuration class
+     */
     private var siteConfig = SiteConfig(context)
 
     /**
      * Initialize authentication service.
      */
-    private var authenticationService =
-        AuthenticationService(siteConfig)
+    private var authenticationService = AuthenticationService(siteConfig)
 
     /**
      * Authentication providers map.
+     * Keeps record to registered authenticators (for this example Google, Facebook, WeChat & Line are used).
      */
     private var authenticationProviderMap: MutableMap<String, IAuthenticationProvider> =
         mutableMapOf()
 
 
     init {
+        // Using session migrator to try and migrate an existing session in an application using old versions
+        // of the gigya-android-sdk library.
         val sessionMigrator = SessionMigrator(context)
-        // v6 -> tryMigrateSession (needs identityService as injection)
-        if (sessionMigrator.sessionAvailableForMigration()) {
-            sessionMigrator.getSession(
-                success = { session ->
-                    if (session != null) {
-                        // Set the session.
-                        authenticationService.session().setSession(session)
-                    }
-                },
-                error = { message ->
-                    Log.e(SessionService.LOG_TAG, message)
-                }
-            )
-        }
+        sessionMigrator.tryMigrateSession(authenticationService,
+            success = {
+                Log.e(SessionMigrator.LOG_TAG, "Session migration success")
+
+            },
+            failure = {
+                Log.e(SessionMigrator.LOG_TAG, "Session migration failed")
+            })
 
         // Register application specific authentication providers.
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
@@ -209,7 +210,7 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     suspend fun otpSignIn(
         parameters: MutableMap<String, String>
-    ): IAuthResponse = authenticationService.authenticate().otpSignIn(parameters)
+    ): IAuthResponse = authenticationService.authenticate().otpSendCode(parameters)
 
     //endregion
 

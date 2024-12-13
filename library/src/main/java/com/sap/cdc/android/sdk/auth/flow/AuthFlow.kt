@@ -40,7 +40,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         if (response.containsKey("sessionInfo")) {
             val session = response.serializeObject<Session>("sessionInfo")
             if (session != null) {
-                sessionService.sessionSecure.setSession(session)
+                sessionService.setSession(session)
             }
         }
     }

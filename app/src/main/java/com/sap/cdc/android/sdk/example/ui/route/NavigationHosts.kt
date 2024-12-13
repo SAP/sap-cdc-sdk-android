@@ -9,16 +9,16 @@ import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.example.ui.view.custom.AuthenticationTabView
 import com.sap.cdc.android.sdk.example.ui.view.flow.OTPType
-import com.sap.cdc.android.sdk.example.ui.view.flow.ResolveLinkAccount
-import com.sap.cdc.android.sdk.example.ui.view.flow.ResolvePendingRegistrationWithMissingFields
-import com.sap.cdc.android.sdk.example.ui.view.flow.SignInWithEmailView
-import com.sap.cdc.android.sdk.example.ui.view.flow.ViewAboutMe
-import com.sap.cdc.android.sdk.example.ui.view.flow.ViewHome
-import com.sap.cdc.android.sdk.example.ui.view.flow.ViewMyProfile
+import com.sap.cdc.android.sdk.example.ui.view.flow.LinkAccountResolvableView
+import com.sap.cdc.android.sdk.example.ui.view.flow.PendingRegistrationResolvableView
+import com.sap.cdc.android.sdk.example.ui.view.flow.EmailSignInView
+import com.sap.cdc.android.sdk.example.ui.view.flow.AboutMeView
+import com.sap.cdc.android.sdk.example.ui.view.flow.HomeView
+import com.sap.cdc.android.sdk.example.ui.view.flow.MyProfileView
 import com.sap.cdc.android.sdk.example.ui.view.flow.OtpSignInView
 import com.sap.cdc.android.sdk.example.ui.view.flow.OtpVerifyView
-import com.sap.cdc.android.sdk.example.ui.view.flow.ViewScreenSet
-import com.sap.cdc.android.sdk.example.ui.view.flow.ViewWelcome
+import com.sap.cdc.android.sdk.example.ui.view.flow.ScreenSetView
+import com.sap.cdc.android.sdk.example.ui.view.flow.WelcomeView
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
 import kotlinx.serialization.json.Json
@@ -31,7 +31,7 @@ fun HomeNavHost() {
     val homeNavController = rememberNavController()
     NavHost(homeNavController, startDestination = "home1") {
         composable("home1") {
-            ViewHome()
+            HomeView()
         }
     }
 }
@@ -94,7 +94,7 @@ fun ProfileNavHost() {
         }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
-            ViewWelcome(
+            WelcomeView(
                 viewModel = authenticationViewModel,
             )
         }
@@ -106,12 +106,12 @@ fun ProfileNavHost() {
             )
         }
         composable(ProfileScreenRoute.EmailSignIn.route) {
-            SignInWithEmailView(viewModel = authenticationViewModel)
+            EmailSignInView(viewModel = authenticationViewModel)
         }
         composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            ResolvePendingRegistrationWithMissingFields(
+            PendingRegistrationResolvableView(
                 viewModel = authenticationViewModel,
                 resolvable,
             )
@@ -119,26 +119,26 @@ fun ProfileNavHost() {
         composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            ResolveLinkAccount(
+            LinkAccountResolvableView(
                 viewModel = authenticationViewModel,
                 resolvable,
             )
         }
         composable(ProfileScreenRoute.MyProfile.route) {
-            ViewMyProfile(viewModel = authenticationViewModel)
+            MyProfileView(viewModel = authenticationViewModel)
         }
         composable(ProfileScreenRoute.AboutMe.route) {
-            ViewAboutMe(viewModel = authenticationViewModel)
+            AboutMeView(viewModel = authenticationViewModel)
         }
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route) {
-            ViewScreenSet(
+            ScreenSetView(
                 ViewModelScreenSet(LocalContext.current),
                 "Default-RegistrationLogin",
                 "gigya-login-screen"
             )
         }
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginRegister.route) {
-            ViewScreenSet(
+            ScreenSetView(
                 ViewModelScreenSet(LocalContext.current),
                 "Default-RegistrationLogin",
                 "gigya-register-screen"

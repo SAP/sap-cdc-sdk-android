@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.sap.cdc.android.sdk.example.ui.theme.CDCAndroidSdkExampleTheme
-import com.sap.cdc.android.sdk.example.ui.view.flow.ViewApp
+import com.sap.cdc.android.sdk.example.ui.view.flow.HomeScaffoldView
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ViewApp()
+                    HomeScaffoldView()
                 }
             }
         }

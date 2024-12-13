@@ -9,11 +9,11 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
-import com.sap.cdc.android.sdk.auth.provider.ui.SSOLoginActivity
-import com.sap.cdc.android.sdk.auth.provider.util.PKCEHelper
+import com.sap.cdc.android.sdk.auth.provider.activity.SSOLoginActivity
+import com.sap.cdc.android.sdk.auth.provider.util.PKCEUtil
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
-import com.sap.cdc.android.sdk.auth.provider.util.SSOHelper
+import com.sap.cdc.android.sdk.auth.provider.util.SSOUtil
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
@@ -22,6 +22,16 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
+/**
+ * Created by Tal Mirmelshtein on 13/12/2024
+ * Copyright: SAP LTD.
+ */
+
+/**
+ * Single sign on authentication provider class.
+ *
+ * Initiate CLP SSO authentication flow.
+ */
 class SSOAuthenticationProvider(
     private val siteConfig: SiteConfig,
     private val params: MutableMap<String, Any>?
@@ -29,10 +39,11 @@ class SSOAuthenticationProvider(
 ) : IAuthenticationProvider {
 
     private lateinit var redirectUri: String
-    private var pkceHelper = PKCEHelper()
+    private var pkceUtil = PKCEUtil()
+    private val ssoUtil = SSOUtil()
 
     init {
-        pkceHelper.newChallenge()
+        pkceUtil.newChallenge()
     }
 
     private var launcher: ActivityResultLauncher<Intent>? = null
@@ -51,14 +62,13 @@ class SSOAuthenticationProvider(
                 return@suspendCoroutine
             }
 
-            val ssoHelper = SSOHelper()
             redirectUri = "gsapi://${hostActivity.packageName}/login/"
 
-            val url = ssoHelper.getAuthorizeUrl(
+            val url = ssoUtil.getAuthorizeUrl(
                 siteConfig = siteConfig,
                 params = params,
                 redirectUri = redirectUri,
-                challenge = pkceHelper.challenge!!
+                challenge = pkceUtil.challenge!!
             )
 
             val ssoProviderIntent = Intent(hostActivity, SSOLoginActivity::class.java)
@@ -105,7 +115,7 @@ class SSOAuthenticationProvider(
                                     ssoData = SSOAuthenticationData(
                                         code = parsed["code"] as String,
                                         redirectUri = redirectUri,
-                                        verifier = pkceHelper.verifier!!
+                                        verifier = pkceUtil.verifier!!
                                     )
                                 )
                                 continuation.resume(authenticatorProviderResult)
@@ -131,7 +141,7 @@ class SSOAuthenticationProvider(
 
 
     override suspend fun signOut(hostActivity: ComponentActivity?) {
-        // Stub
+        //Stub - No specific sign out implementation using CLP SSO. Default session logout applies.
     }
 
     override fun dispose() {

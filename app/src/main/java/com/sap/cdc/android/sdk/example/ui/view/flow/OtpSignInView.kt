@@ -206,6 +206,9 @@ fun OtpSignInView(
 
 @Composable
 @Preview
-fun ViewPhoneSignInPreview() {
-    OtpSignInView(viewModel = ViewModelAuthenticationPreview(), otpType = OTPType.PHONE)
+fun PhoneOtpSignInViewPreview() {
+    OtpSignInView(
+        viewModel = ViewModelAuthenticationPreview(),
+        otpType = OTPType.PHONE
+    )
 }

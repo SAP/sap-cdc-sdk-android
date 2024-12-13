@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import com.sap.cdc.android.sdk.auth.provider.ui.ResultHostActivity
+import com.sap.cdc.android.sdk.auth.provider.activity.ResultLoginActivity
 import com.tencent.mm.opensdk.modelbase.BaseReq
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelmsg.SendAuth
@@ -39,7 +39,7 @@ class WXEntryActivity : Activity(), IWXAPIEventHandler {
     }
 
     override fun onResp(resp: BaseResp?) {
-        val resultIntent = Intent(this, ResultHostActivity::class.java)
+        val resultIntent = Intent(this, ResultLoginActivity::class.java)
         resultIntent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
         val bundle = Bundle()
 

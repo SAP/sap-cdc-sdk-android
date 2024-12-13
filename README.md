@@ -86,7 +86,7 @@ By leveraging the `AuthenticationService` class, clients can efficiently manage 
     /**
     * Initialize authentication service.
     */
-    private var authenticationService =AuthenticationService(siteConfig)
+    private var authenticationService = AuthenticationService(siteConfig)
 
 
 

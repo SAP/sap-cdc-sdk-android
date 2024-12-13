@@ -58,7 +58,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfigurationPrevie
  */
 
 @Composable
-fun ViewConfiguration(viewModel: IViewModelConfiguration) {
+fun ConfigurationView(viewModel: IViewModelConfiguration) {
     val context = LocalContext.current
 
     val apiKey = remember { mutableStateOf(viewModel.currentApiKey()) }
@@ -153,8 +153,8 @@ fun ViewConfiguration(viewModel: IViewModelConfiguration) {
 
 @Preview
 @Composable
-fun ViewConfigurationPreview() {
-    ViewConfiguration(ViewModelConfigurationPreview())
+fun ConfigurationViewPreview() {
+    ConfigurationView(ViewModelConfigurationPreview())
 }
 
 @Composable

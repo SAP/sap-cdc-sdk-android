@@ -240,7 +240,7 @@ fun OtpVerifyView(
 
 @Composable
 @Preview
-fun ViewPhoneSignInCodeVerificationPreview() {
+fun PhoneOtpVerifyView() {
     OtpVerifyView(
         viewModel = ViewModelAuthenticationPreview(),
         resolvableContext = ResolvableContext(),

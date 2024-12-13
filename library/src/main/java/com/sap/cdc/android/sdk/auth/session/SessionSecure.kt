@@ -11,7 +11,7 @@ import kotlinx.serialization.json.Json
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  */
-class SessionSecure(
+internal class SessionSecure(
     private val siteConfig: SiteConfig,
 ) {
     companion object {

@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.auth.provider.ui
+package com.sap.cdc.android.sdk.auth.provider.activity
 
 import android.content.Intent
 import android.util.Log
@@ -9,7 +9,7 @@ import androidx.activity.ComponentActivity
  * Created by Tal Mirmelshtein on 20/06/2024
  * Copyright: SAP LTD.
  */
-class ResultHostActivity : ComponentActivity() {
+class ResultLoginActivity : ComponentActivity() {
 
     companion object {
 

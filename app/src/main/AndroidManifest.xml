@@ -36,14 +36,14 @@
         </activity>
 
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.ui.WebLoginActivity"
+            android:name="com.sap.cdc.android.sdk.auth.provider.activity.WebLoginActivity"
             android:allowTaskReparenting="true"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.CXCDCAndroidSDK" />
 
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.ui.SSOLoginActivity"
+            android:name="com.sap.cdc.android.sdk.auth.provider.activity.SSOLoginActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.CDC.NoAnimationActivity">
@@ -64,7 +64,7 @@
         </activity>
 
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.ui.ResultHostActivity"
+            android:name="com.sap.cdc.android.sdk.auth.provider.activity.ResultLoginActivity"
             android:exported="true"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.CDC.NoAnimationActivity" />

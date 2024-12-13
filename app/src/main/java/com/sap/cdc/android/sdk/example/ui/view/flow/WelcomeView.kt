@@ -38,7 +38,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun ViewWelcome(viewModel: IViewModelAuthentication) {
+fun WelcomeView(viewModel: IViewModelAuthentication) {
     val context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -113,5 +113,5 @@ fun ViewWelcome(viewModel: IViewModelAuthentication) {
 @Preview
 @Composable
 fun WelcomeViewPreview() {
-    ViewWelcome(ViewModelAuthenticationPreview())
+    WelcomeView(ViewModelAuthenticationPreview())
 }
