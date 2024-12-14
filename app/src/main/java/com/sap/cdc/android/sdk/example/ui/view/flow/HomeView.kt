@@ -56,15 +56,12 @@ import com.sap.cdc.android.sdk.example.ui.route.MainScreenRoute
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileNavHost
 import com.sap.cdc.android.sdk.example.ui.route.SearchNavHost
-import com.sap.cdc.android.sdk.example.ui.view.custom.ViewCustomBottomBar
+import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
+import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
+import com.sap.cdc.android.sdk.example.ui.view.custom.CustomBottomBar
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.SmallSpacer
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
-
-/**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
- *
- * Static scrollbar navigation home view.
- */
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -73,8 +70,15 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
  * Main landing page view containing bottom bar navigation flows.
  */
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview
+@Composable
+fun HomeScaffoldViewPreview() {
+    AppTheme {
+        HomeScaffoldView()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScaffoldView() {
     var titleText by remember { mutableStateOf("") }
@@ -91,7 +95,10 @@ fun HomeScaffoldView() {
                     titleContentColor = Color.Black,
                 ),
                 title = {
-                    Text(titleText.uppercase(), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        titleText.uppercase(),
+                        style = AppTheme.typography.topBar
+                    )
                 },
                 navigationIcon = {
                     if (NavigationCoordinator.INSTANCE.backNav.collectAsState().value) {
@@ -125,7 +132,7 @@ fun HomeScaffoldView() {
             )
         },
         bottomBar = {
-            ViewCustomBottomBar(
+            CustomBottomBar(
                 modifier = Modifier.fillMaxWidth(),
                 content = {
                     bottomAppBarItems.forEach { item ->
@@ -194,6 +201,13 @@ val bottomAppBarItems = listOf(
 
 @Preview
 @Composable
+fun HomeViewPreview() {
+    AppTheme {
+        HomeView()
+    }
+}
+
+@Composable
 fun HomeView() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -203,157 +217,114 @@ fun HomeView() {
             .fillMaxHeight()
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(modifier = Modifier.size(20.dp))
-        Text("The all-new", fontSize = 20.sp, fontWeight = FontWeight.Light)
-        Text("MacBook Pro", fontSize = 34.sp, fontWeight = FontWeight.Bold)
-        Text("with Retina display", fontSize = 16.sp, fontWeight = FontWeight.Normal)
-        Spacer(modifier = Modifier.size(20.dp))
-        OutlinedButton(
+        MediumSpacer()
+
+        Text("The all-new", style = AppTheme.typography.titleNormalLight)
+        Text("MacBook Pro", style = AppTheme.typography.titleLarge)
+        Text("with Retina display", style = AppTheme.typography.body)
+
+        MediumSpacer()
+
+        ActionOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
-            shape = RoundedCornerShape(6.dp),
-            onClick = {
-                //TODO: Click buy now...
-            }) {
-            Text("Buy Now")
-        }
+            text = "Buy Now",
+            onClick = {}
+        )
+
         Image(
             modifier = Modifier.size(width = 200.dp, height = 200.dp),
             painter = painterResource(id = R.drawable.img_home_macbook),
             contentDescription = stringResource(id = R.string.home_img_macbook_content_description)
         )
+
         Row(
             Modifier.padding(10.dp)
         ) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
-                ),
-                modifier = Modifier.size(width = 150.dp, height = 200.dp)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Box(
-                        modifier = Modifier.size(width = 150.dp, height = 120.dp),
-                    ) {
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds,
-                            painter = painterResource(id = R.drawable.img_home_great_sounds),
-                            contentDescription = stringResource(id = R.string.home_img_macbook_content_description)
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text("Great Sounds", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        "Listening Experiences",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
-                    )
-                }
-
-            }
+            HomeCard(
+                largeLabel = "Great Sounds",
+                smallLabel = "Listening Experiences",
+                imageResourceId = R.drawable.img_home_great_sounds,
+                imageContentDescriptionId = R.string.home_img_macbook_content_description
+            )
             Spacer(modifier = Modifier.size(10.dp))
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
-                ),
-                modifier = Modifier
-                    .size(width = 150.dp, height = 200.dp)
-                    .background(color = Color.White)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Box(
-                        modifier = Modifier.size(width = 150.dp, height = 120.dp),
-                    ) {
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds,
-                            painter = painterResource(id = R.drawable.img_home_essentials),
-                            contentDescription = stringResource(id = R.string.home_img_macbook_content_description)
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text("Essentials", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        "All you need",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
-                    )
-                }
-
-            }
+            HomeCard(
+                largeLabel = "Essentials",
+                smallLabel = "All you need",
+                imageResourceId = R.drawable.img_home_essentials,
+                imageContentDescriptionId = R.string.home_img_macbook_content_description
+            )
         }
         Row(
             Modifier.padding(10.dp)
         ) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
-                ),
-                modifier = Modifier.size(width = 150.dp, height = 200.dp)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Box(
-                        modifier = Modifier.size(width = 150.dp, height = 120.dp),
-                    ) {
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds,
-                            painter = painterResource(id = R.drawable.img_home_vr),
-                            contentDescription = stringResource(id = R.string.home_img_macbook_content_description)
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text("Virtual Reality", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        "Dive into the details",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
-                    )
-                }
+            HomeCard(
+                largeLabel = "Virtual Reality",
+                smallLabel = "Dive into the details",
+                imageResourceId = R.drawable.img_home_vr,
+                imageContentDescriptionId = R.string.home_img_macbook_content_description
+            )
 
-            }
-            Spacer(modifier = Modifier.size(10.dp))
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
-                ),
-                modifier = Modifier
-                    .size(width = 150.dp, height = 200.dp)
-                    .background(color = Color.White)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Box(
-                        modifier = Modifier.size(width = 150.dp, height = 120.dp),
-                    ) {
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds,
-                            painter = painterResource(id = R.drawable.img_home_performance),
-                            contentDescription = stringResource(id = R.string.home_img_macbook_content_description)
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text("Performance", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        "Powerful devices",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
-                    )
-                }
-
-            }
+            SmallSpacer()
+            HomeCard(
+                largeLabel = "Performance",
+                smallLabel = "Powerful devices",
+                imageResourceId = R.drawable.img_home_performance,
+                imageContentDescriptionId = R.string.home_img_macbook_content_description
+            )
         }
+    }
+}
+
+@Composable
+fun HomeCard(
+    largeLabel: String,
+    smallLabel: String,
+    imageResourceId: Int,
+    imageContentDescriptionId: Int,
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White,
+        ),
+        modifier = Modifier.size(width = 150.dp, height = 200.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier.size(width = 150.dp, height = 120.dp),
+            ) {
+                Image(
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds,
+                    painter = painterResource(id = imageResourceId),
+                    contentDescription = stringResource(id = imageContentDescriptionId)
+                )
+            }
+
+            SmallSpacer()
+
+            Text(largeLabel, style = AppTheme.typography.labelLarge)
+
+            SmallSpacer()
+
+            Text(
+                smallLabel, style = AppTheme.typography.labelSmall
+            )
+        }
+
+    }
+}
+
+@Preview
+@Composable
+fun HomeCardPreview() {
+    AppTheme{
+        HomeCard(
+            largeLabel = "Great Sounds",
+            smallLabel = "Listening Experiences",
+            imageResourceId = R.drawable.img_home_great_sounds,
+            imageContentDescriptionId = R.string.home_img_macbook_content_description
+        )
     }
 }

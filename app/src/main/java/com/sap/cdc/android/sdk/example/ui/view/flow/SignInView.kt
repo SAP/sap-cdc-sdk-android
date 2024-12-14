@@ -5,6 +5,7 @@ package com.sap.cdc.android.sdk.example.ui.view.flow
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.view.custom.IconAndTextOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
@@ -52,11 +54,10 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 
 @Composable
 fun SignInView(viewModel: IViewModelAuthentication) {
-    var loading by remember { mutableStateOf(false) }
-
-    var signInError by remember { mutableStateOf("") }
-
     val context = LocalContext.current
+
+    var loading by remember { mutableStateOf(false) }
+    var signInError by remember { mutableStateOf("") }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -65,17 +66,16 @@ fun SignInView(viewModel: IViewModelAuthentication) {
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-
         // UI elements.
-        IndeterminateLinearIndicator(loading)
 
+        // Title & Subtitle
         Spacer(modifier = Modifier.size(80.dp))
         Text("Sign In", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.size(12.dp))
         Text("Use your preferred method", fontSize = 16.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.size(24.dp))
 
-
+        // Social selection view
         ViewDynamicSocialSelection(
             listOf("facebook", "google", "apple", "line")
         ) { provider ->
@@ -111,117 +111,62 @@ fun SignInView(viewModel: IViewModelAuthentication) {
                 }
             )
         }
-        
+
+        // Divider
         Spacer(modifier = Modifier.size(24.dp))
         HorizontalDivider(
             modifier = Modifier.size(
                 240.dp, 1.dp
             ), thickness = 1.dp, color = Color.LightGray
         )
-
         Spacer(modifier = Modifier.size(24.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
-            shape = RoundedCornerShape(6.dp),
+        // Passwordless button
+        IconAndTextOutlineButton(
+            text = "Passwordless",
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
-            }) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_faceid),
-                    contentDescription = "Localized description",
-                    modifier = Modifier.size(width = 20.dp, height = 20.dp),
-                    tint = Color.Unspecified
-                )
-                Spacer(modifier = Modifier.width(24.dp))
-                Text("Passwordless")
-            }
+            },
+            iconResourceId = R.drawable.ic_faceid,
 
-        }
-
+            )
         Spacer(modifier = Modifier.size(10.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
-            shape = RoundedCornerShape(6.dp),
+        // Credentials sign in button
+        IconAndTextOutlineButton(
+            text = "Sign in with Credentials",
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.EmailSignIn.route)
-            }) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Rounded.Password,
-                    contentDescription = "Localized description",
-                    modifier = Modifier.size(width = 20.dp, height = 20.dp),
-                    tint = Color.Unspecified
-                )
-                Spacer(modifier = Modifier.width(24.dp))
-                Text("Sign in with Credentials")
-            }
-
-        }
-
+            },
+            iconImageVector = Icons.Rounded.Password,
+        )
         Spacer(modifier = Modifier.size(10.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
-            shape = RoundedCornerShape(6.dp),
+        // Email sign in button
+        IconAndTextOutlineButton(
+            text = "Sign in with Email",
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate(
                     "${ProfileScreenRoute.OTPSignIn.route}/${OTPType.Email.value}"
                 )
-            }) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_email),
-                    contentDescription = "Localized description",
-                    modifier = Modifier.size(width = 20.dp, height = 20.dp),
-                    tint = Color.Unspecified
-                )
-                Spacer(modifier = Modifier.width(24.dp))
-                Text("Sign in with Email")
-            }
-
-        }
-
+            },
+            iconResourceId = R.drawable.ic_email,
+        )
         Spacer(modifier = Modifier.size(10.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
-            shape = RoundedCornerShape(6.dp),
+        // Phone sign in button
+        IconAndTextOutlineButton(
+            text = "Sign in with Phone",
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate(
                     "${ProfileScreenRoute.OTPSignIn.route}/${OTPType.PHONE.value}"
                 )
-            }) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_device),
-                    contentDescription = "Localized description",
-                    modifier = Modifier.size(width = 20.dp, height = 20.dp),
-                    tint = Color.Unspecified
-                )
-                Spacer(modifier = Modifier.width(24.dp))
-                Text("Sign in with Phone")
-            }
-        }
+            },
+            iconResourceId = R.drawable.ic_device
+        )
+        Spacer(modifier = Modifier.size(10.dp))
 
+        // Error message
         if (signInError.isNotEmpty()) {
             Spacer(modifier = Modifier.size(12.dp))
             Row(
@@ -239,6 +184,12 @@ fun SignInView(viewModel: IViewModelAuthentication) {
                 )
             }
         }
+
+    }
+
+    // Loading indicator on top of all views.
+    Box(Modifier.fillMaxWidth()) {
+        IndeterminateLinearIndicator(loading)
     }
 }
 

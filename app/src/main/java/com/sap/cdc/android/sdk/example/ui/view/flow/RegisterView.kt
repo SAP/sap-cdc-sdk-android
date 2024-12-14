@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -56,6 +57,33 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 
 @Composable
 fun RegisterView(viewModel: IViewModelAuthentication) {
+
+    // Editable variables.
+    var name by remember {
+        mutableStateOf("")
+    }
+    var email by remember {
+        mutableStateOf("")
+    }
+    var password by remember {
+        mutableStateOf("")
+    }
+    var confirmPassword by remember {
+        mutableStateOf("")
+    }
+    // State modifiers.
+    var passwordVisible: Boolean by remember { mutableStateOf(false) }
+    val isNotMatching = remember {
+        derivedStateOf {
+            password != confirmPassword
+        }
+    }
+    var registerError by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+    var loading by remember { mutableStateOf(false) }
+
+    // UI elements.
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -63,34 +91,6 @@ fun RegisterView(viewModel: IViewModelAuthentication) {
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-        // Editable variables.
-        var name by remember {
-            mutableStateOf("")
-        }
-        var email by remember {
-            mutableStateOf("")
-        }
-        var password by remember {
-            mutableStateOf("")
-        }
-        var confirmPassword by remember {
-            mutableStateOf("")
-        }
-        // State modifiers.
-        var passwordVisible: Boolean by remember { mutableStateOf(false) }
-        val isNotMatching = remember {
-            derivedStateOf {
-                password != confirmPassword
-            }
-        }
-
-        var registerError by remember { mutableStateOf("") }
-
-        val focusManager = LocalFocusManager.current
-
-        var loading by remember { mutableStateOf(false) }
-        // UI elements.
-        IndeterminateLinearIndicator(loading)
 
         Spacer(modifier = Modifier.size(30.dp))
         Text("Create your account", fontSize = 28.sp, fontWeight = FontWeight.Bold)
@@ -306,6 +306,11 @@ fun RegisterView(viewModel: IViewModelAuthentication) {
                 Text("Register")
             }
         }
+    }
+
+    // Loading indicator on top of all views.
+    Box(Modifier.fillMaxWidth()) {
+        IndeterminateLinearIndicator(loading)
     }
 }
 

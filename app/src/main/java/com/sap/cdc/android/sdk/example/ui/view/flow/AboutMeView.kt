@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.view.custom.TitledText
 import com.sap.cdc.android.sdk.example.ui.view.custom.UpdatableEditBox
@@ -56,13 +57,14 @@ fun AboutMeView(viewModel: IViewModelAuthentication) {
         )
     }
 
+    // UI elements
     Column(
         modifier = Modifier
             .background(Color.White)
             .fillMaxWidth()
             .fillMaxHeight(),
     ) {
-        IndeterminateLinearIndicator(loading)
+        // Title box
         Box(
             modifier = Modifier
                 .height(height = 36.dp)
@@ -76,6 +78,8 @@ fun AboutMeView(viewModel: IViewModelAuthentication) {
                     .padding(start = 10.dp)
             )
         }
+
+        // Name (dynamic edit box) - can be updated.
         UpdatableEditBox(
             title = "Name: ",
             initialValue = name
@@ -87,6 +91,8 @@ fun AboutMeView(viewModel: IViewModelAuthentication) {
                 .height(3.dp)
                 .background(Color.LightGray)
         )
+
+        // Email (static)
         TitledText(
             title = "Email",
             value = viewModel.accountInfo()?.profile?.email ?: ""
@@ -97,6 +103,8 @@ fun AboutMeView(viewModel: IViewModelAuthentication) {
                 .background(Color.LightGray)
         )
         Spacer(modifier = Modifier.height(40.dp))
+
+        // Error message
         if (setError.isNotEmpty()) {
             Spacer(modifier = Modifier.size(12.dp))
             Row(
@@ -114,11 +122,11 @@ fun AboutMeView(viewModel: IViewModelAuthentication) {
                 )
             }
         }
-        OutlinedButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            shape = RoundedCornerShape(6.dp),
+
+        // Save Changes button
+        ActionOutlineButton(
+            modifier = Modifier,
+            text = "Save changes",
             onClick = {
                 loading = true
                 viewModel.updateAccountInfoWith(
@@ -131,8 +139,12 @@ fun AboutMeView(viewModel: IViewModelAuthentication) {
                         setError = error.errorDetails!!
                     }
                 )
-            }) {
-            Text("Save changes")
+            }
+        )
+
+        // Loading indicator on top of all views.
+        Box(Modifier.fillMaxWidth()) {
+            IndeterminateLinearIndicator(loading)
         }
     }
 }

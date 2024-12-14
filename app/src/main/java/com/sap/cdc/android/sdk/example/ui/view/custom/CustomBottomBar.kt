@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
  * the row property "horizontalArrangement = Arrangement.SpaceEvenly".
  */
 @Composable
-fun ViewCustomBottomBar(
+fun CustomBottomBar(
     modifier: Modifier = Modifier,
     containerColor: Color = BottomAppBarDefaults.containerColor,
     contentColor: Color = contentColorFor(containerColor),

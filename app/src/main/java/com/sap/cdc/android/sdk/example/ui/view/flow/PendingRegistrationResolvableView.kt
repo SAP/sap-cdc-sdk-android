@@ -53,14 +53,13 @@ fun PendingRegistrationResolvableView(
     resolvableContext: ResolvableContext
 ) {
     var loading by remember { mutableStateOf(false) }
-
     val focusManager = LocalFocusManager.current
-
     var registerError by remember { mutableStateOf("") }
-
     val values = remember {
         mutableStateMapOf(*resolvableContext.missingRequiredFields!!.map { it to "" }.toTypedArray())
     }
+    
+    // UI elements
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

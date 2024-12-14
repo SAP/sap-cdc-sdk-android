@@ -3,14 +3,18 @@ package com.sap.cdc.android.sdk.example.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Created by Tal Mirmelshtein on 14/12/2024
  * Copyright: SAP LTD.
  */
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val darkColorScheme = AppColorScheme(
+    background = Color.Black,
+    primary = Color.White,
+    secondary = Color.White,
+)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val lightColorScheme = AppColorScheme(
+    background = Color.White,
+    primary = Color.Black,
+    secondary = Color.Black,
+)
