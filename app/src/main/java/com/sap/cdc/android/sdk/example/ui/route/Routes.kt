@@ -26,9 +26,11 @@ sealed class ProfileScreenRoute(
     val route: String,
 ) {
     data object Welcome : ProfileScreenRoute("Welcome")
-    data object AuthTabView : ProfileScreenRoute("AuthTabView")
+    data object SignIn: ProfileScreenRoute("SignIn")
     data object Register : ProfileScreenRoute("Register")
+    data object AuthTabView : ProfileScreenRoute("AuthTabView")
     data object EmailSignIn : ProfileScreenRoute("EmailSignIn")
+    data object EmailRegister : ProfileScreenRoute("EmailRegister")
     data object MyProfile : ProfileScreenRoute("MyProfile")
     data object AboutMe : ProfileScreenRoute("AboutMe")
     data object ResolvePendingRegistration : ProfileScreenRoute("ResolvePendingRegistration",)
@@ -40,8 +42,8 @@ sealed class ProfileScreenRoute(
 sealed class ScreenSetsRoute(
     val route: String
 ) {
-    data object ScreenSetRegistrationLoginRegister : ScreenSetsRoute("Register")
-    data object ScreenSetRegistrationLoginLogin : ScreenSetsRoute("Login")
+    data object ScreenSetRegistrationLoginRegister : ScreenSetsRoute("ScreenSet_Register")
+    data object ScreenSetRegistrationLoginLogin : ScreenSetsRoute("ScreenSet_Login")
 }
 
 

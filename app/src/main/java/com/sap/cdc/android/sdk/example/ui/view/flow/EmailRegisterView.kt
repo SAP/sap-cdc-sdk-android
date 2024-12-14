@@ -1,6 +1,5 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,14 +21,10 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,34 +51,48 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.LargeSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditPasswordTextField
 import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditTextField
+import com.sap.cdc.android.sdk.example.ui.view.custom.PasswordNotMatchingError
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.SmallSpacer
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
-
 /**
- * Created by Tal Mirmelshtein on 19/06/2024
+ * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  *
- * Credentials sign in basic view.
+ * Credentials registration basic view.
  */
 
 @Composable
-fun EmailSignInView(viewModel: IViewModelAuthentication) {
+fun EmailRegisterView(viewModel: IViewModelAuthentication) {
 
-    var loading by remember { mutableStateOf(false) }
+    // Editable variables.
+    var name by remember {
+        mutableStateOf("")
+    }
     var email by remember {
         mutableStateOf("")
     }
     var password by remember {
         mutableStateOf("")
     }
-    var signInError by remember { mutableStateOf("") }
+    var confirmPassword by remember {
+        mutableStateOf("")
+    }
+    // State modifiers.
     var passwordVisible: Boolean by remember { mutableStateOf(false) }
+    val isNotMatching = remember {
+        derivedStateOf {
+            password != confirmPassword
+        }
+    }
+    var registerError by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    var loading by remember { mutableStateOf(false) }
 
-    //UI elements
+    // UI elements.
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -93,12 +102,9 @@ fun EmailSignInView(viewModel: IViewModelAuthentication) {
     ) {
 
         LargeSpacer()
-        Text("Sign In with Email", style = AppTheme.typography.titleLarge)
+        Text("Create your account", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         SmallSpacer()
-        Text(
-            "Please enter your email and password",
-            style = AppTheme.typography.body
-        )
+        Text("Please fill out the listed inputs", fontSize = 16.sp, fontWeight = FontWeight.Light)
         MediumSpacer()
 
         Column(
@@ -106,6 +112,19 @@ fun EmailSignInView(viewModel: IViewModelAuthentication) {
                 .padding(start = 48.dp, end = 48.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Name Input.
+            SmallSpacer()
+            OutlineTitleAndEditTextField(
+                titleText = "Name: *",
+                inputText = name,
+                placeholderText = "Name placeholder",
+                onValueChange = {
+                    name = it
+                },
+                focusManager = focusManager
+            )
+
+            // Email input.
             SmallSpacer()
             OutlineTitleAndEditTextField(
                 titleText = "Email: *",
@@ -122,64 +141,84 @@ fun EmailSignInView(viewModel: IViewModelAuthentication) {
             OutlineTitleAndEditPasswordTextField(
                 titleText = "Password: *",
                 inputText = password,
-                placeholderText = "Password placeholder",
+                placeholderText = "",
                 passwordVisible = passwordVisible,
                 onValueChange = {
                     password = it
                 },
-                onEyeClick = { passwordVisible  = it },
+                onEyeClick = { passwordVisible = it },
                 focusManager = focusManager
             )
 
+            // Confirm password input.
+            SmallSpacer()
+            OutlineTitleAndEditPasswordTextField(
+                titleText = "Confirm password: *",
+                inputText = confirmPassword,
+                placeholderText = "",
+                passwordVisible = passwordVisible,
+                onValueChange = {
+                    confirmPassword = it
+                },
+                onEyeClick = { passwordVisible = it },
+                focusManager = focusManager
+            )
+
+            if (isNotMatching.value) {
+                PasswordNotMatchingError()
+            }
 
             MediumSpacer()
-            Box(modifier = Modifier.align(Alignment.End)) {
-                Surface(onClick = {
-                    // Forgot password route.
-                }) {
-                    Text("Forgot password?", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            SmallSpacer()
+            Text(
+                "By clicking on \"register\", you conform that you have read and agree to the privacy policy and terms of use.",
+            )
 
+            MediumSpacer()
             ActionOutlineButton(
                 modifier = Modifier
                     .fillMaxWidth(),
-                text = "Login",
+                text = "Register",
                 onClick = {
+                    registerError = ""
                     loading = true
-                    viewModel.login(
-                        email = email, password = password,
+                    // Credentials registration.
+                    viewModel.register(
+                        email = email,
+                        password = password,
+                        name = name,
                         onLogin = {
-                            signInError = ""
                             loading = false
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         },
                         onFailedWith = { error ->
-                            loading = false
-                            signInError = error?.errorDescription!!
-                        },
-                        onLoginIdentifierExists = {
-                            loading = false
+                            if (error != null) {
+                                // Need to display error information.
+                                registerError = error.errorDetails!!
+                            }
                         }
                     )
                 }
             )
 
-            if (signInError.isNotEmpty()) {
+            if (registerError.isNotEmpty()) {
                 SimpleErrorMessages(
-                    text = signInError
+                    text = registerError
                 )
             }
         }
+    }
+
+    // Loading indicator on top of all views.
+    Box(Modifier.fillMaxWidth()) {
+        IndeterminateLinearIndicator(loading)
     }
 }
 
 
 @Preview
 @Composable
-fun EmailSignInViewPreview() {
+fun EmailRegisterViewPreview() {
     AppTheme {
-        EmailSignInView(ViewModelAuthenticationPreview())
+        EmailRegisterView(ViewModelAuthenticationPreview())
     }
 }

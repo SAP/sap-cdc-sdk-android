@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -37,13 +35,29 @@ import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 
 @Composable
 fun IconAndTextOutlineButton(
+    modifier: Modifier,
     text: String,
-    onClick: () -> Unit,
     iconResourceId: Int? = null,
     iconImageVector: ImageVector? = null,
+    onClick: () -> Unit,
 ) {
-    OutlinedButton(modifier = Modifier.size(width = 260.dp, height = 44.dp),
+    // Button will use pressed state in addition to ripple effect.
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val containerColor = if (isPressed) Color.Black else Color.Transparent
+    val contentColor = if (isPressed) Color.White else Color.Black
+    val borderColor = if (isPressed) Color.Black else Color.Black
+
+    OutlinedButton(
+        modifier = modifier,
         shape = RoundedCornerShape(6.dp),
+        border = BorderStroke(1.dp, borderColor),
+        interactionSource = interactionSource,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        ),
         onClick = {
             onClick()
         }) {
@@ -52,7 +66,7 @@ fun IconAndTextOutlineButton(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(2.dp))
             iconResourceId?.let {
                 Icon(
                     painter = painterResource(id = iconResourceId),
@@ -69,7 +83,7 @@ fun IconAndTextOutlineButton(
                     tint = Color.Unspecified
                 )
             }
-            Spacer(modifier = Modifier.width(24.dp))
+            MediumSpacer()
             Text(text)
         }
     }
@@ -78,11 +92,14 @@ fun IconAndTextOutlineButton(
 @Preview
 @Composable
 fun IconAndTextOutlineButtonPreview() {
-    IconAndTextOutlineButton(
-        iconResourceId = R.drawable.ic_faceid,
-        text = "Passwordless",
-        onClick = {}
-    )
+    AppTheme {
+        IconAndTextOutlineButton(
+            modifier = Modifier,
+            iconResourceId = R.drawable.ic_faceid,
+            text = "Passwordless",
+            onClick = {}
+        )
+    }
 }
 
 @Composable
@@ -119,11 +136,13 @@ fun ActionOutlineButton(
 @Preview
 @Composable
 fun ActionOutlineButtonPreview() {
-    ActionOutlineButton(
-        modifier = Modifier,
-        text = "Save changes",
-        onClick = {}
-    )
+    AppTheme {
+        ActionOutlineButton(
+            modifier = Modifier,
+            text = "Save changes",
+            onClick = {}
+        )
+    }
 }
 
 @Composable

@@ -1,88 +1,48 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
+import com.sap.cdc.android.sdk.example.ui.view.custom.IconAndTextOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
+import com.sap.cdc.android.sdk.example.ui.view.custom.LargeSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
+import com.sap.cdc.android.sdk.example.ui.view.custom.SmallSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 
-/**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
- *
- * Credentials registration basic view.
- */
-
 @Composable
 fun RegisterView(viewModel: IViewModelAuthentication) {
+    val context = LocalContext.current
 
-    // Editable variables.
-    var name by remember {
-        mutableStateOf("")
-    }
-    var email by remember {
-        mutableStateOf("")
-    }
-    var password by remember {
-        mutableStateOf("")
-    }
-    var confirmPassword by remember {
-        mutableStateOf("")
-    }
-    // State modifiers.
-    var passwordVisible: Boolean by remember { mutableStateOf(false) }
-    val isNotMatching = remember {
-        derivedStateOf {
-            password != confirmPassword
-        }
-    }
-    var registerError by remember { mutableStateOf("") }
-    val focusManager = LocalFocusManager.current
     var loading by remember { mutableStateOf(false) }
-
-    // UI elements.
+    var registerError by remember { mutableStateOf("") }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -91,220 +51,85 @@ fun RegisterView(viewModel: IViewModelAuthentication) {
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
+        // UI elements.
 
-        Spacer(modifier = Modifier.size(30.dp))
-        Text("Create your account", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.size(12.dp))
-        Text("Please fill out the listed inputs", fontSize = 16.sp, fontWeight = FontWeight.Light)
-        Spacer(modifier = Modifier.size(12.dp))
-        Column(
-            modifier = Modifier
-                .padding(start = 48.dp, end = 48.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Name Input.
-            Text(
-                "Name: *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light,
-            )
-            TextField(
-                name,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    Text(
-                        "Name Placeholder",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                    )
-                },
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                onValueChange = {
-                    name = it
-                },
-                keyboardActions = KeyboardActions {
-                    focusManager.moveFocus(FocusDirection.Next)
-                },
-            )
-            // Email input.
-            Spacer(modifier = Modifier.size(12.dp))
-            Text(
-                "Email: *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light,
-            )
-            TextField(
-                email,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    Text(
-                        "Email Placeholder",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                    )
-                },
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                onValueChange = {
-                    email = it
-                },
-                keyboardActions = KeyboardActions {
-                    focusManager.moveFocus(FocusDirection.Next)
-                },
-            )
-            // Password input.
-            Spacer(modifier = Modifier.size(12.dp))
-            Text(
-                "Password: *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light,
-            )
-            TextField(
-                password,
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                visualTransformation = if (passwordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                onValueChange = {
-                    password = it
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions {
-                    focusManager.moveFocus(FocusDirection.Next)
-                },
-                trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
+        // Title & Subtitle
+        LargeSpacer()
+        Text("Register", style = AppTheme.typography.titleLarge)
+        SmallSpacer()
+        Text("Use your preferred method", style = AppTheme.typography.body)
+        MediumSpacer()
 
-                    // Please provide localized description for accessibility services
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, description)
-                    }
-                }
-            )
-            // Confirm password input.
-            Spacer(modifier = Modifier.size(12.dp))
-            Text(
-                "Confirm password: *",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light,
-            )
-            TextField(
-                confirmPassword,
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                visualTransformation = if (passwordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                onValueChange = {
-                    confirmPassword = it
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions {
-                    focusManager.clearFocus()
-                },
-                trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
-
-                    // Please provide localized description for accessibility services
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, description)
-                    }
-                }
-            )
-            if (isNotMatching.value) {
-                Spacer(modifier = Modifier.size(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Cancel,
-                        contentDescription = "",
-                        tint = Color.Red
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = "Your passwords do not match!",
-                        color = Color.Red,
-                    )
-                }
-            }
-            if (registerError.isNotEmpty()) {
-                Spacer(modifier = Modifier.size(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Cancel,
-                        contentDescription = "",
-                        tint = Color.Red
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = registerError,
-                        color = Color.Red,
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.size(14.dp))
-            Text(
-                "By clicking on \"register\", you conform that you have read and agree to the privacy policy and terms of use.",
-            )
-            Spacer(modifier = Modifier.size(24.dp))
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 12.dp, end = 12.dp),
-                shape = RoundedCornerShape(6.dp),
-                onClick = {
+        // Social selection view
+        ViewDynamicSocialSelection(
+            listOf("facebook", "google", "apple", "line")
+        ) { provider ->
+            viewModel.socialSignInWith(
+                context as ComponentActivity,
+                viewModel.getAuthenticationProvider(provider),
+                onLogin = {
+                    loading = false
                     registerError = ""
-                    loading = true
-                    // Credentials registration.
-                    viewModel.register(
-                        email = email,
-                        password = password,
-                        name = name,
-                        onLogin = {
-                            loading = false
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        },
-                        onFailedWith = { error ->
-                            if (error != null) {
-                                // Need to display error information.
-                                registerError = error.errorDetails!!
-                            }
-                        }
-                    )
-                }) {
-                Text("Register")
-            }
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                },
+                onFailedWith = { error ->
+                    loading = false
+                    registerError = error?.errorDetails!!
+                },
+                onPendingRegistration = { authResponse ->
+                    loading = false
+                    NavigationCoordinator.INSTANCE
+                        .navigate(
+                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                authResponse?.resolvable()?.toJson()
+                            }"
+                        )
+                },
+                onLoginIdentifierExists = { authResponse ->
+                    loading = false
+                    NavigationCoordinator.INSTANCE
+                        .navigate(
+                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
+                                authResponse?.resolvable()?.toJson()
+                            }"
+                        )
+                }
+            )
+        }
+
+        // Divider
+        MediumSpacer()
+        HorizontalDivider(
+            modifier = Modifier.size(
+                240.dp, 1.dp
+            ), thickness = 1.dp, color = Color.LightGray
+        )
+        MediumSpacer()
+
+        IconAndTextOutlineButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
+            text = "Register with Email",
+            iconResourceId = R.drawable.ic_email,
+        ) {
+            NavigationCoordinator.INSTANCE
+                .navigate("${ProfileScreenRoute.AuthTabView.route}/0")
+        }
+        Spacer(modifier = Modifier.size(10.dp))
+        IconAndTextOutlineButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
+            text = "Register with Phone",
+            iconResourceId = R.drawable.ic_device,
+        ) {
+
+        }
+
+        LargeSpacer()
+
+        // Error message
+        if (registerError.isNotEmpty()) {
+            SimpleErrorMessages(
+                text = registerError
+            )
         }
     }
 
@@ -314,9 +139,10 @@ fun RegisterView(viewModel: IViewModelAuthentication) {
     }
 }
 
-
 @Preview
 @Composable
 fun RegisterViewPreview() {
-    RegisterView(ViewModelAuthenticationPreview())
+    AppTheme {
+        RegisterView(ViewModelAuthenticationPreview())
+    }
 }

@@ -9,6 +9,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -18,7 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.sap.cdc.android.sdk.example.ui.view.flow.RegisterView
+import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
+import com.sap.cdc.android.sdk.example.ui.view.flow.EmailRegisterView
+import com.sap.cdc.android.sdk.example.ui.view.flow.EmailSignInView
 import com.sap.cdc.android.sdk.example.ui.view.flow.SignInView
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
@@ -44,9 +48,22 @@ fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
             .background(color = Color.White)
             .fillMaxWidth()
     ) {
-        TabRow(selectedTabIndex = pagerState.currentPage) {
+        TabRow(
+            selectedTabIndex = pagerState.currentPage,
+            containerColor = Color.White,
+            indicator = { tabPositions ->
+                // Indicator for the selected tab
+                TabRowDefaults.SecondaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[ pagerState.currentPage]),
+                    color = Color.Black
+                )
+            }
+        ) {
             tabs.forEachIndexed { index, title ->
-                Tab(text = { Text(title) },
+                Tab(
+                    text = { Text(title, style = AppTheme.typography.labelSmall) },
+                    unselectedContentColor = Color.White,
+                    selectedContentColor = Color.Black,
                     selected = selectedTabIndex.value == pagerState.currentPage,
                     onClick = {
                         scope.launch {
@@ -67,11 +84,11 @@ fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
                 contentAlignment = Alignment.Center
             ) {
                 when (selectedTabIndex.value) {
-                    0 -> RegisterView(
+                    0 -> EmailRegisterView(
                         viewModel = viewModel
                     )
 
-                    1 -> SignInView(
+                    1 -> EmailSignInView(
                         viewModel = viewModel
                     )
                 }
@@ -83,6 +100,11 @@ fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
 @Preview
 @Composable
 fun AuthenticationTabViewPreview() {
-    AuthenticationTabView(viewModel = ViewModelAuthenticationPreview(), selected = 0)
+    AppTheme {
+        AuthenticationTabView(
+            viewModel = ViewModelAuthenticationPreview(),
+            selected = 0
+        )
+    }
 }
 

@@ -13,11 +13,14 @@ import com.sap.cdc.android.sdk.example.ui.view.flow.LinkAccountResolvableView
 import com.sap.cdc.android.sdk.example.ui.view.flow.PendingRegistrationResolvableView
 import com.sap.cdc.android.sdk.example.ui.view.flow.EmailSignInView
 import com.sap.cdc.android.sdk.example.ui.view.flow.AboutMeView
+import com.sap.cdc.android.sdk.example.ui.view.flow.EmailRegisterView
 import com.sap.cdc.android.sdk.example.ui.view.flow.HomeView
 import com.sap.cdc.android.sdk.example.ui.view.flow.MyProfileView
 import com.sap.cdc.android.sdk.example.ui.view.flow.OtpSignInView
 import com.sap.cdc.android.sdk.example.ui.view.flow.OtpVerifyView
+import com.sap.cdc.android.sdk.example.ui.view.flow.RegisterView
 import com.sap.cdc.android.sdk.example.ui.view.flow.ScreenSetView
+import com.sap.cdc.android.sdk.example.ui.view.flow.SignInView
 import com.sap.cdc.android.sdk.example.ui.view.flow.WelcomeView
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
@@ -98,6 +101,16 @@ fun ProfileNavHost() {
                 viewModel = authenticationViewModel,
             )
         }
+        composable(ProfileScreenRoute.SignIn.route) {
+            SignInView(
+                viewModel = authenticationViewModel
+            )
+        }
+        composable(ProfileScreenRoute.Register.route) {
+            RegisterView(
+                viewModel = authenticationViewModel
+            )
+        }
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
             AuthenticationTabView(
@@ -107,6 +120,9 @@ fun ProfileNavHost() {
         }
         composable(ProfileScreenRoute.EmailSignIn.route) {
             EmailSignInView(viewModel = authenticationViewModel)
+        }
+        composable(ProfileScreenRoute.EmailRegister.route) {
+            EmailRegisterView(viewModel = authenticationViewModel)
         }
         composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")

@@ -23,6 +23,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Created by Tal Mirmelshtein on 14/12/2024
+ * Copyright: SAP LTD.
+ */
+
 @Composable
 fun TitledText(title: String, value: String) {
     Spacer(modifier = Modifier.height(14.dp))

@@ -47,3 +47,32 @@ fun SimpleErrorMessagePreview() {
         )
     }
 }
+
+@Composable
+fun PasswordNotMatchingError() {
+    Spacer(modifier = Modifier.size(12.dp))
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Filled.Cancel,
+            contentDescription = "",
+            tint = Color.Red
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            style = AppTheme.typography.labelLarge,
+            text = "Your passwords do not match!",
+            color = Color.Red,
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PasswordNotMatchingErrorPreview() {
+    AppTheme {
+        PasswordNotMatchingError()
+    }
+
+}

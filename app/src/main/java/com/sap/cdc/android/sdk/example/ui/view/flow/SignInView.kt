@@ -20,6 +20,7 @@ import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,8 +40,13 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.IconAndTextOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
+import com.sap.cdc.android.sdk.example.ui.view.custom.LargeSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
+import com.sap.cdc.android.sdk.example.ui.view.custom.SmallSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
@@ -69,11 +75,11 @@ fun SignInView(viewModel: IViewModelAuthentication) {
         // UI elements.
 
         // Title & Subtitle
-        Spacer(modifier = Modifier.size(80.dp))
-        Text("Sign In", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.size(12.dp))
-        Text("Use your preferred method", fontSize = 16.sp, fontWeight = FontWeight.Light)
-        Spacer(modifier = Modifier.size(24.dp))
+        LargeSpacer()
+        Text("Sign In", style = AppTheme.typography.titleLarge)
+        SmallSpacer()
+        Text("Use your preferred method",  style = AppTheme.typography.body)
+        MediumSpacer()
 
         // Social selection view
         ViewDynamicSocialSelection(
@@ -113,16 +119,17 @@ fun SignInView(viewModel: IViewModelAuthentication) {
         }
 
         // Divider
-        Spacer(modifier = Modifier.size(24.dp))
+        MediumSpacer()
         HorizontalDivider(
             modifier = Modifier.size(
                 240.dp, 1.dp
             ), thickness = 1.dp, color = Color.LightGray
         )
-        Spacer(modifier = Modifier.size(24.dp))
+        MediumSpacer()
 
         // Passwordless button
         IconAndTextOutlineButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Passwordless",
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
@@ -132,23 +139,17 @@ fun SignInView(viewModel: IViewModelAuthentication) {
             )
         Spacer(modifier = Modifier.size(10.dp))
 
-        // Credentials sign in button
-        IconAndTextOutlineButton(
-            text = "Sign in with Credentials",
-            onClick = {
-                NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.EmailSignIn.route)
-            },
-            iconImageVector = Icons.Rounded.Password,
-        )
-        Spacer(modifier = Modifier.size(10.dp))
-
         // Email sign in button
         IconAndTextOutlineButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Sign in with Email",
             onClick = {
-                NavigationCoordinator.INSTANCE.navigate(
-                    "${ProfileScreenRoute.OTPSignIn.route}/${OTPType.Email.value}"
-                )
+//                Optional email otp flow.
+//                NavigationCoordinator.INSTANCE.navigate(
+//                    "${ProfileScreenRoute.OTPSignIn.route}/${OTPType.Email.value}"
+//                )
+                NavigationCoordinator.INSTANCE
+                    .navigate("${ProfileScreenRoute.AuthTabView.route}/1")
             },
             iconResourceId = R.drawable.ic_email,
         )
@@ -156,6 +157,7 @@ fun SignInView(viewModel: IViewModelAuthentication) {
 
         // Phone sign in button
         IconAndTextOutlineButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Sign in with Phone",
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate(
@@ -168,21 +170,9 @@ fun SignInView(viewModel: IViewModelAuthentication) {
 
         // Error message
         if (signInError.isNotEmpty()) {
-            Spacer(modifier = Modifier.size(12.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Filled.Cancel,
-                    contentDescription = "",
-                    tint = Color.Red
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = signInError,
-                    color = Color.Red,
-                )
-            }
+            SimpleErrorMessages(
+                text = signInError
+            )
         }
 
     }
@@ -196,5 +186,7 @@ fun SignInView(viewModel: IViewModelAuthentication) {
 @Preview
 @Composable
 fun SignInViewPreview() {
-    SignInView(viewModel = ViewModelAuthenticationPreview())
+    AppTheme {
+        SignInView(viewModel = ViewModelAuthenticationPreview())
+    }
 }

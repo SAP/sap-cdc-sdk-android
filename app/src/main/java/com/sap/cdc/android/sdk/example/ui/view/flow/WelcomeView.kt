@@ -85,7 +85,7 @@ fun WelcomeView(viewModel: IViewModelAuthentication) {
                     .navigate(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route)
             } else {
                 NavigationCoordinator.INSTANCE
-                    .navigate("${ProfileScreenRoute.AuthTabView.route}/1")
+                    .navigate(ProfileScreenRoute.SignIn.route)
             }
         }
 
@@ -100,7 +100,7 @@ fun WelcomeView(viewModel: IViewModelAuthentication) {
                     .navigate(ScreenSetsRoute.ScreenSetRegistrationLoginRegister.route)
             } else {
                 NavigationCoordinator.INSTANCE
-                    .navigate("${ProfileScreenRoute.AuthTabView.route}/0")
+                    .navigate(ProfileScreenRoute.Register.route)
             }
         }
 
