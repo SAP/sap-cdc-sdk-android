@@ -146,6 +146,49 @@ fun ActionOutlineButtonPreview() {
 }
 
 @Composable
+fun ActionOutlineInverseButton(
+    modifier: Modifier,
+    text: String,
+    onClick: () -> Unit,
+) {
+    // Button will use pressed state in addition to ripple effect.
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val containerColor = if (isPressed) Color.Transparent else Color.Black
+    val contentColor = if (isPressed) Color.Black else Color.White
+    val borderColor = if (isPressed) Color.Black else Color.Black
+
+    OutlinedButton(
+        modifier = modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(6.dp),
+        border = BorderStroke(1.dp, borderColor),
+        interactionSource = interactionSource,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        ),
+        onClick = {
+            onClick()
+        }) {
+        Text(text)
+    }
+}
+
+@Preview
+@Composable
+fun ActionOutlineInverseButtonPreview() {
+    AppTheme {
+        ActionOutlineInverseButton(
+            modifier = Modifier,
+            text = "Save changes",
+            onClick = {}
+        )
+    }
+}
+
+@Composable
 fun ActionTextButton(
     text: String,
     onClick: () -> Unit,

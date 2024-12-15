@@ -23,7 +23,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.flow.EmailRegisterView
 import com.sap.cdc.android.sdk.example.ui.view.flow.EmailSignInView
-import com.sap.cdc.android.sdk.example.ui.view.flow.SignInView
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
 import kotlinx.coroutines.launch

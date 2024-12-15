@@ -12,15 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -40,12 +36,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
+import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineInverseButton
+import com.sap.cdc.android.sdk.example.ui.view.custom.CustomColoredSizeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelConfiguration
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfigurationPreview
 
@@ -73,7 +71,8 @@ fun ConfigurationView(viewModel: IViewModelConfiguration) {
             .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(14.dp))
+        // UI elements.
+        MediumVerticalSpacer()
         Column(
             modifier = Modifier
                 .background(Color.White)
@@ -97,11 +96,9 @@ fun ConfigurationView(viewModel: IViewModelConfiguration) {
             ConfigurationCardEdit(
                 title = "cname".uppercase(), valueState = cname
             )
-            Spacer(
-                modifier = Modifier
-                    .height(2.dp)
-                    .fillMaxWidth()
-                    .background(color = Color.LightGray)
+            CustomColoredSizeVerticalSpacer(
+                color = Color.LightGray,
+                size = 2.dp
             )
             Box(modifier = Modifier.height(54.dp)) {
                 Row(
@@ -109,7 +106,7 @@ fun ConfigurationView(viewModel: IViewModelConfiguration) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text("Use Web View (default: native view)")
+                    Text("Use Web View (default: native view)", style = AppTheme.typography.body)
                     Switch(
                         checked = viewModel.webViewUse(),
                         onCheckedChange = {
@@ -131,11 +128,11 @@ fun ConfigurationView(viewModel: IViewModelConfiguration) {
                 }
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
-        ElevatedButton(
+        LargeVerticalSpacer()
+
+        ActionOutlineInverseButton(
             modifier = Modifier.size(width = 260.dp, height = 48.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(Color.Black),
+            text = "Save Changes",
             onClick = {
                 viewModel.updateWithNewConfig(
                     SiteConfig(
@@ -145,16 +142,17 @@ fun ConfigurationView(viewModel: IViewModelConfiguration) {
                         cname = cname.value
                     )
                 )
-            }) {
-            Text("Save Changes")
-        }
+            }
+        )
     }
 }
 
 @Preview
 @Composable
 fun ConfigurationViewPreview() {
-    ConfigurationView(ViewModelConfigurationPreview())
+    AppTheme {
+        ConfigurationView(ViewModelConfigurationPreview())
+    }
 }
 
 @Composable
@@ -162,18 +160,11 @@ fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
     Column(
     ) {
         Text(
-            title,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Light,
-            modifier = Modifier.padding(10.dp)
+            title, style = AppTheme.typography.labelNormal
         )
         TextField(
             valueState.value,
-            textStyle = TextStyle(
-                color = Color.Black,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            ),
+            textStyle = AppTheme.typography.body,
             onValueChange = {
                 valueState.value = it
             },
@@ -196,10 +187,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
     Column {
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            title,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Light,
-            modifier = Modifier.padding(10.dp),
+            title, style = AppTheme.typography.labelNormal
         )
         ExposedDropdownMenuBox(
             expanded = isExpanded,
@@ -209,11 +197,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
                 value = valueState.value,
                 onValueChange = {},
                 readOnly = true,
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                ),
+                textStyle = AppTheme.typography.body,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
                 modifier = Modifier

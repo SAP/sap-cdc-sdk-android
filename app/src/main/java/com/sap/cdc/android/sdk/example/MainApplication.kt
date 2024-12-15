@@ -1,7 +1,6 @@
 package com.sap.cdc.android.sdk.example
 
 import android.app.Application
-import android.webkit.WebView
 import com.sap.cdc.android.sdk.CDCDebuggable
 
 /**

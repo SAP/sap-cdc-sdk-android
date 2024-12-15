@@ -10,11 +10,11 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.ProviderType
+import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider.Companion.LOG_TAG
+import com.sap.cdc.android.sdk.auth.provider.activity.ResultLoginActivity
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
-import com.sap.cdc.android.sdk.auth.provider.ProviderType
-import com.sap.cdc.android.sdk.auth.provider.activity.ResultLoginActivity
-import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider.Companion.LOG_TAG
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.wxapi.WXEntryActivity
 import com.tencent.mm.opensdk.modelmsg.SendAuth
