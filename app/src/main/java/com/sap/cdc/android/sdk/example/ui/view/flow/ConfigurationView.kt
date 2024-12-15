@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -157,11 +158,12 @@ fun ConfigurationViewPreview() {
 
 @Composable
 fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
+    MediumVerticalSpacer()
     Column(
     ) {
         Text(
-            title, style = AppTheme.typography.labelNormal
-        )
+            title, style = AppTheme.typography.labelNormal,
+            modifier = Modifier.padding(start = 16.dp),)
         TextField(
             valueState.value,
             textStyle = AppTheme.typography.body,
@@ -185,9 +187,10 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
     var isExpanded by remember { mutableStateOf(false) }
 
     Column {
-        Spacer(modifier = Modifier.height(6.dp))
+        MediumVerticalSpacer()
         Text(
-            title, style = AppTheme.typography.labelNormal
+            title, style = AppTheme.typography.labelNormal,
+            modifier = Modifier.padding(start = 16.dp),
         )
         ExposedDropdownMenuBox(
             expanded = isExpanded,
@@ -199,7 +202,10 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
                 readOnly = true,
                 textStyle = AppTheme.typography.body,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                colors = ExposedDropdownMenuDefaults.textFieldColors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White
+                ),
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth()

@@ -41,9 +41,9 @@ class CDCResponse {
     fun fromError(code: Int, message: String, description: String) = apply {
         fromJSON(
             "{" +
-                    "  \"errorCode\":  $code" +
-                    "  \"errorMessage\": $message" +
-                    "  \"errorDetails\": $description" +
+                    "  \"errorCode\":  \"$code\"," +
+                    "  \"errorMessage\": \"$message\"," +
+                    "  \"errorDetails\": \"$description\"" +
                     "}"
         )
     }
@@ -75,6 +75,8 @@ class CDCResponse {
             "Provider configuration error"
         )
     }
+
+
 
     /**
      * Get response as json string.

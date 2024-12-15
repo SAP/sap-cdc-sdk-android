@@ -27,7 +27,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         splashscreen.setKeepOnScreenCondition { keepSplashScreen }
         lifecycleScope.launch {
-            delay(200)
             keepSplashScreen = false
         }
         enableEdgeToEdge()

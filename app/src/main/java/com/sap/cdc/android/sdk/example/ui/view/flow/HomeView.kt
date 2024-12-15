@@ -98,7 +98,9 @@ fun HomeScaffoldView() {
                 },
                 navigationIcon = {
                     if (NavigationCoordinator.INSTANCE.backNav.collectAsState().value) {
-                        IconButton(onClick = { NavigationCoordinator.INSTANCE.navigateUp() }) {
+                        IconButton(onClick = {
+                            NavigationCoordinator.INSTANCE.navigateUp()
+                        }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back"
