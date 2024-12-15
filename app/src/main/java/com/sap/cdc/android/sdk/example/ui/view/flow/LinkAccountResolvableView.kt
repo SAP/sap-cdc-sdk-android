@@ -133,7 +133,7 @@ fun LinkAccountResolvableView(
                         onLogin = {
                             loading = false
                             NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                                route = ProfileScreenRoute.MyProfile.route,
+                                toRoute = ProfileScreenRoute.MyProfile.route,
                                 rootRoute = ProfileScreenRoute.Welcome.route
                             )
                         },
@@ -165,7 +165,7 @@ fun LinkAccountResolvableView(
                     onLogin = {
                         loading = false
                         NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                            route = ProfileScreenRoute.MyProfile.route,
+                            toRoute = ProfileScreenRoute.MyProfile.route,
                             rootRoute = ProfileScreenRoute.Welcome.route
                         )
                     },

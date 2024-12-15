@@ -8,29 +8,19 @@ import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
 import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS
@@ -57,7 +47,6 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
 fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen: String) {
 
     val context = LocalContext.current
-
     var screenSetError by remember { mutableStateOf("") }
 
     // Create only when file access is required..
@@ -76,15 +65,15 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
     )
 
     // Build Uri.
-    val screenSetUrl = ScreenSetUrlBuilder.Builder(
-        context.getString(R.string.com_sap_cxcdc_apikey)
-    )
-        .domain(context.getString(R.string.com_sap_cxcdc_domain))
+    val screenSetUrl = ScreenSetUrlBuilder.Builder()
+        .apiKey(viewModel.identityService.getConfig().apiKey)
+        .domain(viewModel.identityService.getConfig().domain)
         .params(params)
         .build()
 
     // Set native social provider authenticators.
     val webBridgeJS: WebBridgeJS = viewModel.newWebBridgeJS()
+
     // Add specific web bridge configurations.
     webBridgeJS.addConfig(
         WebBridgeJSConfig.Builder().obfuscate(true).build()
@@ -102,6 +91,7 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
+
                     webViewClient = WebBridgeJSWebViewClient(webBridgeJS) { browserUri ->
                         //TODO: Check for legacy action. is it required??
                         val intent = Intent(Intent.ACTION_VIEW, browserUri)
@@ -114,6 +104,8 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                 }
             }, update = { webView ->
                 Log.d("ScreenSetView", "update")
+
+                // Attach the web bridge to the web view element.
                 webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)
 
                 // Set external authenticators. SDK will no longer use reflection to
@@ -130,16 +122,12 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                     when (eventName) {
                         CANCELED -> {
                             screenSetError = "Operation canceled"
-                            webView.post {
-                                webView.destroy()
-                            }
+                            webView.post { webView.destroy() }
                         }
 
                         HIDE -> {
                             // Destroy the WebView instance.
-                            webView.post {
-                                webView.destroy()
-                            }
+                            webView.post { webView.destroy() }
                             NavigationCoordinator.INSTANCE.navigateUp()
                         }
 
@@ -148,7 +136,7 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                             webView.post {
                                 webView.destroy()
                                 NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                                    route = ProfileScreenRoute.MyProfile.route,
+                                    toRoute = ProfileScreenRoute.MyProfile.route,
                                     rootRoute = ProfileScreenRoute.Welcome.route
                                 )
                             }
@@ -168,24 +156,10 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                 webBridgeJS.load(webView, screenSetUrl)
             }
         )
+
         // Screen-set error optional display.
         if (screenSetError.isNotEmpty()) {
-            Spacer(modifier = Modifier.size(12.dp))
-            Row(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Filled.Cancel,
-                    contentDescription = "",
-                    tint = Color.Red
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = screenSetError,
-                    color = Color.Red,
-                )
-            }
+            SimpleErrorMessages(screenSetError)
         }
     }
 }

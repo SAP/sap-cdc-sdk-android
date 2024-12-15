@@ -132,7 +132,7 @@ fun PendingRegistrationResolvableView(
                             // Route to profile page and pop all routes inclusively so
                             // The root route will return to the main home screen.
                             NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                                route = ProfileScreenRoute.MyProfile.route,
+                                toRoute = ProfileScreenRoute.MyProfile.route,
                                 rootRoute = ProfileScreenRoute.Welcome.route
                             )
                         },

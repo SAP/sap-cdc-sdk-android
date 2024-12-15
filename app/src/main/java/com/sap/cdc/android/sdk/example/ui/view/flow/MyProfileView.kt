@@ -175,15 +175,13 @@ fun MyProfileView(viewModel: IViewModelAuthentication) {
                 viewModel.logOut(
                     success = {
                         NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                            route = ProfileScreenRoute.Welcome.route,
+                            toRoute = ProfileScreenRoute.Welcome.route,
                             rootRoute = ProfileScreenRoute.Welcome.route
                         )
                     },
                     onFailed = {
-                        // Stub.
-                        Log.e("ViewMyProfile", "Logout failed")
                         NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                            route = ProfileScreenRoute.Welcome.route,
+                            toRoute = ProfileScreenRoute.Welcome.route,
                             rootRoute = ProfileScreenRoute.Welcome.route
                         )
                     }
@@ -197,6 +195,7 @@ fun MyProfileView(viewModel: IViewModelAuthentication) {
         IndeterminateLinearIndicator(loading)
     }
 
+    // Request account info.
     viewModel.getAccountInfo(
         success = {
             Log.d("ViewMyProfile", "Get account info success")

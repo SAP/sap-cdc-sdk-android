@@ -2,7 +2,7 @@
     <string name="app_name">Bits n Bytes</string>
 
     <!-- SDK configuration -->
-    <string name="com.sap.cxcdc.apikey">4_SEpA_W3UzOTWQZKSXi1ATw</string>
+    <string name="com.sap.cxcdc.apikey">4_mL-YkAEegR9vzt6QvHWI5Q</string>
     <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
 
     <!-- Social providers configuration-->
