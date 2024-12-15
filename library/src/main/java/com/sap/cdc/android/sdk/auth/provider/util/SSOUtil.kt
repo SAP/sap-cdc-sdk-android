@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.auth.provider.util
 
+import com.sap.cdc.android.sdk.auth.model.SSOResponseEntity
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.core.SiteConfig
 import org.json.JSONObject
@@ -76,11 +77,11 @@ class SSOUtil {
     /**
      * Parse the SessionInfo object from code exchange response.
      */
-    fun parseSessionInfo(result: Map<String, Any>): Session {
-        val accessToken = result["access_token"] as String
-        val expiresIn: Double = result["expires_in"] as Double
-        val secret = result["device_secret"] as String
-        return Session(token = accessToken, secret = secret, expiration = expiresIn.toLong())
+    fun parseSessionInfo(ssoResponseEntity: SSOResponseEntity): Session {
+        return Session(
+            token = ssoResponseEntity.access_token!!,
+            secret = ssoResponseEntity.device_secret!!,
+            expiration = ssoResponseEntity.expires_in)
     }
 
 }

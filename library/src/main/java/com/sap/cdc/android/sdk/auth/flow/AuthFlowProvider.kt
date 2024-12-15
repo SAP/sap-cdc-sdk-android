@@ -8,6 +8,8 @@ import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_
 import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
+import com.sap.cdc.android.sdk.auth.model.GMIDEntity
+import com.sap.cdc.android.sdk.auth.model.SSOResponseEntity
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
@@ -86,9 +88,15 @@ class ProviderAuthFow(
                 ProviderType.SSO -> {
                     val ssoData = result.ssoData!!
                     val ssoUtil = SSOUtil()
-                    val tokenResponse = onSSOCodeReceived(ssoUtil, ssoData)
+                    val tokenResponse = ssoToken(ssoUtil, ssoData)
                     if (tokenResponse.containsKey("access_token")) {
                         // parse session info.
+                        val ssoResponseEntity =
+                            tokenResponse.serializeTo<SSOResponseEntity>() ?: return AuthResponse(
+                                CDCResponse().providerError()
+                            )
+                        val session = ssoUtil.parseSessionInfo(ssoResponseEntity)
+                        sessionService.setSession(session)
 
                         // Refresh account information for flow response.
                         val accountResponse =
@@ -122,7 +130,7 @@ class ProviderAuthFow(
         weakActivity?.clear()
     }
 
-    private suspend fun onSSOCodeReceived(
+    private suspend fun ssoToken(
         ssoUtil: SSOUtil,
         data: SSOAuthenticationData
     ): CDCResponse {
@@ -145,4 +153,5 @@ class ProviderAuthFow(
         )
 
     }
+
 }

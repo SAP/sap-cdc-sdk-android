@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -22,7 +21,6 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -40,10 +38,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,8 +55,8 @@ import com.sap.cdc.android.sdk.example.ui.route.SearchNavHost
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.CustomBottomBar
-import com.sap.cdc.android.sdk.example.ui.view.custom.MediumSpacer
-import com.sap.cdc.android.sdk.example.ui.view.custom.SmallSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
 
 /**
@@ -217,13 +213,13 @@ fun HomeView() {
             .fillMaxHeight()
             .verticalScroll(rememberScrollState())
     ) {
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         Text("The all-new", style = AppTheme.typography.titleNormalLight)
         Text("MacBook Pro", style = AppTheme.typography.titleLarge)
         Text("with Retina display", style = AppTheme.typography.body)
 
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         ActionOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
@@ -264,7 +260,7 @@ fun HomeView() {
                 imageContentDescriptionId = R.string.home_img_macbook_content_description
             )
 
-            SmallSpacer()
+            SmallVerticalSpacer()
             HomeCard(
                 largeLabel = "Performance",
                 smallLabel = "Powerful devices",
@@ -302,11 +298,11 @@ fun HomeCard(
                 )
             }
 
-            SmallSpacer()
+            SmallVerticalSpacer()
 
             Text(largeLabel, style = AppTheme.typography.labelLarge)
 
-            SmallSpacer()
+            SmallVerticalSpacer()
 
             Text(
                 smallLabel, style = AppTheme.typography.labelSmall

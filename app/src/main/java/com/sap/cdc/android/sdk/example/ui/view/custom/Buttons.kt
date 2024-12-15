@@ -83,7 +83,7 @@ fun IconAndTextOutlineButton(
                     tint = Color.Unspecified
                 )
             }
-            MediumSpacer()
+            MediumVerticalSpacer()
             Text(text)
         }
     }

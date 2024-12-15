@@ -18,3 +18,4 @@ val lightColorScheme = AppColorScheme(
     primary = Color.Black,
     secondary = Color.Black,
 )
+

@@ -19,20 +19,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.IconAndTextOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
-import com.sap.cdc.android.sdk.example.ui.view.custom.LargeSpacer
-import com.sap.cdc.android.sdk.example.ui.view.custom.MediumSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
-import com.sap.cdc.android.sdk.example.ui.view.custom.SmallSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
@@ -54,11 +52,11 @@ fun RegisterView(viewModel: IViewModelAuthentication) {
         // UI elements.
 
         // Title & Subtitle
-        LargeSpacer()
+        LargeVerticalSpacer()
         Text("Register", style = AppTheme.typography.titleLarge)
-        SmallSpacer()
+        SmallVerticalSpacer()
         Text("Use your preferred method", style = AppTheme.typography.body)
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         // Social selection view
         ViewDynamicSocialSelection(
@@ -98,13 +96,13 @@ fun RegisterView(viewModel: IViewModelAuthentication) {
         }
 
         // Divider
-        MediumSpacer()
+        MediumVerticalSpacer()
         HorizontalDivider(
             modifier = Modifier.size(
                 240.dp, 1.dp
             ), thickness = 1.dp, color = Color.LightGray
         )
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         IconAndTextOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
@@ -123,7 +121,7 @@ fun RegisterView(viewModel: IViewModelAuthentication) {
 
         }
 
-        LargeSpacer()
+        LargeVerticalSpacer()
 
         // Error message
         if (registerError.isNotEmpty()) {

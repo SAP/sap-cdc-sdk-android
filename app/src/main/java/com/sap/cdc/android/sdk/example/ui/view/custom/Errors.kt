@@ -20,7 +20,7 @@ import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 fun SimpleErrorMessages(
     text: String,
 ) {
-    SmallSpacer()
+    SmallVerticalSpacer()
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {

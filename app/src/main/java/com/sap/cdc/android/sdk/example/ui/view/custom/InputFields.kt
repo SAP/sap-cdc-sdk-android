@@ -41,7 +41,7 @@ fun OutlineTitleAndEditTextField(
     focusManager: FocusManager,
 ) {
     Text(titleText, style = AppTheme.typography.labelNormal)
-    SmallSpacer()
+    SmallVerticalSpacer()
     OutlinedTextField(
         inputText,
         modifier = Modifier.fillMaxWidth(),
@@ -103,7 +103,7 @@ fun OutlineTitleAndEditPasswordTextField(
     focusManager: FocusManager,
 ) {
     Text(titleText, style = AppTheme.typography.labelNormal)
-    SmallSpacer()
+    SmallVerticalSpacer()
     OutlinedTextField(
         inputText,
         modifier = Modifier.fillMaxWidth(),
@@ -169,7 +169,7 @@ fun OutlineTitleAndEditPasswordTextFieldPreview() {
 
             },
             onEyeClick = {
-                
+
             },
             focusManager = LocalFocusManager.current
         )

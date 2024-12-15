@@ -4,24 +4,14 @@ package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,21 +22,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.R
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.IconAndTextOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
-import com.sap.cdc.android.sdk.example.ui.view.custom.LargeSpacer
-import com.sap.cdc.android.sdk.example.ui.view.custom.MediumSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
-import com.sap.cdc.android.sdk.example.ui.view.custom.SmallSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
@@ -75,11 +62,11 @@ fun SignInView(viewModel: IViewModelAuthentication) {
         // UI elements.
 
         // Title & Subtitle
-        LargeSpacer()
+        LargeVerticalSpacer()
         Text("Sign In", style = AppTheme.typography.titleLarge)
-        SmallSpacer()
+        SmallVerticalSpacer()
         Text("Use your preferred method",  style = AppTheme.typography.body)
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         // Social selection view
         ViewDynamicSocialSelection(
@@ -119,13 +106,13 @@ fun SignInView(viewModel: IViewModelAuthentication) {
         }
 
         // Divider
-        MediumSpacer()
+        MediumVerticalSpacer()
         HorizontalDivider(
             modifier = Modifier.size(
                 240.dp, 1.dp
             ), thickness = 1.dp, color = Color.LightGray
         )
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         // Passwordless button
         IconAndTextOutlineButton(

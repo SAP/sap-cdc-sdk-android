@@ -4,21 +4,13 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,10 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.ApplicationConfig
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
@@ -39,10 +29,10 @@ import com.sap.cdc.android.sdk.example.ui.route.ScreenSetsRoute
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionTextButton
-import com.sap.cdc.android.sdk.example.ui.view.custom.CustomSizeSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.CustomSizeVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
-import com.sap.cdc.android.sdk.example.ui.view.custom.LargeSpacer
-import com.sap.cdc.android.sdk.example.ui.view.custom.MediumSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
@@ -69,12 +59,12 @@ fun WelcomeView(viewModel: IViewModelAuthentication) {
             .fillMaxHeight()
             .verticalScroll(rememberScrollState())
     ) {
-        CustomSizeSpacer(140.dp)
+        CustomSizeVerticalSpacer(140.dp)
 
         Text("Welcome!", style = AppTheme.typography.titleLarge)
         Text("Manage your profile", style = AppTheme.typography.body)
 
-        LargeSpacer()
+        LargeVerticalSpacer()
 
         ActionOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
@@ -89,7 +79,7 @@ fun WelcomeView(viewModel: IViewModelAuthentication) {
             }
         }
 
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         ActionOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
@@ -104,7 +94,7 @@ fun WelcomeView(viewModel: IViewModelAuthentication) {
             }
         }
 
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         HorizontalDivider(
             color = Color.LightGray,
@@ -112,7 +102,7 @@ fun WelcomeView(viewModel: IViewModelAuthentication) {
             modifier = Modifier.size(240.dp, 1.dp)
         )
 
-        MediumSpacer()
+        MediumVerticalSpacer()
 
         ActionTextButton(
             "Sign in with SSO"
@@ -132,7 +122,7 @@ fun WelcomeView(viewModel: IViewModelAuthentication) {
             )
         }
 
-        LargeSpacer()
+        LargeVerticalSpacer()
 
         // Error message
         if (ssoError.isNotEmpty()) {

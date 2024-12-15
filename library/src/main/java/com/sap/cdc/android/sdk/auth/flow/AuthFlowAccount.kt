@@ -72,8 +72,8 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      */
     suspend fun getAuthCode(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
         withParameters(parameters!!)
-        parameters["resource"] = "urn:gigya:account"
-        parameters["subject_token_type"] = "urn:gigya:token-type:mobile"
+        parameters["resource"] = "urn:gigya:account" //TODO: check removing parameter?
+        parameters["subject_token_type"] = "urn:gigya:token-type:mobile" //TODO: check removing parameter?
         parameters["response_type"] = "code"
         val exchangeAuthCodeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_ACCOUNTS_ID_TOKEN_EXCHANGE,
