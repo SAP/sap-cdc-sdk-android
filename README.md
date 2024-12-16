@@ -15,8 +15,7 @@ Android 24+
 The library is available on [MavenCentral](http://sap.com)
 
 
-    implementation("")
-
+implementation("")
 # SDK Setup
 
 
@@ -25,20 +24,19 @@ The library is available on [MavenCentral](http://sap.com)
 The `SiteConfig` class is designed to encapsulate and manage relevant site-specific data, such as the API key, domain, and other configuration parameters. This class plays a pivotal role in the initialization of the authentication service. By having a `SiteConfig` instance, the authentication service can access necessary site-specific details that are essential for its functionality, ensuring proper configuration and secure operations. Without this class, the authentication service would lack the required settings to authenticate users and interact with the API effectively.
 
 
-    // ... Initialize the configuration object.
-    val siteConfig = SiteConfig(context)
-
+// ... Initialize the configuration object. val siteConfig = SiteConfig(context)  
 The `SiteConfig` class is designed to automatically fetch necessary resources from the `strings.xml` file when provided with the appropriate context. This enables the class to retrieve essential configuration data, such as API keys and domain names, seamlessly.
 
 These are the available configuration parameters required for the `SiteConfig` class:
 
-
-    <!-- mandatory -->
-    <string name="com.sap.cxcdc.apikey">API_KEY_HERE</string>
-    <!-- optional - if not specified will default to "us1.gigya.com" -->
-    <string name="com.sap.cxcdc.domain">API_DOMAIN_HERE</string> 
-    <!-- optional -->
-    <string name="com.sap.cxcdc.cname">CNAME_HERE</string>
+     <!-- mandatory -->
+     <string name="com.sap.cxcdc.apikey">API_KEY_HERE</string> 
+     
+     <!-- optional - if not specified will default to "us1.gigya.com" -->
+     <string name="com.sap.cxcdc.domain">API_DOMAIN_HERE</string>
+     
+     <!-- optional -->  
+     <string name="com.sap.cxcdc.cname">CNAME_HERE</string>  
 
 Additionally, the `SiteConfig` class supports multiple build flavors. By placing flavor-specific `strings.xml` files in the corresponding suffix paths defined in the `build.gradle` application configuration, developers can manage different configurations for various flavors efficiently. This approach enhances flexibility and organization, allowing for easy maintenance and configuration management across different environments or flavors of the application.
 
@@ -83,10 +81,8 @@ The `AuthenticationService` class serves as the primary interface for managing a
 
 By leveraging the `AuthenticationService` class, clients can efficiently manage and streamline their authentication needs, ensuring a robust and secure authentication process within the SDK.
 
-
     // ... Initialize authentication service.
-    private var authenticationService = AuthenticationService(siteConfig)
-
+     private var authenticationService = AuthenticationService(siteConfig)  
 
 
 # Authentication Flows
@@ -97,18 +93,18 @@ Minimizing frustration, developers can implement flexible authentication solutio
 
 
 **Example:**
-    
-    // ... Create your credential information map
-    val params = mutableMapOf("email" to email, "password" to password)
 
-    // ... Use the "register" authentication inteface to register a new user
-    val authResponse: IAuthResponse = authenticationService.authenticate().register(params)
+
+     // ... Create your credential information map  
+     val params = mutableMapOf("email" to email, "password" to password)  
+     // ... Use the "register" authentication inteface to register a new user 
+     val authResponse: IAuthResponse = authenticationService.authenticate().register(params)  
 
 
 
 ## IAuthResponse
 
-The IAuthResponse interface provides the relevant authentication state through its properties and methods, allowing you to determine the outcome of an authentication operation.
+The `IAuthResponse` interface provides the relevant authentication state through its properties and methods, allowing you to determine the outcome of an authentication operation.
 
 
 **Key elements for determining authentication state:**
@@ -119,11 +115,11 @@ Returns an AuthState enum value (ERROR, SUCCESS, INTERRUPTED) indicating the ove
 
 *  **cdcResponse():**
 
-Provides access to the underlying CDCResponse object, which contains detailed information about the API response, including error codes and messages.
+Provides access to the underlying `CDCResponse` object, which contains detailed information about the API response, including error codes and messages.
 
 *  **resolvable():**
 
-If the state() is INTERRUPTED, this method returns a ResolvableContext object containing data needed to resolve the interruption and continue the authentication flow.
+If the state() is INTERRUPTED, this method returns a `ResolvableContext` object containing data needed to resolve the interruption and continue the authentication flow.
 
 By examining these elements, you can determine if the authentication was successful, encountered an error, or requires further action.
 
@@ -131,79 +127,75 @@ By examining these elements, you can determine if the authentication was success
 **Example:**
 
 
-    val authResponse: IAuthResponse = // ... perform authentication operation
-    
-    when (authResponse.state()) {
-        AuthState.SUCCESS -> {
-            // Authentication successful, proceed with the application flow
-        }
-        AuthState.ERROR -> {
-            // Authentication failed, handle the error
-            val error = authResponse.toDisplayError()
-            // ... display error message or take corrective action
-        }
-        AuthState.INTERRUPTED -> {
-            // Authentication interrupted, resolve the issue
-            val resolvableContext = authResponse.resolvable()
-            // ... use resolvableContext to gather additional information or perform necessary steps
-        }
-    }
+
+    val authResponse: IAuthResponse = // ... perform authentication operation     
+    when (authResponse.state()) {  
+	     AuthState.SUCCESS -> { 
+		     // Authentication successful, proceed with the application flow
+	     }
+	     AuthState.ERROR -> {
+		     // Authentication failed, handle the error val error = 	authResponse.toDisplayError()
+		     // ... display error message or take corrective action
+	     }
+	     AuthState.INTERRUPTED -> {
+		     // Authentication interrupted, resolve the issue 
+		     val resolvableContext = authResponse.resolvable()
+		     // ... use resolvableContext to gather additional information or perform necessary steps
+	     }
+	}  
 
 ## Resolving Interruptions
 
-During an authentication flow, certain errors may require additional steps to be taken by the user before the flow can be completed. These errors are considered "resolvable" and are indicated by an AuthState.INTERRUPTED state in the IAuthResponse object.
-To resolve an interrupted authentication flow, you need to utilize the AuthenticationResolve interface. This interface provides methods for gathering the necessary information from the user and resuming the authentication process.
+During an authentication flow, certain errors may require additional steps to be taken by the user before the flow can be completed. These errors are considered "resolvable" and are indicated by an `AuthState.INTERRUPTED` state in the `IAuthResponse` object.  
+To resolve an interrupted authentication flow, you need to utilize the `AuthenticationService's` resolve() interface. This interface provides methods for gathering the necessary information from the user and resuming the authentication process.
 
 **Steps to Resolve an Interrupted Flow**
 
-1. **Identify the interruption:** When an authentication operation returns an IAuthResponse with AuthState.INTERRUPTED, it means the flow has been interrupted. Determine the error using the "authResponse.cdcResponse().errorCode()" method. 
+1. **Identify the interruption:** When an authentication operation returns an IAuthResponse with `AuthState.INTERRUPTED`, it means the flow has been interrupted. Determine the error using the `authResponse.cdcResponse().errorCode()` method.
 
-2. **Gather required information:** The ResolvableContext object contains details about the interruption, including the missing required fields or any other information needed to resolve the issue. Use this information to prompt the user for the necessary input. You can access the ResolvableContext object using the resolvable() method of the IAuthResponse.
+2. **Gather required information:** The `ResolvableContext` object contains details about the interruption, including the missing required fields or any other information needed to resolve the issue. Use this information to prompt the user for the necessary input. You can access the `ResolvableContext` object using the `resolvable()` method of the `IAuthResponse`.
 
-3. **Call to resolve**: Use the resolve() method of the AuthenticationResolve interface, using the correct resolve method for the specific interruption error.
+3. **Call to resolve**: Use the resolve() method of the `AuthenticationService's` resolve()  interface, using the correct resolve method for the specific interruption error.
 
 **Example:**
 
+     val authResponse: IAuthResponse = // ... perform authentication operation
+     if (authResponse.state() == AuthState.INTERRUPTED) {  
+     // ... Determine the error
+	 when (authResponse.cdcResponse().errorCode()) { 
+		 ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+			  val resolvableContext = authResponse.resolvable()
+			  // ... prompt the user for missing required fields based on resolvableContext 
+			  navigateToSpecificViewToResolveInterruption(resolvableContext)
+			  }
+		}
+	}  
 
-    val authResponse: IAuthResponse = // ... perform authentication operation
-    
-    if (authResponse.state() == AuthState.INTERRUPTED) {
-        // ... Determine the error
-        when (authResponse.cdcResponse().errorCode()) {
-               ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
-                  val resolvableContext = authResponse.resolvable()
-                  // ... prompt the user for missing required fields based on resolvableContext
-                  navigateToSpecificViewToResolveInterruption(resolvableContext)
-               }
-        }
-    }
+**When the information is available, call the relevant resolve interface.**
 
-When the information is available, call the relevant resolve interface.
+
 
     // ... Create a map of serialized parameters (missing profile fields for example).
-    val params = mutableMapOf(key to serializedJsonValue)
-
+    val params = mutableMapOf(key to serializedJsonValue)  
     // ... Use the provided resolve interface to resolve the interruption.
-    val resolveResponse =  authenticationService.resolve().pendingRegistrationWith(regToken, params)
+    val resolveResponse =  authenticationService.resolve().pendingRegistrationWith(regToken, params)  
 
 # Web Screen-Sets
 
-Web Screen-Sets and Integration with Android
-
 Web Screen Sets are dynamic web user interfaces that allow for customized authentication flows. They provide a flexible and customizable way to design and implement user login and registration experiences.
 
-The SDK utilizes the WebBridgeJS object to connect the Android application to Web ScreenSets. This object creates a JavaScript bridge between the native application and a WebView element running the CDC JavaScript SDK.
+The SDK utilizes the `WebBridgeJS` object to connect the Android application to Web ScreenSets. This object creates a JavaScript bridge between the native application and a WebView element running the CDC JavaScript SDK.
 
 **How it Works:**
 
 
-1.  WebView: The Android application uses a WebView element to display the Web Screen-Sets. The WebView acts as a container for the web-based UI.
+1. WebView: The Android application uses a WebView element to display the Web Screen-Sets. The WebView acts as a container for the web-based UI.
 
-2.  CDC JavaScript SDK.: The Web Screen-Sets are built using the JS CDC SDK, which provides the necessary JavaScript functions and components for authentication flows.
+2. CDC JavaScript SDK.: The Web Screen-Sets are built using the JS CDC SDK, which provides the necessary JavaScript functions and components for authentication flows.
 
-3.  WebBridgeJS: The WebBridgeJS object acts as a communication channel between the native Android and JavaScript code running in the WebView. It enables bidirectional communication, allowing the native application to call JavaScript functions and vice versa.
+3. `WebBridgeJS`: The `WebBridgeJS` object acts as a communication channel between the native Android and JavaScript code running in the WebView. It enables bidirectional communication, allowing the native application to call JavaScript functions and vice versa.
 
-4.  Customized Authentication Flows: Web Screen-Sets allow for customization of the authentication flow, enabling developers to tailor the user experience to their specific needs. This includes customizing the look and feel of the UI, adding custom logic, and integrating with other services.
+4. Customized Authentication Flows: Web Screen-Sets allow for customization of the authentication flow, enabling developers to tailor the user experience to their specific needs. This includes customizing the look and feel of the UI, adding custom logic, and integrating with other services.
 
 
 **Benefits of Using Web Screen-Sets:**
@@ -218,82 +210,65 @@ The SDK utilizes the WebBridgeJS object to connect the Android application to We
 *   **Reduced Development Effort**: Web Screen-Sets can simplify the development process by allowing developers to reuse existing web development skills and resources.
 
 
-By utilizing Web Screen-Sets and WebBridgeJS, developers can create robust and customizable authentication flows for their Android applications, enhancing the user experience and streamlining the login and registration process.
+By utilizing Web Screen-Sets and `WebBridgeJS`, developers can create robust and customizable authentication flows for their Android applications, enhancing the user experience and streamlining the login and registration process.
 
 ## WebBridgeJS Usage in ScreenSetView Composable
 
-The ScreenSetView composable function demonstrates the usage of the WebBridgeJS object to integrate and interact with web-based screen-sets within an Android application. Here's a breakdown of how it's used:
+The `ScreenSetView` class is a part of the SDK's example application implementation, specifically built for Jetpack Compose UI. It serves as a demonstration of how to integrate and utilize web screen-sets within a Compose-based Android application.
+
+The `ScreenSetView` composable function demonstrates the usage of the `WebBridgeJS` object to integrate and interact with web-based screen-sets within an Android application. Here's a breakdown of how it's used:
 
 
 **Initialization and Configuration**
 
+1. Creating a `WebBridgeJS` instance:  
+   A new `WebBridgeJS` instance is created using the `newWebBridgeJS()` method from the `ViewModelScreenSet`. This instance will be used to manage the communication between the native code and the web screen-set.
 
-1.  Creating a WebBridgeJS instance:
-
-
-    val webBridgeJS: WebBridgeJS = viewModel.newWebBridgeJS()
-
-A new `WebBridgeJS` instance is created using the `newWebBridgeJS()` method from the `ViewModelScreenSet`. This instance will be used to manage the communication between the native code and the web screen-set.
+        val webBridgeJS: WebBridgeJS = viewModel.newWebBridgeJS()  
 
 
-2.  Adding configurations:
 
+2. Adding configurations:  
+   Configurations are added to the `WebBridgeJS` instance using the `addConfig()` method. In this case, obfuscation is enabled using `WebBridgeJSConfig.Builder().obfuscate(true).build()`.
 
-    webBridgeJS.addConfig(
-            WebBridgeJSConfig.Builder().obfuscate(true).build()
-        )
-
-Configurations are added to the `WebBridgeJS` instance using the `addConfig()` method. In this case, obfuscation is enabled using `WebBridgeJSConfig.Builder().obfuscate(true).build()`.
-
+        webBridgeJS.addConfig( WebBridgeJSConfig.Builder().obfuscate(true).build() )
 
 **Attaching to WebView and Setting Authenticators**
 
 
-1.  Attaching to WebView:
+1. Attaching to WebView:  
+   The `attachBridgeTo()` method is called to attach the `WebBridgeJS` instance to the `WebView` element. This establishes the bridge for communication. The `viewModelScope` is passed to manage the lifecycle of the bridge.
 
 
-    webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)
+         webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)  
 
-The `attachBridgeTo()` method is called to attach the `WebBridgeJS` instance to the `WebView` element. This establishes the bridge for communication. The `viewModelScope` is passed to manage the lifecycle of the bridge.
-
-
-2.  Setting native social providers: (optional)
+2. Setting native social providers: (optional)  
+   The `setNativeSocialProviders()` method is used to set the native social providers for authentication. The `AuthenticatorMap` from the `IdentityService` is passed to provide the necessary authenticators.
 
 
-    webBridgeJS.setNativeSocialProviders(
-            viewModel.identityService.getAuthenticatorMap()
-        )
-
-The `setNativeSocialProviders()` method is used to set the native social providers for authentication. The `AuthenticatorMap` from the `IdentityService` is passed to provide the necessary authenticators.
-
+         webBridgeJS.setNativeSocialProviders( viewModel.identityService.getAuthenticatorMap() )  
 
 **Registering for Events and Loading Screen-sets**
 
-
-1.  Registering for events:
-
-
-    webBridgeJS.registerForEvents { webBridgeJSEvent ->
-            // Handle events here
-        }
-
-The `registerForEvents()` method is used to register a callback function that will be invoked when events are triggered by the web screen-set. This allows the native code to respond to events from the web UI
+1. Registering for events:  
+   The `registerForEvents()` method is used to register a callback function that will be invoked when events are triggered by the web screen-set. This allows the native code to respond to events from the web UI.
 
 
-2.  Loading the screen-set:
+         webBridgeJS.registerForEvents { webBridgeJSEvent -> // Handle events here }   
+2. Loading the screen-set:
+   The `load()` method is called to load the web screen-set into the `WebView`. The `screenSetUrl` specifies the URL of the screen-set to be loaded.
 
+           webBridgeJS.load(webView, screenSetUrl) 
 
-    webBridgeJS.load(webView, screenSetUrl)
-
-The `load()` method is called to load the web screen-set into the `WebView`. The `screenSetUrl` specifies the URL of the screen-set to be loaded.
-
-
-**Detaching from WebView**
-
-
-    webBridgeJS.detachBridgeFrom(webView)
-
+**Detaching from WebView**  
 The `detachBridgeFrom()` method is called to detach the `WebBridgeJS` instance from the `WebView` when the composable is no longer in use. This cleans up the bridge and releases resources.
+
+
+     webBridgeJS.detachBridgeFrom(webView) 
+
+
+
+
 
 
 # Support, Feedback, Contributing
@@ -314,3 +289,6 @@ As members, contributors, and leaders pledge to make participation in our commun
 # Licensing
 
 Copyright 2024 SAP SE or an SAP affiliate company and sap-customer-data-cloud-sdk-for-android contributors. Please see our \[LICENSE\](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available \[via the REUSE tool\]([https://api.reuse.software/info/github.com/SAP/sap-customer-data-cloud-sdk-for-android](https://api.reuse.software/info/github.com/SAP/sap-customer-data-cloud-sdk-for-android) ).
+
+
+
