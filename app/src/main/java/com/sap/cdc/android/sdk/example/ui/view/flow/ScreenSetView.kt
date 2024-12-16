@@ -102,7 +102,8 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                     settings.allowFileAccess = true
                     webChromeClient = bridgingWebChromeClient
                 }
-            }, update = { webView ->
+            },
+            update = { webView ->
                 Log.d("ScreenSetView", "update")
 
                 // Attach the web bridge to the web view element.
@@ -122,7 +123,6 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                     when (eventName) {
                         CANCELED -> {
                             screenSetError = "Operation canceled"
-                            webView.post { webView.destroy() }
                         }
 
                         HIDE -> {
@@ -134,7 +134,6 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
                         LOGIN -> {
                             // Flow successful. Navigate to profile screen.
                             webView.post {
-                                webView.destroy()
                                 NavigationCoordinator.INSTANCE.popToRootAndNavigate(
                                     toRoute = ProfileScreenRoute.MyProfile.route,
                                     rootRoute = ProfileScreenRoute.Welcome.route
@@ -144,16 +143,17 @@ fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen:
 
                         LOGOUT -> {
                             // Navigate back to close the screen set view.
-                            webView.post {
-                                webView.destroy()
-                                NavigationCoordinator.INSTANCE.navigateUp()
-                            }
+                            NavigationCoordinator.INSTANCE.navigateUp()
                         }
                     }
                 }
 
                 // Load URL.
                 webBridgeJS.load(webView, screenSetUrl)
+            },
+            onRelease = {  webView ->
+                Log.d("ScreenSetView", "onRelease")
+                webBridgeJS.detachBridgeFrom(webView)
             }
         )
 

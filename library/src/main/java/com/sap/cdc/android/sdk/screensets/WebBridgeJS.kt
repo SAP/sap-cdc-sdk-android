@@ -6,6 +6,7 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
@@ -144,7 +145,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             bridgedWebView?.evaluateJavascript(
                 invocation
             ) { value ->
-                Log.d(LOG_TAG, "evaluateJS: onReceiveValue: $value")
+                CDCDebuggable.log(LOG_TAG, "evaluateJS: onReceiveValue: $value")
             }
         }
     }
@@ -189,25 +190,24 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
         when (action) {
             ACTION_GET_IDS -> {
                 val ids = "{\"gmid\":\"${bridgedApiService.gmid()}\"}"
-                Log.d(LOG_TAG, "$action: $ids")
+                CDCDebuggable.log(LOG_TAG, "$action: $ids")
                 evaluateJS(callbackID!!, ids)
             }
 
             ACTION_IS_SESSION_VALID -> {
                 val session = bridgedApiService.session()
-                Log.d(LOG_TAG, "$action: ${session != null}")
+                CDCDebuggable.log(LOG_TAG, "$action: ${session != null}")
                 evaluateJS(callbackID!!, (session != null).toString())
             }
 
             ACTION_SEND_REQUEST, ACTION_SEND_OAUTH_REQUEST -> {
-                Log.d(LOG_TAG, "$action: ")
+                CDCDebuggable.log(LOG_TAG, "$action: ")
                 // Specific mapping is required to handle legacy & new apis.
-                //TODO: A callback id is needed to JS evaluation of responses.
                 bridgedApiService.onRequest(action, method, params, callbackID!!)
             }
 
             ACTION_ON_PLUGIN_EVENT -> {
-                Log.d(LOG_TAG, "$action: ${params.toString()}")
+                CDCDebuggable.log(LOG_TAG, "$action: ${params.toString()}")
                 val containerId = params["sourceContainerID"]
                 if (containerId != null) {
                     // Stream plugin events.

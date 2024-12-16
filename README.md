@@ -97,26 +97,29 @@ The SDK is designed with a focus on authentication flows, ensuring a seamless us
 Minimizing frustration, developers can implement flexible authentication solutions that adapt to different user needs while maintaining a smooth and efficient workflow.
 
 
-**Below is a code example demonstrating a simple credentials authentication flow using our SDK, which allows users to easily log in and handle interruptions during the process:**
-
+**Example:**
 
     val params = mutableMapOf("email" to email, "password" to password)
     val authResponse: IAuthResponse = authenticationService.authenticate().register(params)
+
+
+
+## IAuthResponse
 
 The IAuthResponse interface provides the relevant authentication state through its properties and methods, allowing you to determine the outcome of an authentication operation.
 
 
 **Key elements for determining authentication state:**
 
-** *state():* **
+*  **state():**
 
 Returns an AuthState enum value (ERROR, SUCCESS, INTERRUPTED) indicating the overall authentication state.
 
-** *cdcResponse():* **
+*  **cdcResponse():**
 
 Provides access to the underlying CDCResponse object, which contains detailed information about the API response, including error codes and messages.
 
-** *resolvable():* **
+*  **resolvable():**
 
 If the state() is INTERRUPTED, this method returns a ResolvableContext object containing data needed to resolve the interruption and continue the authentication flow.
 
@@ -143,6 +146,44 @@ By examining these elements, you can determine if the authentication was success
             // ... use resolvableContext to gather additional information or perform necessary steps
         }
     }
+
+## Resolving Interruptions
+
+During an authentication flow, certain errors may require additional steps to be taken by the user before the flow can be completed. These errors are considered "resolvable" and are indicated by an AuthState.INTERRUPTED state in the IAuthResponse object.
+To resolve an interrupted authentication flow, you need to utilize the AuthenticationResolve interface. This interface provides methods for gathering the necessary information from the user and resuming the authentication process.
+
+**Steps to Resolve an Interrupted Flow**
+
+1. **Identify the interruption:** When an authentication operation returns an IAuthResponse with AuthState.INTERRUPTED, it means the flow has been interrupted. Determine the error using the "authResponse.cdcResponse().errorCode()" method. 
+
+2. **Gather required information:** The ResolvableContext object contains details about the interruption, including the missing required fields or any other information needed to resolve the issue. Use this information to prompt the user for the necessary input. You can access the ResolvableContext object using the resolvable() method of the IAuthResponse.
+
+3. **Call to resolve**: Use the resolve() method of the AuthenticationResolve interface, using the correct resolve method for the specific interruption error.
+
+**Example:**
+
+
+    val authResponse: IAuthResponse = // ... perform authentication operation
+    
+    if (authResponse.state() == AuthState.INTERRUPTED) {
+        // ... Determine the error
+        when (authResponse.cdcResponse().errorCode()) {
+               ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+                  val resolvableContext = authResponse.resolvable()
+                  // ... prompt the user for missing required fields based on resolvableContext
+                  navigateToSpecificViewToResolveInterruption(resolvableContext)
+               }
+        }
+    }
+
+When the information is available, call the relevant resolve interface.
+
+    // ... Create a map of serialized parameters (missing profile fields for example).
+    val params = mutableMapOf(key to serializedJsonValue)
+
+    // ... Use the provided resolve interface to resolve the interruption.
+    val resolveResponse =  authenticationService.resolve().pendingRegistrationWith(regToken, params)
+
 
 
 # Support, Feedback, Contributing
