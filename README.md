@@ -25,6 +25,7 @@ The library is available on [MavenCentral](http://sap.com)
 The `SiteConfig` class is designed to encapsulate and manage relevant site-specific data, such as the API key, domain, and other configuration parameters. This class plays a pivotal role in the initialization of the authentication service. By having a `SiteConfig` instance, the authentication service can access necessary site-specific details that are essential for its functionality, ensuring proper configuration and secure operations. Without this class, the authentication service would lack the required settings to authenticate users and interact with the API effectively.
 
 
+    // ... Initialize the configuration object.
     val siteConfig = SiteConfig(context)
 
 The `SiteConfig` class is designed to automatically fetch necessary resources from the `strings.xml` file when provided with the appropriate context. This enables the class to retrieve essential configuration data, such as API keys and domain names, seamlessly.
@@ -83,9 +84,7 @@ The `AuthenticationService` class serves as the primary interface for managing a
 By leveraging the `AuthenticationService` class, clients can efficiently manage and streamline their authentication needs, ensuring a robust and secure authentication process within the SDK.
 
 
-    /**
-    * Initialize authentication service.
-    */
+    // ... Initialize authentication service.
     private var authenticationService = AuthenticationService(siteConfig)
 
 
@@ -98,8 +97,11 @@ Minimizing frustration, developers can implement flexible authentication solutio
 
 
 **Example:**
-
+    
+    // ... Create your credential information map
     val params = mutableMapOf("email" to email, "password" to password)
+
+    // ... Use the "register" authentication inteface to register a new user
     val authResponse: IAuthResponse = authenticationService.authenticate().register(params)
 
 
@@ -184,6 +186,114 @@ When the information is available, call the relevant resolve interface.
     // ... Use the provided resolve interface to resolve the interruption.
     val resolveResponse =  authenticationService.resolve().pendingRegistrationWith(regToken, params)
 
+# Web Screen-Sets
+
+Web Screen-Sets and Integration with Android
+
+Web Screen Sets are dynamic web user interfaces that allow for customized authentication flows. They provide a flexible and customizable way to design and implement user login and registration experiences.
+
+The SDK utilizes the WebBridgeJS object to connect the Android application to Web ScreenSets. This object creates a JavaScript bridge between the native application and a WebView element running the CDC JavaScript SDK.
+
+**How it Works:**
+
+
+1.  WebView: The Android application uses a WebView element to display the Web Screen-Sets. The WebView acts as a container for the web-based UI.
+
+2.  CDC JavaScript SDK.: The Web Screen-Sets are built using the JS CDC SDK, which provides the necessary JavaScript functions and components for authentication flows.
+
+3.  WebBridgeJS: The WebBridgeJS object acts as a communication channel between the native Android and JavaScript code running in the WebView. It enables bidirectional communication, allowing the native application to call JavaScript functions and vice versa.
+
+4.  Customized Authentication Flows: Web Screen-Sets allow for customization of the authentication flow, enabling developers to tailor the user experience to their specific needs. This includes customizing the look and feel of the UI, adding custom logic, and integrating with other services.
+
+
+**Benefits of Using Web Screen-Sets:**
+
+
+*   **Flexibility and Customization:** Web Screen-Sets offer a high degree of flexibility and customization, allowing developers to create unique and engaging user experiences.
+
+*   **Web Technologies:** Leverage the power of web technologies, such as HTML, CSS, and JavaScript, to build dynamic and interactive UIs.
+
+*   **Seamless Integration:** WebBridgeJS provides a seamless integration between the native Android application and the web-based screen-sets.
+
+*   **Reduced Development Effort**: Web Screen-Sets can simplify the development process by allowing developers to reuse existing web development skills and resources.
+
+
+By utilizing Web Screen-Sets and WebBridgeJS, developers can create robust and customizable authentication flows for their Android applications, enhancing the user experience and streamlining the login and registration process.
+
+## WebBridgeJS Usage in ScreenSetView Composable
+
+The ScreenSetView composable function demonstrates the usage of the WebBridgeJS object to integrate and interact with web-based screen-sets within an Android application. Here's a breakdown of how it's used:
+
+
+**Initialization and Configuration**
+
+
+1.  Creating a WebBridgeJS instance:
+
+
+    val webBridgeJS: WebBridgeJS = viewModel.newWebBridgeJS()
+
+A new `WebBridgeJS` instance is created using the `newWebBridgeJS()` method from the `ViewModelScreenSet`. This instance will be used to manage the communication between the native code and the web screen-set.
+
+
+2.  Adding configurations:
+
+
+    webBridgeJS.addConfig(
+            WebBridgeJSConfig.Builder().obfuscate(true).build()
+        )
+
+Configurations are added to the `WebBridgeJS` instance using the `addConfig()` method. In this case, obfuscation is enabled using `WebBridgeJSConfig.Builder().obfuscate(true).build()`.
+
+
+**Attaching to WebView and Setting Authenticators**
+
+
+1.  Attaching to WebView:
+
+
+    webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)
+
+The `attachBridgeTo()` method is called to attach the `WebBridgeJS` instance to the `WebView` element. This establishes the bridge for communication. The `viewModelScope` is passed to manage the lifecycle of the bridge.
+
+
+2.  Setting native social providers: (optional)
+
+
+    webBridgeJS.setNativeSocialProviders(
+            viewModel.identityService.getAuthenticatorMap()
+        )
+
+The `setNativeSocialProviders()` method is used to set the native social providers for authentication. The `AuthenticatorMap` from the `IdentityService` is passed to provide the necessary authenticators.
+
+
+**Registering for Events and Loading Screen-sets**
+
+
+1.  Registering for events:
+
+
+    webBridgeJS.registerForEvents { webBridgeJSEvent ->
+            // Handle events here
+        }
+
+The `registerForEvents()` method is used to register a callback function that will be invoked when events are triggered by the web screen-set. This allows the native code to respond to events from the web UI
+
+
+2.  Loading the screen-set:
+
+
+    webBridgeJS.load(webView, screenSetUrl)
+
+The `load()` method is called to load the web screen-set into the `WebView`. The `screenSetUrl` specifies the URL of the screen-set to be loaded.
+
+
+**Detaching from WebView**
+
+
+    webBridgeJS.detachBridgeFrom(webView)
+
+The `detachBridgeFrom()` method is called to detach the `WebBridgeJS` instance from the `WebView` when the composable is no longer in use. This cleans up the bridge and releases resources.
 
 
 # Support, Feedback, Contributing
