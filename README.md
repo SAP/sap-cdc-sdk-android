@@ -103,6 +103,48 @@ Minimizing frustration, developers can implement flexible authentication solutio
     val params = mutableMapOf("email" to email, "password" to password)
     val authResponse: IAuthResponse = authenticationService.authenticate().register(params)
 
+The IAuthResponse interface provides the relevant authentication state through its properties and methods, allowing you to determine the outcome of an authentication operation.
+
+
+**Key elements for determining authentication state:**
+
+** *state():* **
+
+Returns an AuthState enum value (ERROR, SUCCESS, INTERRUPTED) indicating the overall authentication state.
+
+** *cdcResponse():* **
+
+Provides access to the underlying CDCResponse object, which contains detailed information about the API response, including error codes and messages.
+
+** *resolvable():* **
+
+If the state() is INTERRUPTED, this method returns a ResolvableContext object containing data needed to resolve the interruption and continue the authentication flow.
+
+By examining these elements, you can determine if the authentication was successful, encountered an error, or requires further action.
+
+
+**Example:**
+
+
+    val authResponse: IAuthResponse = // ... perform authentication operation
+    
+    when (authResponse.state()) {
+        AuthState.SUCCESS -> {
+            // Authentication successful, proceed with the application flow
+        }
+        AuthState.ERROR -> {
+            // Authentication failed, handle the error
+            val error = authResponse.toDisplayError()
+            // ... display error message or take corrective action
+        }
+        AuthState.INTERRUPTED -> {
+            // Authentication interrupted, resolve the issue
+            val resolvableContext = authResponse.resolvable()
+            // ... use resolvableContext to gather additional information or perform necessary steps
+        }
+    }
+
+
 # Support, Feedback, Contributing
 
 This project is open to feature requests/suggestions, bug reports, etc. via \[GitHub issues\]([https://github.com/SAP/sap-customer-data-cloud-sdk-for-android/issues](https://github.com/SAP/sap-customer-data-cloud-sdk-for-android/issues) ). Contribution and feedback are encouraged and always welcome. For more information about how to contribute, the project structure, and additional contribution information, see our \[Contribution Guidelines\]([CONTRIBUTING.md](http://CONTRIBUTING.md) ).
