@@ -32,6 +32,8 @@ class SessionService(
 
     fun setSession(sessionJson: String) = sessionSecure.setSession(sessionJson)
 
+    fun securityLevel(): SessionSecureLevel = sessionSecure.encryptionType()
+
     /**
      * "Re-Initialize" the SDK with a different site configuration.
      * Support for multiple session is available.

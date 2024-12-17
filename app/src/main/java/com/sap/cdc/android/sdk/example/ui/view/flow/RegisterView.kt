@@ -32,11 +32,11 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IRegisterViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.RegisterViewModelPreview
 
 @Composable
-fun RegisterView(viewModel: IViewModelAuthentication) {
+fun RegisterView(viewModel: IRegisterViewModel) {
     val context = LocalContext.current
 
     var loading by remember { mutableStateOf(false) }
@@ -141,6 +141,6 @@ fun RegisterView(viewModel: IViewModelAuthentication) {
 @Composable
 fun RegisterViewPreview() {
     AppTheme {
-        RegisterView(ViewModelAuthenticationPreview())
+        RegisterView(RegisterViewModelPreview())
     }
 }

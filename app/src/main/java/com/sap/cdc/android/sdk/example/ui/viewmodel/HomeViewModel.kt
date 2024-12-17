@@ -12,7 +12,7 @@ interface IViewModelHome {
     fun validSession(): Boolean = false
 }
 
-class ViewModelHome(context: Context) : ViewModelBase(context), IViewModelHome {
+class HomeViewModel(context: Context) : BaseViewModel(context), IViewModelHome {
 
     /**
      * Check Identity session state.

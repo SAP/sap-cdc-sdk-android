@@ -57,7 +57,7 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.CustomBottomBar
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfiguration
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ConfigurationViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -181,7 +181,7 @@ fun HomeScaffoldView() {
                     titleText = stringResource(id = MainScreenRoute.Profile.resourceId)
                 }
                 composable(MainScreenRoute.Configuration.route) {
-                    ConfigurationView(viewModel = ViewModelConfiguration(LocalContext.current))
+                    ConfigurationView(viewModel = ConfigurationViewModel(LocalContext.current))
                     titleText = stringResource(id = MainScreenRoute.Configuration.resourceId)
                 }
             }

@@ -36,8 +36,8 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IOtpSignInViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.OtpSignInViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 25/11/2024
@@ -55,7 +55,7 @@ enum class OTPType(val value: Int) {
 
 @Composable
 fun OtpSignInView(
-    viewModel: IViewModelAuthentication,
+    viewModel: IOtpSignInViewModel,
     otpType: OTPType,
 ) {
 
@@ -208,7 +208,7 @@ fun OtpSignInView(
 @Preview
 fun PhoneOtpSignInViewPreview() {
     OtpSignInView(
-        viewModel = ViewModelAuthenticationPreview(),
+        viewModel = OtpSignInViewModelPreview(),
         otpType = OTPType.PHONE
     )
 }

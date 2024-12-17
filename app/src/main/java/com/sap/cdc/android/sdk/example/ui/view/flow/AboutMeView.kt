@@ -26,8 +26,8 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicat
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.TitledText
 import com.sap.cdc.android.sdk.example.ui.view.custom.UpdatableEditBox
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.AboutMeViewModelPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IAboutMeViewModel
 
 
 /**
@@ -39,7 +39,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun AboutMeView(viewModel: IViewModelAuthentication) {
+fun AboutMeView(viewModel: IAboutMeViewModel) {
 
     var loading by remember { mutableStateOf(false) }
     var setError by remember { mutableStateOf("") }
@@ -136,7 +136,7 @@ fun AboutMeView(viewModel: IViewModelAuthentication) {
 @Composable
 fun AboutMeViewPreview() {
     AppTheme {
-        AboutMeView(viewModel = ViewModelAuthenticationPreview())
+        AboutMeView(viewModel = AboutMeViewModelPreview())
     }
 }
 

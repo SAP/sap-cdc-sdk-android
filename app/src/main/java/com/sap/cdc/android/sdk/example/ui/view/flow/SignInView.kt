@@ -35,8 +35,8 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ISignInViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -46,7 +46,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun SignInView(viewModel: IViewModelAuthentication) {
+fun SignInView(viewModel: ISignInViewModel) {
     val context = LocalContext.current
 
     var loading by remember { mutableStateOf(false) }
@@ -174,6 +174,6 @@ fun SignInView(viewModel: IViewModelAuthentication) {
 @Composable
 fun SignInViewPreview() {
     AppTheme {
-        SignInView(viewModel = ViewModelAuthenticationPreview())
+        SignInView(viewModel = SignInViewModelPreview())
     }
 }

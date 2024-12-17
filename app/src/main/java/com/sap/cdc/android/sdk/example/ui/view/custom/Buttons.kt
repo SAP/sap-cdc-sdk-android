@@ -106,6 +106,7 @@ fun IconAndTextOutlineButtonPreview() {
 fun ActionOutlineButton(
     modifier: Modifier,
     text: String,
+    fillMaxWidth: Boolean? = true,
     onClick: () -> Unit,
 ) {
     // Button will use pressed state in addition to ripple effect.
@@ -117,8 +118,13 @@ fun ActionOutlineButton(
     val borderColor = if (isPressed) Color.Black else Color.Black
 
     OutlinedButton(
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = when(fillMaxWidth) {
+            true -> {
+                modifier.fillMaxWidth()
+            }
+            false -> modifier
+            null -> modifier.fillMaxWidth()
+        },
         shape = RoundedCornerShape(6.dp),
         border = BorderStroke(1.dp, borderColor),
         interactionSource = interactionSource,
@@ -149,6 +155,7 @@ fun ActionOutlineButtonPreview() {
 fun ActionOutlineInverseButton(
     modifier: Modifier,
     text: String,
+    fillMaxWidth: Boolean? = true,
     onClick: () -> Unit,
 ) {
     // Button will use pressed state in addition to ripple effect.
@@ -160,8 +167,13 @@ fun ActionOutlineInverseButton(
     val borderColor = if (isPressed) Color.Black else Color.Black
 
     OutlinedButton(
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = when(fillMaxWidth) {
+            true -> {
+                modifier.fillMaxWidth()
+            }
+            false -> modifier
+            null -> modifier.fillMaxWidth()
+        },
         shape = RoundedCornerShape(6.dp),
         border = BorderStroke(1.dp, borderColor),
         interactionSource = interactionSource,

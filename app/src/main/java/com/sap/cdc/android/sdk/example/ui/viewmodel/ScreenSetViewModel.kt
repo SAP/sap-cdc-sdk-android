@@ -18,7 +18,7 @@ interface IViewModelScreenSet {
  */
 class ViewModelScreenSetPreview() : IViewModelScreenSet
 
-class ViewModelScreenSet(context: Context) : ViewModelBase(context), IViewModelScreenSet {
+class ScreenSetViewModel(context: Context) : BaseViewModel(context), IViewModelScreenSet {
 
     override fun newWebBridgeJS(): WebBridgeJS = identityService.getWebBridge()
 }

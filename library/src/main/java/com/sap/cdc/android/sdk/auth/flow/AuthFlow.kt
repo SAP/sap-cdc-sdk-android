@@ -1,8 +1,8 @@
 package com.sap.cdc.android.sdk.auth.flow
 
-import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.AuthResolvers
 import com.sap.cdc.android.sdk.auth.AuthResponse
+import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient

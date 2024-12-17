@@ -9,7 +9,7 @@ import com.sap.cdc.android.sdk.example.ApplicationConfig
  * Copyright: SAP LTD.
  */
 
-interface IViewModelConfiguration {
+interface IConfigurationViewModel {
 
     fun currentApiKey(): String = ""
     fun currentApiDomain(): String = ""
@@ -19,7 +19,7 @@ interface IViewModelConfiguration {
     fun updateWebViewUse(use: Boolean) {}
 }
 
-class ViewModelConfiguration(context: Context) : ViewModelBase(context), IViewModelConfiguration {
+class ConfigurationViewModel(context: Context) : BaseViewModel(context), IConfigurationViewModel {
 
     override fun currentApiKey(): String = identityService.getConfig().apiKey
 
@@ -43,4 +43,4 @@ class ViewModelConfiguration(context: Context) : ViewModelBase(context), IViewMo
 
 }
 
-class ViewModelConfigurationPreview : IViewModelConfiguration
+class ConfigurationPreviewViewModel : IConfigurationViewModel

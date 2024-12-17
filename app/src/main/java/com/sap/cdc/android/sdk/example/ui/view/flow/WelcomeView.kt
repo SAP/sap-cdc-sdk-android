@@ -34,8 +34,8 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicat
 import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IWelcomeViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.WelcomeViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -45,7 +45,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun WelcomeView(viewModel: IViewModelAuthentication) {
+fun WelcomeView(viewModel: IWelcomeViewModel) {
     val context = LocalContext.current
 
     var loading by remember { mutableStateOf(false) }
@@ -142,6 +142,6 @@ fun WelcomeView(viewModel: IViewModelAuthentication) {
 @Composable
 fun WelcomeViewPreview() {
     AppTheme {
-        WelcomeView(ViewModelAuthenticationPreview())
+        WelcomeView(WelcomeViewModelPreview())
     }
 }

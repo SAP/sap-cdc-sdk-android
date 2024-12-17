@@ -35,8 +35,8 @@ import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IPendingRegistrationViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.PendingRegistrationViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -48,8 +48,8 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 
 
 @Composable
-fun PendingRegistrationResolvableView(
-    viewModel: IViewModelAuthentication,
+fun PendingRegistrationView(
+    viewModel: IPendingRegistrationViewModel,
     resolvableContext: ResolvableContext
 ) {
     var loading by remember { mutableStateOf(false) }
@@ -157,9 +157,9 @@ fun PendingRegistrationResolvableView(
 
 @Composable
 @Preview
-fun PendingRegistrationResolvableViewPreview() {
-    PendingRegistrationResolvableView(
-        viewModel = ViewModelAuthenticationPreview(),
+fun PendingRegistrationViewPreview() {
+    PendingRegistrationView(
+        viewModel = PendingRegistrationViewModelPreview(),
         ResolvableContext("", "", "", null, listOf("firstName", "lastName")),
     )
 }

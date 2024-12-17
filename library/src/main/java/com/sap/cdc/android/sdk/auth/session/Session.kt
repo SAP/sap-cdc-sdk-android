@@ -18,7 +18,7 @@ data class Session(
     @SerialName("sessionToken") var token: String,
     @SerialName("sessionSecret") var secret: String,
     @SerialName("expires_in") var expiration: Long? = 0,
-    @SerialName("encryptionType") var encryptionType: SessionEncryption = SessionEncryption.DEFAULT
+    @SerialName("encryptionType") var encryptionType: SessionSecureLevel = SessionSecureLevel.STANDARD
 ) {
 
     companion object {
@@ -33,12 +33,3 @@ data class Session(
 data class SessionInfo(
     @SerialName("sessionInfo") var session: Session
 )
-
-/**
- * Available encryption types.
- * DEFAULT - session will be encrypted in AES256 GCM mode.
- * BIOMETRIC - session will be encrypted using biometric authentication.
- */
-enum class SessionEncryption {
-    DEFAULT, BIOMETRIC
-}

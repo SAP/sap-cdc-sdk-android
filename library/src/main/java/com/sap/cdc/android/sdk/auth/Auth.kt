@@ -9,6 +9,7 @@ import com.sap.cdc.android.sdk.auth.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
+import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.SiteConfig
@@ -108,6 +109,8 @@ interface IAuthSession {
 
     fun resetWithConfig(siteConfig: SiteConfig)
 
+    fun sessionSecurityLevel(): SessionSecureLevel
+
 }
 
 internal class AuthSession(private val sessionService: SessionService) : IAuthSession {
@@ -125,6 +128,8 @@ internal class AuthSession(private val sessionService: SessionService) : IAuthSe
     override fun resetWithConfig(siteConfig: SiteConfig) {
         sessionService.reloadWithSiteConfig(siteConfig)
     }
+
+    override fun sessionSecurityLevel(): SessionSecureLevel = sessionService.securityLevel()
 }
 
 

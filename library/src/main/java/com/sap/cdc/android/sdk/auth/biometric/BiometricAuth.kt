@@ -11,7 +11,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
-import com.sap.cdc.android.sdk.auth.session.SessionEncryption
+import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.serialization.encodeToString
@@ -115,7 +115,7 @@ class BiometricAuth(private val sessionService: SessionService) {
         }
 
         // Encrypt session via cipher
-        session.encryptionType = SessionEncryption.BIOMETRIC
+        session.encryptionType = SessionSecureLevel.BIOMETRIC
         val encryptedSession =
             String(cipher.doFinal(session.toJson().toByteArray(Charset.defaultCharset())))
 

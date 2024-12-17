@@ -19,12 +19,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.flow.EmailRegisterView
 import com.sap.cdc.android.sdk.example.ui.view.flow.EmailSignInView
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.EmailRegisterViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.EmailSignInViewModel
 import kotlinx.coroutines.launch
 
 
@@ -35,12 +36,14 @@ import kotlinx.coroutines.launch
  * Horizontal tab view pager for native UI authentication flows (register,sign in).
  */
 @Composable
-fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
+fun AuthenticationTabView(selected: Int) {
     val tabs = listOf("Register", "Sign In")
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { tabs.size }, initialPage = selected)
     val selectedTabIndex = remember { derivedStateOf { pagerState.currentPage } }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -53,7 +56,7 @@ fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
             indicator = { tabPositions ->
                 // Indicator for the selected tab
                 TabRowDefaults.SecondaryIndicator(
-                    modifier = Modifier.tabIndicatorOffset(tabPositions[ pagerState.currentPage]),
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
                     color = Color.Black
                 )
             }
@@ -84,11 +87,11 @@ fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
             ) {
                 when (selectedTabIndex.value) {
                     0 -> EmailRegisterView(
-                        viewModel = viewModel
+                        viewModel = EmailRegisterViewModel(context)
                     )
 
                     1 -> EmailSignInView(
-                        viewModel = viewModel
+                        viewModel = EmailSignInViewModel(context)
                     )
                 }
             }
@@ -101,7 +104,6 @@ fun AuthenticationTabView(viewModel: IViewModelAuthentication, selected: Int) {
 fun AuthenticationTabViewPreview() {
     AppTheme {
         AuthenticationTabView(
-            viewModel = ViewModelAuthenticationPreview(),
             selected = 0
         )
     }

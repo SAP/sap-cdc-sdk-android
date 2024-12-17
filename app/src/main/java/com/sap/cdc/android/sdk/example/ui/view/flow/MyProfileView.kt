@@ -42,8 +42,8 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.CustomColoredSizeVerticalS
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.UserHead
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IMyProfileViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.MyProfileViewModelPreview
 import kotlin.math.absoluteValue
 
 /**
@@ -88,7 +88,7 @@ fun BottomShadow(alpha: Float = 0.1f, height: Dp = 8.dp) {
  * Profile view representation.
  */
 @Composable
-fun MyProfileView(viewModel: IViewModelAuthentication) {
+fun MyProfileView(viewModel: IMyProfileViewModel) {
     val loading by remember { mutableStateOf(false) }
 
     Column(
@@ -164,7 +164,11 @@ fun MyProfileView(viewModel: IViewModelAuthentication) {
         SelectionRow(title = "Change Password", leadingIcon = R.drawable.ic_change_password_row)
         SelectionRow(title = "Payment Methods", leadingIcon = R.drawable.ic_payment_methods_row)
         SelectionRow(title = "Support", leadingIcon = R.drawable.ic_support_row)
-        SelectionRow(title = "Login Options", leadingIcon = R.drawable.ic_login_options_row)
+
+        SelectionRow(title = "Login Options", leadingIcon = R.drawable.ic_login_options_row) {
+            // Navigate to login options screen.
+            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.LoginOptions.route)
+        }
 
         MediumVerticalSpacer()
 
@@ -249,6 +253,6 @@ fun SelectionRow(title: String, leadingIcon: Int, onClick: () -> Unit = {}) {
 @Composable
 fun MyProfileViewPreview() {
     AppTheme {
-        MyProfileView(ViewModelAuthenticationPreview())
+        MyProfileView(MyProfileViewModelPreview())
     }
 }

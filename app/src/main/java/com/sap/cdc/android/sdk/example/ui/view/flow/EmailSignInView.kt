@@ -33,8 +33,8 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditPasswor
 import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditTextField
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.EmailSignInViewModelPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IEmailSignInViewModel
 
 
 /**
@@ -45,7 +45,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun EmailSignInView(viewModel: IViewModelAuthentication) {
+fun EmailSignInView(viewModel: IEmailSignInViewModel) {
 
     var loading by remember { mutableStateOf(false) }
     var email by remember {
@@ -155,6 +155,6 @@ fun EmailSignInView(viewModel: IViewModelAuthentication) {
 @Composable
 fun EmailSignInViewPreview() {
     AppTheme {
-        EmailSignInView(ViewModelAuthenticationPreview())
+        EmailSignInView(EmailSignInViewModelPreview())
     }
 }

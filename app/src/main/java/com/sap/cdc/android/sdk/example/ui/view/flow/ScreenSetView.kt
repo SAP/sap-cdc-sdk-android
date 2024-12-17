@@ -21,7 +21,7 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelScreenSet
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSConfig
@@ -44,7 +44,7 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun ScreenSetView(viewModel: ViewModelScreenSet, screenSet: String, startScreen: String) {
+fun ScreenSetView(viewModel: ScreenSetViewModel, screenSet: String, startScreen: String) {
 
     val context = LocalContext.current
     var screenSetError by remember { mutableStateOf("") }

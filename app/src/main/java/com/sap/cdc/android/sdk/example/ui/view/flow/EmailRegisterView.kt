@@ -35,8 +35,8 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditTextFie
 import com.sap.cdc.android.sdk.example.ui.view.custom.PasswordNotMatchingError
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.EmailRegisterViewModelPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IEmailRegisterViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -46,7 +46,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun EmailRegisterView(viewModel: IViewModelAuthentication) {
+fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
 
     // Editable variables.
     var name by remember {
@@ -200,6 +200,6 @@ fun EmailRegisterView(viewModel: IViewModelAuthentication) {
 @Composable
 fun EmailRegisterViewPreview() {
     AppTheme {
-        EmailRegisterView(ViewModelAuthenticationPreview())
+        EmailRegisterView(EmailRegisterViewModelPreview())
     }
 }

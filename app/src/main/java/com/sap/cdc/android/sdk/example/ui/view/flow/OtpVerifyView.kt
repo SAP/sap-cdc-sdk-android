@@ -51,8 +51,8 @@ import com.sap.cdc.android.sdk.example.ui.utils.autoFillRequestHandler
 import com.sap.cdc.android.sdk.example.ui.utils.connectNode
 import com.sap.cdc.android.sdk.example.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IOtpVerifyViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.OtpVerifyViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 25/11/2024
@@ -62,7 +62,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun OtpVerifyView(
-    viewModel: IViewModelAuthentication,
+    viewModel: IOtpVerifyViewModel,
     resolvableContext: ResolvableContext,
     otpType: OTPType,
     inputField: String? = null,
@@ -242,7 +242,7 @@ fun OtpVerifyView(
 @Preview
 fun PhoneOtpVerifyView() {
     OtpVerifyView(
-        viewModel = ViewModelAuthenticationPreview(),
+        viewModel = OtpVerifyViewModelPreview(),
         resolvableContext = ResolvableContext(),
         otpType = OTPType.PHONE,
         inputField = ""

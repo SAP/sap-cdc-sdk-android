@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
  *
  * Base class for application view models.
  */
-open class ViewModelBase(context: Context) : ViewModel() {
+open class BaseViewModel(context: Context) : ViewModel() {
 
     /**
      * Available Json interface.

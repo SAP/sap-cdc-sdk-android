@@ -10,6 +10,7 @@ import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
+import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
 import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
@@ -116,6 +117,13 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Check if a valid session is available.
      */
     fun validSession(): Boolean = authenticationService.session().isSessionValid()
+
+
+    /**
+     * Get session security level (STANDARD/BIOMETRIC).
+     */
+    fun sessionSecurityLevel(): SessionSecureLevel =
+        authenticationService.session().sessionSecurityLevel()
 
     //endregion
 

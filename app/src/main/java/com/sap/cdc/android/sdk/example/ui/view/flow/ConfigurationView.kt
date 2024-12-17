@@ -45,8 +45,8 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineInverseButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.CustomColoredSizeVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelConfiguration
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfigurationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ConfigurationPreviewViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.IConfigurationViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -57,7 +57,7 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelConfigurationPrevie
  */
 
 @Composable
-fun ConfigurationView(viewModel: IViewModelConfiguration) {
+fun ConfigurationView(viewModel: IConfigurationViewModel) {
     val context = LocalContext.current
 
     val apiKey = remember { mutableStateOf(viewModel.currentApiKey()) }
@@ -152,7 +152,7 @@ fun ConfigurationView(viewModel: IViewModelConfiguration) {
 @Composable
 fun ConfigurationViewPreview() {
     AppTheme {
-        ConfigurationView(ViewModelConfigurationPreview())
+        ConfigurationView(ConfigurationPreviewViewModel())
     }
 }
 

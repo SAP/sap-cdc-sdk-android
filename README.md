@@ -24,7 +24,10 @@ implementation("")
 The `SiteConfig` class is designed to encapsulate and manage relevant site-specific data, such as the API key, domain, and other configuration parameters. This class plays a pivotal role in the initialization of the authentication service. By having a `SiteConfig` instance, the authentication service can access necessary site-specific details that are essential for its functionality, ensuring proper configuration and secure operations. Without this class, the authentication service would lack the required settings to authenticate users and interact with the API effectively.
 
 
-// ... Initialize the configuration object. val siteConfig = SiteConfig(context)  
+
+     // ... Initialize the configuration object.
+      val siteConfig = SiteConfig(context)  
+
 The `SiteConfig` class is designed to automatically fetch necessary resources from the `strings.xml` file when provided with the appropriate context. This enables the class to retrieve essential configuration data, such as API keys and domain names, seamlessly.
 
 These are the available configuration parameters required for the `SiteConfig` class:
@@ -289,6 +292,7 @@ As members, contributors, and leaders pledge to make participation in our commun
 # Licensing
 
 Copyright 2024 SAP SE or an SAP affiliate company and sap-customer-data-cloud-sdk-for-android contributors. Please see our \[LICENSE\](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available \[via the REUSE tool\]([https://api.reuse.software/info/github.com/SAP/sap-customer-data-cloud-sdk-for-android](https://api.reuse.software/info/github.com/SAP/sap-customer-data-cloud-sdk-for-android) ).
+
 
 
 

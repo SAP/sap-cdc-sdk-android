@@ -8,13 +8,12 @@ import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_
 import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.model.GMIDEntity
 import com.sap.cdc.android.sdk.auth.model.SSOResponseEntity
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.ProviderType
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationData
+import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.util.SSOUtil
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient

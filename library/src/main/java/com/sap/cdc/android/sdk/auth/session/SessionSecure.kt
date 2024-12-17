@@ -107,8 +107,23 @@ internal class SessionSecure(
         }
     }
 
+    /**
+     * Get the session encryption level.
+     */
+    fun encryptionType(): SessionSecureLevel {
+        if (session == null) {
+            return SessionSecureLevel.STANDARD
+        }
+        return session!!.encryptionType
+    }
+
 }
 
+/**
+ * Available encryption types.
+ * STANDARD - session will be encrypted in AES256 GCM mode.
+ * BIOMETRIC - session will be encrypted using biometric authentication.
+ */
 enum class SessionSecureLevel(val value: Int) {
     STANDARD(0), BIOMETRIC(1);
 

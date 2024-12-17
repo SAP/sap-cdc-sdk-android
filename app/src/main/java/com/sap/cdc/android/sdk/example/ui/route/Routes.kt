@@ -37,6 +37,7 @@ sealed class ProfileScreenRoute(
     data object ResolveLinkAccount : ProfileScreenRoute("ResolveLinkAccount")
     data object OTPSignIn : ProfileScreenRoute("OTPSignIn")
     data object OTPVerify : ProfileScreenRoute("OTPVerify")
+    data object LoginOptions: ProfileScreenRoute("LoginOptions")
 }
 
 sealed class ScreenSetsRoute(

@@ -1,6 +1,5 @@
 package com.sap.cdc.android.sdk.screensets
 
-import android.util.Log
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT

@@ -43,8 +43,8 @@ import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
-import com.sap.cdc.android.sdk.example.ui.viewmodel.IViewModelAuthentication
-import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPreview
+import com.sap.cdc.android.sdk.example.ui.viewmodel.ILinkAccountViewModel
+import com.sap.cdc.android.sdk.example.ui.viewmodel.LinkAccountViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -55,8 +55,8 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.ViewModelAuthenticationPrevi
  */
 
 @Composable
-fun LinkAccountResolvableView(
-    viewModel: IViewModelAuthentication,
+fun LinkAccountView(
+    viewModel: ILinkAccountViewModel,
     resolvable: ResolvableContext,
 ) {
     var loading by remember { mutableStateOf(false) }
@@ -266,9 +266,9 @@ fun LinkAccountResolvableView(
 
 @Preview
 @Composable
-fun LinkAccountResolvableViewPreview() {
-    LinkAccountResolvableView(
-        viewModel = ViewModelAuthenticationPreview(),
+fun LinkAccountViewPreview() {
+    LinkAccountView(
+        viewModel = LinkAccountViewModelPreview(),
         resolvable = ResolvableContext(
             "", "", "", conflictingAccounts = ConflictingAccountsEntity(
                 mutableListOf("site", "google", "facebook"),

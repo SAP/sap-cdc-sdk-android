@@ -2,7 +2,6 @@ package com.sap.cdc.android.sdk.screensets
 
 import android.net.Uri
 import android.util.Base64
-import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
