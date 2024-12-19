@@ -27,7 +27,7 @@ class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGOUT)
         if (!logoutResponse.isError()) {
             // Invalidate session if the response does not contain any errors.
-            sessionService.clearSession()
+            sessionService.invalidateSession()
             clearCookies()
         }
         return AuthResponse(logoutResponse)

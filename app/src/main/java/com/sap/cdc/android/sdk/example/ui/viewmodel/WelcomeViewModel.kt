@@ -48,6 +48,5 @@ class WelcomeViewModel(context: Context) : BaseViewModel(context), IWelcomeViewM
                 }
             }
         }
-
     }
 }

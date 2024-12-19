@@ -183,8 +183,7 @@ class WebAuthenticationProvider(
         return Session(
             sessionToken!!,
             sessionSecret!!,
-            sessionExpiration!!,
-            SessionSecureLevel.STANDARD
+            sessionExpiration!!
         )
     }
 

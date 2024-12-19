@@ -65,7 +65,7 @@ class AuthenticationApi(
      * Sign the request if session is valid.
      */
     private fun signRequestIfNeeded(request: CDCRequest) {
-        if (sessionService.validSession()) {
+        if (sessionService.availableSession()) {
             val session = sessionService.getSession()
             request.authenticated(session!!.token)
             request.sign(session.secret)

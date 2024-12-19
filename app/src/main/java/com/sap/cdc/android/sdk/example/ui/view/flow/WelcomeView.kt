@@ -1,6 +1,8 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
 import androidx.activity.ComponentActivity
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import com.sap.cdc.android.sdk.example.ApplicationConfig
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
@@ -32,6 +36,7 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.ActionTextButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.CustomSizeVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LoadingStateColumn
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IWelcomeViewModel
@@ -51,8 +56,8 @@ fun WelcomeView(viewModel: IWelcomeViewModel) {
     var loading by remember { mutableStateOf(false) }
     var ssoError by remember { mutableStateOf("") }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    LoadingStateColumn(
+        loading = loading,
         modifier = Modifier
             .background(Color.White)
             .fillMaxWidth()
@@ -130,11 +135,6 @@ fun WelcomeView(viewModel: IWelcomeViewModel) {
                 text = ssoError
             )
         }
-    }
-
-    // Loading indicator on top of all views.
-    Box(Modifier.fillMaxWidth()) {
-        IndeterminateLinearIndicator(loading)
     }
 }
 

@@ -1,16 +1,29 @@
 package com.sap.cdc.android.sdk.example.ui.viewmodel
 
 import android.content.Context
+import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthState
+import com.sap.cdc.android.sdk.auth.biometric.BiometricAuth
+import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.example.cdc.model.AccountEntity
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executor
 
 interface IAccountViewModel {
+
+    fun promptBiometricUnlockIfNeeded(
+        activity: FragmentActivity,
+        promptInfo: BiometricPrompt.PromptInfo,
+        executor: Executor
+    ) {
+        // Stub
+    }
 
     fun accountInfo(): AccountEntity? = null
 
@@ -35,8 +48,10 @@ class AccountViewModel(context: Context) : BaseViewModel(context), IAccountViewM
     override fun accountInfo(): AccountEntity? = accountInfo
 
     init {
-        // request account information on view model initialization.
-        getAccountInfo(mutableMapOf(), success = {}, onFailed = {})
+        if (identityService.sessionSecurityLevel() == SessionSecureLevel.STANDARD) {
+            // request account information on view model initialization.
+            getAccountInfo(mutableMapOf(), success = {}, onFailed = {})
+        }
     }
 
     /**
@@ -47,7 +62,7 @@ class AccountViewModel(context: Context) : BaseViewModel(context), IAccountViewM
         success: () -> Unit,
         onFailed: (CDCError) -> Unit
     ) {
-        if (!identityService.validSession()) {
+        if (!identityService.availableSession()) {
             return
         }
         viewModelScope.launch {

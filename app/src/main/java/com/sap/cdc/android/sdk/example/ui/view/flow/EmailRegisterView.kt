@@ -29,6 +29,7 @@ import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LoadingStateColumn
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditPasswordTextField
 import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditTextField
@@ -74,12 +75,8 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
 
     // UI elements.
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .background(Color.White)
-            .fillMaxWidth()
-            .fillMaxHeight()
+    LoadingStateColumn(
+        loading = loading
     ) {
 
         LargeVerticalSpacer()
@@ -187,11 +184,6 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
                 )
             }
         }
-    }
-
-    // Loading indicator on top of all views.
-    Box(Modifier.fillMaxWidth()) {
-        IndeterminateLinearIndicator(loading)
     }
 }
 

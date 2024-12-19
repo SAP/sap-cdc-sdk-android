@@ -97,15 +97,13 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
 
 interface IAuthSession {
 
-    fun isSessionValid(): Boolean
+    fun availableSession(): Boolean
 
     fun getSession(): Session?
 
     fun clearSession()
 
     fun setSession(session: Session)
-
-    fun setSession(sessionJson: String)
 
     fun resetWithConfig(siteConfig: SiteConfig)
 
@@ -115,21 +113,19 @@ interface IAuthSession {
 
 internal class AuthSession(private val sessionService: SessionService) : IAuthSession {
 
-    override fun isSessionValid(): Boolean = sessionService.validSession()
+    override fun availableSession(): Boolean = sessionService.availableSession()
 
     override fun getSession(): Session? = sessionService.getSession()
 
-    override fun clearSession() = sessionService.clearSession()
+    override fun clearSession() = sessionService.invalidateSession()
 
     override fun setSession(session: Session) = sessionService.setSession(session)
-
-    override fun setSession(sessionJson: String) = sessionService.setSession(sessionJson)
 
     override fun resetWithConfig(siteConfig: SiteConfig) {
         sessionService.reloadWithSiteConfig(siteConfig)
     }
 
-    override fun sessionSecurityLevel(): SessionSecureLevel = sessionService.securityLevel()
+    override fun sessionSecurityLevel(): SessionSecureLevel = sessionService.sessionSecureLevel()
 }
 
 

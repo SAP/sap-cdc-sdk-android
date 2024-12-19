@@ -86,7 +86,7 @@ class WebBridgeJSApiService(
                     params = params,
                     containerId
                 ) {
-                    authenticationService.sessionService.clearSession()
+                    authenticationService.sessionService.invalidateSession()
                 }
             }
 

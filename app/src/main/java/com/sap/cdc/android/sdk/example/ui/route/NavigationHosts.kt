@@ -101,7 +101,7 @@ fun ProfileNavHost() {
 
     NavHost(
         profileNavController, startDestination =
-        when (IdentityServiceRepository.getInstance(LocalContext.current).validSession()) {
+        when (IdentityServiceRepository.getInstance(LocalContext.current).availableSession()) {
             true -> ProfileScreenRoute.MyProfile.route
             false -> ProfileScreenRoute.Welcome.route
         }

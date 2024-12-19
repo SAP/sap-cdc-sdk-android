@@ -5,7 +5,9 @@ import android.content.SharedPreferences
 import android.util.Base64
 import android.util.Log
 import com.sap.cdc.android.sdk.auth.AuthenticationService
+import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
+import kotlinx.serialization.json.Json
 import java.math.BigInteger
 import java.security.KeyStore
 import java.util.Arrays
@@ -57,13 +59,14 @@ class SessionMigrator(private val context: Context) {
             failure()
         }
         getSession(
-            success = { session ->
-                if (session == null) {
+            success = { sessionJson ->
+                if (sessionJson == null) {
                     failure()
                     return@getSession
                 }
                 // Set the session.
-                authenticationService.session().setSession(session!!)
+                val session: Session = Json.decodeFromString(sessionJson)
+                authenticationService.session().setSession(session)
                 success()
             },
             error = { message ->

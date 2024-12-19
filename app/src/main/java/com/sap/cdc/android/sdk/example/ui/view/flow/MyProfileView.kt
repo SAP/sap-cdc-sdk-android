@@ -40,6 +40,7 @@ import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.CustomColoredSizeVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
+import com.sap.cdc.android.sdk.example.ui.view.custom.LoadingStateColumn
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.UserHead
 import com.sap.cdc.android.sdk.example.ui.viewmodel.IMyProfileViewModel
@@ -91,7 +92,8 @@ fun BottomShadow(alpha: Float = 0.1f, height: Dp = 8.dp) {
 fun MyProfileView(viewModel: IMyProfileViewModel) {
     val loading by remember { mutableStateOf(false) }
 
-    Column(
+    LoadingStateColumn(
+        loading = loading,
         modifier = Modifier
             .background(Color.LightGray)
             .fillMaxWidth()
@@ -198,16 +200,6 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
     Box(Modifier.fillMaxWidth()) {
         IndeterminateLinearIndicator(loading)
     }
-
-    // Request account info.
-    viewModel.getAccountInfo(
-        success = {
-            Log.d("ViewMyProfile", "Get account info success")
-        },
-        onFailed = {
-            Log.e("ViewMyProfile", "Get account info failed")
-        }
-    )
 }
 
 @Composable

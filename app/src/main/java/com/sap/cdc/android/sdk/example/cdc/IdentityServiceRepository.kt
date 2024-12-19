@@ -47,7 +47,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Initialize authentication service.
      */
-    private var authenticationService = AuthenticationService(siteConfig)
+    var authenticationService = AuthenticationService(siteConfig)
 
     /**
      * Authentication providers map.
@@ -116,7 +116,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Check if a valid session is available.
      */
-    fun validSession(): Boolean = authenticationService.session().isSessionValid()
+    fun availableSession(): Boolean = authenticationService.session().availableSession()
 
 
     /**

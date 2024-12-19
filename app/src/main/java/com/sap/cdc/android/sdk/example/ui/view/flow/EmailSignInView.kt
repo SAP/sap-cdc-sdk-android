@@ -27,7 +27,9 @@ import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
+import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LoadingStateColumn
 import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditPasswordTextField
 import com.sap.cdc.android.sdk.example.ui.view.custom.OutlineTitleAndEditTextField
@@ -59,12 +61,8 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
     val focusManager = LocalFocusManager.current
 
     //UI elements
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .background(Color.White)
-            .fillMaxWidth()
-            .fillMaxHeight()
+    LoadingStateColumn(
+        loading
     ) {
 
         LargeVerticalSpacer()
@@ -102,7 +100,7 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
                 onValueChange = {
                     password = it
                 },
-                onEyeClick = { passwordVisible  = it },
+                onEyeClick = { passwordVisible = it },
                 focusManager = focusManager
             )
 

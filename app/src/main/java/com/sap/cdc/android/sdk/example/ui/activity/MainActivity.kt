@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.flow.HomeScaffoldView
@@ -19,7 +20,7 @@ import kotlinx.coroutines.launch
  *
  * Main application activity class.
  */
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashscreen = installSplashScreen()
         var keepSplashScreen = true
