@@ -15,6 +15,7 @@ interface IAboutMeViewModel : IAccountViewModel {
     fun updateAccountInfoWith(name: String, success: () -> Unit, onFailed: (CDCError) -> Unit) {
         //Stub
     }
+
 }
 
 /**

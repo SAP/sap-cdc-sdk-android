@@ -1,6 +1,5 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
-import android.util.Log
 import androidx.annotation.ColorInt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -149,7 +148,7 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
             )
         }
 
-        CustomColoredSizeVerticalSpacer(80.dp, Color.White)
+        CustomColoredSizeVerticalSpacer(40.dp, Color.White)
 
         SelectionRow(title = "My Orders", leadingIcon = R.drawable.ic_cart_row)
         Spacer(

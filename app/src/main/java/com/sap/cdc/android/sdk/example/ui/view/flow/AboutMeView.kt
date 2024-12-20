@@ -105,7 +105,7 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
         if (setError.isNotEmpty()) {
             SimpleErrorMessages(setError)
         }
-
+        
         // Save Changes button
         ActionOutlineInverseButton(
             modifier = Modifier.padding(start = 40.dp, end = 40.dp),
