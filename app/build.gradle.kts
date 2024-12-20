@@ -26,10 +26,15 @@ android {
     signingConfigs {
 
         getByName("debug") {
-            keyAlias = findProperty("exampleComposeKeyAlias") as String
-            keyPassword = findProperty("exampleComposeKeyPassword") as String
-            storeFile = file("keystore/debug")
-            storePassword = findProperty("exampleComposeStorePassword") as String
+            storeFile = file("keystore/debug-key.keystore")
+            storePassword = "android"
+            keyAlias = "key0"
+            keyPassword = "android"
+
+//            keyAlias = findProperty("exampleComposeKeyAlias") as String
+//            keyPassword = findProperty("exampleComposeKeyPassword") as String
+//            storeFile = file("keystore/debug")
+//            storePassword = findProperty("exampleComposeStorePassword") as String
         }
     }
 

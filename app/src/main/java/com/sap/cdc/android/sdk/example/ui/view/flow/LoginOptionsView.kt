@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.example.ui.view.flow
 
+import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.background
@@ -58,7 +59,11 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             title = "Passwordless Login",
             status = "Activated",
             actionLabel = "Deactivate",
-            onClick = { /* Handle deactivation */ },
+            onClick = {
+                viewModel.createPasskey(
+                    context as ComponentActivity
+                )
+            },
             inverse = false
         )
         OptionCard(

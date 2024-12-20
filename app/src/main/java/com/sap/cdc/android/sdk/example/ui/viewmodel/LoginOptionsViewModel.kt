@@ -1,13 +1,16 @@
 package com.sap.cdc.android.sdk.example.ui.viewmodel
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 
 interface ILoginOptionsViewModel {
@@ -44,6 +47,11 @@ interface ILoginOptionsViewModel {
         // Stub.
     }
 
+    fun createPasskey(
+        hostActivity: ComponentActivity,
+    ) {
+        //Stub
+    }
 }
 
 /**
@@ -147,6 +155,14 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
                 biometricLock = false
             }
         )
+    }
+
+    override fun createPasskey(
+        hostActivity: ComponentActivity,
+    ) {
+        viewModelScope.launch {
+            identityService.createPasskey(hostActivity)
+        }
     }
 }
 

@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.flow.AccountAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LoginAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LogoutAuthFlow
+import com.sap.cdc.android.sdk.auth.flow.PasskeysAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.auth.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
@@ -173,6 +174,10 @@ interface IAuthApis {
      * Log out of current account interface
      */
     suspend fun logout(): IAuthResponse
+
+    suspend fun createPasskey(
+        hostActivity: ComponentActivity,
+    ): IAuthResponse
 }
 
 /**
@@ -238,6 +243,17 @@ internal class AuthApis(
     override suspend fun logout(): IAuthResponse {
         val flow = LogoutAuthFlow(coreClient, sessionService)
         return flow.logout()
+    }
+
+    override suspend fun createPasskey(
+        hostActivity: ComponentActivity,
+    ): IAuthResponse {
+        val flow =
+            PasskeysAuthFlow(
+                coreClient, sessionService,
+                weakActivity = WeakReference(hostActivity)
+            )
+        return flow.createPasskey()
     }
 
 }

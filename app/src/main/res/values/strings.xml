@@ -37,5 +37,11 @@
     <string name="resolve_link_account">Resolve Link Account\n</string>
     <string name="email_sign_in">email_sign_in</string>
 
+    <string name="asset_statements" translatable="false">
+        [{
+        \"include\": \"https://sagi.gigya-cs.com/.well-known/assetlinks.json\"
+        }]
+    </string>
+
 
 </resources>

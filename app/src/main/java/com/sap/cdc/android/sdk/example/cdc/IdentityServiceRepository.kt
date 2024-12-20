@@ -160,6 +160,12 @@ class IdentityServiceRepository private constructor(context: Context) {
         return authenticationService.set().setAccountInfo(parameters)
     }
 
+    suspend fun createPasskey(
+        hostActivity: ComponentActivity
+    ): IAuthResponse {
+        return authenticationService.authenticate().createPasskey(hostActivity)
+    }
+
     /**
      * Logout from current CDC session.
      */
