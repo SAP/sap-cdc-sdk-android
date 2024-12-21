@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.core.api
 
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.core.network.HttpExceptions
 import io.ktor.http.HttpStatusCode
@@ -47,6 +48,14 @@ class CDCResponse {
         )
     }
 
+    internal fun fromException(e: Exception) = apply {
+        fromError(
+            -1,
+            e.localizedMessage ?: "Exception",
+            e.message ?: "Unknown error",
+        )
+    }
+
     internal fun fromHttpException(e: HttpExceptions) = apply {
         val statusCode: HttpStatusCode = e.response.status
         fromError(
@@ -74,7 +83,6 @@ class CDCResponse {
             "Provider configuration error"
         )
     }
-
 
 
     /**
@@ -118,7 +126,17 @@ class CDCResponse {
     /**
      * Determine of the response is considered as an error according to current backend schema.
      */
-    fun isError(): Boolean = errorCode() != null && errorCode() != 0
+    fun isError(): Boolean {
+        val isError = errorCode() != null && errorCode() != 0
+        if (isError) {
+            CDCDebuggable.log(
+                "CDCResponse",
+                "Error: ${errorCode()} - ${errorMessage()} - ${errorDetails()}"
+            )
+            return true
+        }
+        return false
+    }
 
     /**
      * Check if the CxResponse Json contains an element with key.

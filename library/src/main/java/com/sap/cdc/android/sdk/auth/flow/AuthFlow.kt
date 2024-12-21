@@ -8,6 +8,7 @@ import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.extensions.parseRequiredMissingFieldsForRegistration
+import kotlinx.serialization.json.Json
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -17,6 +18,12 @@ import com.sap.cdc.android.sdk.extensions.parseRequiredMissingFieldsForRegistrat
 open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionService) {
 
     var parameters: MutableMap<String, String> = mutableMapOf()
+
+    internal val json = Json {
+        prettyPrint = true
+        isLenient = true
+        ignoreUnknownKeys = true
+    }
 
     /**
      * Params setter/accumulator.
@@ -53,7 +60,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     suspend fun initResolvableState(authResponse: AuthResponse) {
         // Init auth resolvable entity with RegToken field.
         if (authResponse.isResolvable()) {
-            val resolvableContext = ResolvableContext(authResponse.cdcResponse().stringField("regToken"))
+            val resolvableContext =
+                ResolvableContext(authResponse.cdcResponse().stringField("regToken"))
             val resolve = AuthResolvers(coreClient, sessionService)
             when (authResponse.cdcResponse().errorCode()) {
                 ResolvableContext.ERR_NONE -> {

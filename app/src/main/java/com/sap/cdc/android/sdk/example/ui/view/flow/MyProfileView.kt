@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -89,7 +90,7 @@ fun BottomShadow(alpha: Float = 0.1f, height: Dp = 8.dp) {
  */
 @Composable
 fun MyProfileView(viewModel: IMyProfileViewModel) {
-    val loading by remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(false) }
 
     LoadingStateColumn(
         loading = loading,

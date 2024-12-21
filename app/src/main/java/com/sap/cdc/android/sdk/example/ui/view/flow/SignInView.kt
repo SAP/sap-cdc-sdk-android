@@ -65,7 +65,7 @@ fun SignInView(viewModel: ISignInViewModel) {
         LargeVerticalSpacer()
         Text("Sign In", style = AppTheme.typography.titleLarge)
         SmallVerticalSpacer()
-        Text("Use your preferred method",  style = AppTheme.typography.body)
+        Text("Use your preferred method", style = AppTheme.typography.body)
         MediumVerticalSpacer()
 
         // Social selection view
@@ -119,7 +119,15 @@ fun SignInView(viewModel: ISignInViewModel) {
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Passwordless",
             onClick = {
-                NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
+                viewModel.passkeySignIn(
+                    context as ComponentActivity,
+                    success = {
+                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                    },
+                    onFailed = { error ->
+                        signInError = error.errorDescription!!
+                    }
+                )
             },
             iconResourceId = R.drawable.ic_faceid,
 

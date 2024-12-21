@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class InitRegisterCredentialsEntity(
+data class OptionsResponseModel(
     val token: String,
     val options: String
 )

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineInverseButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
+import com.sap.cdc.android.sdk.example.ui.view.custom.LoadingStateColumn
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.TitledText
 import com.sap.cdc.android.sdk.example.ui.view.custom.UpdatableEditBox
@@ -53,7 +54,8 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
 
     // UI elements
 
-    Column(
+    LoadingStateColumn(
+        loading = loading,
         modifier = Modifier
             .background(Color.White)
             .fillMaxWidth()
@@ -105,7 +107,7 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
         if (setError.isNotEmpty()) {
             SimpleErrorMessages(setError)
         }
-        
+
         // Save Changes button
         ActionOutlineInverseButton(
             modifier = Modifier.padding(start = 40.dp, end = 40.dp),

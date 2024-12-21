@@ -17,7 +17,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +33,10 @@ import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineInverseButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.LargeHorizontalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.LoadingStateColumn
+import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
+import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ILoginOptionsViewModel
 import com.sap.cdc.android.sdk.example.ui.viewmodel.LoginOptionsViewModelPreview
@@ -44,15 +51,17 @@ import com.sap.cdc.android.sdk.example.ui.viewmodel.LoginOptionsViewModelPreview
 fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     val context = LocalContext.current
     val executor = remember { ContextCompat.getMainExecutor(context) }
+    var loading by remember { mutableStateOf(false) }
+    var displayError by remember { mutableStateOf("") }
+
 
     // UI elements.
-
-    Column(
+    LoadingStateColumn(
+        loading = loading,
         modifier = Modifier
             .background(Color.White)
             .fillMaxWidth()
             .fillMaxHeight(),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // Option cards
         OptionCard(
@@ -60,12 +69,21 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = "Activated",
             actionLabel = "Deactivate",
             onClick = {
+                loading = true
                 viewModel.createPasskey(
-                    context as ComponentActivity
+                    context as ComponentActivity,
+                    success = {
+                        loading = false
+                    },
+                    onFailed = { error ->
+                        loading = false
+                        displayError = error.errorDescription!!
+                    }
                 )
             },
             inverse = false
         )
+        SmallVerticalSpacer()
         OptionCard(
             title = "Push 2-Factor Authentication",
             status = "Deactivated",
@@ -73,6 +91,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             onClick = { /* Handle activation */ },
             inverse = false
         )
+        SmallVerticalSpacer()
         OptionCard(
             title = "Biometrics",
             status = when (viewModel.isBiometricActive()) {
@@ -111,6 +130,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             },
             inverse = !viewModel.isBiometricActive()
         )
+        SmallVerticalSpacer()
 
         // Biometrics lock toggle
         Row(
@@ -143,6 +163,15 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                         }
                     }
                 }
+            )
+        }
+
+        LargeVerticalSpacer()
+
+        // Error message
+        if (displayError.isNotEmpty()) {
+            SimpleErrorMessages(
+                text = displayError
             )
         }
     }

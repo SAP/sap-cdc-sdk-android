@@ -8,8 +8,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
+import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
+import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 
@@ -49,6 +51,7 @@ interface ILoginOptionsViewModel {
 
     fun createPasskey(
         hostActivity: ComponentActivity,
+        success: () -> Unit, onFailed: (CDCError) -> Unit,
     ) {
         //Stub
     }
@@ -159,9 +162,19 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
 
     override fun createPasskey(
         hostActivity: ComponentActivity,
+        success: () -> Unit, onFailed: (CDCError) -> Unit,
     ) {
         viewModelScope.launch {
-            identityService.createPasskey(hostActivity)
+            val authResponse = identityService.createPasskey(hostActivity)
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    success()
+                }
+
+                else -> {
+                    onFailed(authResponse.toDisplayError()!!)
+                }
+            }
         }
     }
 }
