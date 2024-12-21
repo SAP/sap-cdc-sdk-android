@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.example.social
+package com.sap.cdc.android.sdk.example.cdc.social
 
 import android.content.Context
 import android.util.Log

@@ -29,17 +29,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.sap.cdc.android.sdk.example.cdc.auth.PasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.ActionOutlineInverseButton
 import com.sap.cdc.android.sdk.example.ui.view.custom.LargeHorizontalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.LargeVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.LoadingStateColumn
-import com.sap.cdc.android.sdk.example.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ILoginOptionsViewModel
 import com.sap.cdc.android.sdk.example.ui.viewmodel.LoginOptionsViewModelPreview
+import java.lang.ref.WeakReference
 
 
 /**
@@ -54,6 +55,9 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     var loading by remember { mutableStateOf(false) }
     var displayError by remember { mutableStateOf("") }
 
+    val passkeysAuthenticationProvider = PasskeysAuthenticationProvider(
+        weakActivity = WeakReference(context as ComponentActivity)
+    )
 
     // UI elements.
     LoadingStateColumn(
@@ -70,8 +74,8 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             actionLabel = "Deactivate",
             onClick = {
                 loading = true
-                viewModel.deletePasskey(
-                    context as ComponentActivity,
+                viewModel.createPasskey(
+                    authenticationProvider = passkeysAuthenticationProvider,
                     success = {
                         loading = false
                     },

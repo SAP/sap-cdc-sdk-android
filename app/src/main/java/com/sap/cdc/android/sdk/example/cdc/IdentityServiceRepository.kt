@@ -7,15 +7,16 @@ import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.example.social.FacebookAuthenticationProvider
-import com.sap.cdc.android.sdk.example.social.GoogleAuthenticationProvider
-import com.sap.cdc.android.sdk.example.social.LineAuthenticationProvider
-import com.sap.cdc.android.sdk.example.social.WeChatAuthenticationProvider
+import com.sap.cdc.android.sdk.example.cdc.social.FacebookAuthenticationProvider
+import com.sap.cdc.android.sdk.example.cdc.social.GoogleAuthenticationProvider
+import com.sap.cdc.android.sdk.example.cdc.social.LineAuthenticationProvider
+import com.sap.cdc.android.sdk.example.cdc.social.WeChatAuthenticationProvider
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 
 /**
@@ -161,21 +162,21 @@ class IdentityServiceRepository private constructor(context: Context) {
     }
 
     suspend fun createPasskey(
-        hostActivity: ComponentActivity
+        authenticationProvider: IPasskeysAuthenticationProvider,
     ): IAuthResponse {
-        return authenticationService.authenticate().createPasskey(hostActivity)
+        return authenticationService.authenticate().createPasskey(authenticationProvider)
     }
 
     suspend fun passkeySignIn(
-        hostActivity: ComponentActivity,
+        authenticationProvider: IPasskeysAuthenticationProvider,
     ): IAuthResponse {
-        return authenticationService.authenticate().passkeySignIn(hostActivity)
+        return authenticationService.authenticate().passkeySignIn(authenticationProvider)
     }
 
     suspend fun deletePasskey(
-        hostActivity: ComponentActivity
+        authenticationProvider: IPasskeysAuthenticationProvider,
     ): IAuthResponse {
-        return authenticationService.authenticate().clearPasskey(hostActivity)
+        return authenticationService.authenticate().clearPasskey(authenticationProvider)
     }
 
     /**

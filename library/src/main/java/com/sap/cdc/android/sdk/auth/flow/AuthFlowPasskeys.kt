@@ -2,15 +2,6 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import android.annotation.SuppressLint
 import android.util.Base64
-import androidx.activity.ComponentActivity
-import androidx.credentials.CreateCredentialResponse
-import androidx.credentials.CreatePublicKeyCredentialRequest
-import androidx.credentials.CreatePublicKeyCredentialResponse
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.GetCredentialResponse
-import androidx.credentials.GetPublicKeyCredentialOption
-import androidx.credentials.PublicKeyCredential
 import androidx.credentials.exceptions.GetCredentialException
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_AUTHORIZE
@@ -25,19 +16,18 @@ import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_VERIFY_A
 import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.model.CreateCredentialResultEntity
 import com.sap.cdc.android.sdk.auth.model.GetCredentialResultEntity
 import com.sap.cdc.android.sdk.auth.model.OptionsResponseModel
+import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import kotlinx.serialization.SerializationException
-import java.lang.ref.WeakReference
 
 class PasskeysAuthFlow(
     coreClient: CoreClient,
     sessionService: SessionService,
-    private val weakActivity: WeakReference<ComponentActivity>? = null
+    private val authenticationProvider: IPasskeysAuthenticationProvider
 ) : AuthFlow(coreClient, sessionService) {
 
     companion object {
@@ -58,33 +48,13 @@ class PasskeysAuthFlow(
                 initResponse.serializeTo<OptionsResponseModel>()
                     ?: // End flow with error.
                     return AuthResponse(initResponse)
+
             // Use credentials manager to create the passkey.
-            val credentialManager =
-                weakActivity?.get()?.let { CredentialManager.create(it) } ?: return AuthResponse(
-                    initResponse
-                )
-            val createPublicKeyCredentialRequest = CreatePublicKeyCredentialRequest(
-                // Contains the request in JSON format. Uses the standard WebAuthn
-                // web JSON spec.
-                requestJson = initRegisterCredentialsEntity.options,
-                // Defines whether you prefer to use only immediately available credentials,
-                // not hybrid credentials, to fulfill this request. This value is false
-                // by default.
-                preferImmediatelyAvailableCredentials = false,
-            )
+            val registrationResponseJson =
+                authenticationProvider.getPasskey(initRegisterCredentialsEntity.options)
 
-            // Use the createCredential method to create the passkey.
-            val result: CreateCredentialResponse = credentialManager.createCredential(
-                request = createPublicKeyCredentialRequest,
-                context = weakActivity.get()!!,
-            )
             // Check for correct response
-            if (result is CreatePublicKeyCredentialResponse) {
-                // Parse response data for attestation object.
-                val registrationResponseJson = result.registrationResponseJson
-                val parsedRegistrationResponse =
-                    json.decodeFromString<CreateCredentialResultEntity>(registrationResponseJson)
-
+            if (registrationResponseJson != null) {
                 // Debug logs
                 CDCDebuggable.log(
                     LOG_TAG,
@@ -156,35 +126,15 @@ class PasskeysAuthFlow(
                     return AuthResponse(assertionOptionsResponse)
 
             // Use credentials manager get the passkey.
-            val credentialManager =
-                weakActivity?.get()?.let { CredentialManager.create(it) } ?: return AuthResponse(
-                    assertionOptionsResponse
-                )
-            // Get passkeys from the user's public key credential provider.
-            val getPublicKeyCredentialOption = GetPublicKeyCredentialOption(
-                requestJson = optionsResponseModel.options,
-            )
+            val authenticationResponseJson =
+                authenticationProvider.getPasskey(optionsResponseModel.options)
 
-            val getCredRequest = GetCredentialRequest(
-                listOf(getPublicKeyCredentialOption)
-            )
-
-            val result: GetCredentialResponse = credentialManager.getCredential(
-                // Use an activity-based context to avoid undefined system UI
-                // launching behavior.
-                context = weakActivity.get()!!,
-                request = getCredRequest
-            )
-
-            val credential = result.credential
-            if (credential is PublicKeyCredential) {
-                val responseJson = credential.authenticationResponseJson
-
+            if (authenticationResponseJson != null) {
                 // Verify assertion.
                 // Debug logs
                 CDCDebuggable.log(
                     LOG_TAG,
-                    "authenticateWithPasskey: authenticatorAssertion:\n $responseJson"
+                    "authenticateWithPasskey: authenticatorAssertion:\n $authenticationResponseJson"
                 )
                 CDCDebuggable.log(
                     LOG_TAG,
@@ -193,7 +143,7 @@ class PasskeysAuthFlow(
 
                 val verifyAssertionParameters = mutableMapOf(
                     "token" to optionsResponseModel.token,
-                    "authenticatorAssertion" to responseJson
+                    "authenticatorAssertion" to authenticationResponseJson
                 )
                 val verifyAssertionResponse =
                     AuthenticationApi(coreClient, sessionService).genericSend(
@@ -267,37 +217,19 @@ class PasskeysAuthFlow(
                     ?: // End flow with error.
                     return AuthResponse(assertionOptionsResponse)
 
-            val credentialManager =
-                weakActivity?.get()?.let { CredentialManager.create(it) }
-
             // Get passkeys from the user's public key credential provider.
-            val getPublicKeyCredentialOption = GetPublicKeyCredentialOption(
-                requestJson = optionsResponseModel.options,
-            )
+            val authenticationResponseJson =
+                authenticationProvider.getPasskey(optionsResponseModel.options)
 
-            val getCredRequest = GetCredentialRequest(
-                listOf(getPublicKeyCredentialOption)
-            )
-
-            val result: GetCredentialResponse = credentialManager!!.getCredential(
-                // Use an activity-based context to avoid undefined system UI
-                // launching behavior.
-                context = weakActivity!!.get()!!,
-                request = getCredRequest
-            )
-
-            val credential = result.credential
-            if (credential is PublicKeyCredential) {
-
-                val responseJson = credential.authenticationResponseJson
-
+            if (authenticationResponseJson != null) {
                 // Debug logs
                 CDCDebuggable.log(
                     LOG_TAG,
-                    "clearPasskeyCredential: responseJson:\n ${responseJson}"
+                    "clearPasskeyCredential: responseJson:\n ${authenticationResponseJson}"
                 )
 
-                val parsed = json.decodeFromString<GetCredentialResultEntity>(responseJson)
+                val parsed =
+                    json.decodeFromString<GetCredentialResultEntity>(authenticationResponseJson)
 
                 // decode last key
                 val decodedKey: ByteArray = Base64.decode(
@@ -313,7 +245,9 @@ class PasskeysAuthFlow(
                         EP_PASSKEYS_DELETE,
                         removeCredentialsParameters
                     )
-                if (removeCredentialsResponse.isError()) return AuthResponse(removeCredentialsResponse)
+                if (removeCredentialsResponse.isError()) return AuthResponse(
+                    removeCredentialsResponse
+                )
 
                 val idToken =
                     removeCredentialsResponse.stringField("idToken") ?: return AuthResponse(
@@ -326,7 +260,10 @@ class PasskeysAuthFlow(
 
                 val authorizeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
                     EP_OAUTH_DISCONNECT,
-                    parameters = mutableMapOf("regToken" to parsed.rawId!!, "ignoreApiQueue" to true.toString()),
+                    parameters = mutableMapOf(
+                        "regToken" to parsed.rawId!!,
+                        "ignoreApiQueue" to true.toString()
+                    ),
                     headers = mutableMapOf("Authorization" to "Bearer $idToken")
                 )
 

@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.android.sdk.example.R
+import com.sap.cdc.android.sdk.example.cdc.auth.PasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.theme.AppTheme
@@ -37,6 +38,7 @@ import com.sap.cdc.android.sdk.example.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.android.sdk.example.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.android.sdk.example.ui.viewmodel.ISignInViewModel
 import com.sap.cdc.android.sdk.example.ui.viewmodel.SignInViewModelPreview
+import java.lang.ref.WeakReference
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -51,6 +53,10 @@ fun SignInView(viewModel: ISignInViewModel) {
 
     var loading by remember { mutableStateOf(false) }
     var signInError by remember { mutableStateOf("") }
+
+    val passkeysAuthenticationProvider = PasskeysAuthenticationProvider(
+        weakActivity = WeakReference(context as ComponentActivity)
+    )
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -120,7 +126,7 @@ fun SignInView(viewModel: ISignInViewModel) {
             text = "Passwordless",
             onClick = {
                 viewModel.passkeySignIn(
-                    context as ComponentActivity,
+                    authenticationProvider = passkeysAuthenticationProvider,
                     success = {
                         NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                     },

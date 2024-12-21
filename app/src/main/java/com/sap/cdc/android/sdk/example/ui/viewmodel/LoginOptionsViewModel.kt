@@ -1,7 +1,6 @@
 package com.sap.cdc.android.sdk.example.ui.viewmodel
 
 import android.content.Context
-import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +9,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.biometric.BiometricAuth
+import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.coroutines.launch
@@ -50,14 +50,14 @@ interface ILoginOptionsViewModel {
     }
 
     fun createPasskey(
-        hostActivity: ComponentActivity,
+        authenticationProvider: IPasskeysAuthenticationProvider,
         success: () -> Unit, onFailed: (CDCError) -> Unit,
     ) {
         //Stub
     }
 
     fun deletePasskey(
-        hostActivity: ComponentActivity,
+        authenticationProvider: IPasskeysAuthenticationProvider,
         success: () -> Unit, onFailed: (CDCError) -> Unit,
     ) {
         //Stub
@@ -168,11 +168,11 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
     }
 
     override fun createPasskey(
-        hostActivity: ComponentActivity,
+        authenticationProvider: IPasskeysAuthenticationProvider,
         success: () -> Unit, onFailed: (CDCError) -> Unit,
     ) {
         viewModelScope.launch {
-            val authResponse = identityService.createPasskey(hostActivity)
+            val authResponse = identityService.createPasskey(authenticationProvider)
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
                     success()
@@ -186,12 +186,12 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
     }
 
     override fun deletePasskey(
-        hostActivity: ComponentActivity,
+        authenticationProvider: IPasskeysAuthenticationProvider,
         success: () -> Unit,
         onFailed: (CDCError) -> Unit
     ) {
         viewModelScope.launch {
-            val authResponse = identityService.deletePasskey(hostActivity)
+            val authResponse = identityService.deletePasskey(authenticationProvider)
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
                     success()
