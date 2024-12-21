@@ -28,3 +28,20 @@ data class CreateCredentialResultResponseEntity(
     @SerialName("publicKeyAlgorithm") var publicKeyAlgorithm: Int? = null,
     @SerialName("publicKey") var publicKey: String? = null
 )
+
+@Serializable
+data class GetCredentialResultEntity(
+    @SerialName("rawId") var rawId: String? = null,
+    @SerialName("authenticatorAttachment") var authenticatorAttachment: String? = null,
+    @SerialName("type") var type: String? = null,
+    @SerialName("id") var id: String? = null,
+    @SerialName("response") var response: GetCredentialResultResponseEntity? = GetCredentialResultResponseEntity(),
+)
+
+@Serializable
+data class GetCredentialResultResponseEntity(
+    @SerialName("clientDataJSON") var clientDataJSON: String? = null,
+    @SerialName("authenticatorData") var authenticatorData: String? = null,
+    @SerialName("signature") var signature: String? = null,
+    @SerialName("userHandle") var userHandle: String? = null
+)

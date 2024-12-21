@@ -182,6 +182,10 @@ interface IAuthApis {
     suspend fun passkeySignIn(
         hostActivity: ComponentActivity,
     ): IAuthResponse
+
+    suspend fun clearPasskey(
+        hostActivity: ComponentActivity,
+    ): IAuthResponse
 }
 
 /**
@@ -267,6 +271,15 @@ internal class AuthApis(
                 weakActivity = WeakReference(hostActivity)
             )
         return flow.authenticateWithPasskey()
+    }
+
+    override suspend fun clearPasskey(hostActivity: ComponentActivity): IAuthResponse {
+        val flow =
+            PasskeysAuthFlow(
+                coreClient, sessionService,
+                weakActivity = WeakReference(hostActivity)
+            )
+        return flow.clearPasskeyCredential()
     }
 
 

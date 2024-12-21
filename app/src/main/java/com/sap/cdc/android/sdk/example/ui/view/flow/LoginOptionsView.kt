@@ -70,7 +70,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             actionLabel = "Deactivate",
             onClick = {
                 loading = true
-                viewModel.createPasskey(
+                viewModel.deletePasskey(
                     context as ComponentActivity,
                     success = {
                         loading = false

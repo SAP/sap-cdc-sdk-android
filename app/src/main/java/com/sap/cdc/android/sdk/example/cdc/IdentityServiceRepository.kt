@@ -172,6 +172,12 @@ class IdentityServiceRepository private constructor(context: Context) {
         return authenticationService.authenticate().passkeySignIn(hostActivity)
     }
 
+    suspend fun deletePasskey(
+        hostActivity: ComponentActivity
+    ): IAuthResponse {
+        return authenticationService.authenticate().clearPasskey(hostActivity)
+    }
+
     /**
      * Logout from current CDC session.
      */

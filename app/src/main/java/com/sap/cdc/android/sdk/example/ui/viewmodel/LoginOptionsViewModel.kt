@@ -55,6 +55,13 @@ interface ILoginOptionsViewModel {
     ) {
         //Stub
     }
+
+    fun deletePasskey(
+        hostActivity: ComponentActivity,
+        success: () -> Unit, onFailed: (CDCError) -> Unit,
+    ) {
+        //Stub
+    }
 }
 
 /**
@@ -166,6 +173,25 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
     ) {
         viewModelScope.launch {
             val authResponse = identityService.createPasskey(hostActivity)
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    success()
+                }
+
+                else -> {
+                    onFailed(authResponse.toDisplayError()!!)
+                }
+            }
+        }
+    }
+
+    override fun deletePasskey(
+        hostActivity: ComponentActivity,
+        success: () -> Unit,
+        onFailed: (CDCError) -> Unit
+    ) {
+        viewModelScope.launch {
+            val authResponse = identityService.deletePasskey(hostActivity)
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
                     success()

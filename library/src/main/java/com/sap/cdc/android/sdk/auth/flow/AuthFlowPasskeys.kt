@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.auth.flow
 
 import android.annotation.SuppressLint
+import android.util.Base64
 import androidx.activity.ComponentActivity
 import androidx.credentials.CreateCredentialResponse
 import androidx.credentials.CreatePublicKeyCredentialRequest
@@ -14,7 +15,9 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_AUTHORIZE
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_CONNECT
+import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_DISCONNECT
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_TOKEN
+import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_DELETE
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_GET_ASSERTION_OPTIONS
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_INIT
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_REGISTER
@@ -23,6 +26,7 @@ import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.model.CreateCredentialResultEntity
+import com.sap.cdc.android.sdk.auth.model.GetCredentialResultEntity
 import com.sap.cdc.android.sdk.auth.model.OptionsResponseModel
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
@@ -113,6 +117,13 @@ class PasskeysAuthFlow(
                     EP_OAUTH_CONNECT,
                     headers = mutableMapOf("Authorization" to "Bearer $idToken")
                 )
+
+                // Debug logs
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "createPasskey: connectResponse:\n ${connectResponse.jsonResponse}"
+                )
+
                 // Notify success. flow has ended.
                 return AuthResponse(connectResponse)
             } else {
@@ -171,8 +182,14 @@ class PasskeysAuthFlow(
 
                 // Verify assertion.
                 // Debug logs
-                CDCDebuggable.log(LOG_TAG, "createPasskey: authenticatorAssertion:\n $responseJson")
-                CDCDebuggable.log(LOG_TAG, "createPasskey: token:\n ${optionsResponseModel.token}")
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "authenticateWithPasskey: authenticatorAssertion:\n $responseJson"
+                )
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "authenticateWithPasskey: token:\n ${optionsResponseModel.token}"
+                )
 
                 val verifyAssertionParameters = mutableMapOf(
                     "token" to optionsResponseModel.token,
@@ -191,7 +208,7 @@ class PasskeysAuthFlow(
                     )
 
                 // Debug logs
-                CDCDebuggable.log(LOG_TAG, "createPasskey: idToken:\n $idToken")
+                CDCDebuggable.log(LOG_TAG, "authenticateWithPasskey: idToken:\n $idToken")
 
                 // Authorize
                 val authorizeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
@@ -214,9 +231,10 @@ class PasskeysAuthFlow(
                     parameters = mutableMapOf("grant_type" to "authorization_code", "code" to code),
                 )
 
+                // Debug logs
                 CDCDebuggable.log(
                     LOG_TAG,
-                    "createPasskey: tokenResponse:\n ${tokenResponse.jsonResponse}"
+                    "authenticateWithPasskey: tokenResponse:\n ${tokenResponse.jsonResponse}"
                 )
                 if (!tokenResponse.isError()) {
                     secureNewSession(tokenResponse)
@@ -233,8 +251,92 @@ class PasskeysAuthFlow(
         }
     }
 
-    suspend fun deletePasskey() {
+    suspend fun clearPasskeyCredential(): IAuthResponse {
+        try {
+            // Get assertions options from server.
+            val assertionOptionsResponse =
+                AuthenticationApi(coreClient, sessionService).genericSend(
+                    EP_PASSKEYS_GET_ASSERTION_OPTIONS
+                )
+            if (assertionOptionsResponse.isError()) {
+                // End flow with error.
+                return AuthResponse(assertionOptionsResponse)
+            }
+            val optionsResponseModel =
+                assertionOptionsResponse.serializeTo<OptionsResponseModel>()
+                    ?: // End flow with error.
+                    return AuthResponse(assertionOptionsResponse)
 
+            val credentialManager =
+                weakActivity?.get()?.let { CredentialManager.create(it) }
+
+            // Get passkeys from the user's public key credential provider.
+            val getPublicKeyCredentialOption = GetPublicKeyCredentialOption(
+                requestJson = optionsResponseModel.options,
+            )
+
+            val getCredRequest = GetCredentialRequest(
+                listOf(getPublicKeyCredentialOption)
+            )
+
+            val result: GetCredentialResponse = credentialManager!!.getCredential(
+                // Use an activity-based context to avoid undefined system UI
+                // launching behavior.
+                context = weakActivity!!.get()!!,
+                request = getCredRequest
+            )
+
+            val credential = result.credential
+            if (credential is PublicKeyCredential) {
+
+                val responseJson = credential.authenticationResponseJson
+
+                // Debug logs
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "clearPasskeyCredential: responseJson:\n ${responseJson}"
+                )
+
+                val parsed = json.decodeFromString<GetCredentialResultEntity>(responseJson)
+
+                // decode last key
+                val decodedKey: ByteArray = Base64.decode(
+                    parsed.rawId!!.toByteArray(),
+                    Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
+                )
+
+                val removeCredentialsParameters = mutableMapOf(
+                    "credentialId" to Base64.encodeToString(decodedKey, Base64.NO_WRAP).trim()
+                )
+                val removeCredentialsResponse =
+                    AuthenticationApi(coreClient, sessionService).genericSend(
+                        EP_PASSKEYS_DELETE,
+                        removeCredentialsParameters
+                    )
+                if (removeCredentialsResponse.isError()) return AuthResponse(removeCredentialsResponse)
+
+                val idToken =
+                    removeCredentialsResponse.stringField("idToken") ?: return AuthResponse(
+                        removeCredentialsResponse
+                    )
+
+
+                // Debug logs
+                CDCDebuggable.log(LOG_TAG, "authenticateWithPasskey: idToken:\n $idToken")
+
+                val authorizeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
+                    EP_OAUTH_DISCONNECT,
+                    parameters = mutableMapOf("regToken" to parsed.rawId!!, "ignoreApiQueue" to true.toString()),
+                    headers = mutableMapOf("Authorization" to "Bearer $idToken")
+                )
+
+                return AuthResponse(authorizeResponse)
+            }
+
+            return AuthResponse(CDCResponse().providerError())
+        } catch (e: GetCredentialException) {
+            return AuthResponse(CDCResponse().fromException(e))
+        }
     }
 
 }

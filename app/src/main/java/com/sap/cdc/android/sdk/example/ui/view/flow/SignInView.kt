@@ -125,7 +125,7 @@ fun SignInView(viewModel: ISignInViewModel) {
                         NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                     },
                     onFailed = { error ->
-                        signInError = error.errorDescription!!
+                        signInError = error.errorDetails!!
                     }
                 )
             },

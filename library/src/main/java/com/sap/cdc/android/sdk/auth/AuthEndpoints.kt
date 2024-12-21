@@ -27,6 +27,7 @@ class AuthEndpoints {
 
         // ACCOUNTS FIDO/PASSKEYS
         const val EP_PASSKEYS_INIT = "accounts.auth.fido.initRegisterCredentials"
+        const val EP_PASSKEYS_GET_CREDENTIALS = "accounts.auth.fido.getCredentials"
         const val EP_PASSKEYS_GET_ASSERTION_OPTIONS = "accounts.auth.fido.getAssertionOptions"
         const val EP_PASSKEYS_REGISTER = "accounts.auth.fido.registerCredentials"
         const val EP_PASSKEYS_VERIFY_ASSERTION = "accounts.auth.fido.verifyAssertion"
