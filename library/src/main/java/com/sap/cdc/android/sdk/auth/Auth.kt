@@ -399,7 +399,7 @@ internal class AuthResolvers(
         val linkAccountResolverAuthResponse = linkAccountResolver.login()
         return when (linkAccountResolverAuthResponse.state()) {
             AuthState.SUCCESS -> {
-                connectAccount(resolvableContext.provider, resolvableContext.authToken)
+                connectAccount(resolvableContext.linking?.provider, resolvableContext.linking?.authToken)
             }
 
             else -> linkAccountResolverAuthResponse
@@ -419,11 +419,11 @@ internal class AuthResolvers(
         val linkAccountResolver = ProviderAuthFow(
             coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
         )
-        linkAccountResolver.withParameters(mutableMapOf("provider" to resolvableContext.provider!!))
+        linkAccountResolver.withParameters(mutableMapOf("provider" to resolvableContext.linking?.provider!!))
         val linkAccountResolverAuthResponse = linkAccountResolver.signIn()
         return when (linkAccountResolverAuthResponse.state()) {
             AuthState.SUCCESS -> {
-                connectAccount(resolvableContext.provider, resolvableContext.authToken)
+                connectAccount(resolvableContext.linking?.provider, resolvableContext.linking?.authToken)
             }
 
             else -> linkAccountResolverAuthResponse
@@ -465,7 +465,7 @@ internal class AuthResolvers(
     ): IAuthResponse {
         //TODO: Return error if missing required field.
         val codeVerify = LoginAuthFlow(coreClient, sessionService)
-        codeVerify.parameters["vToken"] = resolvableContext.vToken!!
+        codeVerify.parameters["vToken"] = resolvableContext.otp?.vToken!!
         codeVerify.parameters["code"] = code
         return codeVerify.otpLogin()
     }
@@ -479,7 +479,7 @@ internal class AuthResolvers(
     ): IAuthResponse {
         //TODO: Return error if missing required field.
         val codeVerify = LoginAuthFlow(coreClient, sessionService)
-        codeVerify.parameters["vToken"] = resolvableContext.vToken!!
+        codeVerify.parameters["vToken"] = resolvableContext.otp?.vToken!!
         codeVerify.parameters["code"] = code
         return codeVerify.otpUpdate()
     }
