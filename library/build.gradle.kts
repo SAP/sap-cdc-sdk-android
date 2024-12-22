@@ -77,10 +77,6 @@ dependencies {
     api(libs.androidx.work.runtime.ktx)
     // Browser (CustomTabs)
     api(libs.androidx.browser)
-
-    // Credentials manager
-    compileOnly(libs.bundles.credentials)
-    compileOnly(libs.googleid)
 }
 
 apply(from = "../publish-package.gradle")

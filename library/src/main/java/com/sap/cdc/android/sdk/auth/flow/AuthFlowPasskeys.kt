@@ -2,7 +2,6 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import android.annotation.SuppressLint
 import android.util.Base64
-import androidx.credentials.exceptions.GetCredentialException
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_AUTHORIZE
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_CONNECT
@@ -100,9 +99,6 @@ class PasskeysAuthFlow(
                 //TODO: Special error here. edge case
                 return AuthResponse(CDCResponse().providerError())
             }
-        } catch (e: GetCredentialException) {
-            //TODO: Need to translate the credentials api exception to CDCError somehow.
-            return AuthResponse(CDCResponse().fromException(e))
         } catch (e: SerializationException) {
             //TODO: Special error here. edge case
             return AuthResponse(CDCResponse().fromException(e))
@@ -194,8 +190,6 @@ class PasskeysAuthFlow(
                 //TODO: Special error here. edge case
                 return AuthResponse(CDCResponse().providerError())
             }
-        } catch (e: GetCredentialException) {
-            return AuthResponse(CDCResponse().fromException(e))
         } catch (e: SerializationException) {
             return AuthResponse(CDCResponse().fromException(e))
         }
@@ -271,7 +265,7 @@ class PasskeysAuthFlow(
             }
 
             return AuthResponse(CDCResponse().providerError())
-        } catch (e: GetCredentialException) {
+        } catch (e: SerializationException) {
             return AuthResponse(CDCResponse().fromException(e))
         }
     }
