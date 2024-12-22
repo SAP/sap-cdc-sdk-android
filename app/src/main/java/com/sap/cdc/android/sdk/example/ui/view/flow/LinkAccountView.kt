@@ -89,7 +89,7 @@ fun LinkAccountView(
         Spacer(modifier = Modifier.size(24.dp))
 
         // Vary login providers list to display the correct link path (social or site).
-        if (resolvable.conflictingAccounts!!.loginProviders.contains("site")) {
+        if (resolvable.linking?.conflictingAccounts!!.loginProviders.contains("site")) {
             // Login to site.
             Text("Link with account password")
             Spacer(modifier = Modifier.size(12.dp))
@@ -127,7 +127,7 @@ fun LinkAccountView(
                     loading = true
                     // Link to site account using password.
                     viewModel.resolveLinkToSiteAccount(
-                        loginId = resolvable.conflictingAccounts?.loginID!!,
+                        loginId = resolvable.linking?.conflictingAccounts?.loginID!!,
                         password = password,
                         resolvableContext = resolvable,
                         onLogin = {
@@ -148,7 +148,7 @@ fun LinkAccountView(
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        val socialProvidersOnly = resolvable.conflictingAccounts!!.loginProviders.toMutableList()
+        val socialProvidersOnly = resolvable.linking?.conflictingAccounts!!.loginProviders.toMutableList()
         socialProvidersOnly.remove("site")
         if (socialProvidersOnly.size > 0) {
             Text("Link with existing social accounts")
@@ -270,10 +270,7 @@ fun LinkAccountViewPreview() {
     LinkAccountView(
         viewModel = LinkAccountViewModelPreview(),
         resolvable = ResolvableContext(
-            "", "", "", conflictingAccounts = ConflictingAccountsEntity(
-                mutableListOf("site", "google", "facebook"),
-                null
-            ), listOf("", "")
-        ),
+            "",
+        )
     )
 }

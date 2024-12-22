@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.auth.ResolvableContext
+import com.sap.cdc.android.sdk.auth.ResolvableRegistration
 import com.sap.cdc.android.sdk.example.ui.route.NavigationCoordinator
 import com.sap.cdc.android.sdk.example.ui.route.ProfileScreenRoute
 import com.sap.cdc.android.sdk.example.ui.view.custom.IndeterminateLinearIndicator
@@ -56,9 +57,10 @@ fun PendingRegistrationView(
     val focusManager = LocalFocusManager.current
     var registerError by remember { mutableStateOf("") }
     val values = remember {
-        mutableStateMapOf(*resolvableContext.missingRequiredFields!!.map { it to "" }.toTypedArray())
+        mutableStateMapOf(*resolvableContext.registration?.missingRequiredFields!!.map { it to "" }
+            .toTypedArray())
     }
-    
+
     // UI elements
 
     Column(
@@ -83,7 +85,7 @@ fun PendingRegistrationView(
                 .padding(start = 48.dp, end = 48.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            resolvableContext.missingRequiredFields?.forEach { field ->
+            resolvableContext.registration?.missingRequiredFields?.forEach { field ->
                 Text(
                     "${field.replaceFirstChar { it.uppercase() }}: *",
                     fontSize = 16.sp,
@@ -160,7 +162,7 @@ fun PendingRegistrationView(
 fun PendingRegistrationViewPreview() {
     PendingRegistrationView(
         viewModel = PendingRegistrationViewModelPreview(),
-        ResolvableContext("", "", "", null, listOf("firstName", "lastName")),
+        ResolvableContext("", null, null, ResolvableRegistration(listOf("email", "password"))),
     )
 }
 
