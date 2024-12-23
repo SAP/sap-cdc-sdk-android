@@ -33,14 +33,14 @@ android {
         }
     }
 
-    flavorDimensions.add("client")
+    flavorDimensions.add("sso")
     productFlavors {
         create("demo") {
-            dimension = "client"
+            dimension = "sso"
         }
 
         create("variant") {
-            dimension = "client"
+            dimension = "sso"
             applicationIdSuffix = ".variant"
         }
     }
