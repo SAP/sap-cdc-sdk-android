@@ -24,7 +24,8 @@ jobs:
 
     - name: Change API key in strings.xml
       run: |
-        sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.api-key }}</string>|' app/src/main/res/values/strings.xml
+        sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY
+           }}</string>|' app/src/main/res/values/strings.xml
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
@@ -33,4 +34,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: app/build/outputs/apk/debug/bits&bytes_demo_app-debug.apk
