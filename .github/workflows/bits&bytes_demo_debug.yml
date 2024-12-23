@@ -3,15 +3,15 @@ name: Build Bits & Bytes demo debug APK
 on:
   push:
     branches:
-      - debug
+      - develop
   pull_request:
     branches:
-      - debug
+      - develop
   workflow_dispatch:
     inputs:
       branch:
         description: 'Branch to run the workflow on'
-        default: 'debug'
+        default: 'develop'
         required: true
 
 jobs:
