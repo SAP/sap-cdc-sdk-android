@@ -1,0 +1,44 @@
+name: Build Bits & Bytes demo debug APK
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the workflow on'
+        default: 'develop'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '11'
+
+    - name: Change API key in strings.xml
+      run: |
+        sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>|' app/src/main/res/values/strings.xml
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: debug-apk
+        path: app/build/outputs/apk/debug/bits&bytes_demo_app-debug.apk
