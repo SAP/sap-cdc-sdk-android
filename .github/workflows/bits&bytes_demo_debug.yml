@@ -41,6 +41,9 @@ jobs:
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
+    - name: Rename APK file
+      run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/bits&bytes_demo_app-debug.apk
+
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
