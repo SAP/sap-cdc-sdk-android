@@ -399,7 +399,10 @@ internal class AuthResolvers(
         val linkAccountResolverAuthResponse = linkAccountResolver.login()
         return when (linkAccountResolverAuthResponse.state()) {
             AuthState.SUCCESS -> {
-                connectAccount(resolvableContext.linking?.provider, resolvableContext.linking?.authToken)
+                connectAccount(
+                    resolvableContext.linking?.provider,
+                    resolvableContext.linking?.authToken
+                )
             }
 
             else -> linkAccountResolverAuthResponse
@@ -423,7 +426,10 @@ internal class AuthResolvers(
         val linkAccountResolverAuthResponse = linkAccountResolver.signIn()
         return when (linkAccountResolverAuthResponse.state()) {
             AuthState.SUCCESS -> {
-                connectAccount(resolvableContext.linking?.provider, resolvableContext.linking?.authToken)
+                connectAccount(
+                    resolvableContext.linking?.provider,
+                    resolvableContext.linking?.authToken
+                )
             }
 
             else -> linkAccountResolverAuthResponse
@@ -516,6 +522,23 @@ internal class AuthResolvers(
         connectResolver.withParameters(parameters)
         val authResponse = connectResolver.notifySocialLogin()
         return authResponse
+    }
+
+}
+
+interface IAuthTFA {
+
+    suspend fun getProviders(regToken: String): IAuthResponse
+}
+
+internal class AuthTFA(
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService
+) : IAuthTFA {
+
+    override suspend fun getProviders(regToken: String): IAuthResponse {
+        val accountFlow = AccountAuthFlow(coreClient, sessionService)
+        return accountFlow.getTFAProviders(mutableMapOf("regToken" to regToken))
     }
 
 }

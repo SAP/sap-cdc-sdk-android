@@ -2,12 +2,15 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import com.sap.cdc.android.sdk.auth.AuthResolvers
 import com.sap.cdc.android.sdk.auth.AuthResponse
+import com.sap.cdc.android.sdk.auth.AuthTFA
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.ResolvableLinking
 import com.sap.cdc.android.sdk.auth.ResolvableOtp
 import com.sap.cdc.android.sdk.auth.ResolvableRegistration
+import com.sap.cdc.android.sdk.auth.ResolvableTFA
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
+import com.sap.cdc.android.sdk.auth.tfa.TFAProvidersEntity
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.extensions.parseRequiredMissingFieldsForRegistration
@@ -57,7 +60,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         // Init auth resolvable entity with RegToken field.
         if (authResponse.isResolvable()) {
             val resolvableContext =
-                ResolvableContext(authResponse.cdcResponse().stringField("regToken"))
+                ResolvableContext()
             val resolve = AuthResolvers(coreClient, sessionService)
             when (authResponse.cdcResponse().errorCode()) {
 
@@ -96,7 +99,12 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 // TFA
                 ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION,
                 ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_VERIFICATION -> {
-
+                    val tfaAuth = AuthTFA(coreClient, sessionService)
+                    val tfaProvidersAuthResponse =
+                        tfaAuth.getProviders(resolvableContext.regToken!!)
+                    val tfaProviders =
+                        tfaProvidersAuthResponse.cdcResponse().serializeTo<TFAProvidersEntity>()
+                    resolvableContext.tfa = ResolvableTFA(tfaProviders)
                 }
             }
             authResponse.resolvableContext = resolvableContext

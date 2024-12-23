@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.auth
 
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
+import com.sap.cdc.android.sdk.auth.tfa.TFAProvidersEntity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -19,6 +20,7 @@ class ResolvableContext(
     var otp: ResolvableOtp? = null,
     var linking: ResolvableLinking? = null,
     var registration: ResolvableRegistration? = null,
+    var tfa: ResolvableTFA? = null,
 ) {
 
     companion object {
@@ -59,4 +61,9 @@ data class ResolvableRegistration(
 @Serializable
 data class ResolvableOtp(
     var vToken: String? = null
+)
+
+@Serializable
+data class ResolvableTFA(
+    var tfaProviders: TFAProvidersEntity? = null
 )

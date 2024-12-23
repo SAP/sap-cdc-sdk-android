@@ -38,4 +38,9 @@ class AuthenticationService(
         sessionService
     )
 
+    fun tfa(): IAuthTFA = AuthTFA(
+        coreClient,
+        sessionService
+    )
+
 }
