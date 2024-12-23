@@ -42,10 +42,10 @@ jobs:
       run: ./gradlew assembleDebug
 
     - name: Rename APK file
-      run: mv app/build/outputs/apk/demo/debug/app-demo-debug.apk app/build/outputs/apk/demo/debug/bits&bytes-app-demo-debug.apk
+      run: mv app/build/outputs/apk/demo/debug/app-demo-debug.apk app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
 
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
         name: debug-apk
-        path: app/build/outputs/apk/demo/debug/bits&bytes-app-demo-debug.apk
+        path: app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
