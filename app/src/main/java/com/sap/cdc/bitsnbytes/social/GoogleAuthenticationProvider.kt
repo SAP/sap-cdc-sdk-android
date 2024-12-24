@@ -9,6 +9,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.sap.cdc.android.sdk.auth.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
@@ -45,22 +46,11 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
         // Reference required Google server client ID (Resource id is not strict).
         val serverClientId = hostActivity.getString(R.string.google_server_client_id)
 
-        var result = credentialsManagerSignIn(
+        val result = credentialsManagerSignIn(
             credentialManager,
             serverClientId,
-            true,
             hostActivity
         )
-
-        // Try again using setFilterByAuthorizedAccounts as FALSE.
-        if (result.failed()) {
-            result = credentialsManagerSignIn(
-                credentialManager,
-                serverClientId,
-                false,
-                hostActivity
-            )
-        }
 
         if (result.failed()) {
             val providerException = ProviderException(
@@ -104,12 +94,9 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
     private suspend fun credentialsManagerSignIn(
         credentialManager: CredentialManager,
         serverClientId: String,
-        setFilterByAuthorizedAccounts: Boolean,
         context: Context
     ): CredentialSignInResult {
-        val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(setFilterByAuthorizedAccounts)
-            .setServerClientId(serverClientId)
+        val googleIdOption: GetSignInWithGoogleOption = GetSignInWithGoogleOption.Builder(serverClientId)
             .setNonce(generateNonce())
             .build()
 
