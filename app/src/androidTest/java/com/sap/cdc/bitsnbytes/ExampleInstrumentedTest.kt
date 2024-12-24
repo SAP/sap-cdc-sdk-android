@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.example
+package com.sap.cdc.bitsnbytes
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry

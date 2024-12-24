@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.example
+package com.sap.cdc.bitsnbytes
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
