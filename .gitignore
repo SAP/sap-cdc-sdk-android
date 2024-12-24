@@ -5,6 +5,10 @@
 .gradle/
 build/
 
+# Keys string resource
+/app/src/main/res/values/keys.xml
+/app/src/variant/res/values/keys.xml
+
 # Local configuration file (sdk path, etc)
 local.properties
 
