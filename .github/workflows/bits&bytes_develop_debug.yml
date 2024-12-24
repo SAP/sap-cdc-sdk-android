@@ -36,15 +36,15 @@ jobs:
 
     - name: Add API key tag to strings.xml
       run: |
-        echo '<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>' >> app/src/main/res/values/keys.xml
+        echo '<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>' >> app/src/main/res/values/strings.xml
 
     - name: Add Google Server Client ID to strings.xml
       run: |
-        echo '<string name="google_server_client_id">${{ secrets.GOOGLE_WEB_SERVER_CLIENT_ID }}</string>' >> app/src/main/res/values/keys.xml
+        echo '<string name="google_server_client_id">${{ secrets.GOOGLE_WEB_SERVER_CLIENT_ID }}</string>' >> app/src/main/res/values/strings.xml
 
     - name: Add API key in variant keys.xml
       run: |
-        echo '<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>' >> app/src/variant/res/values/keys.xml
+        echo '<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>' >> app/src/variant/res/values/strings.xml
 
     - name: Create file for google-services.json (Demo)
       run: cat app/google-services.json | base64
