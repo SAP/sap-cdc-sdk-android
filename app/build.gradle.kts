@@ -9,8 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-//        applicationId = "com.sap.cdc.android.sdk.example"
-        applicationId = "com.gigya.android.sample"
+        applicationId = "com.sap.cdc.bitsnbytes"
         minSdk = 26
         //noinspection EditedTargetSdkVersion,OldTargetApi
         targetSdk = 35
@@ -37,6 +36,7 @@ android {
     productFlavors {
         create("demo") {
             dimension = "sso"
+            applicationIdSuffix = ".demo"
         }
 
         create("variant") {
@@ -83,7 +83,29 @@ android {
         }
     }
 
-    namespace = "com.sap.cdc.android.sdk.example"
+    namespace = "com.sap.cdc.bitsnbytes"
+
+    tasks.register("updateAppKeys") {
+        doLast {
+            val demoApiKey = project.findProperty("bitsNbytes_demo_apiKey") ?: "none"
+            val variantApiKey = project.findProperty("bitsNbytes_variant_apKey") ?: "none"
+            val stringsXmlPathDemo = "src/main/res/values/strings.xml"
+            val stringsXmlPathVariant = "src/variant/res/values/strings.xml"
+            exec {
+                commandLine("sh", "-c", "gsed -i \"s|<string name=\\\"com.sap.cxcdc.apikey\\\">.*</string>|<string name=\\\"com.sap.cxcdc.apikey\\\">$demoApiKey</string>|\" $stringsXmlPathDemo")
+            }
+
+            exec {
+                commandLine("sh", "-c", "gsed -i \"s|<string name=\\\"com.sap.cxcdc.apikey\\\">.*</string>|<string name=\\\"com.sap.cxcdc.apikey\\\">$variantApiKey</string>|\" $stringsXmlPathVariant")
+            }
+        }
+    }
+
+    tasks.whenTaskAdded {
+        if (name == "assembleDemoDebug" || name == "assembleVariantDebug") {
+            dependsOn("updateAppKeys")
+        }
+    }
 }
 
 dependencies {

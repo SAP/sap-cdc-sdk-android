@@ -1,4 +1,4 @@
-name: Build Bits & Bytes demo debug APK
+name: Build Bits & Bytes demo/variant debug Build
 
 on:
   push:
@@ -34,18 +34,35 @@ jobs:
       run: |
         sed -i '/signingConfigs {/,/}/c\signingConfigs {\n\n    getByName("debug") {\n        keyAlias = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_ALIAS }}"\n        keyPassword = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_PASSWORD }}"\n        storeFile = file("keystore/debug")\n        storePassword = "${{ secrets.BITS_N_BYTES_DEBUG_STORE_PASSWORD }}"\n    }\n' app/build.gradle.kts
 
-    - name: Change API key in strings.xml
+    - name: Comment out updateAppKeys dependency
+      run: |
+        sed -i 's/dependsOn("updateAppKeys")/\/\/ dependsOn("updateAppKeys")/' app/build.gradle.kts
+
+    - name: Change API key in demo strings.xml
+      run: |
+        sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>|' app/src/main/res/values/strings.xml
+
+    - name: Change API key in variant strings.xml
       run: |
         sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>|' app/src/main/res/values/strings.xml
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
-    - name: Rename APK file
+    - name: Rename Demo APK file
       run: mv app/build/outputs/apk/demo/debug/app-demo-debug.apk app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
+
+    - name: Rename Variant APK file
+      run: mv app/build/outputs/apk/variant/debug/app-variant-debug.apk app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk
 
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
         name: debug-apk
         path: app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
+
+    - name: Upload Variant APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: variant-debug-apk
+        path: app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk

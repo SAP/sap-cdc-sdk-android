@@ -1,7 +1,7 @@
 <resources>
 
     <!-- SDK configuration -->
-    <string name="com.sap.cxcdc.apikey">4_ARPJSDX7DsXmA_Lsu15Cyw</string>
+    <string name="com.sap.cxcdc.apikey">4_PveUmyjGz6-be6K2mc31_Q</string>
     <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
 
     <!-- Social providers configuration -->
