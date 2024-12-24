@@ -60,7 +60,7 @@ jobs:
 
     - name: Add WeChat required resources to strings.xml resource (actual value for demo only)
       run: |
-        sed -i '/<\/resources>/i \    <string name="wechat_app_id>WECHAT_APP_ID_HERE</string>' app/src/main/res/values/strings.xml
+        sed -i '/<\/resources>/i \    <string name="wechat_app_id">WECHAT_APP_ID_HERE</string>' app/src/main/res/values/strings.xml
         sed -i '/<\/resources>/i \    <string name="wechat_app_id">WECHAT_APP_ID_HERE</string>' app/src/variant/res/values/strings.xml
 
     - name: Create file for google-services.json (Demo)
