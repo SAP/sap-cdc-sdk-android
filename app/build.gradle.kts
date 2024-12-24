@@ -1,3 +1,7 @@
+import java.io.FileNotFoundException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -85,28 +89,6 @@ android {
     }
 
     namespace = "com.sap.cdc.bitsnbytes"
-
-    tasks.register("updateAppKeys") {
-        doLast {
-            val demoApiKey = project.findProperty("bitsNbytes_demo_apiKey") ?: "none"
-            val variantApiKey = project.findProperty("bitsNbytes_variant_apKey") ?: "none"
-            val stringsXmlPathDemo = "src/main/res/values/strings.xml"
-            val stringsXmlPathVariant = "src/variant/res/values/strings.xml"
-            exec {
-                commandLine("sh", "-c", "gsed -i \"s|<string name=\\\"com.sap.cxcdc.apikey\\\">.*</string>|<string name=\\\"com.sap.cxcdc.apikey\\\">$demoApiKey</string>|\" $stringsXmlPathDemo")
-            }
-
-            exec {
-                commandLine("sh", "-c", "gsed -i \"s|<string name=\\\"com.sap.cxcdc.apikey\\\">.*</string>|<string name=\\\"com.sap.cxcdc.apikey\\\">$variantApiKey</string>|\" $stringsXmlPathVariant")
-            }
-        }
-    }
-
-    tasks.whenTaskAdded {
-        if (name == "assembleDemoDebug" || name == "assembleVariantDebug") {
-            dependsOn("updateAppKeys")
-        }
-    }
 }
 
 dependencies {
@@ -137,6 +119,6 @@ dependencies {
     implementation(libs.bundles.credentials)
     implementation(libs.googleid)
 
-    implementation(libs.firebase.bom)
+    implementation(platform(libs.firebase.bom))
 
 }

@@ -34,22 +34,18 @@ jobs:
       run: |
         sed -i '/signingConfigs {/,/}/c\signingConfigs {\n\n    getByName("debug") {\n        keyAlias = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_ALIAS }}"\n        keyPassword = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_PASSWORD }}"\n        storeFile = file("keystore/debug")\n        storePassword = "${{ secrets.BITS_N_BYTES_DEBUG_STORE_PASSWORD }}"\n    }\n' app/build.gradle.kts
 
-    - name: Comment out updateAppKeys dependency
+    - name: Change API key in demo keys.xml
       run: |
-        sed -i 's/dependsOn("updateAppKeys")/\/\/ dependsOn("updateAppKeys")/' app/build.gradle.kts
+        sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>|' app/src/main/res/values/keys.xml
 
-    - name: Change API key in demo strings.xml
+    - name: Change API key in variant keys.xml
       run: |
-        sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>|' app/src/main/res/values/strings.xml
+        sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>|' app/src/variant/res/values/keys.xml
 
-    - name: Change API key in variant strings.xml
-      run: |
-        sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>|' app/src/main/res/values/strings.xml
-
-    - name: Create file for google-services.json
+    - name: Create file for google-services.json (Demo)
       run: cat app/google-services.json | base64
 
-    - name: Populate google-services.json
+    - name: Populate google-services.json (Demo)
       env:
         DATA: ${{ secrets.GOOGLE_SERVICES_JSON }}
       run: echo $DATA > app/google-services.json
