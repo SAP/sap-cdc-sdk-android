@@ -1,4 +1,4 @@
-name: Build Bits & Bytes demo/variant debug Build
+name: Build Bits & Bytes demo/variant debug Build (Develop)
 
 on:
   push:
@@ -46,6 +46,14 @@ jobs:
       run: |
         sed -i 's|<string name="com.sap.cxcdc.apikey">.*</string>|<string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>|' app/src/main/res/values/strings.xml
 
+    - name: Create file for google-services.json
+      run: cat app/google-services.json | base64
+
+    - name: Populate google-services.json
+      env:
+        DATA: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      run: echo $DATA > app/google-services.json
+
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
@@ -56,13 +64,13 @@ jobs:
       run: mv app/build/outputs/apk/variant/debug/app-variant-debug.apk app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: debug-apk
+        name: demo-debug-apk
         path: app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
 
     - name: Upload Variant APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: variant-debug-apk
         path: app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk
