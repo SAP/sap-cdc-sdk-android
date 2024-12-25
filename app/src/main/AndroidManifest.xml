@@ -21,6 +21,8 @@
         android:supportsRtl="true"
         tools:targetApi="31">
 
+        <meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
+
         <activity
             android:name=".ui.activity.MainActivity"
             android:exported="true"

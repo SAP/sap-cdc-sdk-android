@@ -36,7 +36,7 @@ class CDCResponse {
     /**
      * From provided CDCError class initializer
      */
-    fun fromError(error: CDCError)  = apply {
+    fun fromError(error: CDCError) = apply {
         fromError(error.errorCode, error.errorDescription ?: "", error.errorDetails ?: "")
     }
 
@@ -51,6 +51,14 @@ class CDCResponse {
                     "  \"errorMessage\": \"$message\"," +
                     "  \"errorDetails\": \"$description\"" +
                     "}"
+        )
+    }
+
+    fun fromException(e: Exception) = apply {
+        fromError(
+            -1,
+            e.localizedMessage ?: "Internal error",
+            e.message ?: "Internal error"
         )
     }
 
@@ -81,7 +89,6 @@ class CDCResponse {
             "Provider configuration error"
         )
     }
-
 
 
     /**

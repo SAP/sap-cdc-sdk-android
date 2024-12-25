@@ -7,16 +7,16 @@ import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.bitsnbytes.social.FacebookAuthenticationProvider
 import com.sap.cdc.bitsnbytes.social.GoogleAuthenticationProvider
-import com.sap.cdc.bitsnbytes.social.LineAuthenticationProvider
-import com.sap.cdc.bitsnbytes.social.WeChatAuthenticationProvider
-import com.sap.cdc.android.sdk.screensets.WebBridgeJS
+import java.lang.ref.WeakReference
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -56,6 +56,19 @@ class IdentityServiceRepository private constructor(context: Context) {
     private var authenticationProviderMap: MutableMap<String, IAuthenticationProvider> =
         mutableMapOf()
 
+    /**
+     * Initialize passkey provider.
+     */
+    private lateinit var passkeyAuthenticationProvider: IPasskeysAuthenticationProvider
+
+    /**
+     * Initialize passkey provider.
+     */
+    fun registerPasskeyAuthenticationProvider(componentActivity: ComponentActivity) {
+        this.passkeyAuthenticationProvider =
+            PasskeysAuthenticationProvider(WeakReference(componentActivity))
+    }
+
 
     init {
         // Using session migrator to try and migrate an existing session in an application using old versions
@@ -73,8 +86,6 @@ class IdentityServiceRepository private constructor(context: Context) {
         // Register application specific authentication providers.
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
         registerAuthenticationProvider("google", GoogleAuthenticationProvider())
-//        registerAuthenticationProvider("line", LineAuthenticationProvider())
-//        registerAuthenticationProvider("weChat", WeChatAuthenticationProvider())
     }
 
     //region CONFIGURATION
@@ -219,6 +230,19 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun otpSignIn(
         parameters: MutableMap<String, String>
     ): IAuthResponse = authenticationService.authenticate().otpSendCode(parameters)
+
+
+    suspend fun createPasskey(): IAuthResponse {
+        return authenticationService.authenticate().createPasskey(passkeyAuthenticationProvider)
+    }
+
+    suspend fun passkeySignIn(): IAuthResponse {
+        return authenticationService.authenticate().passkeySignIn(passkeyAuthenticationProvider)
+    }
+
+    suspend fun clearPasskey(): IAuthResponse {
+        return authenticationService.authenticate().clearPasskey(passkeyAuthenticationProvider)
+    }
 
     //endregion
 

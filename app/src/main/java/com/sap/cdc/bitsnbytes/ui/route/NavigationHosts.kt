@@ -1,5 +1,6 @@
 package com.sap.cdc.bitsnbytes.ui.route
 
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -110,6 +111,11 @@ fun ProfileNavHost() {
             WelcomeView(viewModel = WelcomeViewModel(LocalContext.current))
         }
         composable(ProfileScreenRoute.SignIn.route) {
+            // Register passkey authentication provider (can be once anywhere where activity context is available).
+            IdentityServiceRepository.getInstance(LocalContext.current)
+                .registerPasskeyAuthenticationProvider(
+                    LocalContext.current as ComponentActivity
+                )
             SignInView(viewModel = SignInViewModel(LocalContext.current))
         }
         composable(ProfileScreenRoute.Register.route) {
@@ -117,7 +123,7 @@ fun ProfileNavHost() {
         }
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
-            AuthenticationTabView(selected = selected!!.toInt(),)
+            AuthenticationTabView(selected = selected!!.toInt())
         }
         composable(ProfileScreenRoute.EmailSignIn.route) {
             EmailSignInView(viewModel = EmailSignInViewModel(LocalContext.current))

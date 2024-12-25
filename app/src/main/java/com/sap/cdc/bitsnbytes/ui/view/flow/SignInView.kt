@@ -65,7 +65,7 @@ fun SignInView(viewModel: ISignInViewModel) {
         LargeVerticalSpacer()
         Text("Sign In", style = AppTheme.typography.titleLarge)
         SmallVerticalSpacer()
-        Text("Use your preferred method",  style = AppTheme.typography.body)
+        Text("Use your preferred method", style = AppTheme.typography.body)
         MediumVerticalSpacer()
 
         // Social selection view
@@ -156,6 +156,7 @@ fun SignInView(viewModel: ISignInViewModel) {
             },
             iconResourceId = R.drawable.ic_device
         )
+
         Spacer(modifier = Modifier.size(10.dp))
 
         // Error message
@@ -164,7 +165,6 @@ fun SignInView(viewModel: ISignInViewModel) {
                 text = signInError
             )
         }
-
     }
 
     // Loading indicator on top of all views.

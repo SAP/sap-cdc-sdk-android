@@ -22,6 +22,13 @@
     <!--    <string name="wechat_app_id">WECHAT_APP_ID_HERE</string>-->
 
 
+    <!-- Passkeys configuration -->
+    <!--    <string name="asset_statements" translatable="false">-->
+    <!--    [{-->
+    <!--    \"include\": \"https://RP_HERE/.well-known/assetlinks.json\"-->
+    <!--    }]-->
+
+
     <!-- App string resources -->
     <string name="home">Bits \u0026 Bytes</string>
     <string name="search">Search</string>

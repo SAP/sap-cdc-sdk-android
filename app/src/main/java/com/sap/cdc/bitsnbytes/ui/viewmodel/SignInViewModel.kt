@@ -4,6 +4,11 @@ import android.content.Context
 
 interface ISignInViewModel: ISocialSignInViewModel {
 
+    fun passkeySignIn(
+        hostActivity: ComponentActivity,
+        onLogin: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    )
 }
 
 /**
