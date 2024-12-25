@@ -34,6 +34,13 @@ class CDCResponse {
     }
 
     /**
+     * From provided CDCError class initializer
+     */
+    fun fromError(error: CDCError)  = apply {
+        fromError(error.errorCode, error.errorDescription ?: "", error.errorDetails ?: "")
+    }
+
+    /**
      * Custom error initializer.
      * Internally used.
      */

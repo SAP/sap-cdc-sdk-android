@@ -114,9 +114,8 @@ class ProviderAuthFow(
                 }
             }
         } catch (exception: ProviderException) {
-            //TODO: Generify provider exception or remove it.
             Log.d(LOG_TAG, exception.type.ordinal.toString())
-            return AuthResponse(CDCResponse().providerError())
+            return AuthResponse(CDCResponse().fromError(exception.error!!))
         }
     }
 

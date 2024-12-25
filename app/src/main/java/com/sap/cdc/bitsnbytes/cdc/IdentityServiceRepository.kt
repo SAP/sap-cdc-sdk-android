@@ -73,8 +73,8 @@ class IdentityServiceRepository private constructor(context: Context) {
         // Register application specific authentication providers.
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
         registerAuthenticationProvider("google", GoogleAuthenticationProvider())
-        registerAuthenticationProvider("line", LineAuthenticationProvider())
-        registerAuthenticationProvider("weChat", WeChatAuthenticationProvider())
+//        registerAuthenticationProvider("line", LineAuthenticationProvider())
+//        registerAuthenticationProvider("weChat", WeChatAuthenticationProvider())
     }
 
     //region CONFIGURATION

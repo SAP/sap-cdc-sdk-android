@@ -36,6 +36,9 @@ fun String.providerIcon(): Painter {
         "apple" -> {
             return painterResource(id = R.drawable.apple_v)
         }
+        "linkedIn" -> {
+            return painterResource(id = R.drawable.linkedin_v)
+        }
 
         else -> {
             return painterResource(id = R.drawable.ic_logo)

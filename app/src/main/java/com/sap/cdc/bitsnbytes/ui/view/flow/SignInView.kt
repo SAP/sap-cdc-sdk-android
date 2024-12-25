@@ -70,7 +70,7 @@ fun SignInView(viewModel: ISignInViewModel) {
 
         // Social selection view
         ViewDynamicSocialSelection(
-            listOf("facebook", "google", "apple", "line")
+            listOf("facebook", "google", "apple", "linkedIn")
         ) { provider ->
             viewModel.socialSignInWith(
                 context as ComponentActivity,
@@ -78,7 +78,10 @@ fun SignInView(viewModel: ISignInViewModel) {
                 onLogin = {
                     loading = false
                     signInError = ""
-                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.MyProfile.route,
+                        rootRoute = ProfileScreenRoute.Welcome.route
+                    )
                 },
                 onFailedWith = { error ->
                     loading = false
