@@ -37,13 +37,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.auth.ResolvableContext
+import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ILinkAccountViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModelPreview
-import com.sap.cdc.bitsnbytes.R
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

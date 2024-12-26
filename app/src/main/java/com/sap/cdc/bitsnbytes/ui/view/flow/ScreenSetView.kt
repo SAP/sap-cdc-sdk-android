@@ -18,10 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.view.custom.SimpleErrorMessages
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSConfig
@@ -31,6 +27,10 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGIN
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGOUT
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
+import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.view.custom.SimpleErrorMessages
+import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

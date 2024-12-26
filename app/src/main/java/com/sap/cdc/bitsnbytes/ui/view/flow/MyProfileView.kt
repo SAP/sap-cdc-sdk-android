@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.ColorUtils
+import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
@@ -43,7 +44,6 @@ import com.sap.cdc.bitsnbytes.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.custom.UserHead
 import com.sap.cdc.bitsnbytes.ui.viewmodel.IMyProfileViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.MyProfileViewModelPreview
-import com.sap.cdc.bitsnbytes.R
 import kotlin.math.absoluteValue
 
 /**

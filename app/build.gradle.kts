@@ -1,7 +1,3 @@
-import java.io.FileNotFoundException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)

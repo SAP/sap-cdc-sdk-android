@@ -13,8 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sap.cdc.bitsnbytes.extensions.providerIcon
 import com.sap.cdc.bitsnbytes.R
+import com.sap.cdc.bitsnbytes.extensions.providerIcon
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

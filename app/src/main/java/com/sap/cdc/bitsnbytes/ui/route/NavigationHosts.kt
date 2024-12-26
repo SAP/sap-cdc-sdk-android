@@ -1,6 +1,5 @@
 package com.sap.cdc.bitsnbytes.ui.route
 
-import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext

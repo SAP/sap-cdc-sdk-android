@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
@@ -36,7 +37,6 @@ import com.sap.cdc.bitsnbytes.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.custom.ViewDynamicSocialSelection
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ISignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModelPreview
-import com.sap.cdc.bitsnbytes.R
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

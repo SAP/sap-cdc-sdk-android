@@ -16,7 +16,6 @@ import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.bitsnbytes.social.FacebookAuthenticationProvider
 import com.sap.cdc.bitsnbytes.social.GoogleAuthenticationProvider
-import java.lang.ref.WeakReference
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

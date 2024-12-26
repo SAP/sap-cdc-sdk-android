@@ -44,6 +44,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.ui.route.CartNavHost
 import com.sap.cdc.bitsnbytes.ui.route.FavoritesNavHost
 import com.sap.cdc.bitsnbytes.ui.route.HomeNavHost
@@ -57,7 +58,6 @@ import com.sap.cdc.bitsnbytes.ui.view.custom.CustomBottomBar
 import com.sap.cdc.bitsnbytes.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.custom.SmallVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ConfigurationViewModel
-import com.sap.cdc.bitsnbytes.R
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
