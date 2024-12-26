@@ -73,6 +73,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             onClick = {
                 loading = true
                 viewModel.createPasskey(
+                    activity = context as FragmentActivity,
                     success = {
                         loading = false
                         //TOAST something like "Passkey created successfully"
@@ -92,6 +93,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             onClick = {
                 loading = true
                 viewModel.clearPasskey(
+                    activity = context as FragmentActivity,
                     success = {
                         loading = false
                         //TOAST something like "Passkey created successfully"

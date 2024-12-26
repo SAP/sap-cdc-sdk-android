@@ -50,7 +50,7 @@ class PasskeysAuthFlow(
 
             // Use credentials manager to create the passkey.
             val registrationResponseJson =
-                authenticationProvider.getPasskey(initRegisterCredentialsEntity.options!!)
+                authenticationProvider.createPasskey(initRegisterCredentialsEntity.options!!)
 
             // Check for correct response
             if (registrationResponseJson != null) {

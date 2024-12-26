@@ -1,6 +1,7 @@
 package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +16,7 @@ import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.bitsnbytes.cdc.PasskeysAuthenticationProvider
 import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 
 interface ILoginOptionsViewModel {
@@ -52,6 +54,7 @@ interface ILoginOptionsViewModel {
     }
 
     fun createPasskey(
+        activity: ComponentActivity,
         success: () -> Unit,
         onFailed: (CDCError) -> Unit
     ) {
@@ -59,6 +62,7 @@ interface ILoginOptionsViewModel {
     }
 
     fun clearPasskey(
+        activity: ComponentActivity,
         success: () -> Unit,
         onFailed: (CDCError) -> Unit
     ) {
@@ -78,10 +82,6 @@ class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
 
 class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
     ILoginOptionsViewModel {
-
-    val passkeysAuthenticationProvider by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        PasskeysAuthenticationProvider()
-    }
 
     //region BIOMETRICS
 
@@ -180,12 +180,18 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
 
     //region PASSKEYS
 
+    private var passkeysAuthenticationProvider: IPasskeysAuthenticationProvider? = null
+
     override fun createPasskey(
+        activity: ComponentActivity,
         success: () -> Unit,
         onFailed: (CDCError) -> Unit
     ) {
+        if (passkeysAuthenticationProvider == null) {
+            passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
+        }
         viewModelScope.launch {
-            val authResponse = identityService.createPasskey()
+            val authResponse = identityService.createPasskey(passkeysAuthenticationProvider!!)
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
                     // Handle success.
@@ -200,11 +206,15 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
     }
 
     override fun clearPasskey(
+        activity: ComponentActivity,
         success: () -> Unit,
         onFailed: (CDCError) -> Unit
     ) {
+        if (passkeysAuthenticationProvider == null) {
+            passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
+        }
         viewModelScope.launch {
-            val authResponse = identityService.clearPasskey()
+            val authResponse = identityService.clearPasskey(passkeysAuthenticationProvider!!)
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
                     // Handle success.

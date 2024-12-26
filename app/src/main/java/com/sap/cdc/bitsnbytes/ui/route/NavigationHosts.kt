@@ -112,10 +112,6 @@ fun ProfileNavHost() {
         }
         composable(ProfileScreenRoute.SignIn.route) {
             // Register passkey authentication provider (can be once anywhere where activity context is available).
-            IdentityServiceRepository.getInstance(LocalContext.current)
-                .registerPasskeyAuthenticationProvider(
-                    LocalContext.current as ComponentActivity
-                )
             SignInView(viewModel = SignInViewModel(LocalContext.current))
         }
         composable(ProfileScreenRoute.Register.route) {

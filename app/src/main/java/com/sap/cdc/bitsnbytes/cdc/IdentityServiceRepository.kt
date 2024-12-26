@@ -56,20 +56,6 @@ class IdentityServiceRepository private constructor(context: Context) {
     private var authenticationProviderMap: MutableMap<String, IAuthenticationProvider> =
         mutableMapOf()
 
-    /**
-     * Initialize passkey provider.
-     */
-    private lateinit var passkeyAuthenticationProvider: IPasskeysAuthenticationProvider
-
-    /**
-     * Initialize passkey provider.
-     */
-    fun registerPasskeyAuthenticationProvider(componentActivity: ComponentActivity) {
-        this.passkeyAuthenticationProvider =
-            PasskeysAuthenticationProvider(WeakReference(componentActivity))
-    }
-
-
     init {
         // Using session migrator to try and migrate an existing session in an application using old versions
         // of the gigya-android-sdk library.
@@ -232,16 +218,25 @@ class IdentityServiceRepository private constructor(context: Context) {
     ): IAuthResponse = authenticationService.authenticate().otpSendCode(parameters)
 
 
-    suspend fun createPasskey(): IAuthResponse {
-        return authenticationService.authenticate().createPasskey(passkeyAuthenticationProvider)
+    suspend fun createPasskey(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .createPasskey(passkeysAuthenticationProvider)
     }
 
-    suspend fun passkeySignIn(): IAuthResponse {
-        return authenticationService.authenticate().passkeySignIn(passkeyAuthenticationProvider)
+    suspend fun passkeySignIn(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .passkeySignIn(passkeysAuthenticationProvider)
     }
 
-    suspend fun clearPasskey(): IAuthResponse {
-        return authenticationService.authenticate().clearPasskey(passkeyAuthenticationProvider)
+    suspend fun clearPasskey(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .clearPasskey(passkeysAuthenticationProvider)
     }
 
     //endregion
