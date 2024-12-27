@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.util.Base64
 import android.util.Log
 import com.sap.cdc.android.sdk.auth.AuthenticationService
+import com.sap.cdc.android.sdk.auth.IAuthSession
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import kotlinx.serialization.json.Json
@@ -51,7 +52,7 @@ class SessionMigrator(private val context: Context) {
      * Try to migrate an existing session created from an old version of the CDC SDK.
      */
     fun tryMigrateSession(
-        authenticationService: AuthenticationService,
+        sessionServiceDelegate: IAuthSession,
         success: () -> Unit,
         failure: () -> Unit
     ) {
@@ -66,7 +67,7 @@ class SessionMigrator(private val context: Context) {
                 }
                 // Set the session.
                 val session: Session = Json.decodeFromString(sessionJson)
-                authenticationService.session().setSession(session)
+                sessionServiceDelegate.setSession(session)
                 success()
             },
             error = { message ->

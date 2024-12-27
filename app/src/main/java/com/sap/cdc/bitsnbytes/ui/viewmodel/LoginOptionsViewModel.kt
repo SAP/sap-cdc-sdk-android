@@ -61,12 +61,12 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
     /**
      * Create instance of the biometric auth (no need to singleton it).
      */
-    private var biometricAuth = BiometricAuth(identityService.authenticationService.sessionService)
+    private var biometricAuth = BiometricAuth(identityService.getAuthenticationService().sessionService)
 
     private var biometricLock by mutableStateOf(false)
 
     private var biometricActive by mutableStateOf(
-        identityService.authenticationService.session()
+        identityService.session()
             .sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
     )
 

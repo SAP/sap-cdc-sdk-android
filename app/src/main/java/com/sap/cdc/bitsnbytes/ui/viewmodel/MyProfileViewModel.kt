@@ -21,7 +21,7 @@ class MyProfileViewModelPreview : IMyProfileViewModel {}
 
 class MyProfileViewModel(context: Context) : BaseViewModel(context), IMyProfileViewModel {
 
-    private var biometricAuth = BiometricAuth(identityService.authenticationService.sessionService)
+    private var biometricAuth = BiometricAuth(identityService.getAuthenticationService().sessionService)
 
     /**
      * Log out of current session.
@@ -46,7 +46,7 @@ class MyProfileViewModel(context: Context) : BaseViewModel(context), IMyProfileV
         promptInfo: BiometricPrompt.PromptInfo,
         executor: Executor
     ) {
-        if (identityService.authenticationService.sessionService.biometricLocked()
+        if (identityService.getAuthenticationService().sessionService.biometricLocked()
         ) {
             biometricAuth.unlockSessionWithBiometricAuthentication(
                 activity = activity,

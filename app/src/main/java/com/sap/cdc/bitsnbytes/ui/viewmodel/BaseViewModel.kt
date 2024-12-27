@@ -26,8 +26,7 @@ open class BaseViewModel(context: Context) : ViewModel() {
     /**
      * Identity service repository instance.
      */
-    val identityService: IdentityServiceRepository =
-        IdentityServiceRepository.getInstance(context)
+    val identityService: IdentityServiceRepository = IdentityServiceRepository
 
 
     open fun cancelAllTimers() {

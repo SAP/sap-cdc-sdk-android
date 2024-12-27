@@ -1,9 +1,9 @@
 package com.sap.cdc.bitsnbytes.cdc
 
-import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.auth.AuthenticationService
+import com.sap.cdc.android.sdk.IdentityService
+import com.sap.cdc.android.sdk.IdentityServiceDelegate
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
@@ -12,11 +12,9 @@ import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.bitsnbytes.social.FacebookAuthenticationProvider
 import com.sap.cdc.bitsnbytes.social.GoogleAuthenticationProvider
-import com.sap.cdc.bitsnbytes.social.LineAuthenticationProvider
-import com.sap.cdc.bitsnbytes.social.WeChatAuthenticationProvider
-import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -26,28 +24,7 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 /**
  * Singleton class for interacting with the CDC SDK.
  */
-class IdentityServiceRepository private constructor(context: Context) {
-
-    companion object {
-        @Volatile
-        private var instance: IdentityServiceRepository? = null
-
-        fun getInstance(context: Context): IdentityServiceRepository {
-            return instance ?: synchronized(this) {
-                instance ?: IdentityServiceRepository(context = context).also { instance = it }
-            }
-        }
-    }
-
-    /**
-     * Initialize the site configuration class
-     */
-    private var siteConfig = SiteConfig(context)
-
-    /**
-     * Initialize authentication service.
-     */
-    var authenticationService = AuthenticationService(siteConfig)
+object IdentityServiceRepository : IdentityServiceDelegate by IdentityService {
 
     /**
      * Authentication providers map.
@@ -60,8 +37,9 @@ class IdentityServiceRepository private constructor(context: Context) {
     init {
         // Using session migrator to try and migrate an existing session in an application using old versions
         // of the gigya-android-sdk library.
-        val sessionMigrator = SessionMigrator(context)
-        sessionMigrator.tryMigrateSession(authenticationService,
+        val sessionMigrator = SessionMigrator(getSiteConfig().applicationContext)
+        sessionMigrator.tryMigrateSession(
+            session(),
             success = {
                 Log.e(SessionMigrator.LOG_TAG, "Session migration success")
 
@@ -83,13 +61,13 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Re-init the session service with new site configuration.
      */
     fun reinitializeSessionService(siteConfig: SiteConfig) =
-        authenticationService.session().resetWithConfig(siteConfig)
+        initialize(siteConfig)
 
 
     /**
      * Get current instance of the current SiteConfig class.
      */
-    fun getConfig() = siteConfig
+    fun getConfig() = getSiteConfig()
 
     //endregion
 
@@ -98,32 +76,29 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Set a new session (secure it).
      */
-    fun setSession(session: Session) {
-        authenticationService.session().setSession(session)
-    }
+    fun setSession(session: Session) = session().setSession(session)
 
     /**
      * Get current secured session.
      */
-    fun getSession(): Session? = authenticationService.session().getSession()
+    fun getSession(): Session? = session().getSession()
 
 
     /**
      * Clear session secure session.
      */
-    fun invalidateSession() = authenticationService.session().clearSession()
+    fun invalidateSession() = session().clearSession()
 
     /**
      * Check if a valid session is available.
      */
-    fun availableSession(): Boolean = authenticationService.session().availableSession()
+    fun availableSession(): Boolean = session().availableSession()
 
 
     /**
      * Get session security level (STANDARD/BIOMETRIC).
      */
-    fun sessionSecurityLevel(): SessionSecureLevel =
-        authenticationService.session().sessionSecurityLevel()
+    fun sessionSecurityLevel(): SessionSecureLevel = session().sessionSecurityLevel()
 
     //endregion
 
@@ -135,7 +110,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun register(email: String, password: String, profileObject: String): IAuthResponse {
         val params =
             mutableMapOf("email" to email, "password" to password, "profile" to profileObject)
-        return authenticationService.authenticate().register(params)
+        return authenticate().register(params)
     }
 
     /**
@@ -143,28 +118,28 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     suspend fun login(email: String, password: String): IAuthResponse {
         val params = mutableMapOf("loginID" to email, "password" to password)
-        return authenticationService.authenticate().login(params)
+        return authenticate().login(params)
     }
 
     /**
      * Request cdc SDK latest account information.
      */
     suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
-        return authenticationService.get().getAccountInfo(parameters!!)
+        return get().getAccountInfo(parameters!!)
     }
 
     /**
      * Update cdc SDK account information.
      */
     suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
-        return authenticationService.set().setAccountInfo(parameters)
+        return set().setAccountInfo(parameters)
     }
 
     /**
      * Logout from current CDC session.
      */
     suspend fun logout(): IAuthResponse {
-        return authenticationService.authenticate().logout()
+        return authenticate().logout()
     }
 
     /**
@@ -174,7 +149,7 @@ class IdentityServiceRepository private constructor(context: Context) {
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider
     ): IAuthResponse =
-        authenticationService.authenticate().providerSignIn(
+        authenticate().providerSignIn(
             hostActivity, provider
         )
 
@@ -185,9 +160,9 @@ class IdentityServiceRepository private constructor(context: Context) {
         hostActivity: ComponentActivity,
         parameters: MutableMap<String, String>,
     ): IAuthResponse =
-        authenticationService.authenticate().providerSignIn(
+        authenticate().providerSignIn(
             hostActivity, SSOAuthenticationProvider(
-                siteConfig = authenticationService.siteConfig,
+                siteConfig = getSiteConfig(),
                 mutableMapOf()
             )
         )
@@ -202,10 +177,10 @@ class IdentityServiceRepository private constructor(context: Context) {
     ): IAuthResponse {
         val webAuthenticationProvider = WebAuthenticationProvider(
             socialProvider,
-            siteConfig,
-            authenticationService.session().getSession()
+            getSiteConfig(),
+            session().getSession()
         )
-        return authenticationService.authenticate().providerSignIn(
+        return authenticate().providerSignIn(
             hostActivity, webAuthenticationProvider
         )
     }
@@ -218,7 +193,7 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     suspend fun otpSignIn(
         parameters: MutableMap<String, String>
-    ): IAuthResponse = authenticationService.authenticate().otpSendCode(parameters)
+    ): IAuthResponse = authenticate().otpSendCode(parameters)
 
     //endregion
 
@@ -235,7 +210,7 @@ class IdentityServiceRepository private constructor(context: Context) {
         regToken: String,
     ): IAuthResponse {
         val params = mutableMapOf(key to serializedJsonValue)
-        return authenticationService.resolve().pendingRegistrationWith(regToken, params)
+        return resolve().pendingRegistrationWith(regToken, params)
     }
 
     /**
@@ -246,7 +221,7 @@ class IdentityServiceRepository private constructor(context: Context) {
         password: String,
         resolvableContext: ResolvableContext
     ): IAuthResponse {
-        return authenticationService.resolve().linkSiteAccount(
+        return resolve().linkSiteAccount(
             mutableMapOf("loginID" to loginId, "password" to password),
             resolvableContext,
         )
@@ -260,7 +235,7 @@ class IdentityServiceRepository private constructor(context: Context) {
         authenticationProvider: IAuthenticationProvider,
         resolvableContext: ResolvableContext
     ): IAuthResponse {
-        return authenticationService.resolve().linkSocialAccount(
+        return resolve().linkSocialAccount(
             hostActivity, authenticationProvider, resolvableContext,
         )
     }
@@ -272,7 +247,7 @@ class IdentityServiceRepository private constructor(context: Context) {
         code: String,
         resolvableContext: ResolvableContext
     ): IAuthResponse {
-        return authenticationService.resolve().otpLogin(code, resolvableContext)
+        return resolve().otpLogin(code, resolvableContext)
     }
 
     //endregion
@@ -286,8 +261,8 @@ class IdentityServiceRepository private constructor(context: Context) {
         if (!authenticationProviderMap.containsKey(name)) {
             return WebAuthenticationProvider(
                 name,
-                siteConfig,
-                authenticationService.session().getSession()
+                getSiteConfig(),
+                session().getSession()
             )
         }
         return authenticationProviderMap[name]
@@ -309,7 +284,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Instantiate a new WebBridgeJS element.
      */
-    fun getWebBridge(): WebBridgeJS = WebBridgeJS(authenticationService)
+    fun getWebBridge(): WebBridgeJS = WebBridgeJS(getAuthenticationService())
 
     //endregion
 }

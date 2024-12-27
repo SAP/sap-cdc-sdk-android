@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.auth.ResolvableContext
+import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.bitsnbytes.cdc.IdentityServiceRepository
 import com.sap.cdc.bitsnbytes.ui.view.custom.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.flow.AboutMeView
@@ -99,9 +100,11 @@ fun ProfileNavHost() {
     val profileNavController = rememberNavController()
     NavigationCoordinator.INSTANCE.setNavController(profileNavController)
 
+    IdentityServiceRepository.initialize(SiteConfig(LocalContext.current))
+
     NavHost(
         profileNavController, startDestination =
-        when (IdentityServiceRepository.getInstance(LocalContext.current).availableSession()) {
+        when (IdentityServiceRepository.availableSession()) {
             true -> ProfileScreenRoute.MyProfile.route
             false -> ProfileScreenRoute.Welcome.route
         }
@@ -117,7 +120,7 @@ fun ProfileNavHost() {
         }
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
-            AuthenticationTabView(selected = selected!!.toInt(),)
+            AuthenticationTabView(selected = selected!!.toInt())
         }
         composable(ProfileScreenRoute.EmailSignIn.route) {
             EmailSignInView(viewModel = EmailSignInViewModel(LocalContext.current))
