@@ -18,13 +18,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,17 +37,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.ColorUtils
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.custom.CustomColoredSizeVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.custom.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.custom.UserHead
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IMyProfileViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.MyProfileViewModelPreview
-import com.sap.cdc.bitsnbytes.R
+import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 import kotlin.math.absoluteValue
 
 /**
@@ -88,8 +92,26 @@ fun BottomShadow(alpha: Float = 0.1f, height: Dp = 8.dp) {
  * Profile view representation.
  */
 @Composable
-fun MyProfileView(viewModel: IMyProfileViewModel) {
-    val loading by remember { mutableStateOf(false) }
+fun MyProfileView() {
+    val viewModel: AccountViewModel = viewModel(
+        factory = CustomViewModelFactory(LocalContext.current)
+    )
+
+    var loading by remember { mutableStateOf(false) }
+    var firstName by rememberSaveable { mutableStateOf("") }
+    var lastName by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        loading = true
+        viewModel.getAccountInfo(mutableMapOf(),
+            success = {
+                loading = false
+                firstName = viewModel.accountInfo()?.profile?.firstName ?: ""
+                lastName = viewModel.accountInfo()?.profile?.lastName ?: ""
+            }, onFailed = {
+                loading = false
+            })
+    }
 
     LoadingStateColumn(
         loading = loading,
@@ -143,7 +165,7 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
                 .height(44.dp), contentAlignment = Alignment.Center
         ) {
             Text(
-                "${viewModel.accountInfo()?.profile?.firstName ?: ""} ${viewModel.accountInfo()?.profile?.lastName ?: ""}",
+                "$firstName $lastName",
                 fontSize = 34.sp, fontWeight = FontWeight.Bold
             )
         }
@@ -165,7 +187,6 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
         SelectionRow(title = "Change Password", leadingIcon = R.drawable.ic_change_password_row)
         SelectionRow(title = "Payment Methods", leadingIcon = R.drawable.ic_payment_methods_row)
         SelectionRow(title = "Support", leadingIcon = R.drawable.ic_support_row)
-
         SelectionRow(title = "Login Options", leadingIcon = R.drawable.ic_login_options_row) {
             // Navigate to login options screen.
             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.LoginOptions.route)
@@ -193,11 +214,6 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
                 )
             },
         )
-    }
-
-    // Loading indicator on top of all views.
-    Box(Modifier.fillMaxWidth()) {
-        IndeterminateLinearIndicator(loading)
     }
 }
 
@@ -244,6 +260,6 @@ fun SelectionRow(title: String, leadingIcon: Int, onClick: () -> Unit = {}) {
 @Composable
 fun MyProfileViewPreview() {
     AppTheme {
-        MyProfileView(MyProfileViewModelPreview())
+        MyProfileView()
     }
 }

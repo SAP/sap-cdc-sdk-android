@@ -38,54 +38,73 @@ class ProviderAuthFow(
         const val LOG_TAG = "CDC_ProviderAuthFow"
     }
 
-    suspend fun signIn(): IAuthResponse {
+    suspend fun signIn(parameters: MutableMap<String, String>): IAuthResponse {
         if (provider == null)
             return AuthResponse(CDCResponse().providerError())
         try {
-            val result: AuthenticatorProviderResult = provider.signIn(weakActivity?.get())
+            val signIn: AuthenticatorProviderResult = provider.signIn(weakActivity?.get())
 
-            when (result.type) {
+            // Vary flow based on provider type.
+            when (signIn.type) {
+                // Native flows refer to social networks that require native SDK implementation
+                // in order to authenticate the user (eg. Facebook, Google, etc.).
                 ProviderType.NATIVE -> {
                     if (!parameters.containsKey("loginMode")) {
                         parameters["loginMode"] = "standard"
                     }
-                    parameters["provider"] = result.provider
-                    parameters["providerSessions"] = result.providerSessions!!
+                    parameters["provider"] = signIn.provider
+                    parameters["providerSessions"] = signIn.providerSessions!!
                     parameters["conflictHandling"] = "fail"
-                    val notifyResponse =
+                    val notifySocialLogin =
                         AuthenticationApi(coreClient, sessionService).genericSend(
                             EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,
                             parameters
                         )
-                    if (!notifyResponse.isError()) {
-                        secureNewSession(notifyResponse)
+
+                    // Prepare flow response
+                    val authResponse = AuthResponse(notifySocialLogin)
+                    val resolvableContext = initResolvableState(notifySocialLogin)
+                    if (resolvableContext == null) {
+                        // No interruption in flow - secure the session - flow is successful.
+                        secureNewSession(notifySocialLogin)
+                        dispose()
+                        return authResponse
                     }
+
+                    // Flow ends with resolvable interruption.
+                    authResponse.resolvableContext = resolvableContext
                     dispose()
-                    val authResponse = AuthResponse(notifyResponse)
-                    initResolvableState(authResponse)
                     return authResponse
                 }
 
+                // Web flows refer to all social provider types that are not native SDK based.
+                // These providers require a web view to authenticate the user.
                 ProviderType.WEB -> {
+                    //TODO: Possibility missing interruption or error handling.
                     // Secure new acquired session.
-                    val session = result.session!!
+                    val session = signIn.session!!
+                    // Session will be secured when set.
                     sessionService.setSession(session)
 
                     // Refresh account information for flow response.
-                    val accountResponse =
+                    val getAccountInfo =
                         AuthenticationApi(coreClient, sessionService).genericSend(
                             EP_ACCOUNTS_GET_ACCOUNT_INFO,
                             mutableMapOf("include" to "data,profile,emails")
                         )
-                    if (!accountResponse.isError()) {
-                        secureNewSession(accountResponse)
+
+                    if (!getAccountInfo.isError()) {
+                        // Secure acquired session from account info.
+                        secureNewSession(getAccountInfo)
                     }
+
                     dispose()
-                    return AuthResponse(accountResponse)
+                    return AuthResponse(getAccountInfo)
                 }
 
+                // SSO provider authentication using a Central Login Page (CLP) only.
                 ProviderType.SSO -> {
-                    val ssoData = result.ssoData!!
+                    val ssoData = signIn.ssoData!!
                     val ssoUtil = SSOUtil()
                     val tokenResponse = ssoToken(ssoUtil, ssoData)
                     if (tokenResponse.containsKey("access_token")) {
@@ -98,16 +117,17 @@ class ProviderAuthFow(
                         sessionService.setSession(session)
 
                         // Refresh account information for flow response.
-                        val accountResponse =
+                        val getAccountInfo =
                             AuthenticationApi(coreClient, sessionService).genericSend(
                                 EP_ACCOUNTS_GET_ACCOUNT_INFO,
                                 mutableMapOf("include" to "data,profile,emails")
                             )
-                        if (!accountResponse.isError()) {
-                            secureNewSession(accountResponse)
+                        if (!getAccountInfo.isError()) {
+                            // Secure acquired session from account info.
+                            secureNewSession(getAccountInfo)
                         }
                         dispose()
-                        return AuthResponse(accountResponse)
+                        return AuthResponse(getAccountInfo)
                     } else {
                         return AuthResponse(CDCResponse().providerError())
                     }
@@ -136,17 +156,17 @@ class ProviderAuthFow(
             "apikey" to sessionService.siteConfig.apiKey
         )
 
-        val serverParams = mutableMapOf<String, String>()
-        serverParams["redirect_uri"] = data.redirectUri!!
-        serverParams["client_id"] = sessionService.siteConfig.apiKey
-        serverParams["grant_type"] = "authorization_code"
-        serverParams["code"] = data.code!!
-        serverParams["code_verifier"] = data.verifier!!
+        val parameters = mutableMapOf<String, String>()
+        parameters["redirect_uri"] = data.redirectUri!!
+        parameters["client_id"] = sessionService.siteConfig.apiKey
+        parameters["grant_type"] = "authorization_code"
+        parameters["code"] = data.code!!
+        parameters["code_verifier"] = data.verifier!!
         val urlString = ssoUtil.getUrl(sessionService.siteConfig, SSOUtil.TOKEN)
         return Api(coreClient).post(
             CDCRequest(siteConfig = sessionService.siteConfig)
                 .api(urlString)
-                .parameters(serverParams)
+                .parameters(parameters)
                 .headers(headers)
         )
 

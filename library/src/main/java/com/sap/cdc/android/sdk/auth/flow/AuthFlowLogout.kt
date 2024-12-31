@@ -23,14 +23,19 @@ class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.logout](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/41376ba570b21014bbc5a10ce4041860.html?q=accounts.getAccountInfo)
      */
     suspend fun logout(): IAuthResponse {
-        val logoutResponse =
+        val logout =
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_LOGOUT)
-        if (!logoutResponse.isError()) {
+
+        // Prepare flow response
+        val authResponse = AuthResponse(logout)
+        if (!logout.isError() || logout.errorCode() == 403005) {
             // Invalidate session if the response does not contain any errors.
+            // If an "Unauthorized user" (403005) error is received, the session is already invalidated in the backend.
             sessionService.invalidateSession()
             clearCookies()
         }
-        return AuthResponse(logoutResponse)
+
+        return AuthResponse(logout)
     }
 
     private fun clearCookies() {
@@ -39,3 +44,5 @@ class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         cookieManager.flush()
     }
 }
+
+

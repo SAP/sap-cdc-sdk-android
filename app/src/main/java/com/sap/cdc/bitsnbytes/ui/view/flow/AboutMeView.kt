@@ -18,16 +18,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.custom.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.custom.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.custom.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.custom.TitledText
 import com.sap.cdc.bitsnbytes.ui.view.custom.UpdatableEditBox
-import com.sap.cdc.bitsnbytes.ui.viewmodel.AboutMeViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IAboutMeViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 
 
 /**
@@ -39,7 +41,10 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.IAboutMeViewModel
  */
 
 @Composable
-fun AboutMeView(viewModel: IAboutMeViewModel) {
+fun AboutMeView() {
+    val viewModel: AccountViewModel = viewModel(
+        factory = CustomViewModelFactory(LocalContext.current)
+    )
 
     var loading by remember { mutableStateOf(false) }
     var setError by remember { mutableStateOf("") }
@@ -136,7 +141,7 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
 @Composable
 fun AboutMeViewPreview() {
     AppTheme {
-        AboutMeView(viewModel = AboutMeViewModelPreview())
+        AboutMeView()
     }
 }
 

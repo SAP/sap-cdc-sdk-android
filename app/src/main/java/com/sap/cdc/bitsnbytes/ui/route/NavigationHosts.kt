@@ -24,19 +24,16 @@ import com.sap.cdc.bitsnbytes.ui.view.flow.RegisterView
 import com.sap.cdc.bitsnbytes.ui.view.flow.ScreenSetView
 import com.sap.cdc.bitsnbytes.ui.view.flow.SignInView
 import com.sap.cdc.bitsnbytes.ui.view.flow.WelcomeView
-import com.sap.cdc.bitsnbytes.ui.viewmodel.AboutMeViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.LoginOptionsViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.MyProfileViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
 import kotlinx.serialization.json.Json
 
 /**
@@ -107,7 +104,7 @@ fun ProfileNavHost() {
         }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
-            WelcomeView(viewModel = WelcomeViewModel(LocalContext.current))
+            WelcomeView()
         }
         composable(ProfileScreenRoute.SignIn.route) {
             SignInView(viewModel = SignInViewModel(LocalContext.current))
@@ -142,10 +139,10 @@ fun ProfileNavHost() {
             )
         }
         composable(ProfileScreenRoute.MyProfile.route) {
-            MyProfileView(viewModel = MyProfileViewModel(LocalContext.current))
+            MyProfileView()
         }
         composable(ProfileScreenRoute.AboutMe.route) {
-            AboutMeView(viewModel = AboutMeViewModel(LocalContext.current))
+            AboutMeView()
         }
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route) {
             ScreenSetView(

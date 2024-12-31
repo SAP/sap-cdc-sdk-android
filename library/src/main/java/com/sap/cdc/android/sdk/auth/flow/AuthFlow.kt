@@ -1,7 +1,6 @@
 package com.sap.cdc.android.sdk.auth.flow
 
 import com.sap.cdc.android.sdk.auth.AuthResolvers
-import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.ResolvableLinking
 import com.sap.cdc.android.sdk.auth.ResolvableOtp
@@ -18,15 +17,6 @@ import com.sap.cdc.android.sdk.extensions.parseRequiredMissingFieldsForRegistrat
  */
 
 open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionService) {
-
-    var parameters: MutableMap<String, String> = mutableMapOf()
-
-    /**
-     * Params setter/accumulator.
-     */
-    fun withParameters(parameters: MutableMap<String, String>) {
-        this.parameters.putAll(parameters)
-    }
 
     /**
      * Override if needed to dispose various objects.
@@ -53,27 +43,30 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * According to provided error, the method will determine if this error is resolvable. If so, it will
      * populate the "AuthResolvable" class with the data required to complete the flow.
      */
-    suspend fun initResolvableState(authResponse: AuthResponse) {
+    suspend fun initResolvableState(cdcResponse: CDCResponse): ResolvableContext? {
         // Init auth resolvable entity with RegToken field.
-        if (authResponse.isResolvable()) {
+        if (ResolvableContext.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey(
+                "vToken"
+            )
+        ) {
             val resolvableContext =
-                ResolvableContext(authResponse.cdcResponse().stringField("regToken"))
+                ResolvableContext(cdcResponse.stringField("regToken"))
             val resolve = AuthResolvers(coreClient, sessionService)
-            when (authResponse.cdcResponse().errorCode()) {
+            when (cdcResponse.errorCode()) {
 
                 //OTP
                 ResolvableContext.ERR_NONE -> {
                     // Resolvable state can occur on successful call in OTP flows.
                     // vToken is required for OTP verification.
                     resolvableContext.otp =
-                        ResolvableOtp(authResponse.cdcResponse().stringField("vToken"))
+                        ResolvableOtp(cdcResponse.stringField("vToken"))
                 }
 
                 // REGISTRATION
                 ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
                     // Parse missing fields required for registration.
                     val missingFields =
-                        authResponse.cdcResponse().errorDetails()
+                        cdcResponse.errorDetails()
                             ?.parseRequiredMissingFieldsForRegistration()
                     resolvableContext.registration = ResolvableRegistration(missingFields)
                 }
@@ -81,8 +74,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 // LINKING
                 ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
                     // Add fields required for v2 linking flow.
-                    val provider = authResponse.cdcResponse().stringField("provider")
-                    val authToken = authResponse.cdcResponse().stringField("access_token")
+                    val provider = cdcResponse.stringField("provider")
+                    val authToken = cdcResponse.stringField("access_token")
                     resolvableContext.linking = ResolvableLinking(provider, authToken)
 
                     // Request conflicting accounts.
@@ -99,8 +92,9 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
                 }
             }
-            authResponse.resolvableContext = resolvableContext
+            return resolvableContext
         }
+        return null
     }
 
 }

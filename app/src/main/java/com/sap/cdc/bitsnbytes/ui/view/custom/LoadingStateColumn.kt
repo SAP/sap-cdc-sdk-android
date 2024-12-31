@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +19,7 @@ fun LoadingStateColumn(
     content: @Composable () -> Unit
 ) {
     Box(
+        modifier = Modifier.background(Color.White).imePadding(),
         contentAlignment = Alignment.TopCenter,
     ) {
         Column(

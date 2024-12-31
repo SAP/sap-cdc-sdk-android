@@ -1,12 +1,13 @@
 package com.sap.cdc.bitsnbytes.ui.view.flow
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,7 +71,9 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
     // UI elements.
 
     LoadingStateColumn(
-        modifier = Modifier.verticalScroll(rememberScrollState()),
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(48.dp),
         loading = loading
     ) {
 
@@ -80,106 +83,103 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
         Text("Please fill out the listed inputs", fontSize = 16.sp, fontWeight = FontWeight.Light)
         MediumVerticalSpacer()
 
-        Column(
+
+        // Name Input.
+        SmallVerticalSpacer()
+        OutlineTitleAndEditTextField(
+            titleText = "Name: *",
+            inputText = name,
+            placeholderText = "Name placeholder",
+            onValueChange = {
+                name = it
+            },
+            focusManager = focusManager
+        )
+
+        // Email input.
+        SmallVerticalSpacer()
+        OutlineTitleAndEditTextField(
+            titleText = "Email: *",
+            inputText = email,
+            placeholderText = "Email placeholder",
+            onValueChange = {
+                email = it
+            },
+            focusManager = focusManager
+        )
+
+        // Password input.
+        SmallVerticalSpacer()
+        OutlineTitleAndEditPasswordTextField(
+            titleText = "Password: *",
+            inputText = password,
+            placeholderText = "",
+            passwordVisible = passwordVisible,
+            onValueChange = {
+                password = it
+            },
+            onEyeClick = { passwordVisible = it },
+            focusManager = focusManager
+        )
+
+        // Confirm password input.
+        SmallVerticalSpacer()
+        OutlineTitleAndEditPasswordTextField(
+            titleText = "Confirm password: *",
+            inputText = confirmPassword,
+            placeholderText = "",
+            passwordVisible = passwordVisible,
+            onValueChange = {
+                confirmPassword = it
+            },
+            onEyeClick = { passwordVisible = it },
+            focusManager = focusManager
+        )
+
+        if (isNotMatching.value) {
+            PasswordNotMatchingError()
+        }
+
+        MediumVerticalSpacer()
+        Text(
+            "By clicking on \"register\", you conform that you have read and agree to the privacy policy and terms of use.",
+        )
+
+        MediumVerticalSpacer()
+        ActionOutlineButton(
             modifier = Modifier
-                .padding(start = 48.dp, end = 48.dp)
-        ) {
-            // Name Input.
-            SmallVerticalSpacer()
-            OutlineTitleAndEditTextField(
-                titleText = "Name: *",
-                inputText = name,
-                placeholderText = "Name placeholder",
-                onValueChange = {
-                    name = it
-                },
-                focusManager = focusManager
-            )
-
-            // Email input.
-            SmallVerticalSpacer()
-            OutlineTitleAndEditTextField(
-                titleText = "Email: *",
-                inputText = email,
-                placeholderText = "Email placeholder",
-                onValueChange = {
-                    email = it
-                },
-                focusManager = focusManager
-            )
-
-            // Password input.
-            SmallVerticalSpacer()
-            OutlineTitleAndEditPasswordTextField(
-                titleText = "Password: *",
-                inputText = password,
-                placeholderText = "",
-                passwordVisible = passwordVisible,
-                onValueChange = {
-                    password = it
-                },
-                onEyeClick = { passwordVisible = it },
-                focusManager = focusManager
-            )
-
-            // Confirm password input.
-            SmallVerticalSpacer()
-            OutlineTitleAndEditPasswordTextField(
-                titleText = "Confirm password: *",
-                inputText = confirmPassword,
-                placeholderText = "",
-                passwordVisible = passwordVisible,
-                onValueChange = {
-                    confirmPassword = it
-                },
-                onEyeClick = { passwordVisible = it },
-                focusManager = focusManager
-            )
-
-            if (isNotMatching.value) {
-                PasswordNotMatchingError()
-            }
-
-            MediumVerticalSpacer()
-            Text(
-                "By clicking on \"register\", you conform that you have read and agree to the privacy policy and terms of use.",
-            )
-
-            MediumVerticalSpacer()
-            ActionOutlineButton(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                text = "Register",
-                onClick = {
-                    registerError = ""
-                    loading = true
-                    // Credentials registration.
-                    viewModel.register(
-                        email = email,
-                        password = password,
-                        name = name,
-                        onLogin = {
-                            loading = false
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        },
-                        onFailedWith = { error ->
-                            loading = false
-                            if (error != null) {
-                                // Need to display error information.
-                                registerError = error.errorDetails!!
-                            }
+                .fillMaxWidth(),
+            text = "Register",
+            onClick = {
+                registerError = ""
+                loading = true
+                // Credentials registration.
+                viewModel.register(
+                    email = email,
+                    password = password,
+                    name = name,
+                    onLogin = {
+                        loading = false
+                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                    },
+                    onFailedWith = { error ->
+                        loading = false
+                        if (error != null) {
+                            // Need to display error information.
+                            registerError = error.errorDetails!!
                         }
-                    )
-                }
-            )
-
-            if (registerError.isNotEmpty()) {
-                SimpleErrorMessages(
-                    text = registerError
+                    }
                 )
             }
+        )
+
+        if (registerError.isNotEmpty()) {
+            SimpleErrorMessages(
+                text = registerError
+            )
         }
     }
+
 }
 
 

@@ -9,6 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CDCMessageEventBus
+import com.sap.cdc.android.sdk.SessionEvent
+import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.flow.HomeScaffoldView
 import kotlinx.coroutines.launch
@@ -37,6 +42,22 @@ class MainActivity : FragmentActivity() {
                     color = AppTheme.colorScheme.background
                 ) {
                     HomeScaffoldView()
+                }
+            }
+        }
+
+        CDCMessageEventBus.subscribeToSessionEvents {
+            when (it) {
+                is SessionEvent.ExpiredSession -> {
+                    CDCDebuggable.log("MainActivity", "Invalidate session event received from bus.")
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.Welcome.route,
+                        rootRoute = ProfileScreenRoute.Welcome.route
+                    )
+                }
+
+                is SessionEvent.VerifySession -> {
+                    // Verify session
                 }
             }
         }

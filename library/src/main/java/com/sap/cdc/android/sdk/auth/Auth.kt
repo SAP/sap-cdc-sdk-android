@@ -154,7 +154,7 @@ interface IAuthApis {
     suspend fun providerSignIn(
         hostActivity: ComponentActivity,
         authenticationProvider: IAuthenticationProvider,
-        parameters: MutableMap<String, String>? = mutableMapOf(),
+        parameters: MutableMap<String, String>? = null
     ): IAuthResponse
 
     /**
@@ -187,8 +187,7 @@ internal class AuthApis(
      */
     override suspend fun register(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = RegistrationAuthFlow(coreClient, sessionService)
-        flow.withParameters(parameters)
-        return flow.register()
+        return flow.register(parameters)
     }
 
     /**
@@ -196,8 +195,7 @@ internal class AuthApis(
      */
     override suspend fun login(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = LoginAuthFlow(coreClient, sessionService)
-        flow.withParameters(parameters)
-        return flow.login()
+        return flow.login(parameters)
     }
 
     /**
@@ -211,8 +209,7 @@ internal class AuthApis(
         val flow = ProviderAuthFow(
             coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
         )
-        flow.withParameters(parameters ?: mutableMapOf())
-        return flow.signIn()
+        return flow.signIn(parameters ?: mutableMapOf())
     }
 
     /**
@@ -220,8 +217,7 @@ internal class AuthApis(
      */
     override suspend fun otpSendCode(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = LoginAuthFlow(coreClient, sessionService)
-        flow.withParameters(parameters)
-        return flow.otpSendCode()
+        return flow.otpSendCode(parameters)
     }
 
     /**
@@ -261,8 +257,7 @@ internal class AuthApisSet(
 
     override suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = AccountAuthFlow(coreClient, sessionService)
-        flow.withParameters(parameters)
-        return flow.setAccountInfo()
+        return flow.setAccountInfo(parameters)
     }
 
 }
@@ -288,8 +283,7 @@ internal class AuthApisGet(
      */
     override suspend fun getAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = AccountAuthFlow(coreClient, sessionService)
-        flow.withParameters(parameters)
-        return flow.getAccountInfo()
+        return flow.getAccountInfo(parameters)
     }
 
     /**
@@ -297,8 +291,7 @@ internal class AuthApisGet(
      */
     override suspend fun getAuthCode(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = AccountAuthFlow(coreClient, sessionService)
-        flow.withParameters(parameters)
-        return flow.getAuthCode()
+        return flow.getAuthCode(parameters)
     }
 
 }
@@ -372,8 +365,7 @@ internal class AuthResolvers(
      */
     override suspend fun finalizeRegistration(parameters: MutableMap<String, String>): IAuthResponse {
         val resolver = RegistrationAuthFlow(coreClient, sessionService)
-        resolver.withParameters(parameters)
-        return resolver.finalize()
+        return resolver.finalize(parameters)
     }
 
     /**
@@ -395,11 +387,13 @@ internal class AuthResolvers(
     ): IAuthResponse {
         val linkAccountResolver = LoginAuthFlow(coreClient, sessionService)
         parameters["loginMode"] = "link" // Making sure login mode is link
-        linkAccountResolver.withParameters(parameters)
-        val linkAccountResolverAuthResponse = linkAccountResolver.login()
+        val linkAccountResolverAuthResponse = linkAccountResolver.login(parameters)
         return when (linkAccountResolverAuthResponse.state()) {
             AuthState.SUCCESS -> {
-                connectAccount(resolvableContext.linking?.provider, resolvableContext.linking?.authToken)
+                connectAccount(
+                    resolvableContext.linking?.provider,
+                    resolvableContext.linking?.authToken
+                )
             }
 
             else -> linkAccountResolverAuthResponse
@@ -419,11 +413,14 @@ internal class AuthResolvers(
         val linkAccountResolver = ProviderAuthFow(
             coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
         )
-        linkAccountResolver.withParameters(mutableMapOf("provider" to resolvableContext.linking?.provider!!))
-        val linkAccountResolverAuthResponse = linkAccountResolver.signIn()
+        val linkAccountResolverAuthResponse =
+            linkAccountResolver.signIn(mutableMapOf("provider" to resolvableContext.linking?.provider!!))
         return when (linkAccountResolverAuthResponse.state()) {
             AuthState.SUCCESS -> {
-                connectAccount(resolvableContext.linking?.provider, resolvableContext.linking?.authToken)
+                connectAccount(
+                    resolvableContext.linking?.provider,
+                    resolvableContext.linking?.authToken
+                )
             }
 
             else -> linkAccountResolverAuthResponse
@@ -440,14 +437,13 @@ internal class AuthResolvers(
         missingFields: MutableMap<String, String>
     ): IAuthResponse {
         val setAccountResolver = AccountAuthFlow(coreClient, sessionService)
-        setAccountResolver.parameters["regToken"] = regToken
+        missingFields["regToken"] = regToken
         val setAccountAuthResponse = setAccountResolver.setAccountInfo(missingFields)
         when (setAccountAuthResponse.state()) {
             AuthState.SUCCESS -> {
                 // Error in flow.
                 val finalizeRegistrationResolver = RegistrationAuthFlow(coreClient, sessionService)
-                finalizeRegistrationResolver.parameters["regToken"] = regToken
-                return finalizeRegistrationResolver.finalize()
+                return finalizeRegistrationResolver.finalize(mutableMapOf("regToken" to regToken))
             }
 
             else -> {
@@ -463,11 +459,13 @@ internal class AuthResolvers(
         code: String,
         resolvableContext: ResolvableContext
     ): IAuthResponse {
-        //TODO: Return error if missing required field.
         val codeVerify = LoginAuthFlow(coreClient, sessionService)
-        codeVerify.parameters["vToken"] = resolvableContext.otp?.vToken!!
-        codeVerify.parameters["code"] = code
-        return codeVerify.otpLogin()
+        return codeVerify.otpLogin(
+            mutableMapOf(
+                "vToken" to resolvableContext.otp?.vToken!!,
+                "code" to code
+            )
+        )
     }
 
     /**
@@ -477,11 +475,13 @@ internal class AuthResolvers(
         code: String,
         resolvableContext: ResolvableContext
     ): IAuthResponse {
-        //TODO: Return error if missing required field.
         val codeVerify = LoginAuthFlow(coreClient, sessionService)
-        codeVerify.parameters["vToken"] = resolvableContext.otp?.vToken!!
-        codeVerify.parameters["code"] = code
-        return codeVerify.otpUpdate()
+        return codeVerify.otpUpdate(
+            mutableMapOf(
+                "vToken" to resolvableContext.otp?.vToken!!,
+                "code" to code
+            )
+        )
     }
 
     /**
@@ -513,8 +513,7 @@ internal class AuthResolvers(
             mutableMapOf("providerSession" to providerSession, "loginMode" to "connect")
 
         val connectResolver = LoginAuthFlow(coreClient, sessionService)
-        connectResolver.withParameters(parameters)
-        val authResponse = connectResolver.notifySocialLogin()
+        val authResponse = connectResolver.notifySocialLogin(parameters)
         return authResponse
     }
 

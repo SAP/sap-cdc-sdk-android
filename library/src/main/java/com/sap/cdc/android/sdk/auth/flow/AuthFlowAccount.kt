@@ -24,13 +24,12 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.getAccountInfo](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/cab69a86edae49e2be93fd51b78fc35b.html?q=accounts.getAccountInfo)
      */
     suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
-        withParameters(parameters!!)
-        val accountResponse =
+        val getAccountInfo =
             AuthenticationApi(coreClient, sessionService).genericSend(
                 EP_ACCOUNTS_GET_ACCOUNT_INFO,
-                this.parameters
+                parameters!!
             )
-        return AuthResponse(accountResponse)
+        return AuthResponse(getAccountInfo)
     }
 
     /**
@@ -40,13 +39,12 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.setAccountInfo](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/41398a8670b21014bbc5a10ce4041860.html?q=accounts.getAccountInfo)
      */
     suspend fun setAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
-        withParameters(parameters!!)
-        val setAccountResponse =
+        val setAccount =
             AuthenticationApi(coreClient, sessionService).genericSend(
                 EP_ACCOUNTS_SET_ACCOUNT_INFO,
-                this.parameters
+                parameters ?: mutableMapOf()
             )
-        return AuthResponse(setAccountResponse)
+        return AuthResponse(setAccount)
     }
 
     /**
@@ -56,12 +54,11 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.getConflictingAccounts](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/4134d7df70b21014bbc5a10ce4041860.html?q=conflictingAccounts)
      */
     suspend fun getConflictingAccounts(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
-        withParameters(parameters!!)
-        val conflictingAccountsResponse = AuthenticationApi(coreClient, sessionService).genericSend(
+        val getConflictingAccounts = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS,
-            this.parameters
+            parameters ?: mutableMapOf()
         )
-        return AuthResponse(conflictingAccountsResponse)
+        return AuthResponse(getConflictingAccounts)
     }
 
     /**
@@ -70,16 +67,15 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      *
      * Request code required to exchange the session.
      */
-    suspend fun getAuthCode(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
-        withParameters(parameters!!)
+    suspend fun getAuthCode(parameters: MutableMap<String, String>): IAuthResponse {
         parameters["resource"] = "urn:gigya:account" //TODO: check removing parameter?
         parameters["subject_token_type"] = "urn:gigya:token-type:mobile" //TODO: check removing parameter?
         parameters["response_type"] = "code"
-        val exchangeAuthCodeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
+        val tokenExchange = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_ACCOUNTS_ID_TOKEN_EXCHANGE,
-            this.parameters
+            parameters
         )
-        return AuthResponse(exchangeAuthCodeResponse)
+        return AuthResponse(tokenExchange)
 
     }
 }

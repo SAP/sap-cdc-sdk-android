@@ -37,7 +37,10 @@ class NavigationCoordinator private constructor() {
      * Navigate to new route.
      */
     fun navigate(route: String) {
-        currentNavController?.navigate(route)
+        currentNavController?.navigate(route) {
+            launchSingleTop = true
+            restoreState = true
+        }
         // Update back stack custom state.
         _backNav.value = currentNavController?.previousBackStackEntry != null
     }

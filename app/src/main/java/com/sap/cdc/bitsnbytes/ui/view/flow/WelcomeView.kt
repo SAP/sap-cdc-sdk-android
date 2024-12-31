@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sap.cdc.bitsnbytes.ApplicationConfig
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
@@ -31,8 +33,8 @@ import com.sap.cdc.bitsnbytes.ui.view.custom.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.custom.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.custom.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.custom.SimpleErrorMessages
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IWelcomeViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModelPreview
+import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -42,8 +44,13 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModelPreview
  */
 
 @Composable
-fun WelcomeView(viewModel: IWelcomeViewModel) {
+fun WelcomeView() {
     val context = LocalContext.current
+    val viewModelStoreOwner = LocalViewModelStoreOwner.current
+    val viewModel: WelcomeViewModel = viewModel(
+        factory = CustomViewModelFactory(context),
+        viewModelStoreOwner = viewModelStoreOwner!!
+    )
 
     var loading by remember { mutableStateOf(false) }
     var ssoError by remember { mutableStateOf("") }
@@ -134,6 +141,6 @@ fun WelcomeView(viewModel: IWelcomeViewModel) {
 @Composable
 fun WelcomeViewPreview() {
     AppTheme {
-        WelcomeView(WelcomeViewModelPreview())
+        WelcomeView()
     }
 }

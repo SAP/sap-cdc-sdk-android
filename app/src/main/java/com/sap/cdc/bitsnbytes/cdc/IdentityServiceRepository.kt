@@ -12,11 +12,9 @@ import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.bitsnbytes.social.FacebookAuthenticationProvider
 import com.sap.cdc.bitsnbytes.social.GoogleAuthenticationProvider
-import com.sap.cdc.bitsnbytes.social.LineAuthenticationProvider
-import com.sap.cdc.bitsnbytes.social.WeChatAuthenticationProvider
-import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -142,7 +140,7 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Initiate cdc SDK credentials login.
      */
     suspend fun login(email: String, password: String): IAuthResponse {
-        val params = mutableMapOf("loginID" to email, "password" to password)
+        val params = mutableMapOf("loginID" to email, "password" to password, "sessionExpiration" to "30")
         return authenticationService.authenticate().login(params)
     }
 
