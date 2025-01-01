@@ -61,7 +61,7 @@ The `AuthenticationService` class serves as the primary interface for managing a
 
     **Purpose**: Retrieve specific authentication-related data.
 
-    **Usage**: Clients can utilize this method to fetch specific details about the current authentication state, user profiles, or any other relevant data
+    **Usage**: Clients can utilize this method to fetch specific details about the current authentication state, user profiles, or any other relevant data.
 
 *   **set():**
 
@@ -77,7 +77,7 @@ The `AuthenticationService` class serves as the primary interface for managing a
 
 *   **session():**
 
-    **Purpose**: Manage session-specific interactions
+    **Purpose**: Manage session-specific interactions.
 
     **Usage**: This method enables clients to interact with user sessions, including session creation, validation, termination, and retrieval of session-specific data.
 
@@ -185,7 +185,7 @@ To resolve an interrupted authentication flow, you need to utilize the `Authenti
 
 # Web Screen-Sets
 
-Web Screen Sets are dynamic web user interfaces that allow for customized authentication flows. They provide a flexible and customizable way to design and implement user login and registration experiences.
+Web Screen-Sets are dynamic web user interfaces that allow for customized authentication flows. They provide a flexible and customizable way to design and implement user login and registration experiences.
 
 The SDK utilizes the `WebBridgeJS` object to connect the Android application to Web ScreenSets. This object creates a JavaScript bridge between the native application and a WebView element running the CDC JavaScript SDK.
 
@@ -194,7 +194,7 @@ The SDK utilizes the `WebBridgeJS` object to connect the Android application to 
 
 1. WebView: The Android application uses a WebView element to display the Web Screen-Sets. The WebView acts as a container for the web-based UI.
 
-2. CDC JavaScript SDK.: The Web Screen-Sets are built using the JS CDC SDK, which provides the necessary JavaScript functions and components for authentication flows.
+2. CDC JavaScript SDK.: Web Screen-Sets are built using the JS CDC SDK, which provides the necessary JavaScript functions and components for authentication flows.
 
 3. `WebBridgeJS`: The `WebBridgeJS` object acts as a communication channel between the native Android and JavaScript code running in the WebView. It enables bidirectional communication, allowing the native application to call JavaScript functions and vice versa.
 
