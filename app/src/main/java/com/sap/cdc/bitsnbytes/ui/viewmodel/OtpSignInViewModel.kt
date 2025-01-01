@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.bitsnbytes.ui.view.flow.OTPType
+import com.sap.cdc.bitsnbytes.ui.view.screens.OTPType
 import kotlinx.coroutines.launch
 
 interface IOtpSignInViewModel {
@@ -19,10 +19,8 @@ interface IOtpSignInViewModel {
     }
 }
 
-/**
- * Preview mock view model.
- */
-class OtpSignInViewModelPreview : IOtpSignInViewModel {}
+// Mocked preview class for OtpSignInViewModel
+class OtpSignInViewModelPreview : IOtpSignInViewModel
 
 class OtpSignInViewModel(context: Context) : BaseViewModel(context), IOtpSignInViewModel {
 

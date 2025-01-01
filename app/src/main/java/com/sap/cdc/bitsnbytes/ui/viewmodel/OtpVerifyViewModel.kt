@@ -30,10 +30,8 @@ interface IOtpVerifyViewModel {
     }
 }
 
-/**
- * Preview mock view model.
- */
-class OtpVerifyViewModelPreview: IOtpVerifyViewModel {}
+// Mocked preview class for OtpVerifyViewModel
+class OtpVerifyViewModelPreview : IOtpVerifyViewModel
 
 class OtpVerifyViewModel(context: Context): BaseViewModel(context), IOtpVerifyViewModel {
 

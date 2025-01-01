@@ -85,11 +85,13 @@ internal class SessionSecure(
                 }
 
                 // Enqueue session expiration worker if the session has expiration time.
-                val session = getSession()
-                if (session?.expiration != null) {
-                    cancelRunningSessionExpirationWorker()
-                    val expirationTime = getExpirationTime()
-                    enqueueSessionExpirationWorker(expirationTime!! - System.currentTimeMillis())
+                if (sessionEntity != null) {
+                    val session = Json.decodeFromString<Session>(this.sessionEntity?.session!!)
+                    if (session.expiration != null) {
+                        cancelRunningSessionExpirationWorker()
+                        val expirationTime = getExpirationTime()
+                        enqueueSessionExpirationWorker(expirationTime!! - System.currentTimeMillis())
+                    }
                 }
             }
         }

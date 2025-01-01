@@ -25,10 +25,8 @@ interface IEmailRegisterViewModel {
     }
 }
 
-/**
- * Preview mock view model.
- */
-class EmailRegisterViewModelPreview : IEmailRegisterViewModel {}
+// Mock preview class for the EmailRegisterViewModel
+class EmailRegisterViewModelPreview:  IEmailRegisterViewModel
 
 class EmailRegisterViewModel(context: Context) : BaseViewModel(context), IEmailRegisterViewModel {
 

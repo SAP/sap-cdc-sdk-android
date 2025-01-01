@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -41,6 +42,11 @@ object CDCMessageEventBus {
 
     fun emitSessionEvent(sessionEvent: SessionEvent) {
         sessionScope?.launch { eventFlow.emit(sessionEvent) }
+    }
+
+    fun dispose() {
+        sessionScope?.cancel()
+        sessionScope = null
     }
 }
 

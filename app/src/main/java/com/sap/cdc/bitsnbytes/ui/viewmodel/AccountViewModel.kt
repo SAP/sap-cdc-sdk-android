@@ -44,8 +44,7 @@ interface IAccountViewModel {
     }
 }
 
-class AccountViewModelPreview : IAccountViewModel
-
+class AccountViewModelPreview: IAccountViewModel
 
 class AccountViewModel(context: Context) : BaseViewModel(context), IAccountViewModel {
 

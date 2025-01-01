@@ -3,27 +3,29 @@ package com.sap.cdc.bitsnbytes.ui.route
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.bitsnbytes.cdc.IdentityServiceRepository
-import com.sap.cdc.bitsnbytes.ui.view.custom.AuthenticationTabView
-import com.sap.cdc.bitsnbytes.ui.view.flow.AboutMeView
-import com.sap.cdc.bitsnbytes.ui.view.flow.EmailRegisterView
-import com.sap.cdc.bitsnbytes.ui.view.flow.EmailSignInView
-import com.sap.cdc.bitsnbytes.ui.view.flow.HomeView
-import com.sap.cdc.bitsnbytes.ui.view.flow.LinkAccountView
-import com.sap.cdc.bitsnbytes.ui.view.flow.LoginOptionsView
-import com.sap.cdc.bitsnbytes.ui.view.flow.MyProfileView
-import com.sap.cdc.bitsnbytes.ui.view.flow.OTPType
-import com.sap.cdc.bitsnbytes.ui.view.flow.OtpSignInView
-import com.sap.cdc.bitsnbytes.ui.view.flow.OtpVerifyView
-import com.sap.cdc.bitsnbytes.ui.view.flow.PendingRegistrationView
-import com.sap.cdc.bitsnbytes.ui.view.flow.RegisterView
-import com.sap.cdc.bitsnbytes.ui.view.flow.ScreenSetView
-import com.sap.cdc.bitsnbytes.ui.view.flow.SignInView
-import com.sap.cdc.bitsnbytes.ui.view.flow.WelcomeView
+import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
+import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegisterView
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInView
+import com.sap.cdc.bitsnbytes.ui.view.screens.HomeView
+import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountView
+import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsView
+import com.sap.cdc.bitsnbytes.ui.view.screens.MyProfileView
+import com.sap.cdc.bitsnbytes.ui.view.screens.OTPType
+import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInView
+import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyView
+import com.sap.cdc.bitsnbytes.ui.view.screens.PendingRegistrationView
+import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterView
+import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetView
+import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
+import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
+import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModel
@@ -34,6 +36,8 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 import kotlinx.serialization.json.Json
 
 /**
@@ -96,64 +100,96 @@ fun ProfileNavHost() {
     val profileNavController = rememberNavController()
     NavigationCoordinator.INSTANCE.setNavController(profileNavController)
 
+    val context = LocalContext.current.applicationContext
+    val identityServiceRepository = IdentityServiceRepository.getInstance(context)
+
     NavHost(
         profileNavController, startDestination =
-        when (IdentityServiceRepository.getInstance(LocalContext.current).availableSession()) {
+        when (identityServiceRepository.availableSession()) {
             true -> ProfileScreenRoute.MyProfile.route
             false -> ProfileScreenRoute.Welcome.route
         }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
-            WelcomeView()
+            val viewModel: WelcomeViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            WelcomeView(viewModel)
         }
         composable(ProfileScreenRoute.SignIn.route) {
-            SignInView(viewModel = SignInViewModel(LocalContext.current))
+            val viewModel: SignInViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            SignInView(
+                viewModel
+            )
         }
         composable(ProfileScreenRoute.Register.route) {
-            RegisterView(viewModel = RegisterViewModel(LocalContext.current))
+            val viewModel: RegisterViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            RegisterView(viewModel)
         }
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
-            AuthenticationTabView(selected = selected!!.toInt(),)
+            AuthenticationTabView(selected = selected!!.toInt())
         }
         composable(ProfileScreenRoute.EmailSignIn.route) {
-            EmailSignInView(viewModel = EmailSignInViewModel(LocalContext.current))
+            val viewModel: EmailSignInViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            EmailSignInView(viewModel)
         }
         composable(ProfileScreenRoute.EmailRegister.route) {
-            EmailRegisterView(viewModel = EmailRegisterViewModel(LocalContext.current))
+            val viewModel: EmailRegisterViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            EmailRegisterView(viewModel)
         }
         composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            PendingRegistrationView(
-                viewModel = PendingRegistrationViewModel(LocalContext.current),
-                resolvable,
+            val viewModel: PendingRegistrationViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
             )
+            PendingRegistrationView(viewModel, resolvable)
         }
         composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            LinkAccountView(
-                viewModel = LinkAccountViewModel(LocalContext.current),
-                resolvable,
+            val viewModel: LinkAccountViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
             )
+            LinkAccountView(viewModel, resolvable)
         }
         composable(ProfileScreenRoute.MyProfile.route) {
-            MyProfileView()
+            val viewModel: AccountViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            MyProfileView(viewModel)
         }
         composable(ProfileScreenRoute.AboutMe.route) {
-            AboutMeView()
+            val viewModel: AccountViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            AboutMeView(viewModel)
         }
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route) {
+            val viewModel: ScreenSetViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
             ScreenSetView(
-                ScreenSetViewModel(LocalContext.current),
+                viewModel,
                 "Default-RegistrationLogin",
                 "gigya-login-screen"
             )
         }
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginRegister.route) {
+            val viewModel: ScreenSetViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
             ScreenSetView(
-                ScreenSetViewModel(LocalContext.current),
+                viewModel,
                 "Default-RegistrationLogin",
                 "gigya-register-screen"
             )
@@ -161,7 +197,10 @@ fun ProfileNavHost() {
         composable("${ProfileScreenRoute.OTPSignIn.route}/{type}") { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
-            OtpSignInView(viewModel = OtpSignInViewModel(LocalContext.current), otpType = otpType!!)
+            val viewModel: OtpSignInViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            OtpSignInView(viewModel, otpType = otpType!!)
         }
         composable("${ProfileScreenRoute.OTPVerify.route}/{resolvableContext}/{type}/{inputField}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
@@ -169,15 +208,21 @@ fun ProfileNavHost() {
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
+            val viewModel: OtpVerifyViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
             OtpVerifyView(
-                viewModel = OtpVerifyViewModel(LocalContext.current),
+                viewModel,
                 resolvable,
                 otpType = otpType!!,
                 inputField = input!!
             )
         }
         composable(ProfileScreenRoute.LoginOptions.route) {
-            LoginOptionsView(viewModel = LoginOptionsViewModel(LocalContext.current))
+            val viewModel: LoginOptionsViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            LoginOptionsView(viewModel)
         }
     }
 }

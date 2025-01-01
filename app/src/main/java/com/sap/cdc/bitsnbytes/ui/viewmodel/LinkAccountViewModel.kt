@@ -31,11 +31,8 @@ interface ILinkAccountViewModel {
 
 }
 
-
-/**
- * Preview mock view model.
- */
-class LinkAccountViewModelPreview : ILinkAccountViewModel {}
+// Mocked preview class for LinkAccountViewModel
+class LinkAccountViewModelPreview : ILinkAccountViewModel
 
 class LinkAccountViewModel(context: Context) : BaseViewModel(context), ILinkAccountViewModel {
 

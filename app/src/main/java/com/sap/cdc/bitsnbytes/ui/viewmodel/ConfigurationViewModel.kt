@@ -19,6 +19,9 @@ interface IConfigurationViewModel {
     fun updateWebViewUse(use: Boolean) {}
 }
 
+// Mocked preview class for ConfigurationViewModel
+class ConfigurationViewModelPreview : IConfigurationViewModel
+
 class ConfigurationViewModel(context: Context) : BaseViewModel(context), IConfigurationViewModel {
 
     override fun currentApiKey(): String = identityService.getConfig().apiKey
@@ -42,5 +45,3 @@ class ConfigurationViewModel(context: Context) : BaseViewModel(context), IConfig
     }
 
 }
-
-class ConfigurationPreviewViewModel : IConfigurationViewModel

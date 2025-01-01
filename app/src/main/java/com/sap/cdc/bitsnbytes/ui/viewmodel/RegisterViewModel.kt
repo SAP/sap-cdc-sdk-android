@@ -6,11 +6,7 @@ interface IRegisterViewModel : ISocialSignInViewModel {
 
 }
 
-/**
- * Preview mock view model.
- */
-class RegisterViewModelPreview : IRegisterViewModel {}
+// Mock preview class for the RegisterViewModel
+class RegisterViewModelPreview: IRegisterViewModel
 
-class RegisterViewModel(context: Context) : SocialSignInViewModel(context), IRegisterViewModel {
-
-}
+class RegisterViewModel(context: Context) : SocialSignInViewModel(context), IRegisterViewModel

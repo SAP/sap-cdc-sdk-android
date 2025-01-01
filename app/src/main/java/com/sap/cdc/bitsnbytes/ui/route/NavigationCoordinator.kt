@@ -46,16 +46,6 @@ class NavigationCoordinator private constructor() {
     }
 
     /**
-     * Pop current route and navigate to new route.
-     */
-    fun popAndNavigate(route: String) {
-        currentNavController?.popBackStack()
-        currentNavController?.navigate(route)
-        // Update back stack custom state.
-        _backNav.value = currentNavController?.previousBackStackEntry != null
-    }
-
-    /**
      * Pop controller backstack until specified root route (including) it and navigate to specified route.
      */
     fun popToRootAndNavigate(toRoute: String, rootRoute: String) {

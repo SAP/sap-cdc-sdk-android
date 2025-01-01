@@ -21,10 +21,8 @@ interface IPendingRegistrationViewModel {
 
 }
 
-/**
- * Preview mock view model.
- */
-class PendingRegistrationViewModelPreview : IPendingRegistrationViewModel {}
+// Mock preview class for the PendingRegistrationViewModel
+class PendingRegistrationViewModelPreview : IPendingRegistrationViewModel
 
 class PendingRegistrationViewModel(context: Context) : BaseViewModel(context),
     IPendingRegistrationViewModel {

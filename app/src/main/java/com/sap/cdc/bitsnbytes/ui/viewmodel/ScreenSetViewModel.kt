@@ -13,10 +13,8 @@ interface IViewModelScreenSet {
     fun newWebBridgeJS(): WebBridgeJS? = null
 }
 
-/**
- * Preview mock view model
- */
-class ViewModelScreenSetPreview() : IViewModelScreenSet
+// Mocked preview class for ScreenSetViewModel
+class ScreenSetViewModelPreview: IViewModelScreenSet
 
 class ScreenSetViewModel(context: Context) : BaseViewModel(context), IViewModelScreenSet {
 

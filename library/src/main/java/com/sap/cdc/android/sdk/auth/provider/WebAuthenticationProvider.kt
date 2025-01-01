@@ -15,7 +15,6 @@ import com.sap.cdc.android.sdk.auth.provider.activity.WebLoginActivity
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.session.Session
-import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.Signing
 import com.sap.cdc.android.sdk.core.api.SigningSpec

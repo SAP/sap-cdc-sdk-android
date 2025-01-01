@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.dokka)
 }
 
 group = "com.sap.cdc.android"
@@ -15,19 +16,12 @@ ext["url"] = ""
 
 android {
     namespace = "com.sap.cdc.android.sdk"
-    compileSdk = 34
-
-    android.buildFeatures.buildConfig = true
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 24
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildFeatures {
-        buildConfig = true
     }
 
     buildTypes {
@@ -38,7 +32,6 @@ android {
 
         release {
             buildConfigField("String", "VERSION", "\"${version}\"")
-
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -64,8 +57,12 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockito.inline)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.ktor.client.mock)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
 
     // Http engine, JSON serialization/deserialization, kotlinx.serialization, Logging HTTP requests
     api(libs.bundles.ktor)
@@ -77,6 +74,14 @@ dependencies {
     api(libs.androidx.work.runtime.ktx)
     // Browser (CustomTabs)
     api(libs.androidx.browser)
+}
+
+tasks.dokkaHtml {
+    outputDirectory.set(layout.buildDirectory.dir("docs/dokka").get().asFile)
+}
+
+tasks.assemble {
+    dependsOn(tasks.dokkaHtml)
 }
 
 apply(from = "../publish-package.gradle")

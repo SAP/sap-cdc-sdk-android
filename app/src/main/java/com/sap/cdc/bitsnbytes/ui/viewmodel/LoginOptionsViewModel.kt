@@ -46,12 +46,10 @@ interface ILoginOptionsViewModel {
 
 }
 
-/**
- * Preview mock view model.
- */
+// Mocked preview class for LoginOptionsViewModel
 class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
-    override fun isBiometricActive(): Boolean = false
 
+    override fun isBiometricActive(): Boolean = true
     override fun isBiometricLocked(): Boolean = false
 }
 

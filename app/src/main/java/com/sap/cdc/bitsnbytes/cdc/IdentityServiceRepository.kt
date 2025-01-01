@@ -23,6 +23,8 @@ import com.sap.cdc.bitsnbytes.social.GoogleAuthenticationProvider
 
 /**
  * Singleton class for interacting with the CDC SDK.
+ * This approach is the simplest one to assure a single instance of the SDK is used throughout the application.
+ * Using Kotlin object class is also a valid approach.
  */
 class IdentityServiceRepository private constructor(context: Context) {
 
@@ -71,8 +73,6 @@ class IdentityServiceRepository private constructor(context: Context) {
         // Register application specific authentication providers.
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
         registerAuthenticationProvider("google", GoogleAuthenticationProvider())
-//        registerAuthenticationProvider("line", LineAuthenticationProvider())
-//        registerAuthenticationProvider("weChat", WeChatAuthenticationProvider())
     }
 
     //region CONFIGURATION
@@ -140,7 +140,8 @@ class IdentityServiceRepository private constructor(context: Context) {
      * Initiate cdc SDK credentials login.
      */
     suspend fun login(email: String, password: String): IAuthResponse {
-        val params = mutableMapOf("loginID" to email, "password" to password, "sessionExpiration" to "30")
+        val params =
+            mutableMapOf("loginID" to email, "password" to password, "sessionExpiration" to "30")
         return authenticationService.authenticate().login(params)
     }
 

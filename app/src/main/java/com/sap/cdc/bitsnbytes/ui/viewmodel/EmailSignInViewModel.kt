@@ -25,10 +25,8 @@ interface IEmailSignInViewModel {
     }
 }
 
-/**
- * Preview mock view model.
- */
-class EmailSignInViewModelPreview() : IEmailSignInViewModel {}
+// Mock preview class for the EmailSignInViewModel
+class EmailSignInViewModelPreview : IEmailSignInViewModel
 
 class EmailSignInViewModel(context: Context) : BaseViewModel(context), IEmailSignInViewModel {
 

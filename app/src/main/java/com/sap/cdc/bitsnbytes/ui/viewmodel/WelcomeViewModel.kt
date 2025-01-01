@@ -20,10 +20,8 @@ interface IWelcomeViewModel {
 
 }
 
-/**
- * Preview mock view model.
- */
-class WelcomeViewModelPreview : IWelcomeViewModel {}
+// Mock preview class for the WelcomeViewModel
+class WelcomeViewModelPreview: IWelcomeViewModel
 
 class WelcomeViewModel(context: Context) : BaseViewModel(context), IWelcomeViewModel {
 

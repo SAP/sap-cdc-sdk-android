@@ -29,10 +29,6 @@ interface ISocialSignInViewModel {
 
 }
 
-/**
- * Preview mock view model.
- */
-
 open class SocialSignInViewModel(context: Context) : BaseViewModel(context), IRegisterViewModel {
 
     /**

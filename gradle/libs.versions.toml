@@ -2,7 +2,9 @@
 browser = "1.8.0"
 firebaseBom = "33.7.0"
 kotlin = "2.0.0"
-android = "8.6.1"
+dokka = "1.8.10"
+android = "8.7.3"
+ktorClientMock = "2.3.5"
 ktx = "1.15.0"
 activityCompose = "1.9.3"
 ktor = "2.3.5"
@@ -16,6 +18,7 @@ lifecycleRuntimeKtx = "2.8.7"
 linesdk = "latest.release"
 material = "1.12.0"
 materialIconsExtended = "1.7.6"
+mockitoCore = "5.14.2"
 mockitoInline = "5.0.0"
 mockitoKotlin = "4.0.0"
 navigationCompose = "2.8.5"
@@ -39,6 +42,7 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktorClientMock" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 
@@ -71,6 +75,7 @@ ktor-client-serialization = { group = "io.ktor", name = "ktor-client-serializati
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-logging-jvm = { group = "io.ktor", name = "ktor-client-logging-jvm", version.ref = "ktor" }
 
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -90,8 +95,8 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+kotlin-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
-
 
 [bundles]
 ktor = [

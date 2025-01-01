@@ -26,7 +26,7 @@ open class Api(private val coreClient: CoreClient) {
     /**
      * Check network connectivity.
      */
-    private fun networkAvailable(): Boolean =
+    fun networkAvailable(): Boolean =
         coreClient.siteConfig.applicationContext.isOnline()
 
     /**

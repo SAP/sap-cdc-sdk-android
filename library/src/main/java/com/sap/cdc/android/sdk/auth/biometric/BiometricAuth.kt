@@ -25,7 +25,6 @@ import java.nio.charset.Charset
 import java.util.concurrent.Executor
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.IvParameterSpec
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

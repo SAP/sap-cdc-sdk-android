@@ -15,7 +15,7 @@ import com.sap.cdc.android.sdk.SessionEvent
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
-import com.sap.cdc.bitsnbytes.ui.view.flow.HomeScaffoldView
+import com.sap.cdc.bitsnbytes.ui.view.screens.HomeScaffoldView
 import kotlinx.coroutines.launch
 
 /**
@@ -46,6 +46,8 @@ class MainActivity : FragmentActivity() {
             }
         }
 
+        // Subscribe to session events. This is a global event bus for session events.
+        // If a session event is received, the user will be navigated to the welcome screen.
         CDCMessageEventBus.subscribeToSessionEvents {
             when (it) {
                 is SessionEvent.ExpiredSession -> {
@@ -61,6 +63,12 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        // Dispose the event bus.
+        CDCMessageEventBus.dispose()
+        super.onDestroy()
     }
 }
 
