@@ -64,12 +64,7 @@ jobs:
         sed -i '/<\/resources>/i \    <string name="wechat_app_id">WECHAT_APP_ID_HERE</string>' app/src/variant/res/values/strings.xml
 
     - name: Create file for google-services.json (Demo)
-      run: cat app/google-services.json | base64
-
-    - name: Populate google-services.json (Demo)
-      env:
-        DATA: ${{ secrets.GOOGLE_SERVICES_JSON }}
-      run: echo $DATA > app/google-services.json
+      run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
