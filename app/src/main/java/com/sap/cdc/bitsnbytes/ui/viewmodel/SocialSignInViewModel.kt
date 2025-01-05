@@ -7,6 +7,7 @@ import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.coroutines.launch
 
@@ -18,7 +19,8 @@ interface ISocialSignInViewModel {
 
     fun socialSignInWith(
         hostActivity: ComponentActivity,
-        provider: IAuthenticationProvider?,
+        provider: String,
+        authenticationProvider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
         onLoginIdentifierExists: (IAuthResponse?) -> Unit,
@@ -44,20 +46,27 @@ open class SocialSignInViewModel(context: Context) : BaseViewModel(context), IRe
      */
     override fun socialSignInWith(
         hostActivity: ComponentActivity,
-        provider: IAuthenticationProvider?,
+        provider: String,
+        authenticationProvider: IAuthenticationProvider?,
         onLogin: () -> Unit,
         onPendingRegistration: (IAuthResponse?) -> Unit,
         onLoginIdentifierExists: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
-        if (provider == null) {
+        if (authenticationProvider == null) {
             onFailedWith(CDCError.providerError())
             return
         }
         viewModelScope.launch {
-            val authResponse = identityService.nativeSocialSignIn(
-                hostActivity, provider
-            )
+            var authResponse: IAuthResponse?
+            authResponse = if (authenticationProvider is WebAuthenticationProvider) {
+                identityService.webSocialSignIn(
+                    hostActivity, provider
+                )
+            } else
+                identityService.nativeSocialSignIn(
+                    hostActivity, authenticationProvider
+                )
             when (authResponse.state()) {
                 AuthState.SUCCESS -> {
                     onLogin()

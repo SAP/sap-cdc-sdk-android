@@ -44,6 +44,7 @@ interface IAccountViewModel {
     }
 }
 
+// Mocked preview class for AccountViewModel
 class AccountViewModelPreview: IAccountViewModel
 
 class AccountViewModel(context: Context) : BaseViewModel(context), IAccountViewModel {
@@ -134,6 +135,9 @@ class AccountViewModel(context: Context) : BaseViewModel(context), IAccountViewM
         }
     }
 
+    /**
+     * Show biometric unlock prompt if session is locked.
+     */
     override fun promptBiometricUnlockIfNeeded(
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,

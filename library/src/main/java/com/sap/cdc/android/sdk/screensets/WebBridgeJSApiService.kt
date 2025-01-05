@@ -43,7 +43,7 @@ class WebBridgeJSApiService(
 ) {
 
     companion object {
-        const val LOG_TAG = "CDC_WebBridgeJSApiService"
+        const val LOG_TAG = "WebBridgeJSApiService"
     }
 
     fun apiKey(): String = authenticationService.siteConfig.apiKey

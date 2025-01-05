@@ -29,7 +29,7 @@ internal class SessionSecure(
 ) {
     companion object {
 
-        const val LOG_TAG = "CDC_SessionSecure"
+        const val LOG_TAG = "SessionSecure"
 
         const val CDC_SESSIONS = "cdc_sessions"
         const val CDC_SESSION_EXPIRATIONS = "cdc_session_expirations"

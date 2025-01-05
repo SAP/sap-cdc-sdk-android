@@ -70,6 +70,7 @@ fun SignInView(viewModel: ISignInViewModel) {
         ) { provider ->
             viewModel.socialSignInWith(
                 context as ComponentActivity,
+                provider,
                 viewModel.getAuthenticationProvider(provider),
                 onLogin = {
                     loading = false

@@ -14,7 +14,8 @@ class MainApplication : Application() {
         super.onCreate()
 
         // Allow WebView debugging.
-        CDCDebuggable.setLogs(true)
+        CDCDebuggable.debugLogging(true)
+        CDCDebuggable.httpLogging(false)
         CDCDebuggable.setWebViewDebuggable(true)
     }
 }

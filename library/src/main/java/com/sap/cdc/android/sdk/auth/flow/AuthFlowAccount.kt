@@ -76,8 +76,6 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      * Request code required to exchange the session.
      */
     suspend fun getAuthCode(parameters: MutableMap<String, String>): IAuthResponse {
-        parameters["resource"] = "urn:gigya:account" //TODO: check removing parameter?
-        parameters["subject_token_type"] = "urn:gigya:token-type:mobile" //TODO: check removing parameter?
         parameters["response_type"] = "code"
         CDCDebuggable.log(LOG_TAG, "getAuthCode: with parameters:$parameters")
         val tokenExchange = AuthenticationApi(coreClient, sessionService).genericSend(

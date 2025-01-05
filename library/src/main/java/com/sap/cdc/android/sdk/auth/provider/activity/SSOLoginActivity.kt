@@ -12,7 +12,7 @@ class SSOLoginActivity : ComponentActivity() {
 
     companion object {
 
-        const val LOG_TAG = "CDC_SSOLoginActivity"
+        const val LOG_TAG = "SSOLoginActivity"
 
         const val EXTRA_URI = "extra_uri"
     }

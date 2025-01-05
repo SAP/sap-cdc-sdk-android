@@ -41,7 +41,7 @@ class LogoutAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
             clearCookies()
         }
 
-        return AuthResponse(logout)
+        return authResponse
     }
 
     private fun clearCookies() {

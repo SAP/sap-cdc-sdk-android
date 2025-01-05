@@ -14,7 +14,7 @@ class SessionService(
     var siteConfig: SiteConfig,
 ) {
     companion object {
-        const val LOG_TAG = "CDC_SessionService"
+        const val LOG_TAG = "SessionService"
     }
 
     private var sessionSecure: SessionSecure =

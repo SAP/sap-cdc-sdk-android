@@ -13,7 +13,7 @@ class ResultLoginActivity : ComponentActivity() {
 
     companion object {
 
-        const val LOG_TAG = "CDC_ResultHostActivity"
+        const val LOG_TAG = "ResultHostActivity"
     }
 
     override fun onNewIntent(intent: Intent?) {

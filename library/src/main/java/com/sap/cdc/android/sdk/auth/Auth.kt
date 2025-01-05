@@ -63,7 +63,7 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
 
     override fun asJsonObject(): JsonObject? = this.cdcResponse.jsonObject
 
-    private fun isError(): Boolean = cdcResponse.isError()
+    internal fun isError(): Boolean = cdcResponse.isError()
 
     override fun toDisplayError(): CDCError = this.cdcResponse.toCDCError()
 

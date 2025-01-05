@@ -78,7 +78,6 @@ class CustomViewModelFactory(private val context: Context) : ViewModelProvider.F
                 AccountViewModel(context) as T
             }
 
-
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }
     }

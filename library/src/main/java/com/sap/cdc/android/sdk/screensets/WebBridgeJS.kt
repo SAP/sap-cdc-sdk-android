@@ -21,7 +21,7 @@ import java.lang.ref.WeakReference
 class WebBridgeJS(private val authenticationService: AuthenticationService) {
 
     companion object {
-        const val LOG_TAG = "CDC_WebBridgeJS"
+        const val LOG_TAG = "WebBridgeJS"
 
         const val URI_REDIRECT_SCHEME = "gsapi"
 

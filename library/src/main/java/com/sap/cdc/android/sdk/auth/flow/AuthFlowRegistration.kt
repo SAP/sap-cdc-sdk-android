@@ -64,20 +64,24 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
         val authResponse = AuthResponse(registration)
 
         // Check resolvable flow state.
-        val resolvableContext = initResolvableState(registration)
-        if (resolvableContext == null) {
-            CDCDebuggable.log(LOG_TAG, "register: success")
-            // No interruption in flow - secure the session - flow is successful.
-            secureNewSession(registration)
+        if (authResponse.isResolvable()) {
+            val resolvableContext = initResolvableState(registration)
+            if (resolvableContext != null) {
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "register interrupted: resolvableContext:$resolvableContext"
+                )
+                // Flow ends with resolvable interruption.
+                authResponse.resolvableContext = resolvableContext
+            }
+        } else if (authResponse.isError()) {
+            CDCDebuggable.log(LOG_TAG, "register: error")
             return authResponse
         }
 
-        CDCDebuggable.log(
-            LOG_TAG,
-            "register interrupted: resolvableContext:$resolvableContext"
-        )
-        // Flow ends with resolvable interruption.
-        authResponse.resolvableContext = resolvableContext
+        CDCDebuggable.log(LOG_TAG, "register: success")
+        // No interruption in flow - secure the session - flow is successful.
+        secureNewSession(registration)
         return authResponse
     }
 

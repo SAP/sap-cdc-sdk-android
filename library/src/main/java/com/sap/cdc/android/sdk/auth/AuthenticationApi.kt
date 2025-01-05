@@ -28,7 +28,7 @@ class AuthenticationApi(
 ) : Api(coreClient) {
 
     companion object {
-        const val LOG_TAG = "CDC_AuthenticationApi"
+        const val LOG_TAG = "AuthenticationApi"
     }
 
     /**

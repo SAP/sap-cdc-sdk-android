@@ -68,8 +68,15 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
             .sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
     )
 
+    /**
+     * Check if biometric session encryption is active.
+     * This is an application feature only to support the UI design.
+     */
     override fun isBiometricActive(): Boolean = biometricActive
 
+    /**
+     * Check if biometric session encryption is locked.
+     */
     override fun isBiometricLocked(): Boolean = biometricLock
 
     /**

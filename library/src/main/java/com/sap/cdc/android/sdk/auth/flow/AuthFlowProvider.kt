@@ -36,7 +36,7 @@ class ProviderAuthFow(
 ) : AuthFlow(coreClient, sessionService) {
 
     companion object {
-        const val LOG_TAG = "CDC_ProviderAuthFow"
+        const val LOG_TAG = "ProviderAuthFow"
     }
 
     suspend fun signIn(parameters: MutableMap<String, String>): IAuthResponse {

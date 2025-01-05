@@ -22,7 +22,7 @@ import io.ktor.http.HttpHeaders
 class NetworkClient(
 ) {
     companion object {
-        private const val LOG_TAG = "NetworkClient"
+        internal const val LOG_TAG = "NetworkClient"
         private const val TIME_OUT = 30_000
     }
 
@@ -36,7 +36,7 @@ class NetworkClient(
         install(Logging) {
             logger = object : Logger {
                 override fun log(message: String) {
-                    CDCDebuggable.log("Logger Ktor =>", message)
+                    CDCDebuggable.log(LOG_TAG, message)
                 }
 
             }

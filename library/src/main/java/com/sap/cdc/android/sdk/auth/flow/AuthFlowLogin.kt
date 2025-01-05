@@ -36,22 +36,24 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
 
         // Prepare flow response
         val authResponse = AuthResponse(login)
-
-        // Check resolvable flow state.
-        val resolvableContext = initResolvableState(login)
-        if (resolvableContext == null) {
-            CDCDebuggable.log(LOG_TAG, "login: success")
-            // No interruption in flow - secure the session - flow is successful.
-            secureNewSession(login)
+        if (authResponse.isResolvable()) {
+            // Check resolvable flow state.
+            val resolvableContext = initResolvableState(login)
+            if (resolvableContext != null) {
+                // Flow ends with resolvable interruption.
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "login interrupted: resolvableContext:$resolvableContext"
+                )
+                authResponse.resolvableContext = resolvableContext
+                return authResponse
+            }
+        } else if (authResponse.isError()) {
+            // Flow ends with error.
             return authResponse
         }
-
-        CDCDebuggable.log(
-            LOG_TAG,
-            "login interrupted: resolvableContext:$resolvableContext"
-        )
-        // Flow ends with resolvable interruption.
-        authResponse.resolvableContext = resolvableContext
+        // Flow ends with success.
+        secureNewSession(login)
         return authResponse
     }
 
@@ -70,20 +72,26 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
 
         // Prepare flow response
         val authResponse = AuthResponse(notifySocialLogin)
-        val resolvableContext = initResolvableState(notifySocialLogin)
-        if (resolvableContext == null) {
-            CDCDebuggable.log(LOG_TAG, "notifySocialLogin: success")
-            // No interruption in flow - secure the session - flow is successful.
-            secureNewSession(notifySocialLogin)
+        if (authResponse.isResolvable()) {
+            val resolvableContext = initResolvableState(notifySocialLogin)
+            if (resolvableContext != null) {
+                // Flow ends with resolvable interruption.
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "notifySocialLogin interrupted: resolvableContext:$resolvableContext"
+                )
+                authResponse.resolvableContext = resolvableContext
+                return authResponse
+            }
+        } else if (authResponse.isError()) {
+            // Flow ends with error.
             return authResponse
+
         }
 
-        CDCDebuggable.log(
-            "LoginAuthFlow",
-            "notifySocialLogin interrupted: resolvableContext:$resolvableContext"
-        )
-        // Flow ends with resolvable interruption.
-        authResponse.resolvableContext = resolvableContext
+        CDCDebuggable.log(LOG_TAG, "notifySocialLogin: success")
+        // No interruption in flow - secure the session - flow is successful.
+        secureNewSession(notifySocialLogin)
         return authResponse
     }
 
@@ -107,19 +115,23 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
 
         // Prepare flow response
         val authResponse = AuthResponse(otpSendCode)
-        val resolvableContext = initResolvableState(otpSendCode)
-        if (resolvableContext == null) {
-            // No interruption in flow. Flow is successful.
-            CDCDebuggable.log(LOG_TAG, "otpSendCode: success")
+        if (authResponse.isResolvable()) {
+            val resolvableContext = initResolvableState(otpSendCode)
+            if (resolvableContext != null) {
+                // Flow ends with resolvable interruption.
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "otpSendCode interrupted: resolvableContext:$resolvableContext"
+                )
+                authResponse.resolvableContext = resolvableContext
+                return authResponse
+            }
+        } else if (authResponse.isError()) {
+            // Flow ends with error.
             return authResponse
         }
-
-        CDCDebuggable.log(
-            LOG_TAG,
-            "otpSendCode interrupted: resolvableContext:$resolvableContext"
-        )
-        // Flow ends with resolvable interruption.
-        authResponse.resolvableContext = resolvableContext
+        // No interruption in flow. Flow is successful.
+        CDCDebuggable.log(LOG_TAG, "otpSendCode: success")
         return authResponse
     }
 
@@ -137,20 +149,26 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
 
         // Prepare flow response
         val authResponse = AuthResponse(otpLogin)
-        val resolvableContext = initResolvableState(otpLogin)
-        if (resolvableContext == null) {
-            CDCDebuggable.log(LOG_TAG, "otpLogin: success")
-            // No interruption in flow - secure the session - flow is successful.
-            secureNewSession(otpLogin)
+        if (authResponse.isResolvable()) {
+            // Check resolvable flow state.
+            val resolvableContext = initResolvableState(otpLogin)
+            if (resolvableContext != null) {
+                // Flow ends with resolvable interruption.
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "otpLogin interrupted: resolvableContext:$resolvableContext"
+                )
+                authResponse.resolvableContext = resolvableContext
+                return authResponse
+            }
+        } else if (authResponse.isError()) {
+            // Flow ends with error.
             return authResponse
         }
 
-        CDCDebuggable.log(
-            LOG_TAG,
-            "otpLogin interrupted: resolvableContext:$resolvableContext"
-        )
-        // Flow ends with resolvable interruption.
-        authResponse.resolvableContext = resolvableContext
+        CDCDebuggable.log(LOG_TAG, "otpLogin: success")
+        // No interruption in flow - secure the session - flow is successful.
+        secureNewSession(otpLogin)
         return authResponse
     }
 
@@ -167,20 +185,26 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
             )
         // Prepare flow response
         val authResponse = AuthResponse(otpUpdate)
-        val resolvableContext = initResolvableState(otpUpdate)
-        if (resolvableContext == null) {
-            CDCDebuggable.log(LOG_TAG, "otpUpdate: success")
-            // No interruption in flow - secure the session - flow is successful.
-            secureNewSession(otpUpdate)
+        if (authResponse.isResolvable()) {
+            // Check resolvable flow state.
+            val resolvableContext = initResolvableState(otpUpdate)
+            if (resolvableContext != null) {
+                // Flow ends with resolvable interruption.
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "otpUpdate interrupted: resolvableContext:$resolvableContext"
+                )
+                authResponse.resolvableContext = resolvableContext
+                return authResponse
+            }
+        } else if (authResponse.isError()) {
+            // Flow ends with error.
             return authResponse
         }
 
-        CDCDebuggable.log(
-            LOG_TAG,
-            "otpUpdate interrupted: resolvableContext:$resolvableContext"
-        )
-        // Flow ends with resolvable interruption.
-        authResponse.resolvableContext = resolvableContext
+        CDCDebuggable.log(LOG_TAG, "otpUpdate: success")
+        // No interruption in flow - secure the session - flow is successful.
+        secureNewSession(otpUpdate)
         return authResponse
     }
 
