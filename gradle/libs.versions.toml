@@ -1,6 +1,8 @@
 [versions]
 browser = "1.8.0"
+accompanistPermissions = "0.18.0"
 firebaseBom = "33.7.0"
+firebaseMessaging = "24.1.0"
 kotlin = "2.0.0"
 dokka = "1.8.10"
 android = "8.7.3"
@@ -37,6 +39,7 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "ktx" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -44,6 +47,7 @@ androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscree
 
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3Version" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessaging" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktorClientMock" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
