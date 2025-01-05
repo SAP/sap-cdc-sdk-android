@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.core.api
 
-import android.util.Log
 import com.sap.cdc.android.sdk.BuildConfig
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
@@ -13,6 +13,10 @@ import io.ktor.util.generateNonce
 class CDCRequest(
     siteConfig: SiteConfig
 ) {
+    companion object {
+        const val LOG_TAG = "CDCRequest"
+    }
+
     private var method: String = HttpMethod.Post.value // Default method is post.
     var api: String = ""
     var parameters: MutableMap<String, String> = sortedMapOf(
@@ -34,7 +38,7 @@ class CDCRequest(
         try {
             userAgent = System.getProperty("http.agent")
         } catch (ex: Exception) {
-            Log.d("Request", "Unable to fetch system property http.agent.")
+            CDCDebuggable.log(LOG_TAG, "Unable to fetch system property http.agent.")
         }
         if (userAgent != null) {
             headers["User-Agent"] = userAgent!!

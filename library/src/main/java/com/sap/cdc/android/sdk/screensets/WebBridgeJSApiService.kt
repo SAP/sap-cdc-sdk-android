@@ -1,18 +1,23 @@
 package com.sap.cdc.android.sdk.screensets
 
-import android.util.Log
 import androidx.activity.ComponentActivity
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_ADD_CONNECTION
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_LOGOUT
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.AuthenticationService
+import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_GMID
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.extensions.capitalFirst
+import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.screensets.WebBridgeJS.Companion.ACTION_SEND_OAUTH_REQUEST
+import com.sap.cdc.android.sdk.screensets.WebBridgeJS.Companion.ACTION_SEND_REQUEST
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGIN
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +28,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.jetbrains.annotations.ApiStatus.Experimental
 import java.lang.ref.WeakReference
+import kotlin.coroutines.CoroutineContext
 
 
 /**
@@ -32,18 +38,25 @@ import java.lang.ref.WeakReference
 
 class WebBridgeJSApiService(
     private val weakHostActivity: WeakReference<ComponentActivity>,
+    private val viewModelScope: CoroutineScope? = null,
     private val authenticationService: AuthenticationService
 ) {
 
     companion object {
-        const val LOG_TAG = "CDC_WebBridgeJSApiService"
+        const val LOG_TAG = "WebBridgeJSApiService"
     }
 
-    fun apiKey(): String = authenticationService.sessionService.siteConfig.apiKey
+    fun apiKey(): String = authenticationService.siteConfig.apiKey
 
-    fun gmid(): String? = authenticationService.sessionService.gmidLatest()
+    fun gmid(): String? {
+        val esp =
+            authenticationService.siteConfig.applicationContext.getEncryptedPreferences(
+                CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+            )
+        return esp.getString(CDC_GMID, null)
+    }
 
-    fun session(): Session? = authenticationService.sessionService.sessionSecure.getSession()
+    fun session(): Session? = authenticationService.session().getSession()
 
     /**
      * Forward result for JS evaluation.
@@ -73,7 +86,7 @@ class WebBridgeJSApiService(
                     params = params,
                     containerId
                 ) {
-                    authenticationService.sessionService.clearSession()
+                    authenticationService.sessionService.invalidateSession()
                 }
             }
 
@@ -86,7 +99,7 @@ class WebBridgeJSApiService(
             EP_SOCIALIZE_REMOVE_CONNECTION -> {
                 val provider = params["provider"]
                 if (provider == null) {
-                    Log.d(
+                    CDCDebuggable.log(
                         LOG_TAG,
                         "Missing provider parameter in social remove connection attempt. Flow broken"
                     )
@@ -106,11 +119,11 @@ class WebBridgeJSApiService(
 
             else -> {
                 when (action) {
-                    "send_request" -> {
+                    ACTION_SEND_REQUEST -> {
                         sendRequest(api = api, params = params, containerId, {})
                     }
 
-                    "send_oauth_request" -> {
+                    ACTION_SEND_OAUTH_REQUEST -> {
                         sendOAuthRequest(api = api, params = params, containerId, {})
                     }
                 }
@@ -128,8 +141,9 @@ class WebBridgeJSApiService(
         containerId: String,
         completion: () -> Unit
     ) {
-        Log.d(LOG_TAG, "sendRequest: $api")
-        CoroutineScope(Dispatchers.IO).launch {
+        CDCDebuggable.log(LOG_TAG, "sendRequest: $api")
+
+        launchAsync { coroutineContext ->
             val response = AuthenticationApi(
                 authenticationService.coreClient,
                 authenticationService.sessionService
@@ -139,7 +153,7 @@ class WebBridgeJSApiService(
                 method = HttpMethod.Post.value
             )
             if (response.isError()) {
-                Log.d(
+                CDCDebuggable.log(
                     LOG_TAG,
                     "sendRequest: $api - request error: ${response.errorCode()} - ${response.errorDetails()}"
                 )
@@ -147,7 +161,7 @@ class WebBridgeJSApiService(
                     Pair(containerId, response.jsonResponse ?: ""),
                     WebBridgeJSEvent.errorEvent(response.serializeTo<CDCError>())
                 )
-                this.coroutineContext.cancel()
+                coroutineContext.cancel()
             }
 
             // Check if response contains a session object.
@@ -155,7 +169,7 @@ class WebBridgeJSApiService(
                 // Set new session.
                 val sessionInfo = response.serializeObject<Session>("sessionInfo")
                 if (sessionInfo == null) {
-                    Log.d(
+                    CDCDebuggable.log(
                         LOG_TAG,
                         "sendRequest: $api - request error: failed to serialize session Info"
                     )
@@ -165,7 +179,7 @@ class WebBridgeJSApiService(
                     )
                     this.coroutineContext.cancel()
                 }
-                authenticationService.sessionService.setSession(sessionInfo!!)
+                authenticationService.session().setSession(sessionInfo!!)
                 evaluateResult(
                     Pair(containerId, response.jsonResponse ?: ""),
                     WebBridgeJSEvent(
@@ -174,7 +188,7 @@ class WebBridgeJSApiService(
                         )
                     )
                 )
-                this.coroutineContext.cancel()
+                coroutineContext.cancel()
             }
 
             //Optional completion handler.
@@ -196,22 +210,22 @@ class WebBridgeJSApiService(
     ) {
         if (weakHostActivity.get() == null) {
             // Fail with error.
-            Log.d(LOG_TAG, "Context host error. Flow broken")
+            CDCDebuggable.log(LOG_TAG, "Context host error. Flow broken")
             evaluateResult(
                 Pair(containerId, ""),
                 WebBridgeJSEvent.canceledEvent()
             )
         }
-        CoroutineScope(Dispatchers.IO).launch {
+        launchAsync { coroutineContext ->
             val provider = params["provider"]
             if (provider == null) {
                 // Fail with error.
-                Log.d(LOG_TAG, "Missing provider parameter in social login attempt. Flow broken")
+                CDCDebuggable.log(LOG_TAG, "Missing provider parameter in social login attempt. Flow broken")
                 evaluateResult(
                     Pair(containerId, ""),
                     WebBridgeJSEvent.canceledEvent()
                 )
-                this.coroutineContext.cancel()
+                coroutineContext.cancel()
             }
 
             // Vary selected authentication provider. If no native provider is available, the
@@ -220,17 +234,18 @@ class WebBridgeJSApiService(
             if (authProvider == null) {
                 authProvider = WebAuthenticationProvider(
                     socialProvider = provider,
-                    sessionService = authenticationService.sessionService
+                    siteConfig = authenticationService.siteConfig,
+                    session = authenticationService.session().getSession()
                 )
             }
 
             // Initiate provider login flow.
-            val authResponse = authenticationService.authenticate().providerLogin(
+            val authResponse = authenticationService.authenticate().providerSignIn(
                 weakHostActivity.get()!!, authProvider, params.toMutableMap()
             )
             if (authResponse.cdcResponse().isError()) {
                 // Fail with error.
-                Log.d(
+                CDCDebuggable.log(
                     LOG_TAG,
                     "sendRequest: $api - request error: ${
                         authResponse.cdcResponse().errorCode()
@@ -240,7 +255,7 @@ class WebBridgeJSApiService(
                     Pair(containerId, authResponse.cdcResponse().jsonResponse ?: ""),
                     WebBridgeJSEvent.errorEvent(authResponse.cdcResponse().serializeTo<CDCError>())
                 )
-                this.coroutineContext.cancel()
+                coroutineContext.cancel()
             }
 
             //Optional completion handler.
@@ -277,6 +292,23 @@ class WebBridgeJSApiService(
             ex.printStackTrace()
         }
         return null
+    }
+
+    /**
+     * It is preferred to launch asynchronous code within a view model scope so that the coroutine lifecycle
+     * will be aligned with the view models. If a viewmodel scope was not registered with this instance of the
+     * web bridge then a new scope will be created for this block run.
+     */
+    private fun launchAsync(asyncBlock: suspend CoroutineScope.(CoroutineContext) -> Unit) {
+        if (viewModelScope != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                asyncBlock(this.coroutineContext)
+            }
+        } else {
+            CoroutineScope(Dispatchers.IO).launch {
+                asyncBlock(this.coroutineContext)
+            }
+        }
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.auth
 
-import android.util.Log
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_GMID
@@ -27,6 +27,10 @@ class AuthenticationApi(
     private val sessionService: SessionService
 ) : Api(coreClient) {
 
+    companion object {
+        const val LOG_TAG = "AuthenticationApi"
+    }
+
     /**
      * Generic send request method.
      */
@@ -39,9 +43,10 @@ class AuthenticationApi(
         if (!gmidValid()) {
             val ids = getIDs()
             if (ids.isError()) {
-                Log.e("AuthenticationApi", "getIds error: ${ids.errorCode()}")
+                CDCDebuggable.log(LOG_TAG, "getIds error: ${ids.errorCode()}")
             }
         }
+        parameters["gmid"] = sessionService.gmidLatest()
         return super.genericSend(api, parameters, method, headers)
     }
 
@@ -65,7 +70,8 @@ class AuthenticationApi(
      * Sign the request if session is valid.
      */
     private fun signRequestIfNeeded(request: CDCRequest) {
-        if (sessionService.validSession()) {
+        CDCDebuggable.log(LOG_TAG, "signRequestIfNeeded")
+        if (sessionService.availableSession()) {
             val session = sessionService.getSession()
             request.authenticated(session!!.token)
             request.sign(session.secret)
@@ -76,8 +82,10 @@ class AuthenticationApi(
      * Request GMID from server required for authentication/security.
      */
     private suspend fun getIDs(): CDCResponse {
+        CDCDebuggable.log(LOG_TAG, "getIDs")
         val response = Api(coreClient).genericSend(EP_SOCIALIZE_GET_IDS)
         val gmidEntity = response.serializeTo<GMIDEntity>()
+        CDCDebuggable.log(LOG_TAG, "gmid: ${gmidEntity?.gmid}")
         if (gmidEntity != null) {
             val esp =
                 coreClient.siteConfig.applicationContext.getEncryptedPreferences(
@@ -86,6 +94,7 @@ class AuthenticationApi(
             esp.edit().putString(CDC_GMID, gmidEntity.gmid)
                 .putLong(CDC_GMID_REFRESH_TS, gmidEntity.refreshTime!!).apply()
         }
+        CDCDebuggable.log(LOG_TAG, "gmidEntity: $gmidEntity")
         return response
     }
 
@@ -93,18 +102,25 @@ class AuthenticationApi(
      * Check GMID validity according to refresh timestamp provided.
      */
     private fun gmidValid(): Boolean {
+        CDCDebuggable.log(LOG_TAG, "gmidValid")
         val esp =
             coreClient.siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
         if (!esp.contains(CDC_GMID)) {
+            CDCDebuggable.log(LOG_TAG, "Invalid - no gmid found")
             return false
         }
         val gmidRefreshTimestamp = esp.getLong(CDC_GMID_REFRESH_TS, 0L)
         if (gmidRefreshTimestamp == 0L) {
+            CDCDebuggable.log(LOG_TAG, "Invalid - no refresh timestamp found")
             return false
         }
         val currentTimestamp = System.currentTimeMillis()
-        return gmidRefreshTimestamp >= currentTimestamp
+        if (gmidRefreshTimestamp < currentTimestamp) {
+            CDCDebuggable.log(LOG_TAG, "Invalid - refresh timestamp expired")
+            return false
+        }
+        return true
     }
 }

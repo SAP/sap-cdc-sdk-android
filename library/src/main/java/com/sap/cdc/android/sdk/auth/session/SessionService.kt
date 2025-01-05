@@ -14,23 +14,33 @@ class SessionService(
     var siteConfig: SiteConfig,
 ) {
     companion object {
-        const val LOG_TAG = "CDC_SessionService"
+        const val LOG_TAG = "SessionService"
     }
 
-    var sessionSecure: SessionSecure =
+    private var sessionSecure: SessionSecure =
         SessionSecure(
             siteConfig
         )
 
-    fun validSession() : Boolean = sessionSecure.getSession() != null
+    fun availableSession(): Boolean = sessionSecure.availableSession()
 
-    fun getSession() : Session? = sessionSecure.getSession()
-
-    fun clearSession() = sessionSecure.clearSession()
+    fun getSession(): Session? = sessionSecure.getSession()
 
     fun setSession(session: Session) = sessionSecure.setSession(session)
 
-    fun setSession(sessionJson: String) = sessionSecure.setSession(sessionJson)
+    fun invalidateSession() = sessionSecure.clearSession(invalidate = true)
+
+    fun clearSession() = sessionSecure.clearSession(invalidate = false)
+
+    fun sessionSecureLevel(): SessionSecureLevel = sessionSecure.getSessionSecureLevel()
+
+    fun secureBiometricSession(encryptedSession: String, iv: String) =
+        sessionSecure.secureBiometricSession(encryptedSession, iv)
+
+    fun unlockBiometricSession(decryptedSession: String) =
+        sessionSecure.unlockBiometricSession(decryptedSession)
+
+    fun biometricLocked(): Boolean = sessionSecure.biometricLocked()
 
     /**
      * "Re-Initialize" the SDK with a different site configuration.
@@ -44,12 +54,12 @@ class SessionService(
     /**
      * Get the latest GMID value from secured shared preferences file.
      */
-    fun gmidLatest(): String? {
+    fun gmidLatest(): String {
         val esp =
             siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
-        return esp.getString(CDC_GMID, null)
+        return esp.getString(CDC_GMID, "") ?: ""
     }
 
 }

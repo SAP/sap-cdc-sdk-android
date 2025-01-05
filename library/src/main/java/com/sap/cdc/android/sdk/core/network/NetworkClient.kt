@@ -1,7 +1,6 @@
 package com.sap.cdc.android.sdk.core.network
 
-import android.util.Log
-import com.sap.cdc.android.sdk.core.api.Api
+import com.sap.cdc.android.sdk.CDCDebuggable
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.DefaultRequest
@@ -14,8 +13,6 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 
 /**
@@ -25,7 +22,7 @@ import java.util.Locale
 class NetworkClient(
 ) {
     companion object {
-        private const val LOG_TAG = "NetworkClient"
+        internal const val LOG_TAG = "NetworkClient"
         private const val TIME_OUT = 30_000
     }
 
@@ -39,7 +36,7 @@ class NetworkClient(
         install(Logging) {
             logger = object : Logger {
                 override fun log(message: String) {
-                    Log.v("Logger Ktor =>", message)
+                    CDCDebuggable.log(LOG_TAG, message)
                 }
 
             }
@@ -68,7 +65,7 @@ class NetworkClient(
 
         install(ResponseObserver) {
             onResponse { response ->
-                Log.d(LOG_TAG, "HTTP Status: ${response.status.value}")
+                CDCDebuggable.log(LOG_TAG, "HTTP Status: ${response.status.value}")
             }
         }
 

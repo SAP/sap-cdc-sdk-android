@@ -1,9 +1,28 @@
 <resources>
     <string name="app_name">Bits n Bytes</string>
 
-    <string name="com.sap.cxcdc.apikey">API_KEY_HERE</string>
-    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
+    <!-- Uncomment and replace the placeholders with the actual values -->
 
+    <!--    SDK configuration-->
+    <!--    <string name="com.sap.cxcdc.apikey">API_KEY_HERE</string>-->
+    <!--    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>-->
+
+    <!--    Facebook provider configuration-->
+    <!--    <string name="facebook_app_id">FB_APP_ID_HERE</string>-->
+    <!--    <string name="fb_login_protocol_scheme">FB_LOGIN_PROTOCOL_SCHEME_HERE</string>-->
+    <!--    <string name="facebook_client_token">FB_CLIENT_TOKEN_HERE</string>-->
+
+    <!--    Google provider configuration-->
+    <!--    <string name="google_server_client_id">GOOGLE_WEB_CLIENT_ID_HERE</string>-->
+
+    <!--    Line provider configuration-->
+    <!--    <string name="line_channel_id">LINE_CHANNEL_ID_HERE</string>-->
+
+    <!--    WeChat provider configuration-->
+    <!--    <string name="wechat_app_id">WECHAT_APP_ID_HERE</string>-->
+
+
+    <!-- App string resources -->
     <string name="home">Bits \u0026 Bytes</string>
     <string name="search">Search</string>
     <string name="cart">My Cart</string>
@@ -20,16 +39,6 @@
 
     <string name="home_img_macbook_content_description">Macbook image</string>
 
-    <!-- Social providers -->
-    <string name="facebook_app_id">FB_APP_ID_HERE</string>
-<string name="fb_login_protocol_scheme">FB_LOGIN_PROTOCOL_SCHEME_HERE</string>
-    <string name="facebook_client_token">FB_CLIENT_TOKEN_HERE</string>
-
-    <string name="line_channel_id">LINE_CHANNEL_ID_HERE</string>
-
-    <string name="wechat_app_id">WECHAT_ID_HERE</string>
-
-    <string name="google_server_client_id">GOOGLE_WEB_CLIENT_ID_HERE</string>
     <string name="resolve_link_account">Resolve Link Account\n</string>
     <string name="email_sign_in">email_sign_in</string>
 

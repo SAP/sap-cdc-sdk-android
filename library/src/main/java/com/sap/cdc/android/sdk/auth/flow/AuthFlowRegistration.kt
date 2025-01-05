@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.auth.flow
 
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_FINALIZE_REGISTRATION
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_INIT_REGISTRATION
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_REGISTER
@@ -17,6 +18,10 @@ import com.sap.cdc.android.sdk.core.CoreClient
 class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {
 
+    companion object {
+        const val LOG_TAG = "RegistrationAuthFlow"
+    }
+
     /**
      * Initiate registration authentication flow.
      * Flow consists of the following api calls:
@@ -30,35 +35,54 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
      * 3. Finalize registration (True by default unless requested otherwise).
      * @see [accounts.finalizeRegistration](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/228cd8bc68dc477094b3e0e9fe108e23.html?q=accounts.getAccountInfo)
      */
-    suspend fun register(): IAuthResponse {
+    suspend fun register(parameters: MutableMap<String, String>): IAuthResponse {
+        CDCDebuggable.log(LOG_TAG, "register: with parameters:$parameters")
         // Add default finalize registration parameter.
         if (!parameters.containsKey("finalizeRegistration")) {
             parameters["finalizeRegistration"] = true.toString()
         }
         // Init registration.
-        val initResponse =
+        val initRegistration =
             AuthenticationApi(coreClient, sessionService).genericSend(EP_ACCOUNTS_INIT_REGISTRATION)
-        // Check errors.
-        if (!initResponse.isError()) {
-            // Fetch regToken.
-            // Required parameter for flow.
-            val regToken = initResponse.stringField("regToken")
-            // Actual registration call.
-            parameters["regToken"] = regToken!!
-            val registrationResponse =
-                AuthenticationApi(coreClient, sessionService).genericSend(
-                    EP_ACCOUNTS_REGISTER,
-                    parameters
+
+        if (initRegistration.isError()) {
+            return AuthResponse(initRegistration)
+        }
+
+        // Fetch regToken. Required parameter for flow.
+        val regToken = initRegistration.stringField("regToken")
+
+        // Actual registration call using original provided parameters.
+        parameters["regToken"] = regToken!!
+        val registration =
+            AuthenticationApi(coreClient, sessionService).genericSend(
+                EP_ACCOUNTS_REGISTER,
+                parameters
+            )
+
+        // Prepare flow response
+        val authResponse = AuthResponse(registration)
+
+        // Check resolvable flow state.
+        if (authResponse.isResolvable()) {
+            val resolvableContext = initResolvableState(registration)
+            if (resolvableContext != null) {
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "register interrupted: resolvableContext:$resolvableContext"
                 )
-            if (!registrationResponse.isError()) {
-                secureNewSession(registrationResponse)
+                // Flow ends with resolvable interruption.
+                authResponse.resolvableContext = resolvableContext
             }
-            val authResponse = AuthResponse(registrationResponse)
-            // Check resolvable flow state.
-            initResolvableState(authResponse)
+        } else if (authResponse.isError()) {
+            CDCDebuggable.log(LOG_TAG, "register: error")
             return authResponse
         }
-        return AuthResponse(initResponse)
+
+        CDCDebuggable.log(LOG_TAG, "register: success")
+        // No interruption in flow - secure the session - flow is successful.
+        secureNewSession(registration)
+        return authResponse
     }
 
     /**
@@ -68,16 +92,25 @@ class RegistrationAuthFlow(coreClient: CoreClient, sessionService: SessionServic
      *
      * @see [accounts.finalizeRegistration](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/228cd8bc68dc477094b3e0e9fe108e23.html?q=accounts.getAccountInfo)
      */
-    suspend fun finalize(): IAuthResponse {
+    suspend fun finalize(parameters: MutableMap<String, String>): IAuthResponse {
+        CDCDebuggable.log(LOG_TAG, "finalize: with parameters:$parameters")
         val finalizeRegistrationResponse =
             AuthenticationApi(coreClient, sessionService).genericSend(
                 EP_ACCOUNTS_FINALIZE_REGISTRATION,
                 parameters
             )
-        if (!finalizeRegistrationResponse.isError()) {
-            secureNewSession(finalizeRegistrationResponse)
+
+        // Prepare flow response
+        val authResponse = AuthResponse(finalizeRegistrationResponse)
+        if (finalizeRegistrationResponse.isError()) {
+            CDCDebuggable.log(LOG_TAG, "finalize: error")
+            return authResponse
         }
-        return AuthResponse(finalizeRegistrationResponse)
+
+        CDCDebuggable.log(LOG_TAG, "finalize: success")
+        // Flow is successful - secure the session.
+        secureNewSession(finalizeRegistrationResponse)
+        return authResponse
     }
 
 }

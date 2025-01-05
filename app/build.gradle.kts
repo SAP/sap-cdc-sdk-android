@@ -3,19 +3,19 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
 }
 
 android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.gigya.android.sample"
-//        applicationId = "com.sap.cdc.android.sdk.example"
+        applicationId = "com.sap.cdc.bitsnbytes"
         minSdk = 26
         //noinspection EditedTargetSdkVersion,OldTargetApi
         targetSdk = 35
         versionCode = 4
-        versionName = "1.0"
+        versionName = "0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -25,24 +25,37 @@ android {
 
     signingConfigs {
 
-//        getByName("debug") {
-//            keyAlias = "key0"
-//            keyPassword = "android"
-//            storeFile = file("keystore/debug-key.keystore")
-//            storePassword = "android"
-//        }
+        getByName("debug") {
+            keyAlias = findProperty("exampleComposeKeyAlias") as String
+            keyPassword = findProperty("exampleComposeKeyPassword") as String
+            storeFile = file("keystore/debug")
+            storePassword = findProperty("exampleComposeStorePassword") as String
+        }
+    }
+
+    flavorDimensions.add("sso")
+    productFlavors {
+        create("demo") {
+            dimension = "sso"
+            applicationIdSuffix = ".demo"
+        }
+
+        create("variant") {
+            dimension = "sso"
+            applicationIdSuffix = ".variant"
+        }
     }
 
     buildTypes {
-//        getByName("debug") {
-//            proguardFiles(
-//                getDefaultProguardFile("proguard-android-optimize.txt"),
-//                "proguard-rules.pro"
-//            )
-//            isMinifyEnabled = false
-//            signingConfig = signingConfigs.getByName("debug")
-//            isDebuggable = true
-//        }
+        getByName("debug") {
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = true
+        }
 
         release {
             isMinifyEnabled = true
@@ -71,7 +84,7 @@ android {
         }
     }
 
-    namespace = "com.sap.cdc.android.sdk.example"
+    namespace = "com.sap.cdc.bitsnbytes"
 }
 
 dependencies {
@@ -101,5 +114,7 @@ dependencies {
 
     implementation(libs.bundles.credentials)
     implementation(libs.googleid)
+
+    implementation(platform(libs.firebase.bom))
 
 }

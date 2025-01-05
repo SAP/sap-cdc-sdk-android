@@ -2,7 +2,6 @@ package com.sap.cdc.android.sdk.core.api
 
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.core.network.HttpExceptions
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -35,15 +34,22 @@ class CDCResponse {
     }
 
     /**
+     * From provided CDCError class initializer
+     */
+    fun fromError(error: CDCError)  = apply {
+        fromError(error.errorCode, error.errorDescription ?: "", error.errorDetails ?: "")
+    }
+
+    /**
      * Custom error initializer.
      * Internally used.
      */
     fun fromError(code: Int, message: String, description: String) = apply {
         fromJSON(
             "{" +
-                    "  \"errorCode\":  $code" +
-                    "  \"errorMessage\": $message" +
-                    "  \"errorDetails\": $description" +
+                    "  \"errorCode\":  \"$code\"," +
+                    "  \"errorMessage\": \"$message\"," +
+                    "  \"errorDetails\": \"$description\"" +
                     "}"
         )
     }
@@ -75,6 +81,8 @@ class CDCResponse {
             "Provider configuration error"
         )
     }
+
+
 
     /**
      * Get response as json string.

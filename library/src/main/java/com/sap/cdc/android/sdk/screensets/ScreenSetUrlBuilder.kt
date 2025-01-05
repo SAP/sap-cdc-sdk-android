@@ -19,7 +19,7 @@ class ScreenSetUrlBuilder private constructor(val screenSetUrl: String) {
     }
 
     data class Builder(
-        var apiKey: String,
+        var apiKey: String? = null,
         var domain: String? = DOMAIN_DEFAULT,
         var plugin: String? = PLUGIN_DEFAULT,
         var containerID: String? = CONTAINER_ID_DEFAULT,
@@ -30,6 +30,7 @@ class ScreenSetUrlBuilder private constructor(val screenSetUrl: String) {
         var jsLoadErrorScheme: String? = JS_LOAD_ERROR_SCHEME_DEFAULT
     ) {
 
+        fun apiKey(key: String) = apply { this.apiKey = key }
         fun domain(domain: String) = apply { this.domain = domain }
         fun plugin(plugin: String) = apply { this.plugin = plugin }
         fun containerID(id: String) = apply { this.containerID = id }
