@@ -58,6 +58,7 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     /**
      * Initiate social login related authentication flow.
      * "NotifySocialLogin" call is used with social sign in flows (simple & link).
+     * @see [accounts.notifySocialLogin](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/413795be70b21014bbc5a10ce4041860.html?q=notifySocialLogin)
      */
     suspend fun notifySocialLogin(parameters: MutableMap<String, String>): IAuthResponse {
         CDCDebuggable.log(LOG_TAG, "notifySocialLogin: with parameters:$parameters")
@@ -91,6 +92,7 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      * This call will initiate the OTP flow given provider parameters.
      * Either login or update is required to complete the flow using the "AuthResolvable" data
      * provided from this request.
+     * @see [accounts.otp.sendCode](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/4137e1be70b21014bbc5a10ce4041860.html?q=accounts.otp.sendCode)
      */
     suspend fun otpSendCode(parameters: MutableMap<String, String>): IAuthResponse {
         CDCDebuggable.log(LOG_TAG, "otpSendCode: with parameters:$parameters")
@@ -123,6 +125,7 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
 
     /**
      * OTP login to complete OTP authentication flow with given OTP code.
+     * @see [accounts.otp.login](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/4137bbe870b21014bbc5a10ce4041860.html?q=accounts.otp.login)
      */
     suspend fun otpLogin(parameters: MutableMap<String, String>): IAuthResponse {
         CDCDebuggable.log(LOG_TAG, "otpLogin: with parameters:$parameters")
@@ -153,6 +156,7 @@ class LoginAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
 
     /**
      * OTP update to complete OTP authentication flow with given OTP code.
+     * @see [accounts.otp.update](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/413807a270b21014bbc5a10ce4041860.html?q=accounts.otp.update)]
      */
     suspend fun otpUpdate(parameters: MutableMap<String, String>): IAuthResponse {
         CDCDebuggable.log(LOG_TAG, "otpUpdate: with parameters:$parameters")

@@ -89,6 +89,7 @@ internal class SessionSecure(
                 // Enqueue session expiration worker if the session has expiration time.
                 if (sessionEntity != null) {
                     val session = Json.decodeFromString<Session>(this.sessionEntity?.session!!)
+                    // Check for session expiration.
                     if (session.expiration != null && session.expiration!! > 0) {
                         CDCDebuggable.log(
                             LOG_TAG,
@@ -130,6 +131,7 @@ internal class SessionSecure(
             // Determine time for session expiration.
             val expirationTime =
                 System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(session.expiration!!)
+            // Secure expiration time in encrypted shared preferences.
             secureExpirationWith(expirationTime)
             enqueueSessionExpirationWorker(expirationTime - System.currentTimeMillis())
         }
@@ -260,6 +262,7 @@ internal class SessionSecure(
      * Write session object (as JSON) in encrypted shared preferences.
      */
     private fun secureSessionWith(sessionEntity: SessionEntity?) {
+        CDCDebuggable.log(LOG_TAG, "Securing session in storage: $sessionEntity")
         // Get reference to encrypted shared preferences.
         val esp = siteConfig.applicationContext.getEncryptedPreferences(
             CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
@@ -272,8 +275,13 @@ internal class SessionSecure(
         }
         // Update session map.
         if (sessionEntity == null) {
+            CDCDebuggable.log(
+                LOG_TAG,
+                "Removing session from memory for apiKey: ${siteConfig.apiKey}"
+            )
             sessionMap.remove(siteConfig.apiKey)
         } else {
+            CDCDebuggable.log(LOG_TAG, "Mapping session to memory for apiKey: ${siteConfig.apiKey}")
             sessionMap[siteConfig.apiKey] = Json.encodeToString(sessionEntity)
         }
         // Write session map back to encrypted shared preferences.
@@ -295,14 +303,22 @@ internal class SessionSecure(
      * Will try to decode session object, if failed - session is biometric locked.
      */
     fun biometricLocked(): Boolean {
+        CDCDebuggable.log(LOG_TAG, "Checking if session is biometric locked")
         if (!availableSession()) {
+            CDCDebuggable.log(LOG_TAG, "Session is not available. not locked")
             return false
         }
         if (sessionEntity?.secureLevel?.encryptionType == SessionSecureLevel.STANDARD) {
+            CDCDebuggable.log(LOG_TAG, "Session is not biometric locked. standard secure level")
             return false
         }
         try {
+            // Only default secure level can be decoded using JSON because it is not encrypted.
             Json.decodeFromString<Session>(sessionEntity?.session!!)
+            CDCDebuggable.log(
+                LOG_TAG,
+                "Session is not biometric locked. Default session decoded successfully"
+            )
             return false
         } catch (e: Exception) {
             return true

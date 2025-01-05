@@ -169,8 +169,10 @@ class BiometricAuth(private val sessionService: SessionService) {
 
         val sessionEntity = getSessionEntity()
         if (sessionEntity == null) {
-            CDCDebuggable.log(LOG_TAG, "Biometric OptOut: No session to unlock")
+            CDCDebuggable.log(LOG_TAG, "Biometric OptOut: No session to unlock, invalidating biometric state")
             onAuthenticationFailed()
+            //TODO: Invalidate biometric state to prevent further biometric usage.
+            sessionService.invalidateSession()
             return
         }
 
