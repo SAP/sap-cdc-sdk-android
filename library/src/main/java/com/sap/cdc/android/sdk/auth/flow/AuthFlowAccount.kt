@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.auth.flow
 
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_ID_TOKEN_EXCHANGE
@@ -18,12 +19,17 @@ import com.sap.cdc.android.sdk.core.CoreClient
 class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {
 
+        companion object {
+            const val LOG_TAG = "AccountAuthFlow"
+        }
+
     /**
      * Request updated account information.
      *
      * @see [accounts.getAccountInfo](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/cab69a86edae49e2be93fd51b78fc35b.html?q=accounts.getAccountInfo)
      */
     suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
+        CDCDebuggable.log(LOG_TAG, "getAccountInfo: with parameters:$parameters")
         val getAccountInfo =
             AuthenticationApi(coreClient, sessionService).genericSend(
                 EP_ACCOUNTS_GET_ACCOUNT_INFO,
@@ -39,6 +45,7 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.setAccountInfo](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/41398a8670b21014bbc5a10ce4041860.html?q=accounts.getAccountInfo)
      */
     suspend fun setAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
+        CDCDebuggable.log(LOG_TAG, "setAccountInfo: with parameters:$parameters")
         val setAccount =
             AuthenticationApi(coreClient, sessionService).genericSend(
                 EP_ACCOUNTS_SET_ACCOUNT_INFO,
@@ -54,6 +61,7 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.getConflictingAccounts](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/4134d7df70b21014bbc5a10ce4041860.html?q=conflictingAccounts)
      */
     suspend fun getConflictingAccounts(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
+        CDCDebuggable.log(LOG_TAG, "getConflictingAccounts: with parameters:$parameters")
         val getConflictingAccounts = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS,
             parameters ?: mutableMapOf()
@@ -71,6 +79,7 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         parameters["resource"] = "urn:gigya:account" //TODO: check removing parameter?
         parameters["subject_token_type"] = "urn:gigya:token-type:mobile" //TODO: check removing parameter?
         parameters["response_type"] = "code"
+        CDCDebuggable.log(LOG_TAG, "getAuthCode: with parameters:$parameters")
         val tokenExchange = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_ACCOUNTS_ID_TOKEN_EXCHANGE,
             parameters

@@ -14,6 +14,7 @@ import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import android.window.OnBackInvokedDispatcher
 import androidx.activity.ComponentActivity
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.R
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 
@@ -77,12 +78,12 @@ class WebLoginActivity : ComponentActivity() {
         webView.webViewClient = object : WebViewClient() {
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                Log.d(LOG_TAG, "onPageStarted: $url")
+                CDCDebuggable.log(LOG_TAG, "onPageStarted: $url")
                 progressBar?.visibility = View.VISIBLE
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
-                Log.d(LOG_TAG, "onPageFinished: $url")
+                CDCDebuggable.log(LOG_TAG, "onPageFinished: $url")
                 progressBar?.visibility = View.INVISIBLE
             }
 
@@ -90,7 +91,7 @@ class WebLoginActivity : ComponentActivity() {
                 view: WebView?,
                 request: WebResourceRequest?
             ): Boolean {
-                Log.d(LOG_TAG, "shouldOverrideUrlLoading: ${request?.url}")
+                CDCDebuggable.log(LOG_TAG, "shouldOverrideUrlLoading: ${request?.url}")
                 if (request == null) return true
                 if (loginResult(request.url)) {
                     return false
@@ -108,7 +109,7 @@ class WebLoginActivity : ComponentActivity() {
         if (uri == null) return false
         val scheme = uri.scheme
         val host = uri.host
-        Log.d(LOG_TAG, "loginResult: scheme:$scheme host:$host")
+        CDCDebuggable.log(LOG_TAG, "loginResult: scheme:$scheme host:$host")
 
         if (scheme == null || host == null) return false
         if (scheme == "gigya" && host == "gsapi") {

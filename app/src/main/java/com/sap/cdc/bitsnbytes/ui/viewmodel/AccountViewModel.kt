@@ -64,7 +64,7 @@ class AccountViewModel(context: Context) : BaseViewModel(context), IAccountViewM
     /**
      * Request account information.
      */
-    final override fun getAccountInfo(
+    override fun getAccountInfo(
         parameters: MutableMap<String, String>?,
         success: () -> Unit,
         onFailed: (CDCError) -> Unit

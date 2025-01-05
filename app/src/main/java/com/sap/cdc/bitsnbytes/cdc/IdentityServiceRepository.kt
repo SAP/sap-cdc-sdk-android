@@ -141,7 +141,7 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     suspend fun login(email: String, password: String): IAuthResponse {
         val params =
-            mutableMapOf("loginID" to email, "password" to password, "sessionExpiration" to "30")
+            mutableMapOf("loginID" to email, "password" to password)//, "sessionExpiration" to "30")
         return authenticationService.authenticate().login(params)
     }
 

@@ -3,10 +3,10 @@ package com.sap.cdc.android.sdk.auth.provider.activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.window.OnBackInvokedDispatcher
 import androidx.activity.ComponentActivity
 import androidx.browser.customtabs.CustomTabsIntent
+import com.sap.cdc.android.sdk.CDCDebuggable
 
 class SSOLoginActivity : ComponentActivity() {
 
@@ -32,7 +32,7 @@ class SSOLoginActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        Log.d(LOG_TAG, "onNewIntent: recieved")
+        CDCDebuggable.log(LOG_TAG, "onNewIntent: recieved")
         setResult(RESULT_OK, intent)
         finish()
     }

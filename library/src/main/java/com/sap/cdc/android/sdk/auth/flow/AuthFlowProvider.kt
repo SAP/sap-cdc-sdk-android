@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import android.util.Log
 import androidx.activity.ComponentActivity
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
@@ -39,6 +40,7 @@ class ProviderAuthFow(
     }
 
     suspend fun signIn(parameters: MutableMap<String, String>): IAuthResponse {
+        CDCDebuggable.log(LOG_TAG, "signIn: with parameters:$parameters")
         if (provider == null)
             return AuthResponse(CDCResponse().providerError())
         try {
@@ -49,6 +51,7 @@ class ProviderAuthFow(
                 // Native flows refer to social networks that require native SDK implementation
                 // in order to authenticate the user (eg. Facebook, Google, etc.).
                 ProviderType.NATIVE -> {
+                    CDCDebuggable.log(LOG_TAG, "signIn: native")
                     if (!parameters.containsKey("loginMode")) {
                         parameters["loginMode"] = "standard"
                     }
@@ -80,6 +83,7 @@ class ProviderAuthFow(
                 // Web flows refer to all social provider types that are not native SDK based.
                 // These providers require a web view to authenticate the user.
                 ProviderType.WEB -> {
+                    CDCDebuggable.log(LOG_TAG, "signIn: web")
                     //TODO: Possibility missing interruption or error handling.
                     // Secure new acquired session.
                     val session = signIn.session!!
@@ -104,6 +108,7 @@ class ProviderAuthFow(
 
                 // SSO provider authentication using a Central Login Page (CLP) only.
                 ProviderType.SSO -> {
+                    CDCDebuggable.log(LOG_TAG, "signIn: sso")
                     val ssoData = signIn.ssoData!!
                     val ssoUtil = SSOUtil()
                     val tokenResponse = ssoToken(ssoUtil, ssoData)

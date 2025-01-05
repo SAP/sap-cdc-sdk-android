@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.provider.activity.SSOLoginActivity
 import com.sap.cdc.android.sdk.auth.provider.util.PKCEUtil
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
@@ -38,6 +39,10 @@ class SSOAuthenticationProvider(
 
 ) : IAuthenticationProvider {
 
+    companion object {
+        const val LOG_TAG = "SSOAuthenticationProvider"
+    }
+
     private lateinit var redirectUri: String
     private var pkceUtil = PKCEUtil()
     private val ssoUtil = SSOUtil()
@@ -52,6 +57,12 @@ class SSOAuthenticationProvider(
 
     override suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult =
         suspendCoroutine { continuation ->
+
+            CDCDebuggable.log(
+                LOG_TAG,
+                "SSOAuthenticationProvider: signIn"
+            )
+
             if (hostActivity == null) {
                 continuation.resumeWithException(
                     ProviderException(
@@ -74,6 +85,11 @@ class SSOAuthenticationProvider(
             val ssoProviderIntent = Intent(hostActivity, SSOLoginActivity::class.java)
             ssoProviderIntent.putExtra(SSOLoginActivity.EXTRA_URI, url)
 
+            CDCDebuggable.log(
+                LOG_TAG,
+                "SSOAuthenticationProvider: signIn: url: $url"
+            )
+
             launcher = hostActivity.activityResultRegistry.register(
                 "sso-login",
                 object : ActivityResultContract<Intent, android.util.Pair<Int, Intent>>() {
@@ -90,6 +106,10 @@ class SSOAuthenticationProvider(
                 val resultCode = result.first
                 when (resultCode) {
                     RESULT_CANCELED -> {
+                        CDCDebuggable.log(
+                            LOG_TAG,
+                            "SSOAuthenticationProvider: signIn: RESULT_CANCELED"
+                        )
                         dispose()
                         continuation.resumeWithException(
                             ProviderException(
@@ -100,6 +120,10 @@ class SSOAuthenticationProvider(
                     }
 
                     RESULT_OK -> {
+                        CDCDebuggable.log(
+                            LOG_TAG,
+                            "SSOAuthenticationProvider: signIn: RESULT_OK"
+                        )
                         val resultData = result.second
                         Log.d(
                             WebAuthenticationProvider.LOG_TAG,

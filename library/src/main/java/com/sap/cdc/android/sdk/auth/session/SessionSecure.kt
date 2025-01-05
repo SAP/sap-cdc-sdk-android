@@ -41,12 +41,12 @@ internal class SessionSecure(
     private var sessionEntity: SessionEntity? = null
 
     init {
-        registerForSessionEvents()
+        subscribeToSessionEvents()
         loadToMem()
     }
 
-    private fun registerForSessionEvents() {
-
+    private fun subscribeToSessionEvents() {
+        CDCDebuggable.log(LOG_TAG, "Subscribing to session events.")
         // Create a new CoroutineScope with a Job
         val job = Job()
         val scope = CoroutineScope(Dispatchers.Main + job)
@@ -60,6 +60,7 @@ internal class SessionSecure(
                 }
 
                 is SessionEvent.VerifySession -> {
+                    CDCDebuggable.log(LOG_TAG, "Verify session event received from bus.")
                     // Verify session
                 }
             }
@@ -83,14 +84,22 @@ internal class SessionSecure(
                 this.sessionEntity = sessionMap[siteConfig.apiKey]?.let {
                     Json.decodeFromString(it)
                 }
+                CDCDebuggable.log(LOG_TAG, "Session loaded to memory. $sessionEntity")
 
                 // Enqueue session expiration worker if the session has expiration time.
                 if (sessionEntity != null) {
                     val session = Json.decodeFromString<Session>(this.sessionEntity?.session!!)
-                    if (session.expiration != null) {
+                    if (session.expiration != null && session.expiration!! > 0) {
+                        CDCDebuggable.log(
+                            LOG_TAG,
+                            "Session has expiration (${session.expiration}) time. Enqueue worker."
+                        )
                         cancelRunningSessionExpirationWorker()
                         val expirationTime = getExpirationTime()
-                        enqueueSessionExpirationWorker(expirationTime!! - System.currentTimeMillis())
+                        CDCDebuggable.log(LOG_TAG, "Expiration time to enqueue: $expirationTime")
+                        if (expirationTime != null && expirationTime > 0) {
+                            enqueueSessionExpirationWorker(expirationTime - System.currentTimeMillis())
+                        }
                     }
                 }
             }
@@ -104,15 +113,20 @@ internal class SessionSecure(
     fun setSession(
         session: Session,
     ) {
+        CDCDebuggable.log(LOG_TAG, "Setting session in memory: $session")
         val newSessionEntity = SessionEntity(
             session = Json.encodeToString(session),
         )
-        secure(newSessionEntity)
+        secureSessionWith(newSessionEntity)
         // Replace memory session with new session.
         this.sessionEntity = newSessionEntity
 
         // Enqueue session expiration worker if the session has expiration time.
-        if (session.expiration != null) {
+        if (session.expiration != null && session.expiration!! > 0) {
+            CDCDebuggable.log(
+                LOG_TAG,
+                "Session has expiration (${session.expiration}) time. Enqueue worker."
+            )
             // Determine time for session expiration.
             val expirationTime =
                 System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(session.expiration!!)
@@ -136,6 +150,10 @@ internal class SessionSecure(
         if (json != null) {
             sessionMap = Json.decodeFromString<MutableMap<String, String>>(json)
         }
+        CDCDebuggable.log(
+            LOG_TAG,
+            "Mapping expiration time to memory: $expirationTime for apiKey: ${siteConfig.apiKey}"
+        )
         // Update session map.
         sessionMap[siteConfig.apiKey] = expirationTime.toString()
 
@@ -166,12 +184,13 @@ internal class SessionSecure(
         encryptedSession: String, //Encrypted session JSON (Base64 encoded).
         iv: String // Initialization vector for decrypting the session (Base64 encoded).
     ) {
+        CDCDebuggable.log(LOG_TAG, "Securing biometric session in memory.")
         val newSessionEntity = SessionEntity(
             session = encryptedSession, secureLevel = SecureLevel(
                 encryptionType = SessionSecureLevel.BIOMETRIC, iv = iv
             )
         )
-        secure(newSessionEntity)
+        secureSessionWith(newSessionEntity)
 
         // Update memory session with new bio-secured session parameters except the session itself.
         // The original session will remain in memory until locked or cleared.
@@ -188,6 +207,10 @@ internal class SessionSecure(
     fun unlockBiometricSession(
         decryptedSession: String, // Decrypted session JSON.
     ) {
+        CDCDebuggable.log(
+            LOG_TAG,
+            "Unlocking biometric session in memory with decrypted session: $decryptedSession."
+        )
         this.sessionEntity?.session = decryptedSession
     }
 
@@ -220,10 +243,13 @@ internal class SessionSecure(
      * Clears current session heap and remove secured session entry from encrypted preferences session map
      */
     fun clearSession(invalidate: Boolean = false) {
+        CDCDebuggable.log(LOG_TAG, "Clearing session in memory.")
         this.sessionEntity = null
         if (invalidate) {
-            // Invalidate session in encrypted shared preferences.
-            secure(null)
+            // Invalidate session && expiration in encrypted shared preferences.
+            CDCDebuggable.log(LOG_TAG, "Invalidating session in storage.")
+            secureSessionWith(null)
+            secureExpirationWith(0)
 
             // Cancel expiration worker if running.
             cancelRunningSessionExpirationWorker()
@@ -233,7 +259,7 @@ internal class SessionSecure(
     /**
      * Write session object (as JSON) in encrypted shared preferences.
      */
-    private fun secure(sessionEntity: SessionEntity?) {
+    private fun secureSessionWith(sessionEntity: SessionEntity?) {
         // Get reference to encrypted shared preferences.
         val esp = siteConfig.applicationContext.getEncryptedPreferences(
             CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
@@ -252,8 +278,6 @@ internal class SessionSecure(
         }
         // Write session map back to encrypted shared preferences.
         esp.edit().putString(CDC_SESSIONS, Json.encodeToString(sessionMap)).apply()
-
-        //TODO: Add worker to invalidate the session if it expires.
     }
 
     /**
@@ -313,6 +337,7 @@ internal class SessionSecure(
      * Cancel running session expiration worker.
      */
     private fun cancelRunningSessionExpirationWorker() {
+        CDCDebuggable.log(LOG_TAG, "Canceling running session expiration worker.")
         val workManager = WorkManager.getInstance(siteConfig.applicationContext)
         workManager.cancelUniqueWork(CDC_SESSION_EXPIRATION_WORKER)
     }
@@ -331,6 +356,7 @@ internal class CDCSessionExpirationWorker(
 ) : Worker(context, workerParams) {
 
     override fun doWork(): Result {
+        CDCDebuggable.log(SessionSecure.LOG_TAG, "Session expiration worker triggered.")
         CDCMessageEventBus.emitSessionEvent(SessionEvent.ExpiredSession)
         return Result.success()
     }

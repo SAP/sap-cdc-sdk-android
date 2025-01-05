@@ -117,7 +117,9 @@ fun RegisterView(viewModel: IRegisterViewModel) {
             text = "Register with Phone",
             iconResourceId = R.drawable.ic_device,
         ) {
-
+            NavigationCoordinator.INSTANCE.navigate(
+                "${ProfileScreenRoute.OTPSignIn.route}/${OTPType.PHONE.value}"
+            )
         }
 
         LargeVerticalSpacer()

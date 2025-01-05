@@ -1,8 +1,8 @@
 package com.sap.cdc.android.sdk.auth.provider.activity
 
 import android.content.Intent
-import android.util.Log
 import androidx.activity.ComponentActivity
+import com.sap.cdc.android.sdk.CDCDebuggable
 
 
 /**
@@ -18,7 +18,7 @@ class ResultLoginActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        Log.d(LOG_TAG, "onNewIntent: recieved")
+        CDCDebuggable.log(LOG_TAG, "onNewIntent: recieved")
         setResult(RESULT_OK, intent)
         finish()
     }

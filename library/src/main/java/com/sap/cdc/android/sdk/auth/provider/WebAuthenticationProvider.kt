@@ -4,10 +4,10 @@ import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_SOCIALIZE_LOGIN
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_GMID
@@ -47,6 +47,7 @@ class WebAuthenticationProvider(
     override fun getProvider(): String = this.socialProvider
 
     override suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
+        CDCDebuggable.log(LOG_TAG, "signIn: with parameters: $socialProvider")
         return suspendCoroutine { continuation ->
 
             if (hostActivity == null) {
@@ -64,6 +65,8 @@ class WebAuthenticationProvider(
             webProviderIntent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             webProviderIntent.putExtra(WebLoginActivity.EXTRA_URI, uri)
 
+            CDCDebuggable.log(LOG_TAG, "signIn: launching web login activity with uri: $uri")
+
             launcher = hostActivity.activityResultRegistry.register(
                 "web-login",
                 object : ActivityResultContract<Intent, android.util.Pair<Int, Intent>>() {
@@ -80,6 +83,7 @@ class WebAuthenticationProvider(
                 val resultCode = result.first
                 when (resultCode) {
                     RESULT_CANCELED -> {
+                        CDCDebuggable.log(LOG_TAG, "signIn: RESULT_CANCELED")
                         dispose()
                         continuation.resumeWithException(
                             ProviderException(
@@ -90,8 +94,9 @@ class WebAuthenticationProvider(
                     }
 
                     RESULT_OK -> {
+                        CDCDebuggable.log(LOG_TAG, "signIn: RESULT_OK")
                         val resultData = result.second
-                        Log.d(LOG_TAG, "onActivityResult: intent null: ${resultData == null}")
+                        CDCDebuggable.log(LOG_TAG, "onActivityResult: intent null: ${resultData == null}")
 
                         if (resultData != null) {
                             val status = resultData.getStringExtra("status")

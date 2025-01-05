@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.core.api
 
 import android.util.Base64
+import com.sap.cdc.android.sdk.CDCDebuggable
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import javax.crypto.Mac
@@ -13,6 +14,7 @@ import javax.crypto.spec.SecretKeySpec
 class Signing {
 
     companion object {
+        private const val LOG_TAG = "Signing"
         const val SIGNING_ALGORITHM = "HmacSHA1"
     }
 
@@ -23,7 +25,7 @@ class Signing {
     private fun normalizeUrl(
         spec: SigningSpec
     ): String {
-        println("normalizedUrl_: ${spec.api}")
+        CDCDebuggable.log(LOG_TAG, "normalizedUrl_: ${spec.api}")
         return "${spec.method}&${spec.api.urlEncode()}&${
             spec.queryParameters.toEncodedQuery().urlEncode()
         }"
@@ -33,7 +35,7 @@ class Signing {
         secret: String,
         normalizedUrl: String,
     ): String {
-        println("baseSignature_: $normalizedUrl")
+        CDCDebuggable.log(LOG_TAG, "baseSignature_: $normalizedUrl")
         val keyBytes = Base64.decode(secret, Base64.DEFAULT)
         val textData: ByteArray = normalizedUrl.toByteArray(StandardCharsets.UTF_8)
         val signingKey =

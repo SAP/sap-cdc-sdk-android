@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.auth.flow
 
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthResolvers
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.ResolvableLinking
@@ -17,6 +18,10 @@ import com.sap.cdc.android.sdk.extensions.parseRequiredMissingFieldsForRegistrat
  */
 
 open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionService) {
+
+    companion object {
+        const val LOG_TAG = "AuthFlow"
+    }
 
     /**
      * Override if needed to dispose various objects.
@@ -56,6 +61,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
                 //OTP
                 ResolvableContext.ERR_NONE -> {
+                    CDCDebuggable.log(LOG_TAG, "ERR_NONE")
                     // Resolvable state can occur on successful call in OTP flows.
                     // vToken is required for OTP verification.
                     resolvableContext.otp =
@@ -64,6 +70,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
                 // REGISTRATION
                 ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+                    CDCDebuggable.log(LOG_TAG, "ERR_ACCOUNT_PENDING_REGISTRATION")
                     // Parse missing fields required for registration.
                     val missingFields =
                         cdcResponse.errorDetails()
@@ -73,6 +80,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
                 // LINKING
                 ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
+                    CDCDebuggable.log(LOG_TAG, "ERR_ENTITY_EXIST_CONFLICT")
                     // Add fields required for v2 linking flow.
                     val provider = cdcResponse.stringField("provider")
                     val authToken = cdcResponse.stringField("access_token")
@@ -89,7 +97,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 // TFA
                 ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION,
                 ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_VERIFICATION -> {
-
+                    CDCDebuggable.log(LOG_TAG, "ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION")
                 }
             }
             return resolvableContext

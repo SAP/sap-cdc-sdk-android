@@ -54,12 +54,12 @@ class SessionService(
     /**
      * Get the latest GMID value from secured shared preferences file.
      */
-    fun gmidLatest(): String? {
+    fun gmidLatest(): String {
         val esp =
             siteConfig.applicationContext.getEncryptedPreferences(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
-        return esp.getString(CDC_GMID, null)
+        return esp.getString(CDC_GMID, "") ?: ""
     }
 
 }

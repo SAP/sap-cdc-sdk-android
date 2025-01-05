@@ -41,7 +41,7 @@ class PendingRegistrationViewModel(context: Context) : BaseViewModel(context),
             map.forEach { (key, value) ->
                 // Removing "profile.+" prefix for value... This is dynamic and should not be taken
                 // as a best practice form.
-                jsonMap[key] = JsonPrimitive(value.substring(0, value.lastIndexOf(".")))
+                jsonMap[key.substring(key.lastIndexOf(".") + 1)] = JsonPrimitive(value)
             }
             val authResponse = identityService.resolvePendingRegistrationWithMissingFields(
                 "profile", JsonObject(jsonMap).toString(), regToken,

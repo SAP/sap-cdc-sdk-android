@@ -5,9 +5,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.sap.cdc.android.sdk.CDCDebuggable
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -27,13 +27,13 @@ fun Context.isOnline(): Boolean {
     val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
     if (capabilities != null) {
         if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-            Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+            CDCDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
             return true
         } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-            Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+            CDCDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
             return true
         } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-            Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+            CDCDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
             return true
         }
     }
