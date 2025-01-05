@@ -6,8 +6,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewModelScope
+import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
+import com.sap.cdc.android.sdk.core.api.model.CDCError
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 
 interface ILoginOptionsViewModel {
@@ -42,6 +46,13 @@ interface ILoginOptionsViewModel {
         executor: Executor
     ) {
         // Stub.
+    }
+
+    fun optInForPushTFA(
+        success: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        //Stub.
     }
 
 }
@@ -152,6 +163,25 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
                 biometricLock = false
             }
         )
+    }
+
+    override fun optInForPushTFA(
+        success: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val response = identityService.optInForPushTFA()
+            when (response.state()) {
+                AuthState.SUCCESS -> {
+                    // Success.
+                    success()
+                }
+
+                else -> {
+                    onFailedWith(response.toDisplayError())
+                }
+            }
+        }
     }
 }
 

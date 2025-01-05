@@ -7,6 +7,7 @@ import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -59,7 +60,8 @@ class AuthenticationService(
         val json = Json {
             encodeDefaults = true
         }
-        esp.edit().putString(CDC_DEVICE_INFO, json.encodeToString(deviceInfo)).apply()
+        val deviceInfoJson = json.encodeToString(deviceInfo)
+        esp.edit().putString(CDC_DEVICE_INFO, deviceInfoJson).apply()
     }
 
     /**

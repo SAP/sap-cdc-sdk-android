@@ -235,6 +235,7 @@ class CDCNotificationManager(
      * @param data: The data fields of the notification.
      */
     private fun notifyActionable(mode: String, data: Map<String, String>) {
+        CDCDebuggable.log(LOG_TAG, "notifyActionable: mode: $mode, data: $data")
 
         // Parse data fields from cdc push.
         val title = data["title"]
@@ -333,8 +334,13 @@ class CDCNotificationManager(
                 approvePendingIntent
             )
 
+
         // Notify.
         if (notificationManager.areNotificationsEnabled()) {
+            CDCDebuggable.log(
+                LOG_TAG,
+                "Notify actionable notification with id = $notificationId"
+            )
             notificationManager.notify(notificationId, builder.build())
         } else {
             CDCDebuggable.log(LOG_TAG, "Notifications permissions not enabled.")
