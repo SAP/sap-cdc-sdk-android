@@ -41,7 +41,7 @@ class CDCNotificationManager(
 ) {
 
     companion object {
-        const val LOG_TAG = "CDCNotificationManager"
+        const val LOG_TAG = "NotificationManager"
 
         const val CDC_NOTIFICATIONS_CHANNEL_ID = "CDC_AUTHENTICATION_NOTIFICATIONS"
         const val CDC_NOTIFICATIONS_ACTIONS_REQUEST_CODE = 2020
@@ -149,12 +149,14 @@ class CDCNotificationManager(
                                             authResponse.cdcResponse().errorMessage()
                                         }"
                                     )
+                                    job.cancel()
                                     return@launch
-                                }
+                                } else  {
                                 //Send notification.
                                 notify(notificationOptions.notificationVerified?.title!!, "")
+                                    }
                             } finally {
-                                CDCDebuggable.log(LOG_TAG, "Finalized push TFA. Canceling job")
+                                CDCDebuggable.log(LOG_TAG, "Finalized push TFA. Canceling coroutine job")
                                 // Cancel the scope once the coroutine completes
                                 job.cancel()
                             }
@@ -178,12 +180,14 @@ class CDCNotificationManager(
                                             authResponse.cdcResponse().errorMessage()
                                         }"
                                     )
+                                    job.cancel()
                                     return@launch
+                                } else {
+                                    //Send notification.
+                                    notify(notificationOptions.notificationVerified?.title!!, "")
                                 }
-                                //Send notification.
-                                notify(notificationOptions.notificationUnverified?.title!!, "")
                             } finally {
-                                CDCDebuggable.log(LOG_TAG, "Verified push TFA. Canceling job")
+                                CDCDebuggable.log(LOG_TAG, "Verified push TFA. Canceling coroutine job")
                                 // Cancel the scope once the coroutine completes
                                 job.cancel()
                             }

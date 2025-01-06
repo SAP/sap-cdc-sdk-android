@@ -13,7 +13,7 @@ data class CDCNotificationOptions(
     val smallIcon: Int? = android.R.drawable.ic_dialog_info,
     val backgroundColor: Int? = null, // argb color
     val autoCancel: Boolean? = true,
-    val timeout: Long? = TimeUnit.SECONDS.toMillis(3),
+    val timeout: Long? = TimeUnit.SECONDS.toMillis(5),
     val channelTitle: String? = "CDC Authorization channel. Used for applying an additional " +
             "authentication security layer for your application",
     val actionPositive: CDCNotificationAction? = CDCNotificationAction(title = "Approve"),

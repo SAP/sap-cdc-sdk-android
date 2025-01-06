@@ -16,7 +16,7 @@ import com.sap.cdc.android.sdk.MessageEvent
 class CDCNotificationReceiver : BroadcastReceiver() {
 
     companion object {
-        const val LOG_TAG = "CDCNotificationReceiver"
+        const val LOG_TAG = "NotificationReceiver"
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {

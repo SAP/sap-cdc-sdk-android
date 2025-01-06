@@ -6,6 +6,7 @@ import com.sap.cdc.android.sdk.auth.flow.LoginAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LogoutAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.auth.flow.RegistrationAuthFlow
+import com.sap.cdc.android.sdk.auth.flow.TFAAuthFlow
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
@@ -586,35 +587,35 @@ internal class AuthTFA(
 ) : IAuthTFA {
 
     override suspend fun getProviders(regToken: String): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.getTFAProviders(mutableMapOf("regToken" to regToken))
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.getTFAProviders(mutableMapOf("regToken" to regToken))
     }
 
     override suspend fun optInForPushAuthentication(): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
         val parameters = mutableMapOf(
             "provider" to TFAProvider.PUSH.value, "mode" to "register"
         )
-        return accountFlow.optInForPushTFA(parameters = parameters)
+        return tfaFlow.optInForPushTFA(parameters = parameters)
     }
 
     override suspend fun finalizeOtpInForPushAuthentication(
         parameters: MutableMap<String, String>
     ): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.finalizeOptInForPushTFA(parameters)
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.finalizeOptInForPushTFA(parameters)
     }
 
     override suspend fun verifyPushTFA(parameters: MutableMap<String, String>): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.verifyPushTFA(parameters)
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.verifyPushTFA(parameters)
     }
 
     override suspend fun getRegisteredEmails(
         resolvableContext: ResolvableContext
     ): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.getRegisteredEmails(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.getRegisteredEmails(
             resolvableContext,
             mutableMapOf("provider" to TFAProvider.EMAIL.value, "mode" to "verify")
         )
@@ -625,8 +626,8 @@ internal class AuthTFA(
         emailAddress: String,
         language: String?
     ): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.sendEmailCode(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.sendEmailCode(
             resolvableContext,
             mutableMapOf("emailID" to emailAddress, "lang" to (language ?: "en"))
         )
@@ -638,8 +639,8 @@ internal class AuthTFA(
         language: String?,
         method: TFAPhoneMethod?
     ): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.registerPhone(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.registerPhone(
             resolvableContext, phoneNumber,
             mutableMapOf(
                 "provider" to TFAProvider.PHONE.value,
@@ -651,8 +652,8 @@ internal class AuthTFA(
     }
 
     override suspend fun registerTOTP(resolvableContext: ResolvableContext): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.registerTOTP(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.registerTOTP(
             resolvableContext, mutableMapOf(
                 "provider" to TFAProvider.TOTP.value,
                 "mode" to "register"
@@ -661,8 +662,8 @@ internal class AuthTFA(
     }
 
     override suspend fun getRegisteredPhoneNumbers(resolvableContext: ResolvableContext): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.getRegisteredPhoneNumbers(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.getRegisteredPhoneNumbers(
             resolvableContext, mutableMapOf(
                 "provider" to TFAProvider.PHONE.value,
                 "mode" to "verify"
@@ -676,8 +677,8 @@ internal class AuthTFA(
         method: TFAPhoneMethod?,
         language: String?
     ): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.sendPhoneCode(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.sendPhoneCode(
             resolvableContext, mutableMapOf(
                 "lang" to (language ?: "en"),
                 "phoneID" to phoneId,
@@ -691,8 +692,8 @@ internal class AuthTFA(
         code: String,
         rememberDevice: Boolean?
     ): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.verifyCode(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.verifyCode(
             resolvableContext,
             mutableMapOf("code" to code),
             TFAProvider.EMAIL,
@@ -705,8 +706,8 @@ internal class AuthTFA(
         code: String,
         rememberDevice: Boolean?
     ): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.verifyCode(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.verifyCode(
             resolvableContext,
             mutableMapOf("code" to code),
             TFAProvider.PHONE,
@@ -719,8 +720,8 @@ internal class AuthTFA(
         code: String,
         rememberDevice: Boolean?
     ): IAuthResponse {
-        val accountFlow = AccountAuthFlow(coreClient, sessionService)
-        return accountFlow.verifyCode(
+        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+        return tfaFlow.verifyCode(
             resolvableContext,
             mutableMapOf("code" to code),
             TFAProvider.TOTP,
