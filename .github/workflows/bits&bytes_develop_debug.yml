@@ -86,3 +86,12 @@ jobs:
       with:
         name: variant-debug-apk
         path: app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk
+
+    - name: Install Sauce Labs CLI
+      run: npm install -g saucectl
+
+    - name: Upload Demo APK to Sauce Labs
+      run: saucectl upload app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk --username ${{ secrets.SAUCE_USERNAME }} --accessKey ${{ secrets.SAUCE_ACCESS_KEY }}
+
+    - name: Upload Variant APK to Sauce Labs
+      run: saucectl upload app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk --username ${{ secrets.SAUCE_USERNAME }} --accessKey ${{ secrets.SAUCE_ACCESS_KEY }}

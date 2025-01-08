@@ -12,6 +12,7 @@ import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
@@ -236,6 +237,27 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun otpSignIn(
         parameters: MutableMap<String, String>
     ): IAuthResponse = authenticationService.authenticate().otpSendCode(parameters)
+
+    suspend fun createPasskey(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .createPasskey(passkeysAuthenticationProvider)
+    }
+
+    suspend fun passkeySignIn(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .passkeySignIn(passkeysAuthenticationProvider)
+    }
+
+    suspend fun clearPasskey(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .clearPasskey(passkeysAuthenticationProvider)
+    }
 
     //region PUSH
 

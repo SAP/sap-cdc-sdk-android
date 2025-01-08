@@ -4,11 +4,13 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.flow.AccountAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LoginAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LogoutAuthFlow
+import com.sap.cdc.android.sdk.auth.flow.PasskeysAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.auth.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.TFAAuthFlow
 import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.auth.session.SessionService
@@ -176,6 +178,27 @@ interface IAuthApis {
      * Log out of current account interface
      */
     suspend fun logout(): IAuthResponse
+
+    /**
+     *
+     */
+    suspend fun createPasskey(
+        authenticationProvider: IPasskeysAuthenticationProvider,
+    ): IAuthResponse
+
+    /**
+     *
+     */
+    suspend fun passkeySignIn(
+        authenticationProvider: IPasskeysAuthenticationProvider,
+    ): IAuthResponse
+
+    /**
+     *
+     */
+    suspend fun clearPasskey(
+        authenticationProvider: IPasskeysAuthenticationProvider,
+    ): IAuthResponse
 }
 
 /**
@@ -237,6 +260,35 @@ internal class AuthApis(
     override suspend fun logout(): IAuthResponse {
         val flow = LogoutAuthFlow(coreClient, sessionService)
         return flow.logout()
+    }
+
+    override suspend fun createPasskey(
+        authenticationProvider: IPasskeysAuthenticationProvider,
+    ): IAuthResponse {
+        val flow =
+            PasskeysAuthFlow(
+                coreClient, sessionService,
+                authenticationProvider = authenticationProvider
+            )
+        return flow.createPasskey()
+    }
+
+    override suspend fun passkeySignIn(authenticationProvider: IPasskeysAuthenticationProvider): IAuthResponse {
+        val flow =
+            PasskeysAuthFlow(
+                coreClient, sessionService,
+                authenticationProvider = authenticationProvider
+            )
+        return flow.authenticateWithPasskey()
+    }
+
+    override suspend fun clearPasskey(authenticationProvider: IPasskeysAuthenticationProvider): IAuthResponse {
+        val flow =
+            PasskeysAuthFlow(
+                coreClient, sessionService,
+                authenticationProvider = authenticationProvider
+            )
+        return flow.clearPasskeyCredential()
     }
 
 }

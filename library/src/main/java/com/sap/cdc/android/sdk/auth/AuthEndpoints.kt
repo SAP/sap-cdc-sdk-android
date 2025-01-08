@@ -29,6 +29,17 @@ class AuthEndpoints {
         const val EP_OTP_LOGIN = "accounts.otp.login"
         const val EP_OTP_UPDATE = "accounts.otp.update"
 
+        const val EP_OAUTH_AUTHORIZE = "oauth.authorize"
+        const val EP_OAUTH_CONNECT = "oauth.connect"
+        const val EP_OAUTH_DISCONNECT = "oauth.disconnect"
+        const val EP_OAUTH_TOKEN = "oauth.token"
+
+        const val EP_PASSKEYS_DELETE = "accounts.auth.fido.removeCredential"
+        const val EP_PASSKEYS_GET_ASSERTION_OPTIONS = "accounts.auth.fido.getAssertionOptions"
+        const val EP_PASSKEYS_INIT = "accounts.auth.fido.initRegisterCredentials"
+        const val EP_PASSKEYS_REGISTER = "accounts.auth.fido.registerCredentials"
+        const val EP_PASSKEYS_VERIFY_ASSERTION = "accounts.auth.fido.verifyAssertion"
+
         const val EP_TFA_INIT = "accounts.tfa.initTFA"
         const val EP_TFA_FINALIZE = "accounts.tfa.finalizeTFA"
         const val EP_TFA_GET_PROVIDERS = "accounts.tfa.getProviders"
