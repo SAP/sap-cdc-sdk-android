@@ -40,6 +40,7 @@ class CDCNotificationReceiver : BroadcastReceiver() {
                     CDCNotificationActionData::class.java
                 )
             } else {
+                @Suppress("DEPRECATION")
                 intent.getParcelableExtra(CDCNotificationManager.BUNDLE_ID_ACTION_DATA)
             }
 

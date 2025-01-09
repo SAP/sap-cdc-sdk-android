@@ -34,10 +34,12 @@ jobs:
       run: |
         sed -i '/signingConfigs {/,/}/c\signingConfigs {\n\n    getByName("debug") {\n        keyAlias = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_ALIAS }}"\n        keyPassword = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_PASSWORD }}"\n        storeFile = file("keystore/debug")\n        storePassword = "${{ secrets.BITS_N_BYTES_DEBUG_STORE_PASSWORD }}"\n    }\n' app/build.gradle.kts
 
-    - name: Add API key tags to strings.xml resource (demo.variant)
+    - name: Add API keys/domains tags to strings.xml resource (demo.variant)
       run: |
         sed -i '/<\/resources>/i \    <string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}</string>' app/src/main/res/values/strings.xml
+        sed -i '/<\/resources>/i \    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>' app/src/main/res/values/strings.xml
         sed -i '/<\/resources>/i \    <string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_VARIANT_API_KEY }}</string>' app/src/variant/res/values/strings.xml
+        sed -i '/<\/resources>/i \    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>' app/src/variant/res/values/strings.xml
 
     - name: Add Google required resources to strings.xml resource (actual value for demo only)
       run: |
