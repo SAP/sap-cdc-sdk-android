@@ -54,6 +54,15 @@ class CDCResponse {
         )
     }
 
+
+    fun fromException(e: Exception) = apply {
+        fromError(
+            -1,
+            e.localizedMessage ?: "Internal error",
+            e.message ?: "Internal error"
+        )
+    }
+
     internal fun fromHttpException(e: HttpExceptions) = apply {
         val statusCode: HttpStatusCode = e.response.status
         fromError(

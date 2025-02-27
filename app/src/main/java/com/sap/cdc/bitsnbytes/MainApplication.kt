@@ -15,7 +15,7 @@ class MainApplication : Application() {
 
         // Allow WebView debugging.
         CDCDebuggable.debugLogging(true)
-        CDCDebuggable.httpLogging(false)
+        CDCDebuggable.httpLogging(true)
         CDCDebuggable.setWebViewDebuggable(true)
     }
 }

@@ -20,6 +20,10 @@ class AuthEndpoints {
 
         const val EP_ACCOUNTS_ID_TOKEN_EXCHANGE = "accounts.identity.token.exchange"
 
+        const val EP_ACCOUNT_AUTH_DEVICE_REGISTER = "accounts.devices.register"
+        const val EP_ACCOUNT_AUTH_DEVICE_UNREGISTER = "accounts.devices.unregister"
+        const val EP_ACCOUNT_AUTH_PUSH_VERIFY = "accounts.auth.push.verify"
+
         const val EP_SOCIALIZE_GET_IDS = "socialize.getIDs"
         const val EP_SOCIALIZE_LOGIN = "socialize.login"
         const val EP_SOCIALIZE_LOGOUT = "socialize.logout"
@@ -28,6 +32,31 @@ class AuthEndpoints {
         const val EP_OTP_SEND_CODE = "accounts.otp.sendCode"
         const val EP_OTP_LOGIN = "accounts.otp.login"
         const val EP_OTP_UPDATE = "accounts.otp.update"
+
+        const val EP_OAUTH_AUTHORIZE = "oauth.authorize"
+        const val EP_OAUTH_CONNECT = "oauth.connect"
+        const val EP_OAUTH_DISCONNECT = "oauth.disconnect"
+        const val EP_OAUTH_TOKEN = "oauth.token"
+
+        const val EP_PASSKEYS_DELETE = "accounts.auth.fido.removeCredential"
+        const val EP_PASSKEYS_GET_ASSERTION_OPTIONS = "accounts.auth.fido.getAssertionOptions"
+        const val EP_PASSKEYS_INIT = "accounts.auth.fido.initRegisterCredentials"
+        const val EP_PASSKEYS_REGISTER = "accounts.auth.fido.registerCredentials"
+        const val EP_PASSKEYS_VERIFY_ASSERTION = "accounts.auth.fido.verifyAssertion"
+
+        const val EP_TFA_INIT = "accounts.tfa.initTFA"
+        const val EP_TFA_FINALIZE = "accounts.tfa.finalizeTFA"
+        const val EP_TFA_GET_PROVIDERS = "accounts.tfa.getProviders"
+        const val EP_TFA_PUSH_OPT_IN = "accounts.tfa.push.optin"
+        const val EP_TFA_PUSH_VERIFY = "accounts.tfa.push.verify"
+        const val EP_TFA_EMAIL_GET = "accounts.tfa.email.getEmails"
+        const val EP_TFA_EMAILS_SEND_CODE = "accounts.tfa.email.sendVerificationCode"
+        const val EP_TFA_EMAILS_COMPLETE_VERIFICATION = "accounts.tfa.email.completeVerification"
+        const val EP_TFA_PHONE_GET = "accounts.tfa.phone.getRegisteredPhoneNumbers"
+        const val EP_TFA_PHONE_SEND_CODE = "accounts.tfa.phone.sendVerificationCode"
+        const val EP_TFA_PHONE_COMPLETE_VERIFICATION = "accounts.tfa.phone.completeVerification"
+        const val EP_TFA_TOTP_REGISTER = "accounts.tfa.totp.register"
+        const val EP_TFA_TOTP_VERIFY = "accounts.tfa.totp.verify"
 
         // May be redundant cause connection can be done using notifySocialLogin with
         // loginMode = connect.

@@ -3,10 +3,16 @@ package com.sap.cdc.bitsnbytes.cdc
 import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
+import com.sap.cdc.android.sdk.CDCMessageEventBus
+import com.sap.cdc.android.sdk.MessageEvent
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
+import com.sap.cdc.android.sdk.auth.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
@@ -47,7 +53,21 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Initialize authentication service.
      */
-    var authenticationService = AuthenticationService(siteConfig)
+    var authenticationService = AuthenticationService(siteConfig).registerForPushAuthentication(
+        object : IFCMTokenRequest {
+            override fun requestFCMToken() {
+                FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        return@OnCompleteListener
+                    }
+
+                    // Get new FCM registration token
+                    val token = task.result
+                    CDCMessageEventBus.emitMessageEvent(MessageEvent.EventWithToken(token))
+                })
+            }
+        }
+    )
 
     /**
      * Authentication providers map.
@@ -55,7 +75,6 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     private var authenticationProviderMap: MutableMap<String, IAuthenticationProvider> =
         mutableMapOf()
-
 
     init {
         // Using session migrator to try and migrate an existing session in an application using old versions
@@ -218,6 +237,37 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun otpSignIn(
         parameters: MutableMap<String, String>
     ): IAuthResponse = authenticationService.authenticate().otpSendCode(parameters)
+
+    suspend fun createPasskey(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .createPasskey(passkeysAuthenticationProvider)
+    }
+
+    suspend fun passkeySignIn(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .passkeySignIn(passkeysAuthenticationProvider)
+    }
+
+    suspend fun clearPasskey(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .clearPasskey(passkeysAuthenticationProvider)
+    }
+
+    //region PUSH
+
+    suspend fun optInForPushTFA(): IAuthResponse {
+        return authenticationService.tfa().optInForPushAuthentication()
+    }
+
+    suspend fun optInForPushAuth(): IAuthResponse {
+        return authenticationService.authenticate().registerForAuthPushNotifications()
+    }
 
     //endregion
 
