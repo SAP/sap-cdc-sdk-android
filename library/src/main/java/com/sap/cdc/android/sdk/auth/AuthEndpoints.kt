@@ -20,6 +20,10 @@ class AuthEndpoints {
 
         const val EP_ACCOUNTS_ID_TOKEN_EXCHANGE = "accounts.identity.token.exchange"
 
+        const val EP_ACCOUNT_AUTH_DEVICE_REGISTER = "accounts.devices.register"
+        const val EP_ACCOUNT_AUTH_DEVICE_UNREGISTER = "accounts.devices.unregister"
+        const val EP_ACCOUNT_AUTH_PUSH_VERIFY = "accounts.auth.push.verify"
+
         const val EP_SOCIALIZE_GET_IDS = "socialize.getIDs"
         const val EP_SOCIALIZE_LOGIN = "socialize.login"
         const val EP_SOCIALIZE_LOGOUT = "socialize.logout"

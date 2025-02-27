@@ -265,7 +265,9 @@ class IdentityServiceRepository private constructor(context: Context) {
         return authenticationService.tfa().optInForPushAuthentication()
     }
 
-    //endregion
+    suspend fun optInForPushAuth(): IAuthResponse {
+        return authenticationService.authenticate().registerForAuthPushNotifications()
+    }
 
     //endregion
 

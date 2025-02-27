@@ -55,6 +55,7 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.LoginOptionsViewModelPreview
 @Composable
 fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     val context = LocalContext.current
+
     var loading by remember { mutableStateOf(false) }
     val executor = remember { ContextCompat.getMainExecutor(context) }
     var optionsError by remember { mutableStateOf("") }
@@ -77,8 +78,29 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             title = "Passwordless Login",
             status = "Activated",
             actionLabel = "Deactivate",
-            onClick = { /* Handle deactivation */ },
+            onClick = {
+                
+            },
             inverse = false
+        )
+        SmallVerticalSpacer()
+        OptionCard(
+            title = "Push Authentication",
+            status = "",
+            actionLabel = "Activate",
+            onClick = {
+                if (!notificationPermission.hasPermission) {
+                    notificationPermission.launchPermissionRequest()
+                }
+                    loading = true
+                    viewModel.optOnForPushAuth(success = {
+                        optionsError = ""
+                        loading = false
+                    }, onFailedWith = { error ->
+                        optionsError = error?.errorDescription!!
+                        loading = false
+                    })
+            }, inverse = false
         )
         SmallVerticalSpacer()
         OptionCard(
@@ -89,38 +111,32 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                 if (!notificationPermission.hasPermission) {
                     notificationPermission.launchPermissionRequest()
                 }
+
                 loading = true
-                viewModel.optInForPushTFA(
-                    success = {
-                        optionsError = ""
-                        loading = false
-                    },
-                    onFailedWith = { error ->
-                        optionsError = error?.errorDescription!!
-                        loading = false
-                    }
-                )
+                viewModel.optInForPushTFA(success = {
+                    optionsError = ""
+                    loading = false
+                }, onFailedWith = { error ->
+                    optionsError = error?.errorDescription!!
+                    loading = false
+                })
             },
             inverse = false
         )
         SmallVerticalSpacer()
         OptionCard(
-            title = "Biometrics",
-            status = when (viewModel.isBiometricActive()) {
+            title = "Biometrics", status = when (viewModel.isBiometricActive()) {
                 false -> "Deactivated"
                 true -> "Activated"
-            },
-            actionLabel = when (viewModel.isBiometricActive()) {
+            }, actionLabel = when (viewModel.isBiometricActive()) {
                 false -> "Activate"
                 true -> "Deactivate"
-            },
-            onClick = {
-                val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                    .setAllowedAuthenticators(BIOMETRIC_STRONG)
-                    .setTitle("Biometric Authentication")
-                    .setSubtitle("Authenticate using your biometric credential")
-                    .setNegativeButtonText("Use another method")
-                    .build()
+            }, onClick = {
+                val promptInfo =
+                    BiometricPrompt.PromptInfo.Builder().setAllowedAuthenticators(BIOMETRIC_STRONG)
+                        .setTitle("Biometric Authentication")
+                        .setSubtitle("Authenticate using your biometric credential")
+                        .setNegativeButtonText("Use another method").build()
 
                 when (viewModel.isBiometricActive()) {
                     true -> {
@@ -139,8 +155,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                         )
                     }
                 }
-            },
-            inverse = !viewModel.isBiometricActive()
+            }, inverse = !viewModel.isBiometricActive()
         )
 
         // Biometrics lock toggle
@@ -153,28 +168,24 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
         ) {
             Text(text = "Lock biometrics:")
             LargeHorizontalSpacer()
-            Switch(
-                checked = viewModel.isBiometricLocked(),
-                onCheckedChange = { checked ->
-                    when (checked) {
-                        true -> viewModel.biometricLock()
-                        false -> {
-                            val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                                .setAllowedAuthenticators(BIOMETRIC_STRONG)
-                                .setTitle("Biometric Authentication")
-                                .setSubtitle("Authenticate using your biometric credential")
-                                .setNegativeButtonText("Use another method")
-                                .build()
+            Switch(checked = viewModel.isBiometricLocked(), onCheckedChange = { checked ->
+                when (checked) {
+                    true -> viewModel.biometricLock()
+                    false -> {
+                        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                            .setAllowedAuthenticators(BIOMETRIC_STRONG)
+                            .setTitle("Biometric Authentication")
+                            .setSubtitle("Authenticate using your biometric credential")
+                            .setNegativeButtonText("Use another method").build()
 
-                            viewModel.biometricUnlock(
-                                activity = context as FragmentActivity,
-                                promptInfo = promptInfo,
-                                executor = executor
-                            )
-                        }
+                        viewModel.biometricUnlock(
+                            activity = context as FragmentActivity,
+                            promptInfo = promptInfo,
+                            executor = executor
+                        )
                     }
                 }
-            )
+            })
         }
 
         LargeVerticalSpacer()
@@ -198,11 +209,7 @@ fun LoginOptionsViewPreview() {
 
 @Composable
 private fun OptionCard(
-    title: String,
-    status: String,
-    actionLabel: String,
-    inverse: Boolean,
-    onClick: () -> Unit
+    title: String, status: String, actionLabel: String, inverse: Boolean, onClick: () -> Unit
 ) {
     Card(
         //elevation = 4.dp,

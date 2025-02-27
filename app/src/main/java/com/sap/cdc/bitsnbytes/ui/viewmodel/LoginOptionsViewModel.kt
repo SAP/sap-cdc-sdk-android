@@ -59,6 +59,13 @@ interface ILoginOptionsViewModel {
         //Stub.
     }
 
+    fun optOnForPushAuth(
+        success: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        // Stub.
+    }
+
     fun createPasskey(
         activity: ComponentActivity,
         success: () -> Unit,
@@ -87,6 +94,7 @@ class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
 class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
     ILoginOptionsViewModel {
 
+
     /**
      * Create instance of the biometric auth (no need to singleton it).
      */
@@ -98,6 +106,8 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
         identityService.authenticationService.session()
             .sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
     )
+
+    //region BIOMETRIC
 
     /**
      * Check if biometric session encryption is active.
@@ -185,6 +195,10 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
         )
     }
 
+    //endregion
+
+    //region PUSH TFA
+
     override fun optInForPushTFA(
         success: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
@@ -203,6 +217,33 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
             }
         }
     }
+
+    //endregion
+
+    //region PUSH AUTH
+
+    override fun optOnForPushAuth(
+        success: () -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val response = identityService.optInForPushTFA()
+            when (response.state()) {
+                AuthState.SUCCESS -> {
+                    // Success.
+                    success()
+                }
+
+                else -> {
+                    onFailedWith(response.toDisplayError())
+                }
+            }
+        }
+    }
+
+    //endregion
+
+    //region PASSKEYS
 
     private var passkeysAuthenticationProvider: IPasskeysAuthenticationProvider? = null
 
@@ -251,5 +292,7 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
             }
         }
     }
+
+    //endregion
 }
 

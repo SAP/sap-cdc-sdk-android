@@ -11,6 +11,7 @@ import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.extensions.parseRequiredMissingFieldsForRegistration
+import kotlinx.serialization.json.Json
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -21,6 +22,12 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
     companion object {
         const val LOG_TAG = "AuthFlow"
+    }
+
+    internal val json: Json = Json {
+        prettyPrint = true
+        isLenient = true
+        ignoreUnknownKeys = true
     }
 
     /**

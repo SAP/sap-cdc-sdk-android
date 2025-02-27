@@ -199,6 +199,10 @@ interface IAuthApis {
     suspend fun clearPasskey(
         authenticationProvider: IPasskeysAuthenticationProvider,
     ): IAuthResponse
+
+    suspend fun registerForAuthPushNotifications(): IAuthResponse
+
+    suspend fun verifyAuthPushNotification(vToken: String): IAuthResponse
 }
 
 /**
@@ -289,6 +293,16 @@ internal class AuthApis(
                 authenticationProvider = authenticationProvider
             )
         return flow.clearPasskeyCredential()
+    }
+
+    override suspend fun registerForAuthPushNotifications(): IAuthResponse {
+        val flow = AccountAuthFlow(coreClient, sessionService)
+        return flow.registerAuthDevice()
+    }
+
+    override suspend fun verifyAuthPushNotification(vToken: String): IAuthResponse {
+        val flow = AccountAuthFlow(coreClient, sessionService)
+        return flow.verifyAuthPush(vToken)
     }
 
 }
