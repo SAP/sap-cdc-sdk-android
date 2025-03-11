@@ -12,6 +12,8 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.LoginOptionsViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneSelectionViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
@@ -76,6 +78,14 @@ class CustomViewModelFactory(private val context: Context) : ViewModelProvider.F
 
             modelClass.isAssignableFrom(AccountViewModel::class.java) -> {
                 AccountViewModel(context) as T
+            }
+
+            modelClass.isAssignableFrom(PhoneSelectionViewModel::class.java) -> {
+                PhoneSelectionViewModel(context) as T
+            }
+
+            modelClass.isAssignableFrom(PhoneVerificationViewModel::class.java) -> {
+                PhoneVerificationViewModel(context) as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class")

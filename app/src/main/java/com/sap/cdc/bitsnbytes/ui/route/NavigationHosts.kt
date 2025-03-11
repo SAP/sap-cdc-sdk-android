@@ -11,6 +11,7 @@ import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.bitsnbytes.cdc.IdentityServiceRepository
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
+import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsView
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegisterView
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.HomeView
@@ -21,6 +22,8 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.OTPType
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyView
 import com.sap.cdc.bitsnbytes.ui.view.screens.PendingRegistrationView
+import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneSelectionView
+import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterView
 import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetView
 import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
@@ -33,6 +36,8 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.LoginOptionsViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneSelectionViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
@@ -105,10 +110,10 @@ fun ProfileNavHost() {
 
     NavHost(
         profileNavController, startDestination =
-        when (identityServiceRepository.availableSession()) {
-            true -> ProfileScreenRoute.MyProfile.route
-            false -> ProfileScreenRoute.Welcome.route
-        }
+            when (identityServiceRepository.availableSession()) {
+                true -> ProfileScreenRoute.MyProfile.route
+                false -> ProfileScreenRoute.Welcome.route
+            }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
             val viewModel: WelcomeViewModel = viewModel(
@@ -223,6 +228,28 @@ fun ProfileNavHost() {
                 factory = CustomViewModelFactory(context)
             )
             LoginOptionsView(viewModel)
+        }
+        composable("${ProfileScreenRoute.AuthMethods.route}/{resolvableContext}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
+            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
+            //TODO: Viewmodel?
+            AuthMethodsView(resolvable)
+        }
+        composable("${ProfileScreenRoute.PhoneSelection.route}/{resolvableContext}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
+            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
+            val viewModel: PhoneSelectionViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            PhoneSelectionView(viewModel, resolvable)
+        }
+        composable("${ProfileScreenRoute.PhoneVerification.route}/{resolvableContext}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
+            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
+            val viewModel: PhoneVerificationViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            PhoneVerificationView(viewModel, resolvable)
         }
     }
 }

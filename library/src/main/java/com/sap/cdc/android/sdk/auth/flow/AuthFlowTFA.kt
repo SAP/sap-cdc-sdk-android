@@ -23,15 +23,18 @@ import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.auth.tfa.TFAEmailEntity
-import com.sap.cdc.android.sdk.auth.tfa.TFAPhoneEntity
 import com.sap.cdc.android.sdk.auth.tfa.TFAProvider
+import com.sap.cdc.android.sdk.auth.tfa.TFARegisteredPhoneEntities
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.serialization.json.Json
 
+private val json = Json {
+    ignoreUnknownKeys = true
+}
+
 class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {
-
 
     companion object {
         const val LOG_TAG = "TFAAuthFlow"
@@ -155,7 +158,8 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     suspend fun registerPhone(
         resolvableContext: ResolvableContext,
         phoneNumber: String,
-        parameters: MutableMap<String, String>
+        parameters: MutableMap<String, String>,
+        language: String? = "en"
     ): IAuthResponse {
         CDCDebuggable.log(LOG_TAG, "registerPhone: with parameters:$parameters")
         parameters["regToken"] = resolvableContext.regToken!!
@@ -165,11 +169,16 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         )
 
         val assertion = initTFAResponse.stringField("gigyaAssertion") ?: ""
+        resolvableContext.tfa?.assertion = assertion
 
         if (initTFAResponse.isError()) return AuthResponse(initTFAResponse)
         val sendCodeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_TFA_PHONE_SEND_CODE,
-            mutableMapOf("gigyaAssertion" to assertion, "phone" to phoneNumber)
+            mutableMapOf(
+                "gigyaAssertion" to assertion, "phone" to phoneNumber,
+                "method" to "sms",
+                "lang" to language!!
+            )
         )
         val phvToken = sendCodeResponse.stringField("phvToken") ?: ""
         val authResponse = AuthResponse(sendCodeResponse)
@@ -199,12 +208,12 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         )
         if (getPhoneNumbersResult.isError()) return AuthResponse(getPhoneNumbersResult)
 
-        val phonesJson = getPhoneNumbersResult.stringField("phones")
-        val phones = Json.decodeFromString<List<TFAPhoneEntity>>(phonesJson!!)
+        val phones =
+            json.decodeFromString<TFARegisteredPhoneEntities>(getPhoneNumbersResult.asJson()!!)
 
         val authResponse = AuthResponse(getPhoneNumbersResult)
         resolvableContext.tfa?.assertion = assertion
-        resolvableContext.tfa?.phones = phones
+        resolvableContext.tfa?.phones = phones.phones
         authResponse.resolvableContext = resolvableContext
         return authResponse
     }

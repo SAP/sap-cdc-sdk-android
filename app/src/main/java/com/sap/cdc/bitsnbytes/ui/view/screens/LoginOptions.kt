@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -60,9 +61,9 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     val executor = remember { ContextCompat.getMainExecutor(context) }
     var optionsError by remember { mutableStateOf("") }
 
-    val notificationPermission = rememberPermissionState(
-        permission = Manifest.permission.POST_NOTIFICATIONS
-    )
+    val view = LocalView.current
+    val notificationPermission = if (view.isInEditMode) null
+    else rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
 
     // UI elements.
 
@@ -89,7 +90,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = "",
             actionLabel = "Activate",
             onClick = {
-                if (!notificationPermission.hasPermission) {
+                if (!notificationPermission?.hasPermission!!) {
                     notificationPermission.launchPermissionRequest()
                 }
                     loading = true
@@ -108,7 +109,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = "",
             actionLabel = "Activate",
             onClick = {
-                if (!notificationPermission.hasPermission) {
+                if (!notificationPermission?.hasPermission!!) {
                     notificationPermission.launchPermissionRequest()
                 }
 

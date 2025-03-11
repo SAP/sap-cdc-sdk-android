@@ -16,6 +16,7 @@ import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.auth.tfa.TFAPhoneMethod
 import com.sap.cdc.android.sdk.auth.tfa.TFAProvider
+import com.sap.cdc.android.sdk.auth.tfa.TFAProvidersEntity
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.CDCResponse
@@ -592,6 +593,8 @@ interface IAuthTFA {
 
     suspend fun getProviders(regToken: String): IAuthResponse
 
+    fun parseTFAProviders(authResponse: IAuthResponse): TFAProvidersEntity
+
     suspend fun optInForPushAuthentication(): IAuthResponse
 
     suspend fun finalizeOtpInForPushAuthentication(parameters: MutableMap<String, String>): IAuthResponse
@@ -655,6 +658,13 @@ internal class AuthTFA(
     override suspend fun getProviders(regToken: String): IAuthResponse {
         val tfaFlow = TFAAuthFlow(coreClient, sessionService)
         return tfaFlow.getTFAProviders(mutableMapOf("regToken" to regToken))
+    }
+
+    override fun parseTFAProviders(authResponse: IAuthResponse): TFAProvidersEntity {
+        val parsedEntity = authResponse.cdcResponse().json.decodeFromString<TFAProvidersEntity>(
+            authResponse.asJsonString()!!
+        )
+        return parsedEntity
     }
 
     override suspend fun optInForPushAuthentication(): IAuthResponse {

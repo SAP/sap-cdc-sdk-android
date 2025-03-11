@@ -40,6 +40,11 @@ enum class TFAPhoneMethod(val value: String) {
 }
 
 @Serializable
+data class TFARegisteredPhoneEntities(
+    val phones: List<TFAPhoneEntity>? = emptyList()
+)
+
+@Serializable
 data class TFAPhoneEntity(
     val id: String,
     val obfuscated: String,

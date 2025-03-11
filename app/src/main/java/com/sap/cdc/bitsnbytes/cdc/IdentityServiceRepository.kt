@@ -45,6 +45,8 @@ class IdentityServiceRepository private constructor(context: Context) {
         }
     }
 
+    //region INIT
+
     /**
      * Initialize the site configuration class
      */
@@ -80,7 +82,8 @@ class IdentityServiceRepository private constructor(context: Context) {
         // Using session migrator to try and migrate an existing session in an application using old versions
         // of the gigya-android-sdk library.
         val sessionMigrator = SessionMigrator(context)
-        sessionMigrator.tryMigrateSession(authenticationService,
+        sessionMigrator.tryMigrateSession(
+            authenticationService,
             success = {
                 Log.e(SessionMigrator.LOG_TAG, "Session migration success")
 
@@ -93,6 +96,8 @@ class IdentityServiceRepository private constructor(context: Context) {
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
         registerAuthenticationProvider("google", GoogleAuthenticationProvider())
     }
+
+    //endregion
 
     //region CONFIGURATION
 
@@ -259,6 +264,8 @@ class IdentityServiceRepository private constructor(context: Context) {
             .clearPasskey(passkeysAuthenticationProvider)
     }
 
+    //endregion
+
     //region PUSH
 
     suspend fun optInForPushTFA(): IAuthResponse {
@@ -322,6 +329,40 @@ class IdentityServiceRepository private constructor(context: Context) {
         resolvableContext: ResolvableContext
     ): IAuthResponse {
         return authenticationService.resolve().otpLogin(code, resolvableContext)
+    }
+
+    //endregion
+
+    //region TWO FACTOR AUTHENTICATION
+
+    suspend fun registerTFAPhoneNumber(
+        phoneNumber: String,
+        resolvableContext: ResolvableContext,
+        language: String? = "en",
+    ): IAuthResponse {
+        return authenticationService.tfa().registerPhone(
+            phoneNumber = phoneNumber,
+            resolvableContext = resolvableContext,
+            language = language
+        )
+    }
+
+    suspend fun verifyTFAPhoneCode(
+        code: String,
+        resolvableContext: ResolvableContext,
+        rememberDevice: Boolean,
+    ): IAuthResponse {
+        return authenticationService.tfa().verifyPhoneCode(
+            code = code,
+            resolvableContext = resolvableContext,
+            rememberDevice = rememberDevice
+        )
+    }
+
+    suspend fun getRegisteredTFAPhoneNumbers(
+        resolvableContext: ResolvableContext,
+    ): IAuthResponse {
+        return authenticationService.tfa().getRegisteredPhoneNumbers(resolvableContext)
     }
 
     //endregion

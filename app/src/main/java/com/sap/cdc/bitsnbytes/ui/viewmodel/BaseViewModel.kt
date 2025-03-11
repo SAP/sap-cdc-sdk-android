@@ -33,4 +33,5 @@ open class BaseViewModel(context: Context) : ViewModel() {
     open fun cancelAllTimers() {
         // Stub.
     }
+
 }
