@@ -222,6 +222,7 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         resolvableContext: ResolvableContext,
         parameters: MutableMap<String, String>
     ): IAuthResponse {
+        parameters["gigyaAssertion"] = resolvableContext.tfa?.assertion!!
         CDCDebuggable.log(LOG_TAG, "sendPhoneCode: with parameters:$parameters")
         val sendCodeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_TFA_PHONE_SEND_CODE,
@@ -279,6 +280,10 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
                 "includeUserInfo" to "true"
             )
         )
+
+        if (finalizeRegistrationResult.isError()) return AuthResponse(finalizeRegistrationResult)
+        secureNewSession(finalizeRegistrationResult)
+
         return AuthResponse(finalizeRegistrationResult)
     }
 

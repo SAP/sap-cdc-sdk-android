@@ -347,6 +347,18 @@ class IdentityServiceRepository private constructor(context: Context) {
         )
     }
 
+    suspend fun sendRegisteredPhoneCode(
+        phoneId: String,
+        resolvableContext: ResolvableContext,
+        language: String? = "en",
+    ): IAuthResponse {
+        return authenticationService.tfa().sendPhoneCode(
+            phoneId = phoneId,
+            resolvableContext = resolvableContext,
+            language = language,
+        )
+    }
+
     suspend fun verifyTFAPhoneCode(
         code: String,
         resolvableContext: ResolvableContext,

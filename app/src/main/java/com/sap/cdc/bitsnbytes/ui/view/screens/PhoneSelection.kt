@@ -2,6 +2,7 @@
 
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
+import android.util.Base64
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -51,6 +52,7 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
+import com.sap.cdc.bitsnbytes.ui.view.composables.SmallActionTextButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.viewmodel.IPhoneSelectionViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneSelectionViewModelPreview
@@ -234,9 +236,40 @@ fun RegisteredPhoneNumbers(
         ) { tfaPhoneEntity ->
             ActionOutlineButton(
                 modifier = Modifier,
-                text = tfaPhoneEntity.obfuscated
-            ) { }
+                text = tfaPhoneEntity.obfuscated ?: ""
+            ) {
+                onLoadChanged(true)
+                viewModel.sendRegisteredPhoneCode(
+                    tfaPhoneEntity.id ?: "",
+                    resolvableContext,
+                    "en",
+                    onVerificationCodeSent = { authResponse ->
+                        onLoadChanged(false)
+                        val resolvableJson = authResponse?.resolvable()!!.toJson()
+                        NavigationCoordinator.INSTANCE
+                            .navigate(
+                                "${ProfileScreenRoute.PhoneVerification.route}/${
+                                    Base64.encodeToString(resolvableJson.toByteArray(Charsets.UTF_8), Base64.DEFAULT)
+                                }"
+                            )
+                    },
+                    onFailedWith = { error ->
+                        onLoadChanged(false)
+                        onVerificationErrorChanged(
+                            error?.errorDescription!!
+                        )
+                    }
+                )
+            }
         }
+    }
+
+    LargeVerticalSpacer()
+
+    SmallActionTextButton(
+        "Back to Login Screen"
+    ) {
+        //TODO: Navigate to login screen
     }
 
     onLoadChanged(true)

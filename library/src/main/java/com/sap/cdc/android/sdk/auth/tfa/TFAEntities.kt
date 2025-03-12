@@ -46,10 +46,10 @@ data class TFARegisteredPhoneEntities(
 
 @Serializable
 data class TFAPhoneEntity(
-    val id: String,
-    val obfuscated: String,
-    val lastMethod: String,
-    val lastVerification: String,
+    val id: String?,
+    val obfuscated: String?,
+    val lastMethod: String?,
+    val lastVerification: String?,
 )
 
 

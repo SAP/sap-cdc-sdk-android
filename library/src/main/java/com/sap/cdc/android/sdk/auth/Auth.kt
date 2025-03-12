@@ -755,7 +755,8 @@ internal class AuthTFA(
     ): IAuthResponse {
         val tfaFlow = TFAAuthFlow(coreClient, sessionService)
         return tfaFlow.sendPhoneCode(
-            resolvableContext, mutableMapOf(
+            resolvableContext,
+            mutableMapOf(
                 "lang" to (language ?: "en"),
                 "phoneID" to phoneId,
                 "method" to (method?.value ?: TFAPhoneMethod.SMS.value)

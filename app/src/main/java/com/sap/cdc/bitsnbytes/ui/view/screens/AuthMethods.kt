@@ -76,7 +76,8 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
                         "${ProfileScreenRoute.PhoneSelection.route}/${
                             resolvableContext.toJson()
                         }"
-                    )            },
+                    )
+            },
             iconResourceId = R.drawable.ic_device,
 
             )
@@ -97,7 +98,7 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
         SmallActionTextButton(
             "Back to Login Screen"
         ) {
-
+            //TODO: Navigate to login screen
         }
     }
 }

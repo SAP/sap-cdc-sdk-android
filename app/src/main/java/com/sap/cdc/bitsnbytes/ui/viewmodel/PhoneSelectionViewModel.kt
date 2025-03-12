@@ -32,6 +32,17 @@ interface IPhoneSelectionViewModel {
     ) {
         //Stub
     }
+
+    fun sendRegisteredPhoneCode(
+        phoneId: String,
+        resolvableContext: ResolvableContext,
+        language: String?,
+        onVerificationCodeSent: (IAuthResponse?) -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+
+        // Stub
+    }
 }
 
 // Mock preview class for the PhoneSelectionViewModel
@@ -85,6 +96,31 @@ class PhoneSelectionViewModel(context: Context) : BaseViewModel(context), IPhone
                 AuthState.SUCCESS -> {
                     _phoneList.value = authResponse.resolvable()?.tfa?.phones!!
                     onRegisteredPhoneNumbers()
+                }
+
+                AuthState.ERROR, AuthState.INTERRUPTED -> {
+                    onFailedWith(authResponse.toDisplayError())
+                }
+            }
+        }
+    }
+
+    override fun sendRegisteredPhoneCode(
+        phoneId: String,
+        resolvableContext: ResolvableContext,
+        language: String?,
+        onVerificationCodeSent: (IAuthResponse?) -> Unit,
+        onFailedWith: (CDCError?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val authResponse = identityService.sendRegisteredPhoneCode(
+                phoneId,
+                resolvableContext,
+                language,
+            )
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    onVerificationCodeSent(authResponse)
                 }
 
                 AuthState.ERROR, AuthState.INTERRUPTED -> {

@@ -1,5 +1,6 @@
 package com.sap.cdc.bitsnbytes.ui.route
 
+import android.util.Base64
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -244,8 +245,9 @@ fun ProfileNavHost() {
             PhoneSelectionView(viewModel, resolvable)
         }
         composable("${ProfileScreenRoute.PhoneVerification.route}/{resolvableContext}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
-            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
+            val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
+            val resolvableJson = String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
+            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
             val viewModel: PhoneVerificationViewModel = viewModel(
                 factory = CustomViewModelFactory(context)
             )
