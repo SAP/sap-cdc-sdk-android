@@ -28,6 +28,7 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterView
 import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetView
 import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
+import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
 import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
@@ -42,6 +43,7 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.TOTPVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 import kotlinx.serialization.json.Json
@@ -246,12 +248,23 @@ fun ProfileNavHost() {
         }
         composable("${ProfileScreenRoute.PhoneVerification.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
-            val resolvableJson = String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
+            val resolvableJson =
+                String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
             val viewModel: PhoneVerificationViewModel = viewModel(
                 factory = CustomViewModelFactory(context)
             )
             PhoneVerificationView(viewModel, resolvable)
+        }
+        composable("${ProfileScreenRoute.TOTPVerification.route}/{resolvableContext}") { backStackEntry ->
+            val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
+            val resolvableJson =
+                String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
+            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
+            val viewModel: TOTPVerificationViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            TOTPVerificationView(viewModel, resolvable)
         }
     }
 }

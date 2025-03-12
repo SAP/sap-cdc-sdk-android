@@ -377,6 +377,23 @@ class IdentityServiceRepository private constructor(context: Context) {
         return authenticationService.tfa().getRegisteredPhoneNumbers(resolvableContext)
     }
 
+    suspend fun registerNewAuthenticatorApp(
+        resolvableContext: ResolvableContext,
+    ): IAuthResponse {
+        return authenticationService.tfa().registerTOTP(resolvableContext)
+    }
+
+    suspend fun verifyTotpCode(
+        code: String,
+        resolvableContext: ResolvableContext,
+        rememberDevice: Boolean? = false,
+    ): IAuthResponse {
+        return authenticationService.tfa().verifyTOTPCode(
+            resolvableContext,
+            code, rememberDevice
+        )
+    }
+
     //endregion
 
     //region SOCIAL PROVIDERS

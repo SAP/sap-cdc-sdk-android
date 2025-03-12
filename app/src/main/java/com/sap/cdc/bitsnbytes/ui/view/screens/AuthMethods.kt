@@ -1,5 +1,6 @@
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
+import android.util.Base64
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -54,7 +55,7 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        // Passwordless button
+        // Send Code to email button
         IconAndTextOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Send Code to Email",
@@ -66,7 +67,7 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
             )
         Spacer(modifier = Modifier.size(10.dp))
 
-        // Passwordless button
+        // Send Code to Phone button
         IconAndTextOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Send Code to Phone",
@@ -83,12 +84,20 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
             )
         Spacer(modifier = Modifier.size(10.dp))
 
-        // Passwordless button
+        // Use a TOTP App button
         IconAndTextOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Use a TOTP App",
             onClick = {
-                NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
+                NavigationCoordinator.INSTANCE
+                    .navigate(
+                        "${ProfileScreenRoute.TOTPVerification.route}/${
+                            Base64.encodeToString(
+                                resolvableContext.toJson().toByteArray(Charsets.UTF_8),
+                                Base64.DEFAULT
+                            )
+                        }"
+                    )
             },
             iconResourceId = R.drawable.ic_lock,
 

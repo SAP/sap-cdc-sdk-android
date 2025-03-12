@@ -243,7 +243,24 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         rememberDevice: Boolean
     ): IAuthResponse {
         CDCDebuggable.log(LOG_TAG, "verifyCode: with parameters:$parameters")
-        parameters["gigyaAssertion"] = resolvableContext.tfa?.assertion!!
+        var assertion: String? = null
+        if (resolvableContext.tfa?.assertion == null) {
+            // Need to re-initiate TFA flow.
+            val initTFAResponse = AuthenticationApi(coreClient, sessionService).genericSend(
+                EP_TFA_INIT,
+                mutableMapOf(
+                    "regToken" to resolvableContext.regToken!!,
+                    "provider" to provider.value,
+                    "mode" to "verify"
+                )
+            )
+            if (initTFAResponse.isError()) return AuthResponse(initTFAResponse)
+            assertion = initTFAResponse.stringField("gigyaAssertion") ?: ""
+        } else {
+            assertion = resolvableContext.tfa?.assertion!!
+        }
+        parameters["gigyaAssertion"] = assertion
+
         if (resolvableContext.tfa?.phvToken != null) {
             parameters["phvToken"] = resolvableContext.tfa?.phvToken!!
         }
@@ -267,7 +284,7 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
             EP_TFA_FINALIZE,
             mutableMapOf(
                 "regToken" to resolvableContext.regToken!!,
-                "gigyaAssertion" to resolvableContext.tfa?.assertion!!,
+                "gigyaAssertion" to assertion,
                 "providerAssertion" to providerAssertion,
                 "tempDevice" to (!rememberDevice).toString()
             )

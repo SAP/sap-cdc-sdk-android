@@ -41,6 +41,7 @@ sealed class ProfileScreenRoute(
     data object AuthMethods: ProfileScreenRoute("AuthMethods")
     data object PhoneSelection: ProfileScreenRoute("PhoneSelection")
     data object PhoneVerification: ProfileScreenRoute("PhoneVerification")
+    data object TOTPVerification: ProfileScreenRoute("TOTPVerification")
 }
 
 sealed class ScreenSetsRoute(
