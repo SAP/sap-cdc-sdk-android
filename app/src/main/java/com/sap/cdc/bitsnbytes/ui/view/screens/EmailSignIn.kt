@@ -83,14 +83,16 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
         ) {
             SmallVerticalSpacer()
             val autoFillHandler =
-                autoFillRequestHandler(autofillTypes = listOf(AutofillType.EmailAddress),
+                autoFillRequestHandler(
+                    autofillTypes = listOf(AutofillType.EmailAddress),
                     onFill = {
                         email = it
                     }
                 )
 
             OutlineTitleAndEditTextField(
-                modifier = Modifier.connectNode(handler = autoFillHandler)
+                modifier = Modifier
+                    .connectNode(handler = autoFillHandler)
                     .defaultFocusChangeAutoFill(handler = autoFillHandler),
                 titleText = "Email: *",
                 inputText = email,
@@ -145,6 +147,26 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
                         },
                         onLoginIdentifierExists = {
                             loading = false
+                        },
+                        onPendingTwoFactorVerification = { authResponse ->
+                            loading = false
+                            signInError = ""
+                            NavigationCoordinator.INSTANCE
+                                .navigate(
+                                    "${ProfileScreenRoute.AuthMethods.route}/${
+                                        authResponse?.resolvable()?.toJson()
+                                    }"
+                                )
+                        },
+                        onPendingTwoFactorRegistration = { authResponse ->
+                            loading = false
+                            signInError = ""
+                            NavigationCoordinator.INSTANCE
+                                .navigate(
+                                    "${ProfileScreenRoute.AuthMethods.route}/${
+                                        authResponse?.resolvable()?.toJson()
+                                    }"
+                                )
                         }
                     )
                 }

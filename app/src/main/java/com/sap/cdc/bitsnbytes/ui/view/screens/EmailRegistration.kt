@@ -163,6 +163,26 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
                         loading = false
                         NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                     },
+                    onPendingTwoFactorVerification = { authResponse ->
+                        loading = false
+                        registerError = ""
+                        NavigationCoordinator.INSTANCE
+                            .navigate(
+                                "${ProfileScreenRoute.AuthMethods.route}/${
+                                    authResponse?.resolvable()?.toJson()
+                                }"
+                            )
+                    },
+                    onPendingTwoFactorRegistration = { authResponse ->
+                        loading = false
+                        registerError = ""
+                        NavigationCoordinator.INSTANCE
+                            .navigate(
+                                "${ProfileScreenRoute.AuthMethods.route}/${
+                                    authResponse?.resolvable()?.toJson()
+                                }"
+                            )
+                    },
                     onFailedWith = { error ->
                         loading = false
                         if (error != null) {

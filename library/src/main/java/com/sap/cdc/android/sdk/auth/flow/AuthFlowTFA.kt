@@ -23,15 +23,19 @@ import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.auth.tfa.TFAEmailEntity
-import com.sap.cdc.android.sdk.auth.tfa.TFAPhoneEntity
 import com.sap.cdc.android.sdk.auth.tfa.TFAProvider
+import com.sap.cdc.android.sdk.auth.tfa.TFARegisteredPhoneEntities
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.serialization.json.Json
 
+/**
+ * Created by Tal Mirmelshtein on 12/08/2024
+ * Copyright: SAP LTD.
+ */
+
 class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {
-
 
     companion object {
         const val LOG_TAG = "TFAAuthFlow"
@@ -155,7 +159,8 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     suspend fun registerPhone(
         resolvableContext: ResolvableContext,
         phoneNumber: String,
-        parameters: MutableMap<String, String>
+        parameters: MutableMap<String, String>,
+        language: String? = "en"
     ): IAuthResponse {
         CDCDebuggable.log(LOG_TAG, "registerPhone: with parameters:$parameters")
         parameters["regToken"] = resolvableContext.regToken!!
@@ -165,11 +170,16 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         )
 
         val assertion = initTFAResponse.stringField("gigyaAssertion") ?: ""
+        resolvableContext.tfa?.assertion = assertion
 
         if (initTFAResponse.isError()) return AuthResponse(initTFAResponse)
         val sendCodeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_TFA_PHONE_SEND_CODE,
-            mutableMapOf("gigyaAssertion" to assertion, "phone" to phoneNumber)
+            mutableMapOf(
+                "gigyaAssertion" to assertion, "phone" to phoneNumber,
+                "method" to "sms",
+                "lang" to language!!
+            )
         )
         val phvToken = sendCodeResponse.stringField("phvToken") ?: ""
         val authResponse = AuthResponse(sendCodeResponse)
@@ -199,12 +209,12 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         )
         if (getPhoneNumbersResult.isError()) return AuthResponse(getPhoneNumbersResult)
 
-        val phonesJson = getPhoneNumbersResult.stringField("phones")
-        val phones = Json.decodeFromString<List<TFAPhoneEntity>>(phonesJson!!)
+        val phones =
+            json.decodeFromString<TFARegisteredPhoneEntities>(getPhoneNumbersResult.asJson()!!)
 
         val authResponse = AuthResponse(getPhoneNumbersResult)
         resolvableContext.tfa?.assertion = assertion
-        resolvableContext.tfa?.phones = phones
+        resolvableContext.tfa?.phones = phones.phones
         authResponse.resolvableContext = resolvableContext
         return authResponse
     }
@@ -213,6 +223,7 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         resolvableContext: ResolvableContext,
         parameters: MutableMap<String, String>
     ): IAuthResponse {
+        parameters["gigyaAssertion"] = resolvableContext.tfa?.assertion!!
         CDCDebuggable.log(LOG_TAG, "sendPhoneCode: with parameters:$parameters")
         val sendCodeResponse = AuthenticationApi(coreClient, sessionService).genericSend(
             EP_TFA_PHONE_SEND_CODE,
@@ -233,7 +244,24 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         rememberDevice: Boolean
     ): IAuthResponse {
         CDCDebuggable.log(LOG_TAG, "verifyCode: with parameters:$parameters")
-        parameters["gigyaAssertion"] = resolvableContext.tfa?.assertion!!
+        var assertion: String? = null
+        if (resolvableContext.tfa?.assertion == null) {
+            // Need to re-initiate TFA flow.
+            val initTFAResponse = AuthenticationApi(coreClient, sessionService).genericSend(
+                EP_TFA_INIT,
+                mutableMapOf(
+                    "regToken" to resolvableContext.regToken!!,
+                    "provider" to provider.value,
+                    "mode" to "verify"
+                )
+            )
+            if (initTFAResponse.isError()) return AuthResponse(initTFAResponse)
+            assertion = initTFAResponse.stringField("gigyaAssertion") ?: ""
+        } else {
+            assertion = resolvableContext.tfa?.assertion!!
+        }
+        parameters["gigyaAssertion"] = assertion
+
         if (resolvableContext.tfa?.phvToken != null) {
             parameters["phvToken"] = resolvableContext.tfa?.phvToken!!
         }
@@ -257,7 +285,7 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
             EP_TFA_FINALIZE,
             mutableMapOf(
                 "regToken" to resolvableContext.regToken!!,
-                "gigyaAssertion" to resolvableContext.tfa?.assertion!!,
+                "gigyaAssertion" to assertion,
                 "providerAssertion" to providerAssertion,
                 "tempDevice" to (!rememberDevice).toString()
             )
@@ -270,6 +298,10 @@ class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
                 "includeUserInfo" to "true"
             )
         )
+
+        if (finalizeRegistrationResult.isError()) return AuthResponse(finalizeRegistrationResult)
+        secureNewSession(finalizeRegistrationResult)
+
         return AuthResponse(finalizeRegistrationResult)
     }
 

@@ -3,6 +3,8 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthState
+import com.sap.cdc.android.sdk.auth.IAuthResponse
+import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.bitsnbytes.extensions.splitFullName
 import kotlinx.coroutines.launch
@@ -19,6 +21,8 @@ interface IEmailRegisterViewModel {
         password: String,
         name: String,
         onLogin: () -> Unit,
+        onPendingTwoFactorRegistration: (IAuthResponse?) -> Unit,
+        onPendingTwoFactorVerification: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -26,7 +30,7 @@ interface IEmailRegisterViewModel {
 }
 
 // Mock preview class for the EmailRegisterViewModel
-class EmailRegisterViewModelPreview:  IEmailRegisterViewModel
+class EmailRegisterViewModelPreview : IEmailRegisterViewModel
 
 class EmailRegisterViewModel(context: Context) : BaseViewModel(context), IEmailRegisterViewModel {
 
@@ -39,6 +43,8 @@ class EmailRegisterViewModel(context: Context) : BaseViewModel(context), IEmailR
         password: String,
         name: String,
         onLogin: () -> Unit,
+        onPendingTwoFactorRegistration: (IAuthResponse?) -> Unit,
+        onPendingTwoFactorVerification: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
@@ -57,8 +63,20 @@ class EmailRegisterViewModel(context: Context) : BaseViewModel(context), IEmailR
                     onLogin()
                 }
 
-                else -> {
+                AuthState.ERROR -> {
                     onFailedWith(authResponse.toDisplayError())
+                }
+
+                AuthState.INTERRUPTED -> {
+                    when (authResponse.cdcResponse().errorCode()) {
+                        ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION -> {
+                            onPendingTwoFactorRegistration(authResponse)
+                        }
+
+                        ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_VERIFICATION -> {
+                            onPendingTwoFactorVerification(authResponse)
+                        }
+                    }
                 }
             }
         }

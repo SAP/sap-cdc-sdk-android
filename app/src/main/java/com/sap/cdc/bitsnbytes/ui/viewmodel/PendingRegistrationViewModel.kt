@@ -15,10 +15,7 @@ interface IPendingRegistrationViewModel {
         regToken: String,
         onLogin: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
-    ) {
-        //Stub
-    }
-
+    ) { }
 }
 
 // Mock preview class for the PendingRegistrationViewModel
