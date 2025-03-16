@@ -101,6 +101,8 @@ class AuthResponse(private val cdcResponse: CDCResponse) : IAuthResponse {
     override fun resolvable(): ResolvableContext? = resolvableContext
 }
 
+//region IAuthSession
+
 interface IAuthSession {
 
     fun availableSession(): Boolean
@@ -134,6 +136,9 @@ internal class AuthSession(private val sessionService: SessionService) : IAuthSe
     override fun sessionSecurityLevel(): SessionSecureLevel = sessionService.sessionSecureLevel()
 }
 
+//endregion
+
+//region IAuthApis
 
 /**
  * Authentication APIs interface.
@@ -308,6 +313,10 @@ internal class AuthApis(
 
 }
 
+//endregion
+
+//region IAuthApisSet
+
 /**
  * Authentication set providers interface.
  */
@@ -331,6 +340,10 @@ internal class AuthApisSet(
     }
 
 }
+
+//endregion
+
+//region IAuthApisGet
 
 /**
  * Authentication get providers interface.
@@ -365,6 +378,10 @@ internal class AuthApisGet(
     }
 
 }
+
+//endregion
+
+//region IAuthResolvers
 
 /**
  * Available authentication resolvers interface.
@@ -589,6 +606,10 @@ internal class AuthResolvers(
 
 }
 
+//endregion
+
+//region IAuthTFA
+
 interface IAuthTFA {
 
     suspend fun getProviders(regToken: String): IAuthResponse
@@ -805,5 +826,6 @@ internal class AuthTFA(
             rememberDevice = rememberDevice!!
         )
     }
-
 }
+
+//endregion

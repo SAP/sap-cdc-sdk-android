@@ -1,6 +1,5 @@
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
-import android.util.Base64
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,9 +25,20 @@ import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.IconAndTextOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallActionTextButton
+import com.sap.cdc.bitsnbytes.ui.viewmodel.ITFAAuthenticationViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModelPreview
 
 @Composable
-fun AuthMethodsView(resolvableContext: ResolvableContext) {
+fun AuthMethodsView(
+    viewModel: ITFAAuthenticationViewModel,
+    resolvableContext: ResolvableContext
+) {
+    LaunchedEffect(Unit) {
+        // Update resolvable context in shared view model.
+        viewModel.updateResolvableContext(resolvableContext)
+    }
+
+    //TODO: Dynamically show the auth methods based on the resolvable context available/unavailable providers
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -56,16 +67,15 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
         Spacer(modifier = Modifier.size(24.dp))
 
         // Send Code to email button
-        IconAndTextOutlineButton(
-            modifier = Modifier.size(width = 240.dp, height = 44.dp),
-            text = "Send Code to Email",
-            onClick = {
-                NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
-            },
-            iconResourceId = R.drawable.ic_email,
-
-            )
-        Spacer(modifier = Modifier.size(10.dp))
+//        IconAndTextOutlineButton(
+//            modifier = Modifier.size(width = 240.dp, height = 44.dp),
+//            text = "Send Code to Email",
+//            onClick = {
+//            },
+//            iconResourceId = R.drawable.ic_email,
+//
+//            )
+//        Spacer(modifier = Modifier.size(10.dp))
 
         // Send Code to Phone button
         IconAndTextOutlineButton(
@@ -73,11 +83,7 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
             text = "Send Code to Phone",
             onClick = {
                 NavigationCoordinator.INSTANCE
-                    .navigate(
-                        "${ProfileScreenRoute.PhoneSelection.route}/${
-                            resolvableContext.toJson()
-                        }"
-                    )
+                    .navigate(ProfileScreenRoute.PhoneSelection.route)
             },
             iconResourceId = R.drawable.ic_device,
 
@@ -90,14 +96,7 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
             text = "Use a TOTP App",
             onClick = {
                 NavigationCoordinator.INSTANCE
-                    .navigate(
-                        "${ProfileScreenRoute.TOTPVerification.route}/${
-                            Base64.encodeToString(
-                                resolvableContext.toJson().toByteArray(Charsets.UTF_8),
-                                Base64.DEFAULT
-                            )
-                        }"
-                    )
+                    .navigate(ProfileScreenRoute.TOTPVerification.route)
             },
             iconResourceId = R.drawable.ic_lock,
 
@@ -117,6 +116,7 @@ fun AuthMethodsView(resolvableContext: ResolvableContext) {
 fun AuthMethodsViewPreview() {
     AppTheme {
         AuthMethodsView(
+            viewModel = TFAAuthenticationViewModelPreview(),
             resolvableContext = ResolvableContext(
                 regToken = ""
             )

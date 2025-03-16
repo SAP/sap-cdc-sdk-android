@@ -33,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
@@ -42,14 +41,13 @@ import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IPhoneVerificationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneVerificationViewModelPreview
+import com.sap.cdc.bitsnbytes.ui.viewmodel.ITFAAuthenticationViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModelPreview
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PhoneVerificationView(
-    viewModel: IPhoneVerificationViewModel,
-    resolvableContext: ResolvableContext,
+    viewModel: ITFAAuthenticationViewModel,
 ) {
     var loading by remember { mutableStateOf(false) }
 
@@ -152,9 +150,8 @@ fun PhoneVerificationView(
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
                     loading = true
-                    viewModel.verifyTFACode(
+                    viewModel.verifyPhoneCode(
                         otpValue,
-                        resolvableContext,
                         rememberDevice = false,
                         onVerified = {
                             loading = false
@@ -188,10 +185,6 @@ fun PhoneVerificationView(
             modifier = Modifier
                 .clickable(enabled = !codeSent) {
                     codeSent = true
-                    //TODO: cancel timer when composable is not active.
-                    viewModel.startOtpTimer {
-                        codeSent = false
-                    }
                 }
                 .padding(start = 16.dp, end = 16.dp),
         )
@@ -205,8 +198,7 @@ fun PhoneVerificationView(
 fun PhoneVerificationViewPreview() {
     AppTheme {
         PhoneVerificationView(
-            viewModel = PhoneVerificationViewModelPreview(),
-            resolvableContext = ResolvableContext(regToken = "")
+            viewModel = TFAAuthenticationViewModelPreview(),
         )
     }
 }

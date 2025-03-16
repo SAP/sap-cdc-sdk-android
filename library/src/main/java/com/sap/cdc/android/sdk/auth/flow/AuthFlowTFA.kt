@@ -29,9 +29,10 @@ import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.serialization.json.Json
 
-private val json = Json {
-    ignoreUnknownKeys = true
-}
+/**
+ * Created by Tal Mirmelshtein on 12/08/2024
+ * Copyright: SAP LTD.
+ */
 
 class TFAAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {

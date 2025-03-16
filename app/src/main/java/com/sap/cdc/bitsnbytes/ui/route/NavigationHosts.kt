@@ -38,12 +38,10 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.LoginOptionsViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneSelectionViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.TOTPVerificationViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 import kotlinx.serialization.json.Json
@@ -235,36 +233,38 @@ fun ProfileNavHost() {
         composable("${ProfileScreenRoute.AuthMethods.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            //TODO: Viewmodel?
-            AuthMethodsView(resolvable)
+            val viewModel: TFAAuthenticationViewModel = viewModel(
+                factory = CustomViewModelFactory(context)
+            )
+            AuthMethodsView(viewModel, resolvable)
         }
         composable("${ProfileScreenRoute.PhoneSelection.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            val viewModel: PhoneSelectionViewModel = viewModel(
+            val viewModel: TFAAuthenticationViewModel = viewModel(
                 factory = CustomViewModelFactory(context)
             )
-            PhoneSelectionView(viewModel, resolvable)
+            PhoneSelectionView(viewModel)
         }
         composable("${ProfileScreenRoute.PhoneVerification.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
             val resolvableJson =
                 String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
-            val viewModel: PhoneVerificationViewModel = viewModel(
+            val viewModel: TFAAuthenticationViewModel = viewModel(
                 factory = CustomViewModelFactory(context)
             )
-            PhoneVerificationView(viewModel, resolvable)
+            PhoneVerificationView(viewModel)
         }
         composable("${ProfileScreenRoute.TOTPVerification.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
             val resolvableJson =
                 String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
-            val viewModel: TOTPVerificationViewModel = viewModel(
+            val viewModel: TFAAuthenticationViewModel = viewModel(
                 factory = CustomViewModelFactory(context)
             )
-            TOTPVerificationView(viewModel, resolvable)
+            TOTPVerificationView(viewModel)
         }
     }
 }

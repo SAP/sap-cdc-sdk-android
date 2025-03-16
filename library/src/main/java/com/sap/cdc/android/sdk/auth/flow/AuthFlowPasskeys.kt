@@ -1,13 +1,10 @@
 package com.sap.cdc.android.sdk.auth.flow
 
 import android.annotation.SuppressLint
-import android.util.Base64
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_AUTHORIZE
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_CONNECT
-import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_DISCONNECT
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_OAUTH_TOKEN
-import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_DELETE
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_GET_ASSERTION_OPTIONS
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_INIT
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_REGISTER
@@ -15,7 +12,6 @@ import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_PASSKEYS_VERIFY_A
 import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.model.GetCredentialResultEntity
 import com.sap.cdc.android.sdk.auth.model.OptionsResponseModel
 import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.SessionService

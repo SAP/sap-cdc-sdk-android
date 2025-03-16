@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
+@file:OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class)
 
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
@@ -39,9 +39,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.ResolvableContext
-import com.sap.cdc.android.sdk.auth.ResolvableTFA
-import com.sap.cdc.android.sdk.auth.tfa.TFAProvidersEntity
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
@@ -54,14 +51,12 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallActionTextButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IPhoneSelectionViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.PhoneSelectionViewModelPreview
+import com.sap.cdc.bitsnbytes.ui.viewmodel.ITFAAuthenticationViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModelPreview
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PhoneSelectionView(
-    viewModel: IPhoneSelectionViewModel,
-    resolvableContext: ResolvableContext
+    viewModel: ITFAAuthenticationViewModel,
 ) {
     var loading by remember { mutableStateOf(false) }
     var verificationError by remember { mutableStateOf("") }
@@ -95,11 +90,10 @@ fun PhoneSelectionView(
 
         // Vary provider state to show different phone numbers
         // or to register a new one if none available.
-        if (resolvableContext.tfa?.tfaProviders?.activeProviders?.isEmpty() == true) {
+        if (viewModel.resolvableContext.collectAsState().value?.tfa?.tfaProviders?.activeProviders?.isEmpty() == true) {
             // Need to register a new phone number
             RegisterNewPhoneNumber(
                 viewModel = viewModel,
-                resolvableContext = resolvableContext,
                 onLoadChanged = { loading = it },
                 onVerificationErrorChanged = { verificationError = it }
             )
@@ -107,7 +101,6 @@ fun PhoneSelectionView(
             // Show available phone numbers
             RegisteredPhoneNumbers(
                 viewModel = viewModel,
-                resolvableContext = resolvableContext,
                 onLoadChanged = { loading = it },
                 onVerificationErrorChanged = { verificationError = it }
             )
@@ -126,8 +119,7 @@ fun PhoneSelectionView(
 
 @Composable
 fun RegisterNewPhoneNumber(
-    viewModel: IPhoneSelectionViewModel,
-    resolvableContext: ResolvableContext,
+    viewModel: ITFAAuthenticationViewModel,
     onLoadChanged: (Boolean) -> Unit,
     onVerificationErrorChanged: (String) -> Unit,
 ) {
@@ -195,7 +187,6 @@ fun RegisterNewPhoneNumber(
             onVerificationErrorChanged("")
             viewModel.registerTFAPhoneNumber(
                 inputField,
-                resolvableContext,
                 "en",
                 onVerificationCodeSent = { authResponse ->
                     onLoadChanged(false)
@@ -221,8 +212,7 @@ fun RegisterNewPhoneNumber(
 
 @Composable
 fun RegisteredPhoneNumbers(
-    viewModel: IPhoneSelectionViewModel,
-    resolvableContext: ResolvableContext,
+    viewModel: ITFAAuthenticationViewModel,
     onLoadChanged: (Boolean) -> Unit,
     onVerificationErrorChanged: (String) -> Unit,
 ) {
@@ -241,7 +231,6 @@ fun RegisteredPhoneNumbers(
                 onLoadChanged(true)
                 viewModel.sendRegisteredPhoneCode(
                     tfaPhoneEntity.id ?: "",
-                    resolvableContext,
                     "en",
                     onVerificationCodeSent = { authResponse ->
                         onLoadChanged(false)
@@ -249,7 +238,10 @@ fun RegisteredPhoneNumbers(
                         NavigationCoordinator.INSTANCE
                             .navigate(
                                 "${ProfileScreenRoute.PhoneVerification.route}/${
-                                    Base64.encodeToString(resolvableJson.toByteArray(Charsets.UTF_8), Base64.DEFAULT)
+                                    Base64.encodeToString(
+                                        resolvableJson.toByteArray(Charsets.UTF_8),
+                                        Base64.DEFAULT
+                                    )
                                 }"
                             )
                     },
@@ -274,7 +266,6 @@ fun RegisteredPhoneNumbers(
 
     onLoadChanged(true)
     viewModel.getRegisteredPhoneNumbers(
-        resolvableContext,
         onRegisteredPhoneNumbers = {
             onLoadChanged(false)
             onVerificationErrorChanged("")
@@ -294,14 +285,7 @@ fun RegisteredPhoneNumbers(
 fun PhoneSelectionViewPreview() {
     AppTheme {
         PhoneSelectionView(
-            viewModel = PhoneSelectionViewModelPreview(),
-            resolvableContext = ResolvableContext(
-                "", tfa = ResolvableTFA(
-                    tfaProviders = TFAProvidersEntity(
-                        activeProviders = listOf(), inactiveProviders = listOf()
-                    ),
-                )
-            )
+            viewModel = TFAAuthenticationViewModelPreview(),
         )
     }
 }
