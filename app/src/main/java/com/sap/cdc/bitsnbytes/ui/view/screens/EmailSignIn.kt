@@ -2,6 +2,7 @@
 
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,6 +64,11 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
     var passwordVisible: Boolean by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
+    val context = LocalContext.current
+
+    var captchaRequired by remember { mutableStateOf(false) }
+    var isSwitchChecked by remember { mutableStateOf(false) }
+    
     //UI elements
     LoadingStateColumn(
         loading
@@ -167,10 +174,37 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
                                         authResponse?.resolvable()?.toJson()
                                     }"
                                 )
+                        },
+                        onCaptchaRequired = {
+                            loading = false
+                            captchaRequired = true
+                            signInError = "Captcha required"
                         }
                     )
                 }
             )
+
+            if (captchaRequired) {
+                SmallVerticalSpacer()
+                androidx.compose.material3.Switch(
+                    checked = isSwitchChecked,
+                    onCheckedChange = { isChecked ->
+                        isSwitchChecked = isChecked
+                        if (isChecked) {
+                            viewModel.getSaptchaToken(
+                                token = { token ->
+                                    loading = false
+                                    Toast.makeText(context, token, Toast.LENGTH_SHORT).show()
+                                },
+                                onFailedWith = { error ->
+                                    loading = false
+                                    signInError = error?.errorDescription!!
+                                }
+                            )
+                        }
+                    }
+                )
+            }
 
             if (signInError.isNotEmpty()) {
                 SimpleErrorMessages(

@@ -69,11 +69,11 @@ class EmailRegisterViewModel(context: Context) : BaseViewModel(context), IEmailR
 
                 AuthState.INTERRUPTED -> {
                     when (authResponse.cdcResponse().errorCode()) {
-                        ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION -> {
+                        ResolvableContext.ERR_PENDING_TWO_FACTOR_REGISTRATION -> {
                             onPendingTwoFactorRegistration(authResponse)
                         }
 
-                        ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_VERIFICATION -> {
+                        ResolvableContext.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
                             onPendingTwoFactorVerification(authResponse)
                         }
                     }

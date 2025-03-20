@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.auth
 
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.flow.AccountAuthFlow
+import com.sap.cdc.android.sdk.auth.flow.CaptchaAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LoginAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LogoutAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.PasskeysAuthFlow
@@ -209,6 +210,9 @@ interface IAuthApis {
     suspend fun registerForAuthPushNotifications(): IAuthResponse
 
     suspend fun verifyAuthPushNotification(vToken: String): IAuthResponse
+
+
+    suspend fun getSaptchaToken(): IAuthResponse
 }
 
 /**
@@ -309,6 +313,11 @@ internal class AuthApis(
     override suspend fun verifyAuthPushNotification(vToken: String): IAuthResponse {
         val flow = AccountAuthFlow(coreClient, sessionService)
         return flow.verifyAuthPush(vToken)
+    }
+
+    override suspend fun getSaptchaToken(): IAuthResponse {
+        val flow = CaptchaAuthFlow(coreClient, sessionService)
+        return flow.getSaptchaToken()
     }
 
 }

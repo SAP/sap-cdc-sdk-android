@@ -264,6 +264,10 @@ class IdentityServiceRepository private constructor(context: Context) {
             .clearPasskey(passkeysAuthenticationProvider)
     }
 
+    suspend fun getSaptchaToken(): IAuthResponse {
+        return authenticationService.authenticate().getSaptchaToken()
+    }
+
     //endregion
 
     //region PUSH

@@ -58,6 +58,9 @@ class AuthEndpoints {
         const val EP_TFA_TOTP_REGISTER = "accounts.tfa.totp.register"
         const val EP_TFA_TOTP_VERIFY = "accounts.tfa.totp.verify"
 
+        const val EP_RISK_SAPTCHA_GET_CHALLENGE = "accounts.risk.saptcha.getChallenge"
+        const val EP_RISK_SAPTCHA_VERIFY = "accounts.risk.saptcha.verify"
+
         // May be redundant cause connection can be done using notifySocialLogin with
         // loginMode = connect.
         const val EP_SOCIALIZE_ADD_CONNECTION = "socialize.addConnection"

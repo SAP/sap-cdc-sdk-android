@@ -77,6 +77,11 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                         ResolvableOtp(cdcResponse.stringField("vToken"))
                 }
 
+
+                ResolvableContext.ERR_CAPTCHA_REQUIRED -> {
+                    CDCDebuggable.log(LOG_TAG, "ERR_SAPTCHA_REQUIRED")
+                }
+
                 // REGISTRATION
                 ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_ACCOUNT_PENDING_REGISTRATION")
@@ -104,8 +109,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 }
 
                 // TFA
-                ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION,
-                ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_VERIFICATION -> {
+                ResolvableContext.ERR_PENDING_TWO_FACTOR_REGISTRATION,
+                ResolvableContext.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION")
                     // Get providers
                     val tfaResolve = AuthTFA(coreClient, sessionService)

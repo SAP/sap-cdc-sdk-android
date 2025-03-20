@@ -2,7 +2,11 @@ package com.sap.cdc.android.sdk.extensions
 
 import android.util.Base64
 import com.sap.cdc.android.sdk.core.SiteConfig
+import org.json.JSONObject
+import java.math.BigInteger
 import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Locale
 
@@ -67,3 +71,25 @@ fun String.parseQueryStringParams(): Map<String, String> =
             }
         }
         .toMap()
+
+fun String.jwtDecode(): JSONObject {
+    val parts = this.split(".")
+    val base64EncodedData = parts[1]
+    val data = Base64.decode(
+        base64EncodedData.toByteArray(charset = StandardCharsets.UTF_8),
+        Base64.DEFAULT
+    )
+    return JSONObject(String(data, StandardCharsets.UTF_8))
+}
+
+fun String.encodeWith(algorithm: String): String {
+    val md: MessageDigest = MessageDigest.getInstance(algorithm)
+    val messageDigest = md.digest(this.toByteArray())
+    val no = BigInteger(1, messageDigest)
+    var hash: String = no.toString(16)
+    // Add preceding 0s to make it 128 chars long
+    while (hash.length < 128) {
+        hash = "0$hash"
+    }
+    return hash
+}

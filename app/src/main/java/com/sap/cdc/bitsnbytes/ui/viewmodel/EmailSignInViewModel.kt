@@ -22,7 +22,15 @@ interface IEmailSignInViewModel {
         onLoginIdentifierExists: () -> Unit,
         onPendingTwoFactorRegistration: (IAuthResponse?) -> Unit,
         onPendingTwoFactorVerification: (IAuthResponse?) -> Unit,
+        onCaptchaRequired: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
+    ) {
+        //Stub
+    }
+
+    fun getSaptchaToken(
+        token: (String) -> Unit,
+        onFailedWith: (CDCError?) -> Unit,
     ) {
         //Stub
     }
@@ -45,6 +53,7 @@ class EmailSignInViewModel(context: Context) : BaseViewModel(context),
         onLoginIdentifierExists: () -> Unit,
         onPendingTwoFactorRegistration: (IAuthResponse?) -> Unit,
         onPendingTwoFactorVerification: (IAuthResponse?) -> Unit,
+        onCaptchaRequired: () -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
@@ -64,14 +73,34 @@ class EmailSignInViewModel(context: Context) : BaseViewModel(context),
                             onLoginIdentifierExists()
                         }
 
-                        ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION -> {
+                        ResolvableContext.ERR_PENDING_TWO_FACTOR_REGISTRATION -> {
                             onPendingTwoFactorRegistration(authResponse)
                         }
 
-                        ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_VERIFICATION -> {
+                        ResolvableContext.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
                             onPendingTwoFactorVerification(authResponse)
                         }
+
+                        ResolvableContext.ERR_CAPTCHA_REQUIRED -> {
+                            onCaptchaRequired()
+                        }
                     }
+                }
+            }
+        }
+    }
+
+    override fun getSaptchaToken(token: (String) -> Unit,
+                                 onFailedWith: (CDCError?) -> Unit) {
+        viewModelScope.launch {
+            val authResponse = identityService.getSaptchaToken()
+            when (authResponse.state()) {
+                AuthState.SUCCESS -> {
+                    token(authResponse.cdcResponse().stringField("saptchaToken") as String)
+                }
+
+                else -> {
+                    onFailedWith(authResponse.toDisplayError())
                 }
             }
         }
