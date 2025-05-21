@@ -16,10 +16,11 @@ import com.sap.cdc.android.sdk.auth.provider.util.ProviderException
 import com.sap.cdc.android.sdk.auth.provider.util.ProviderExceptionType
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.core.api.Signing
-import com.sap.cdc.android.sdk.core.api.SigningSpec
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.core.api.toEncodedQuery
+import com.sap.cdc.android.sdk.core.api.utils.AndroidBase64Encoder
+import com.sap.cdc.android.sdk.core.api.utils.Signing
+import com.sap.cdc.android.sdk.core.api.utils.SigningSpec
+import com.sap.cdc.android.sdk.core.api.utils.toEncodedQuery
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
@@ -158,7 +159,7 @@ class WebAuthenticationProvider(
         if (session != null) {
             uriParameters["oauth_token"] = session.token
             uriParameters["timestamp"] = siteConfig.getServerTimestamp()
-            Signing().newSignature(
+            Signing(base64Encoder = AndroidBase64Encoder()).newSignature(
                 SigningSpec(
                     session.secret,
                     EP_SOCIALIZE_LOGIN,

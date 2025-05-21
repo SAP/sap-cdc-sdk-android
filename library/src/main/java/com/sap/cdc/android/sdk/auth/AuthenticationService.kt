@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.auth
 
+import androidx.core.content.edit
 import com.sap.cdc.android.sdk.auth.notifications.CDCNotificationManager
 import com.sap.cdc.android.sdk.auth.notifications.CDCNotificationOptions
 import com.sap.cdc.android.sdk.auth.notifications.IFCMTokenRequest
@@ -54,14 +55,14 @@ class AuthenticationService(
      * Device info is used for various purposes, such as TFA/Auth push registration & Passkey management
      */
     internal fun updateDeviceInfo(deviceInfo: DeviceInfo) {
-        val esp = siteConfig.applicationContext.getEncryptedPreferences(
+        val esp = siteConfig.applicationContext?.getEncryptedPreferences(
             CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
         )
         val json = Json {
             encodeDefaults = true
         }
         val deviceInfoJson = json.encodeToString(deviceInfo)
-        esp.edit().putString(CDC_DEVICE_INFO, deviceInfoJson).apply()
+        esp?.edit() { putString(CDC_DEVICE_INFO, deviceInfoJson) }
     }
 
     /**

@@ -1,7 +1,7 @@
-package com.sap.cdc.android.sdk.core.api
+package com.sap.cdc.android.sdk.core.api.utils
 
-import android.util.Base64
 import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.core.api.CDCRequest
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import javax.crypto.Mac
@@ -11,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  */
-class Signing {
+class Signing(private val base64Encoder: Base64Encoder) {
 
     companion object {
         private const val LOG_TAG = "Signing"
@@ -19,7 +19,18 @@ class Signing {
     }
 
     fun newSignature(spec: SigningSpec): String {
-        return encode(spec.secret, normalizeUrl(spec))
+        val normalizedUrl = normalizeUrl(spec)
+        CDCDebuggable.log(LOG_TAG, "baseSignature_: $normalizedUrl")
+        val keyBytes = base64Encoder.decode(spec.secret, android.util.Base64.DEFAULT)
+        val textData: ByteArray = normalizedUrl.toByteArray(StandardCharsets.UTF_8)
+        val signingKey = SecretKeySpec(keyBytes, SIGNING_ALGORITHM)
+        val mac = Mac.getInstance(SIGNING_ALGORITHM)
+        mac.init(signingKey)
+        val rawHmac = mac.doFinal(textData)
+        return base64Encoder.encodeToString(
+            rawHmac,
+            android.util.Base64.NO_WRAP or android.util.Base64.URL_SAFE
+        )
     }
 
     private fun normalizeUrl(
@@ -29,21 +40,6 @@ class Signing {
         return "${spec.method}&${spec.api.urlEncode()}&${
             spec.queryParameters.toEncodedQuery().urlEncode()
         }"
-    }
-
-    private fun encode(
-        secret: String,
-        normalizedUrl: String,
-    ): String {
-        CDCDebuggable.log(LOG_TAG, "baseSignature_: $normalizedUrl")
-        val keyBytes = Base64.decode(secret, Base64.DEFAULT)
-        val textData: ByteArray = normalizedUrl.toByteArray(StandardCharsets.UTF_8)
-        val signingKey =
-            SecretKeySpec(keyBytes, SIGNING_ALGORITHM)
-        val mac = Mac.getInstance(SIGNING_ALGORITHM)
-        mac.init(signingKey)
-        val rawHmac = mac.doFinal(textData)
-        return Base64.encodeToString(rawHmac, Base64.NO_WRAP or Base64.URL_SAFE)
     }
 }
 

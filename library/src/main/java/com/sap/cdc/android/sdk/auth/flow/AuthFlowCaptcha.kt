@@ -8,6 +8,7 @@ import com.sap.cdc.android.sdk.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.api.utils.AndroidBase64Encoder
 import com.sap.cdc.android.sdk.extensions.encodeWith
 import com.sap.cdc.android.sdk.extensions.jwtDecode
 
@@ -34,7 +35,7 @@ class CaptchaAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         val token = getJwt.stringField("saptchaToken") as String
         CDCDebuggable.log(TFAAuthFlow.LOG_TAG, "token: $token")
 
-        val jwtObject = token.jwtDecode()
+        val jwtObject = token.jwtDecode(AndroidBase64Encoder())
         val jti = jwtObject.getString("jti")
         val pattern = jwtObject.getString("pattern")
 

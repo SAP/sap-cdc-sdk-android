@@ -28,7 +28,6 @@ import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGOUT
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 
@@ -51,14 +50,22 @@ fun ScreenSetView(
 
     var screenSetError by remember { mutableStateOf("") }
 
-    // Create only when file access is required..
-    val bridgingWebChromeClient = WebBridgeJSWebChromeClient()
-    rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            bridgingWebChromeClient.onActivityResult(uri)
+    // Declare webBridgeJSWebChromeClient as a mutable variable
+    var webBridgeJSWebChromeClient: WebBridgeJSWebChromeClient? by remember { mutableStateOf(null) }
+
+    // Define the file chooser launcher (Optional - only if you need file chooser)
+    val fileChooserLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        webBridgeJSWebChromeClient?.handleActivityResult(result.resultCode, result.data)
+    }
+
+    // Define the WebChromeClient (Optional - only if you need file chooser)
+    webBridgeJSWebChromeClient = remember {
+        WebBridgeJSWebChromeClient { intent ->
+            fileChooserLauncher.launch(intent)
         }
-    )
+    }
 
     // Create screen set request parameters.
     val params = mutableMapOf<String, Any>(
@@ -102,7 +109,7 @@ fun ScreenSetView(
 
                     // Add only hen file access is required.
                     settings.allowFileAccess = true
-                    webChromeClient = bridgingWebChromeClient
+                    webChromeClient = webBridgeJSWebChromeClient
                 }
             },
             update = { webView ->
@@ -134,19 +141,21 @@ fun ScreenSetView(
                         }
 
                         LOGIN -> {
-                            // Flow successful. Navigate to profile screen.
-                            webView.post {
-                                NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                                    toRoute = ProfileScreenRoute.MyProfile.route,
-                                    rootRoute = ProfileScreenRoute.Welcome.route
-                                )
-                            }
+                            // Login flow Success.
+//                            webView.post {
+//                                NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+//                                    toRoute = ProfileScreenRoute.MyProfile.route,
+//                                    rootRoute = ProfileScreenRoute.Welcome.route
+//                                )
+//                            }
                         }
 
                         LOGOUT -> {
                             // Navigate back to close the screen set view.
                             NavigationCoordinator.INSTANCE.navigateUp()
                         }
+
+
                     }
                 }
 

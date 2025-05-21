@@ -1,6 +1,7 @@
 package com.sap.cdc.android.sdk.auth.session
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
@@ -99,6 +100,8 @@ internal class SessionSecure(
                         val expirationTime = getExpirationTime()
                         CDCDebuggable.log(LOG_TAG, "Expiration time to enqueue: $expirationTime")
                         if (expirationTime != null && expirationTime > 0) {
+                            // Setting expiration time to the worker. The worker takes delay only
+                            // so we are subtracting current time from expiration time.l
                             enqueueSessionExpirationWorker(expirationTime - System.currentTimeMillis())
                         }
                     }
@@ -133,7 +136,8 @@ internal class SessionSecure(
                 System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(session.expiration!!)
             // Secure expiration time in encrypted shared preferences.
             secureExpirationWith(expirationTime)
-            enqueueSessionExpirationWorker(expirationTime - System.currentTimeMillis())
+            // The worker takes delay only so we are using the original expiration time value.
+            enqueueSessionExpirationWorker(session.expiration!!)
         }
     }
 
@@ -160,7 +164,7 @@ internal class SessionSecure(
         sessionMap[siteConfig.apiKey] = expirationTime.toString()
 
         // Write session map back to encrypted shared preferences.
-        esp.edit().putString(CDC_SESSION_EXPIRATIONS, Json.encodeToString(sessionMap)).apply()
+        esp.edit() { putString(CDC_SESSION_EXPIRATIONS, Json.encodeToString(sessionMap)) }
     }
 
     /**
@@ -285,7 +289,7 @@ internal class SessionSecure(
             sessionMap[siteConfig.apiKey] = Json.encodeToString(sessionEntity)
         }
         // Write session map back to encrypted shared preferences.
-        esp.edit().putString(CDC_SESSIONS, Json.encodeToString(sessionMap)).apply()
+        esp.edit() { putString(CDC_SESSIONS, Json.encodeToString(sessionMap)) }
     }
 
     /**

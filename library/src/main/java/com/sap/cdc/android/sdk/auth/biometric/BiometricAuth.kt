@@ -343,7 +343,7 @@ class BiometricAuth(private val sessionService: SessionService) {
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
         val json =
-            esp.getString(SessionSecure.CDC_SESSIONS, null)
+            esp?.getString(SessionSecure.CDC_SESSIONS, null)
         var sessionMap: MutableMap<String, String> = mutableMapOf()
         if (json != null) {
             sessionMap = Json.decodeFromString<MutableMap<String, String>>(json)

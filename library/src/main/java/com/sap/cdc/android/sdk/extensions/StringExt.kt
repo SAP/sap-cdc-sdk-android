@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.extensions
 
-import android.util.Base64
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.core.api.utils.Base64Encoder
 import org.json.JSONObject
 import java.math.BigInteger
 import java.net.URLDecoder
@@ -22,11 +22,11 @@ fun String.capitalFirst(): String = this.replaceFirstChar {
     ) else it.toString()
 }
 
-fun String.generateNonce(): String {
+fun String.generateNonce(base64Encoder: Base64Encoder): String {
     val nonceBytes = ByteArray(40)
     val random = SecureRandom()
     random.nextBytes(nonceBytes)
-    return Base64.encodeToString(nonceBytes, Base64.URL_SAFE)
+    return base64Encoder.encodeToString(nonceBytes, 8)
 }
 
 fun String.prepareApiUrl(siteConfig: SiteConfig): String {
@@ -72,12 +72,12 @@ fun String.parseQueryStringParams(): Map<String, String> =
         }
         .toMap()
 
-fun String.jwtDecode(): JSONObject {
+fun String.jwtDecode(base64Encoder: Base64Encoder): JSONObject {
     val parts = this.split(".")
     val base64EncodedData = parts[1]
-    val data = Base64.decode(
+    val data = base64Encoder.decode(
         base64EncodedData.toByteArray(charset = StandardCharsets.UTF_8),
-        Base64.DEFAULT
+        0
     )
     return JSONObject(String(data, StandardCharsets.UTF_8))
 }

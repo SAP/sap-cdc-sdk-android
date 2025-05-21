@@ -1,9 +1,6 @@
-package com.sap.cdc.android.sdk
+package com.sap.cdc.android.sdk.core.api
 
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.api.Api
-import com.sap.cdc.android.sdk.core.api.CDCRequest
-import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.network.NetworkClient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine

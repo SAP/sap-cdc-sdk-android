@@ -126,6 +126,11 @@ class CDCResponse {
     fun errorDetails(): String? = jsonObject?.get("errorDetails")?.jsonPrimitive?.contentOrNull
 
     /**
+     * Get error flags from response.
+     */
+    fun errorFlags(): String? = jsonObject?.get("errorFlags")?.jsonPrimitive?.contentOrNull
+
+    /**
      * Get an instance of the CDCError class. This class's data is limited and should only be used for display options.
      * To handle resolvable errors, use the CDCResponse class as it will contain all the necessary flow data.
      */

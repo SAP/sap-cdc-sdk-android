@@ -22,6 +22,9 @@ android {
         minSdk = 24
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        val testApiKey: String = project.findProperty("testApiKey") as String? ?: ""
+        buildConfigField("String", "TEST_API_KEY", "\"$testApiKey\"")
     }
 
     buildTypes {
@@ -40,11 +43,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
+    }
+
+    packaging {
+        resources {
+            excludes.add("META-INF/LICENSE.md")
+            excludes.add("META-INF/LICENSE-notice.md")
+        }
     }
 }
 
@@ -55,14 +65,12 @@ dependencies {
     implementation(libs.material)
 
     testImplementation(libs.junit)
-    testImplementation(libs.mockito.inline)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.mockito.core)
     testImplementation(libs.ktor.client.mock)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
 
     // Http engine, JSON serialization/deserialization, kotlinx.serialization, Logging HTTP requests
     api(libs.bundles.ktor)

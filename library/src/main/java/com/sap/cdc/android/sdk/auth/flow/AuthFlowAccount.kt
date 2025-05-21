@@ -91,10 +91,10 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
 
     suspend fun registerAuthDevice(): IAuthResponse {
         // Obtain device info from secure storage.
-        val esp = coreClient.siteConfig.applicationContext.getEncryptedPreferences(
+        val esp = coreClient.siteConfig.applicationContext?.getEncryptedPreferences(
             CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
         )
-        val deviceInfo = esp.getString(CDC_DEVICE_INFO, "") ?: ""
+        val deviceInfo = esp?.getString(CDC_DEVICE_INFO, "") ?: ""
 
         CDCDebuggable.log(LOG_TAG, "registerDevice: with deviceInfo:$deviceInfo")
         val registerDevice = AuthenticationApi(coreClient, sessionService).genericSend(

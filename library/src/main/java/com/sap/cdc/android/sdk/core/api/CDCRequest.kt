@@ -3,6 +3,9 @@ package com.sap.cdc.android.sdk.core.api
 import com.sap.cdc.android.sdk.BuildConfig
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.core.api.utils.AndroidBase64Encoder
+import com.sap.cdc.android.sdk.core.api.utils.Signing
+import com.sap.cdc.android.sdk.core.api.utils.SigningSpec
 import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
 
@@ -21,7 +24,7 @@ class CDCRequest(
     var api: String = ""
     var parameters: MutableMap<String, String> = sortedMapOf(
         "apiKey" to siteConfig.apiKey,
-        "sdk" to "Android_${BuildConfig.VERSION}",
+        "sdk" to "Android_rev2_${BuildConfig.VERSION}",
         "targetEnv" to "mobile",
         "format" to "json",
         "httpStatusCodes" to "true", //TODO: Make configurable.
@@ -81,7 +84,7 @@ class CDCRequest(
     }
 
     fun sign(secret: String) = apply {
-        val signature = Signing().newSignature(
+        val signature = Signing(base64Encoder = AndroidBase64Encoder()).newSignature(
             SigningSpec(
                 secret,
                 api,
