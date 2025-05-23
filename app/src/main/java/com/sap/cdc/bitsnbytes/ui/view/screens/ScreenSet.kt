@@ -141,6 +141,7 @@ fun ScreenSetView(
                         }
 
                         LOGIN -> {
+                            Log.d("ScreenSetView", "Login event received")
                             // Login flow Success.
 //                            webView.post {
 //                                NavigationCoordinator.INSTANCE.popToRootAndNavigate(

@@ -12,6 +12,8 @@ import android.webkit.WebView
 /**
  * Created by Tal Mirmelshtein on 13/06/2024
  * Copyright: SAP LTD.
+ *
+ * Custom WebChromeClient for handling file chooser events in as ScreenSets dedicated WebView.
  */
 class WebBridgeJSWebChromeClient(
     private val launchFileChooser: (Intent) -> Unit
@@ -19,6 +21,11 @@ class WebBridgeJSWebChromeClient(
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
 
+    /**
+     * Override required methods to handle file chooser events.
+     * ScreenSet that uses account update information may contain file upload elements such as
+     * profile picture upload.
+     */
     override fun onShowFileChooser(
         webView: WebView?,
         filePathCallback: ValueCallback<Array<Uri>>?,
@@ -33,6 +40,10 @@ class WebBridgeJSWebChromeClient(
         return true
     }
 
+    /**
+     * Handle the result of the file chooser.
+     * This method should be called from the activity that launched the file chooser.
+     */
     fun handleActivityResult(resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK && data != null) {
             // Pass the result to the callback
@@ -45,6 +56,10 @@ class WebBridgeJSWebChromeClient(
         filePathCallback = null
     }
 
+    /**
+     * Create an intent for the file chooser.
+     * This intent will allow the user to select an image from the gallery or take a new photo.
+     */
     private fun createFileChooserIntent(): Intent {
         val capture = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val select = Intent(Intent.ACTION_GET_CONTENT).apply {
