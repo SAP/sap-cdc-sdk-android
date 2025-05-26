@@ -34,18 +34,15 @@ class AuthenticationService(
     fun authenticate(): IAuthApis =
         AuthApis(coreClient, sessionService)
 
-    fun resolve(): IAuthResolvers =
-        AuthResolvers(coreClient, sessionService)
-
-    fun get(): IAuthApisGet =
-        AuthApisGet(coreClient, sessionService)
-
-    fun set(): IAuthApisSet =
-        AuthApisSet(coreClient, sessionService)
+    fun account(): IAuthAccount =
+        AuthAccount(coreClient, sessionService)
 
     fun session(): IAuthSession = AuthSession(
         sessionService
     )
+
+    fun resolve(): IAuthResolvers =
+        AuthResolvers(coreClient, sessionService)
 
     fun tfa(): IAuthTFA =
         AuthTFA(coreClient, sessionService)

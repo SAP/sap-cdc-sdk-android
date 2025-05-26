@@ -157,7 +157,15 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun register(email: String, password: String, profileObject: String): IAuthResponse {
         val params =
             mutableMapOf("email" to email, "password" to password, "profile" to profileObject)
-        return authenticationService.authenticate().register(params)
+        return authenticationService.authenticate().register().withParameters(params)
+    }
+
+    /**
+     * Initiate cdc SDK credentials registration with email and password.
+     */
+    suspend fun register(email: String, password: String): IAuthResponse {
+        val params = mutableMapOf("email" to email, "password" to password)
+        return authenticationService.authenticate().register().withEmailCredentials(email, password)
     }
 
     /**
@@ -166,21 +174,21 @@ class IdentityServiceRepository private constructor(context: Context) {
     suspend fun login(email: String, password: String): IAuthResponse {
         val params =
             mutableMapOf("loginID" to email, "password" to password)//, "sessionExpiration" to "30")
-        return authenticationService.authenticate().login(params)
+        return authenticationService.authenticate().login().withParameters(params)
     }
 
     /**
      * Request cdc SDK latest account information.
      */
     suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
-        return authenticationService.get().getAccountInfo(parameters!!)
+        return authenticationService.account().get(parameters!!)
     }
 
     /**
      * Update cdc SDK account information.
      */
     suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
-        return authenticationService.set().setAccountInfo(parameters)
+        return authenticationService.account().set(parameters)
     }
 
     /**
@@ -197,7 +205,7 @@ class IdentityServiceRepository private constructor(context: Context) {
         hostActivity: ComponentActivity,
         provider: IAuthenticationProvider
     ): IAuthResponse =
-        authenticationService.authenticate().providerSignIn(
+        authenticationService.authenticate().provider().signIn(
             hostActivity, provider
         )
 
@@ -208,7 +216,7 @@ class IdentityServiceRepository private constructor(context: Context) {
         hostActivity: ComponentActivity,
         parameters: MutableMap<String, String>,
     ): IAuthResponse =
-        authenticationService.authenticate().providerSignIn(
+        authenticationService.authenticate().provider().signIn(
             hostActivity, SSOAuthenticationProvider(
                 siteConfig = authenticationService.siteConfig,
                 mutableMapOf()
@@ -228,7 +236,7 @@ class IdentityServiceRepository private constructor(context: Context) {
             siteConfig,
             authenticationService.session().getSession()
         )
-        return authenticationService.authenticate().providerSignIn(
+        return authenticationService.authenticate().provider().signIn(
             hostActivity, webAuthenticationProvider
         )
     }
@@ -241,31 +249,31 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     suspend fun otpSignIn(
         parameters: MutableMap<String, String>
-    ): IAuthResponse = authenticationService.authenticate().otpSendCode(parameters)
+    ): IAuthResponse = authenticationService.authenticate().otp().sendCode(parameters)
 
     suspend fun createPasskey(
         passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
     ): IAuthResponse {
-        return authenticationService.authenticate()
-            .createPasskey(passkeysAuthenticationProvider)
+        return authenticationService.authenticate().passkeys()
+            .create(passkeysAuthenticationProvider)
     }
 
     suspend fun passkeySignIn(
         passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
     ): IAuthResponse {
-        return authenticationService.authenticate()
-            .passkeySignIn(passkeysAuthenticationProvider)
+        return authenticationService.authenticate().passkeys()
+            .signIn(passkeysAuthenticationProvider)
     }
 
     suspend fun clearPasskey(
         passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
     ): IAuthResponse {
-        return authenticationService.authenticate()
-            .clearPasskey(passkeysAuthenticationProvider)
+        return authenticationService.authenticate().passkeys()
+            .clear(passkeysAuthenticationProvider)
     }
 
     suspend fun getSaptchaToken(): IAuthResponse {
-        return authenticationService.authenticate().getSaptchaToken()
+        return authenticationService.authenticate().captcha().getSaptchaToken()
     }
 
     //endregion
@@ -277,7 +285,7 @@ class IdentityServiceRepository private constructor(context: Context) {
     }
 
     suspend fun optInForPushAuth(): IAuthResponse {
-        return authenticationService.authenticate().registerForAuthPushNotifications()
+        return authenticationService.authenticate().push().registerForAuthNotifications()
     }
 
     //endregion

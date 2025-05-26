@@ -240,7 +240,7 @@ class WebBridgeJSApiService(
             }
 
             // Initiate provider login flow.
-            val authResponse = authenticationService.authenticate().providerSignIn(
+            val authResponse = authenticationService.authenticate().provider().signIn(
                 weakHostActivity.get()!!, authProvider, params.toMutableMap()
             )
             if (authResponse.cdcResponse().isError()) {
