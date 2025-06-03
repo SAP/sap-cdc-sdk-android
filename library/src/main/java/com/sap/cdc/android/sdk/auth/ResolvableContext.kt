@@ -1,9 +1,9 @@
 package com.sap.cdc.android.sdk.auth
 
-import com.sap.cdc.android.sdk.auth.model.ConflictingAccountsEntity
-import com.sap.cdc.android.sdk.auth.tfa.TFAEmailEntity
-import com.sap.cdc.android.sdk.auth.tfa.TFAPhoneEntity
-import com.sap.cdc.android.sdk.auth.tfa.TFAProvidersEntity
+import com.sap.cdc.android.sdk.auth.model.LinkEntities
+import com.sap.cdc.android.sdk.auth.model.TFAEmailEntity
+import com.sap.cdc.android.sdk.auth.model.TFAPhoneEntity
+import com.sap.cdc.android.sdk.auth.model.TFAProvidersEntity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -54,7 +54,7 @@ class ResolvableContext(
 data class ResolvableLinking(
     var provider: String? = null,
     var authToken: String? = null,
-    var conflictingAccounts: ConflictingAccountsEntity? = null
+    var conflictingAccounts: LinkEntities? = null
 )
 
 @Serializable

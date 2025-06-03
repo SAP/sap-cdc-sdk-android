@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.auth.tfa
+package com.sap.cdc.android.sdk.auth.model
 
 import kotlinx.serialization.Serializable
 

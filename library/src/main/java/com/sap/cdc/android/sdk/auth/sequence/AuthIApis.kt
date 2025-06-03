@@ -1,6 +1,11 @@
-package com.sap.cdc.android.sdk.auth
+package com.sap.cdc.android.sdk.auth.sequence
 
 import androidx.activity.ComponentActivity
+import com.sap.cdc.android.sdk.auth.AuthState
+import com.sap.cdc.android.sdk.auth.AuthTFA
+import com.sap.cdc.android.sdk.auth.IAuthResponse
+import com.sap.cdc.android.sdk.auth.IAuthTFA
+import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.flow.AccountAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.CaptchaAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.LoginAuthFlow
@@ -38,6 +43,9 @@ interface IAuthApis {
     fun push(): IAuthPush
 
     fun provider(): IAuthProvider
+
+    fun tfa(): IAuthTFA
+
 }
 
 /**
@@ -71,11 +79,15 @@ internal class AuthApis(
 
     override fun provider(): IAuthProvider = AuthProvider(coreClient, sessionService)
 
+    override fun tfa(): IAuthTFA = AuthTFA(coreClient, sessionService)
+
 }
 
 // region IAuthRegister
 
 interface IAuthRegister {
+
+    fun resolve(): IAuthRegisterResolvers
 
     suspend fun withParameters(
         parameters: MutableMap<String, String>
@@ -97,6 +109,9 @@ internal class AuthRegister(
     private val coreClient: CoreClient,
     private val sessionService: SessionService
 ) : IAuthRegister {
+
+    override fun resolve(): IAuthRegisterResolvers =
+        AuthRegisterResolvers(coreClient, sessionService)
 
     /**
      * initiate credentials registration flow interface.
@@ -126,6 +141,62 @@ internal class AuthRegister(
         parameters["email"] = email
         parameters["password"] = password
         return withParameters(parameters)
+    }
+}
+
+interface IAuthRegisterResolvers {
+
+    /**
+     * Finalize registration process interface.
+     */
+    suspend fun finalizeRegistration(
+        parameters: MutableMap<String, String>
+    ): IAuthResponse
+
+    /**
+     * Resolve "Account Pending Registration" interruption error.
+     * 1. Flow will initiate a "setAccount" flow to update account information.
+     * 2. Flow will attempt to finalize the registration to complete registration process.
+     */
+    suspend fun pendingRegistrationWith(
+        regToken: String,
+        missingFields: MutableMap<String, String>
+    ): IAuthResponse
+}
+
+internal class AuthRegisterResolvers(
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService
+) : IAuthRegisterResolvers {
+
+    /**
+     * Finalize registration process implementation.
+     */
+    override suspend fun finalizeRegistration(
+        parameters: MutableMap<String, String>
+    ): IAuthResponse {
+        val resolver = RegistrationAuthFlow(coreClient, sessionService)
+        return resolver.finalize(parameters)
+    }
+
+    override suspend fun pendingRegistrationWith(
+        regToken: String,
+        missingFields: MutableMap<String, String>
+    ): IAuthResponse {
+        val setAccountResolver = AccountAuthFlow(coreClient, sessionService)
+        missingFields["regToken"] = regToken
+        val setAccountAuthResponse = setAccountResolver.setAccountInfo(missingFields)
+        when (setAccountAuthResponse.state()) {
+            AuthState.SUCCESS -> {
+                // Error in flow.
+                val finalizeRegistrationResolver = RegistrationAuthFlow(coreClient, sessionService)
+                return finalizeRegistrationResolver.finalize(mutableMapOf("regToken" to regToken))
+            }
+
+            else -> {
+                return setAccountAuthResponse
+            }
+        }
     }
 }
 
@@ -245,6 +316,8 @@ internal class AuthPasskeys(
 
 interface IAuthOtp {
 
+    fun resolve(): IAuthOtpResolvers
+
     suspend fun sendCode(parameters: MutableMap<String, String>): IAuthResponse
 
 }
@@ -254,12 +327,65 @@ internal class AuthOtp(
     private val sessionService: SessionService
 ) : IAuthOtp {
 
+    override fun resolve(): IAuthOtpResolvers = AuthOtpResolvers(coreClient, sessionService)
+
     /**
      * Initiate phone number sign in flow.
      */
     override suspend fun sendCode(parameters: MutableMap<String, String>): IAuthResponse {
         val flow = LoginAuthFlow(coreClient, sessionService)
         return flow.otpSendCode(parameters)
+    }
+}
+
+interface IAuthOtpResolvers {
+
+    suspend fun login(
+        code: String,
+        resolvableContext: ResolvableContext
+    ): IAuthResponse
+
+    suspend fun otpUpdate(
+        code: String,
+        resolvableContext: ResolvableContext
+    ): IAuthResponse
+}
+
+internal class AuthOtpResolvers(
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService
+) : IAuthOtpResolvers {
+
+    /**
+     * Resolve phone login flow using provided code/vToken available in the "AuthResolvable" entity.
+     */
+    override suspend fun login(
+        code: String,
+        resolvableContext: ResolvableContext
+    ): IAuthResponse {
+        val codeVerify = LoginAuthFlow(coreClient, sessionService)
+        return codeVerify.otpLogin(
+            mutableMapOf(
+                "vToken" to resolvableContext.otp?.vToken!!,
+                "code" to code
+            )
+        )
+    }
+
+    /**
+     * Resolve phone update flow provided code/vToken available in the "AuthResolvable" entity.
+     */
+    override suspend fun otpUpdate(
+        code: String,
+        resolvableContext: ResolvableContext
+    ): IAuthResponse {
+        val codeVerify = LoginAuthFlow(coreClient, sessionService)
+        return codeVerify.otpUpdate(
+            mutableMapOf(
+                "vToken" to resolvableContext.otp?.vToken!!,
+                "code" to code
+            )
+        )
     }
 }
 

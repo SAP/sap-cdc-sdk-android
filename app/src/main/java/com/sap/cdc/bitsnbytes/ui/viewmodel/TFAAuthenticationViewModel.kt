@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
-import com.sap.cdc.android.sdk.auth.tfa.TFAPhoneEntity
+import com.sap.cdc.android.sdk.auth.model.TFAPhoneEntity
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -4,6 +4,14 @@ import androidx.core.content.edit
 import com.sap.cdc.android.sdk.auth.notifications.CDCNotificationManager
 import com.sap.cdc.android.sdk.auth.notifications.CDCNotificationOptions
 import com.sap.cdc.android.sdk.auth.notifications.IFCMTokenRequest
+import com.sap.cdc.android.sdk.auth.sequence.AuthAccount
+import com.sap.cdc.android.sdk.auth.sequence.AuthApis
+import com.sap.cdc.android.sdk.auth.sequence.AuthResolvers
+import com.sap.cdc.android.sdk.auth.sequence.AuthSession
+import com.sap.cdc.android.sdk.auth.sequence.IAuthAccount
+import com.sap.cdc.android.sdk.auth.sequence.IAuthApis
+import com.sap.cdc.android.sdk.auth.sequence.IAuthResolvers
+import com.sap.cdc.android.sdk.auth.sequence.IAuthSession
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.SiteConfig

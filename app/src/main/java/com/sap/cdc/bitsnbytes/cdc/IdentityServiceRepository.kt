@@ -303,7 +303,11 @@ class IdentityServiceRepository private constructor(context: Context) {
         regToken: String,
     ): IAuthResponse {
         val params = mutableMapOf(key to serializedJsonValue)
-        return authenticationService.resolve().pendingRegistrationWith(regToken, params)
+        return authenticationService
+            .authenticate()
+            .register()
+            .resolve()
+            .pendingRegistrationWith(regToken, params)
     }
 
     /**
@@ -340,7 +344,10 @@ class IdentityServiceRepository private constructor(context: Context) {
         code: String,
         resolvableContext: ResolvableContext
     ): IAuthResponse {
-        return authenticationService.resolve().otpLogin(code, resolvableContext)
+        return authenticationService.authenticate()
+            .otp()
+            .resolve()
+            .login(code, resolvableContext)
     }
 
     //endregion

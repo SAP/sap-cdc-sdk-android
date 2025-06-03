@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.auth
+package com.sap.cdc.android.sdk.auth.sequence
 
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel

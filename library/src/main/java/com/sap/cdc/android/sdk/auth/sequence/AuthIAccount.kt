@@ -1,5 +1,6 @@
-package com.sap.cdc.android.sdk.auth
+package com.sap.cdc.android.sdk.auth.sequence
 
+import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.flow.AccountAuthFlow
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient

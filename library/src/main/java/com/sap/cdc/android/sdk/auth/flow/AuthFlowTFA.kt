@@ -22,9 +22,9 @@ import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_DEVICE_I
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.session.SessionService
-import com.sap.cdc.android.sdk.auth.tfa.TFAEmailEntity
-import com.sap.cdc.android.sdk.auth.tfa.TFAProvider
-import com.sap.cdc.android.sdk.auth.tfa.TFARegisteredPhoneEntities
+import com.sap.cdc.android.sdk.auth.model.TFAEmailEntity
+import com.sap.cdc.android.sdk.auth.model.TFAProvider
+import com.sap.cdc.android.sdk.auth.model.TFARegisteredPhoneEntities
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.serialization.json.Json
