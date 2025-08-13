@@ -1,0 +1,26 @@
+#file: noinspection YAMLSchemaValidation
+project:
+  name: sap-cdc-sdk-android
+  version: 0.3
+  description: SAP CX-CDC SDK for Android
+  authors:
+    - SAP CX-CDC
+  license:
+    name: Apache-2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.txt
+  scm:
+    url: https://github.com/SAP/sap-cdc-sdk-android
+    connection: scm:git:ssh://git@github.com:SAP/sap-cdc-sdk-android.git
+    developerConnection: scm:git:ssh://git@github.com:SAP/sap-cdc-sdk-android.git
+
+release:
+  maven:
+    groupId: com.sap.oss.cdc-android-sdk
+    artifactId: android-core
+    url: https://oss.sonatype.org/service/local/staging/deploy/maven2/
+    username: {{ secrets.MVN_USERNAME }}
+    password: {{ secrets.MVN_PASSWORD }}
+    signing:
+      active: true
+      armored: true
+      passphrase: {{ secrets.MVN_SIGNING_PASSPHRASE }}

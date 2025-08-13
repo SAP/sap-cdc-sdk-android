@@ -4,6 +4,7 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
+import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.background
@@ -80,7 +81,15 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = "Activated",
             actionLabel = "Deactivate",
             onClick = {
-                
+                viewModel.createPasskey(
+                    context as ComponentActivity,
+                    success = {
+
+                    },
+                    onFailed = {
+
+                    }
+                )
             },
             inverse = false
         )
@@ -91,7 +100,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             actionLabel = "Activate",
             onClick = {
                 if (!notificationPermission?.hasPermission!!) {
-                    notificationPermission.launchPermissionRequest()
+                    notificationPermission?.launchPermissionRequest()
                 }
                     loading = true
                     viewModel.optOnForPushAuth(success = {

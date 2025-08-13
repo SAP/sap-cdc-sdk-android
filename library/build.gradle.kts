@@ -4,10 +4,11 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.dokka)
+    alias(libs.plugins.jreleaser)
 }
 
 group = "com.sap.cdc.android"
-version = "0.3"
+version = "0.3.0"
 
 ext["name"] = "SAP Customer Data Cloud for Android"
 ext["artifactId"] = "sdk"
@@ -16,7 +17,7 @@ ext["url"] = ""
 
 android {
     namespace = "com.sap.cdc.android.sdk"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 24
@@ -46,8 +47,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
 
     packaging {
@@ -55,6 +59,10 @@ android {
             excludes.add("META-INF/LICENSE.md")
             excludes.add("META-INF/LICENSE-notice.md")
         }
+    }
+
+    publishing {
+        singleVariant("release")
     }
 }
 
@@ -68,6 +76,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.mockito.core)
     testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.json)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -92,4 +101,5 @@ tasks.assemble {
     dependsOn(tasks.dokkaHtml)
 }
 
-apply(from = "../publish-package.gradle")
+
+
