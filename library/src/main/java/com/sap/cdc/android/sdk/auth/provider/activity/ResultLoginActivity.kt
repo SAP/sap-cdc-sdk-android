@@ -16,7 +16,7 @@ class ResultLoginActivity : ComponentActivity() {
         const val LOG_TAG = "ResultHostActivity"
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         CDCDebuggable.log(LOG_TAG, "onNewIntent: recieved")
         setResult(RESULT_OK, intent)

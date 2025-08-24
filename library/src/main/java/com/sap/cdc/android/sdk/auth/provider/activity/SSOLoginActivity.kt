@@ -30,7 +30,7 @@ class SSOLoginActivity : ComponentActivity() {
         customTabsIntent.launchUrl(this, Uri.parse(uri))
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         CDCDebuggable.log(LOG_TAG, "onNewIntent: recieved")
         setResult(RESULT_OK, intent)

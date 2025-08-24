@@ -92,14 +92,3 @@ dependencies {
     // Browser (CustomTabs)
     api(libs.androidx.browser)
 }
-
-tasks.dokkaHtml {
-    outputDirectory.set(layout.buildDirectory.dir("docs/dokka").get().asFile)
-}
-
-tasks.assemble {
-    dependsOn(tasks.dokkaHtml)
-}
-
-
-

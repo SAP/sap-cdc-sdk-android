@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
@@ -65,6 +66,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     val view = LocalView.current
     val notificationPermission = if (view.isInEditMode) null
     else rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+    val isGranted = notificationPermission?.status?.isGranted
 
     // UI elements.
 
@@ -99,8 +101,8 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = "",
             actionLabel = "Activate",
             onClick = {
-                if (!notificationPermission?.hasPermission!!) {
-                    notificationPermission?.launchPermissionRequest()
+                if (!isGranted!!) {
+                    notificationPermission.launchPermissionRequest()
                 }
                     loading = true
                     viewModel.optOnForPushAuth(success = {
@@ -118,7 +120,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = "",
             actionLabel = "Activate",
             onClick = {
-                if (!notificationPermission?.hasPermission!!) {
+                if (!isGranted!!) {
                     notificationPermission.launchPermissionRequest()
                 }
 
