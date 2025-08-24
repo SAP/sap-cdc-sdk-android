@@ -83,8 +83,6 @@ dependencies {
 
     // Http engine, JSON serialization/deserialization, kotlinx.serialization, Logging HTTP requests
     api(libs.bundles.ktor)
-    // Jetpack security.
-    api(libs.androidx.security.crypto)
     // Jetpack biometric
     api(libs.androidx.biometric)
     // Jetpack work manager

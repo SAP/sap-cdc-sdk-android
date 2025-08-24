@@ -17,7 +17,6 @@ import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.concurrent.TimeUnit
 
@@ -274,7 +273,7 @@ internal class SessionSecure(
         // Get current session map.
         val json = esp.getString(CDC_SESSIONS, null)
         var sessionMap: MutableMap<String, String> = mutableMapOf()
-        if (json != null) {
+        if (json != null && json.isNotEmpty()) {
             sessionMap = Json.decodeFromString<MutableMap<String, String>>(json)
         }
         // Update session map.
