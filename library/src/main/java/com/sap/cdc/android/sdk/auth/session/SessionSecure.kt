@@ -152,7 +152,7 @@ internal class SessionSecure(
         )
         val json = esp.getString(CDC_SESSION_EXPIRATIONS, null)
         var sessionMap: MutableMap<String, String> = mutableMapOf()
-        if (json != null) {
+        if (json != null && json.isNotEmpty()) {
             sessionMap = Json.decodeFromString<MutableMap<String, String>>(json)
         }
         CDCDebuggable.log(

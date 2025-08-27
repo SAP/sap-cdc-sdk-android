@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.webkit.WebView
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.screens.HomeScaffoldView
+import com.sap.cdc.bitsnbytes.ui.viewmodel.MainActivityViewModel
 import kotlinx.coroutines.launch
 
 /**
@@ -30,8 +32,12 @@ import kotlinx.coroutines.launch
  * - Lifecycle-aware splash screen handling
  * - Proper cleanup in onDestroy
  * - Lifecycle-aware navigation calls
+ * - Integrated with MainActivityViewModel for proper MVVM architecture
  */
 class MainActivity : FragmentActivity() {
+    
+    // ViewModel integration for proper MVVM architecture
+    private val viewModel: MainActivityViewModel by viewModels()
     
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install splash screen before super.onCreate()
@@ -48,13 +54,17 @@ class MainActivity : FragmentActivity() {
         // Proper splash screen lifecycle management
         configureSplashScreen(splashScreen)
         
+        // Initialize app through ViewModel
+        viewModel.initializeApp()
+        
         setContent {
             AppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = AppTheme.colorScheme.background
                 ) {
-                    HomeScaffoldView()
+                    // Pass ViewModel's AppStateManager to HomeScaffoldView for centralized state
+                    HomeScaffoldView(viewModel.appStateManager)
                 }
             }
         }
@@ -103,8 +113,12 @@ class MainActivity : FragmentActivity() {
      * Handle session expiration with lifecycle awareness
      */
     private fun handleSessionExpired() {
-        // Only navigate if activity is in proper state
+        // Only handle if activity is in proper state
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            // Delegate to ViewModel for proper state management
+            viewModel.handleSessionExpired()
+            
+            // Navigate to welcome screen
             NavigationCoordinator.INSTANCE.popToRootAndNavigate(
                 toRoute = ProfileScreenRoute.Welcome.route,
                 rootRoute = ProfileScreenRoute.Welcome.route
@@ -116,12 +130,10 @@ class MainActivity : FragmentActivity() {
      * Handle session verification
      */
     private fun handleSessionVerification() {
-        // Lifecycle-aware session verification
+        // Only handle if activity is in proper state
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            lifecycleScope.launch {
-                // Session verification logic can be added here
-                CDCDebuggable.log("MainActivity", "Session verification completed")
-            }
+            // Delegate to ViewModel for proper state management
+            viewModel.handleSessionVerification()
         }
     }
     

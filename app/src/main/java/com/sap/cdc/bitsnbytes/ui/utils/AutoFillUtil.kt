@@ -21,7 +21,7 @@ import androidx.compose.ui.platform.LocalView
 import kotlin.math.roundToInt
 
 fun Modifier.connectNode(handler: AutoFillHandler): Modifier {
-    return with(handler) { fillBounds() }
+    return this.then(with(handler) { fillBounds() })
 }
 
 fun Modifier.defaultFocusChangeAutoFill(handler: AutoFillHandler): Modifier {

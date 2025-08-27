@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,15 +45,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.bitsnbytes.R
-import com.sap.cdc.bitsnbytes.ui.route.CartNavHost
-import com.sap.cdc.bitsnbytes.ui.route.FavoritesNavHost
-import com.sap.cdc.bitsnbytes.ui.route.HomeNavHost
+import com.sap.cdc.bitsnbytes.ui.navigation.AppStateManager
 import com.sap.cdc.bitsnbytes.ui.route.MainScreenRoute
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileNavHost
-import com.sap.cdc.bitsnbytes.ui.route.SearchNavHost
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomBottomBar
@@ -78,11 +76,74 @@ fun HomeScaffoldViewPreview() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScaffoldView() {
-    var titleText by remember { mutableStateOf("") }
-    titleText = stringResource(id = MainScreenRoute.Home.resourceId)
-
+fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
+    // Use the provided app state manager instance (from MainActivity ViewModel or default)
+    
+    // Navigation state from enhanced navigation manager
+    val canNavigateBack by appStateManager.canNavigateBack.collectAsState()
+    val selectedTab by appStateManager.selectedTab.collectAsState()
+    
+    // Root navigation controller for tabs
     val rootNavController = rememberNavController()
+    val navBackStackEntry by rootNavController.currentBackStackEntryAsState()
+    
+    // Track back navigation state from NavigationCoordinator for profile tab
+    val profileBackNav by NavigationCoordinator.INSTANCE.backNav.collectAsState()
+    
+    // Calculate combined back navigation state
+    val shouldShowBackButton = remember(navBackStackEntry, canNavigateBack, profileBackNav) {
+        val currentRoute = navBackStackEntry?.destination?.route
+        when (currentRoute) {
+            MainScreenRoute.Configuration.route -> true // Always show back button in configuration
+            MainScreenRoute.Profile.route -> profileBackNav // Use profile navigation state
+            else -> canNavigateBack // Use app state manager for other tabs
+        }
+    }
+    
+    // Update current tab based on navigation
+    LaunchedEffect(navBackStackEntry) {
+        navBackStackEntry?.destination?.route?.let { route ->
+            // Update app state manager
+            appStateManager.setSelectedTab(
+                when (route) {
+                    MainScreenRoute.Home.route -> 0
+                    MainScreenRoute.Search.route -> 1
+                    MainScreenRoute.Cart.route -> 2
+                    MainScreenRoute.Favorites.route -> 3
+                    MainScreenRoute.Profile.route -> 4
+                    else -> 0
+                }
+            )
+            
+            // Update back navigation state based on current route
+            when (route) {
+                MainScreenRoute.Configuration.route -> {
+                    // Always allow back navigation from configuration
+                    appStateManager.setCanNavigateBack(true)
+                }
+                MainScreenRoute.Profile.route -> {
+                    // Profile navigation state is handled by NavigationCoordinator
+                    // Don't override it here
+                }
+                else -> {
+                    // For other tabs, no back navigation at root level
+                    appStateManager.setCanNavigateBack(false)
+                }
+            }
+        }
+    }
+    
+    // Determine title text based on current route
+    var titleText by remember { mutableStateOf("") }
+    titleText = when (navBackStackEntry?.destination?.route) {
+        MainScreenRoute.Home.route -> stringResource(id = MainScreenRoute.Home.resourceId)
+        MainScreenRoute.Search.route -> stringResource(id = MainScreenRoute.Search.resourceId)
+        MainScreenRoute.Cart.route -> stringResource(id = MainScreenRoute.Cart.resourceId)
+        MainScreenRoute.Favorites.route -> stringResource(id = MainScreenRoute.Favorites.resourceId)
+        MainScreenRoute.Profile.route -> stringResource(id = MainScreenRoute.Profile.resourceId)
+        MainScreenRoute.Configuration.route -> stringResource(id = MainScreenRoute.Configuration.resourceId)
+        else -> stringResource(id = MainScreenRoute.Home.resourceId)
+    }
 
     Scaffold(
         topBar = {
@@ -99,9 +160,24 @@ fun HomeScaffoldView() {
                     )
                 },
                 navigationIcon = {
-                    if (NavigationCoordinator.INSTANCE.backNav.collectAsState().value) {
+                    if (shouldShowBackButton) {
                         IconButton(onClick = {
-                            NavigationCoordinator.INSTANCE.navigateUp()
+                            // Handle back navigation based on current route
+                            val currentRoute = navBackStackEntry?.destination?.route
+                            when (currentRoute) {
+                                MainScreenRoute.Configuration.route -> {
+                                    // Go back from configuration to previous tab
+                                    rootNavController.popBackStack()
+                                }
+                                MainScreenRoute.Profile.route -> {
+                                    // Use NavigationCoordinator for profile navigation
+                                    NavigationCoordinator.INSTANCE.navigateUp()
+                                }
+                                else -> {
+                                    // For other tabs, use app state manager logic
+                                    NavigationCoordinator.INSTANCE.navigateUp()
+                                }
+                            }
                         }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -113,11 +189,8 @@ fun HomeScaffoldView() {
                 actions = {
                     IconButton(
                         onClick = {
-                            NavigationCoordinator.INSTANCE.setNavController(rootNavController)
-                            NavigationCoordinator.INSTANCE.navigate(MainScreenRoute.Configuration.route) {
-                                popUpTo(rootNavController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
+                            // Navigate to configuration screen
+                            rootNavController.navigate(MainScreenRoute.Configuration.route) {
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -132,28 +205,31 @@ fun HomeScaffoldView() {
             )
         },
         bottomBar = {
-            CustomBottomBar(
-                modifier = Modifier.fillMaxWidth(),
-                content = {
-                    bottomAppBarItems.forEach { item ->
-                        IconButton(onClick = {
-                            rootNavController.navigate(item.route) {
-                                popUpTo(rootNavController.graph.findStartDestination().id) {
-                                    saveState = true
+            // Only show bottom bar when not in configuration
+            if (navBackStackEntry?.destination?.route != MainScreenRoute.Configuration.route) {
+                CustomBottomBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    content = {
+                        bottomAppBarItems.forEach { item ->
+                            IconButton(onClick = {
+                                rootNavController.navigate(item.route) {
+                                    popUpTo(rootNavController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = item.iconID),
+                                    contentDescription = stringResource(id = item.resourceId),
+                                    tint = Color.Unspecified
+                                )
                             }
-                        }) {
-                            Icon(
-                                painter = painterResource(id = item.iconID),
-                                contentDescription = stringResource(id = item.resourceId),
-                                tint = Color.Unspecified
-                            )
                         }
-                    }
-                },
-            )
+                    },
+                )
+            }
         },
     ) { innerPadding ->
         Column(
@@ -163,36 +239,33 @@ fun HomeScaffoldView() {
         ) {
             NavHost(rootNavController, startDestination = MainScreenRoute.Home.route) {
                 composable(MainScreenRoute.Home.route) {
-                    HomeNavHost()
-                    titleText = stringResource(id = MainScreenRoute.Home.resourceId)
+                    // Use simple HomeView for now - can be enhanced later
+                    HomeView()
                 }
                 composable(MainScreenRoute.Search.route) {
-                    SearchNavHost()
-                    titleText = stringResource(id = MainScreenRoute.Search.resourceId)
+                    Text(MainScreenRoute.Search.route)
                 }
                 composable(MainScreenRoute.Cart.route) {
-                    CartNavHost()
-                    titleText = stringResource(id = MainScreenRoute.Cart.resourceId)
+                    Text(MainScreenRoute.Cart.route)
                 }
                 composable(MainScreenRoute.Favorites.route) {
-                    FavoritesNavHost()
-                    titleText = stringResource(id = MainScreenRoute.Favorites.resourceId)
+                    Text(MainScreenRoute.Favorites.route)
                 }
                 composable(MainScreenRoute.Profile.route) {
-                    ProfileNavHost()
-                    titleText = stringResource(id = MainScreenRoute.Profile.resourceId)
+                    // Use the existing OptimizedProfileNavHost with enhanced integration
+                    com.sap.cdc.bitsnbytes.ui.navigation.OptimizedProfileNavHost(appStateManager)
                 }
                 composable(MainScreenRoute.Configuration.route) {
                     val viewModel: ConfigurationViewModel = viewModel(
                         factory = CustomViewModelFactory(LocalContext.current)
                     )
                     ConfigurationView(viewModel)
-                    titleText = stringResource(id = MainScreenRoute.Configuration.resourceId)
                 }
             }
         }
     }
 }
+
 
 val bottomAppBarItems = listOf(
     MainScreenRoute.Home,

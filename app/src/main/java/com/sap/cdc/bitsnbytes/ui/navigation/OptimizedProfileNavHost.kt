@@ -1,15 +1,19 @@
-package com.sap.cdc.bitsnbytes.ui.route
+package com.sap.cdc.bitsnbytes.ui.navigation
 
 import android.util.Base64
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.bitsnbytes.cdc.IdentityServiceRepository
-import com.sap.cdc.bitsnbytes.ui.navigation.AppStateManager
+import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.route.ScreenSetsRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsView
@@ -46,61 +50,19 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 import kotlinx.serialization.json.Json
 
 /**
- * DEPRECATED: Old navigation host functions - kept for backward compatibility only.
+ * Optimized Profile Navigation Host with proper ViewModel scoping.
+ * This demonstrates the solution to ViewModel state loss during navigation.
  * 
- * These functions are no longer used in the main navigation flow.
- * The enhanced navigation system in HomeScaffoldView handles all tab navigation.
- * 
- * This file will be removed in a future cleanup once all references are verified.
- */
-
-/**
- * @deprecated Use HomeScaffoldView with integrated navigation instead
- */
-@Deprecated("Use HomeScaffoldView with integrated navigation instead")
-@Composable
-fun HomeNavHost() {
-    // This function is deprecated and should not be used
-    // Navigation is now handled directly in HomeScaffoldView
-}
-
-/**
- * @deprecated Use HomeScaffoldView with integrated navigation instead
- */
-@Deprecated("Use HomeScaffoldView with integrated navigation instead")
-@Composable
-fun SearchNavHost() {
-    // This function is deprecated and should not be used
-    // Navigation is now handled directly in HomeScaffoldView
-}
-
-/**
- * @deprecated Use HomeScaffoldView with integrated navigation instead
- */
-@Deprecated("Use HomeScaffoldView with integrated navigation instead")
-@Composable
-fun CartNavHost() {
-    // This function is deprecated and should not be used
-    // Navigation is now handled directly in HomeScaffoldView
-}
-
-/**
- * @deprecated Use HomeScaffoldView with integrated navigation instead
- */
-@Deprecated("Use HomeScaffoldView with integrated navigation instead")
-@Composable
-fun FavoritesNavHost() {
-    // This function is deprecated and should not be used
-    // Navigation is now handled directly in HomeScaffoldView
-}
-
-/**
- * Enhanced Profile Navigation Host - This is the only function still in use
- * Uses the OptimizedProfileNavHost with proper state management
+ * Key improvements:
+ * - ViewModels are properly scoped to retain state
+ * - Uses AppStateManager for centralized state management
+ * - Maintains existing functionality while fixing state issues
  */
 @Composable
-fun ProfileNavHost() {
+fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
     val profileNavController = rememberNavController()
+    
+    // Update the navigation coordinator to use our new controller
     NavigationCoordinator.INSTANCE.setNavController(profileNavController)
 
     val context = LocalContext.current.applicationContext
@@ -114,71 +76,89 @@ fun ProfileNavHost() {
             }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
-            val viewModel: WelcomeViewModel = viewModel(
+            // ✅ OPTIMIZED: Use activity-scoped ViewModel to retain state across navigation
+            val viewModel: WelcomeViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             WelcomeView(viewModel)
         }
+        
         composable(ProfileScreenRoute.SignIn.route) {
-            val viewModel: SignInViewModel = viewModel(
+            // ✅ OPTIMIZED: Activity-scoped ViewModel retains login form state
+            val viewModel: SignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
-            SignInView(
-                viewModel
-            )
+            SignInView(viewModel)
         }
+        
         composable(ProfileScreenRoute.Register.route) {
-            val viewModel: RegisterViewModel = viewModel(
+            // ✅ OPTIMIZED: Activity-scoped ViewModel retains registration form state
+            val viewModel: RegisterViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             RegisterView(viewModel)
         }
+        
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
             AuthenticationTabView(selected = selected!!.toInt())
         }
+        
         composable(ProfileScreenRoute.EmailSignIn.route) {
-            val viewModel: EmailSignInViewModel = viewModel(
+            // ✅ OPTIMIZED: Retains email and form state during navigation
+            val viewModel: EmailSignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             EmailSignInView(viewModel)
         }
+        
         composable(ProfileScreenRoute.EmailRegister.route) {
-            val viewModel: EmailRegisterViewModel = viewModel(
+            // ✅ OPTIMIZED: Retains registration form data
+            val viewModel: EmailRegisterViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             EmailRegisterView(viewModel)
         }
+        
         composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            val viewModel: PendingRegistrationViewModel = viewModel(
+            // Screen-scoped for temporary resolution flows
+            val viewModel: PendingRegistrationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             PendingRegistrationView(viewModel, resolvable)
         }
+        
         composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            val viewModel: LinkAccountViewModel = viewModel(
+            // Screen-scoped for temporary resolution flows
+            val viewModel: LinkAccountViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             LinkAccountView(viewModel, resolvable)
         }
+        
         composable(ProfileScreenRoute.MyProfile.route) {
-            val viewModel: AccountViewModel = viewModel(
+            // ✅ OPTIMIZED: Profile data persists across navigation
+            val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             MyProfileView(viewModel)
         }
+        
         composable(ProfileScreenRoute.AboutMe.route) {
-            val viewModel: AccountViewModel = viewModel(
+            // ✅ OPTIMIZED: Shares AccountViewModel with MyProfile for consistent data
+            val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             AboutMeView(viewModel)
         }
+        
+        // Continue with existing screens using optimized scoping...
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route) {
-            val viewModel: ScreenSetViewModel = viewModel(
+            val viewModel: ScreenSetViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             ScreenSetView(
@@ -187,8 +167,9 @@ fun ProfileNavHost() {
                 "gigya-login-screen"
             )
         }
+        
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginRegister.route) {
-            val viewModel: ScreenSetViewModel = viewModel(
+            val viewModel: ScreenSetViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             ScreenSetView(
@@ -197,21 +178,23 @@ fun ProfileNavHost() {
                 "gigya-register-screen"
             )
         }
+        
         composable("${ProfileScreenRoute.OTPSignIn.route}/{type}") { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
-            val viewModel: OtpSignInViewModel = viewModel(
+            val viewModel: OtpSignInViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             OtpSignInView(viewModel, otpType = otpType!!)
         }
+        
         composable("${ProfileScreenRoute.OTPVerify.route}/{resolvableContext}/{type}/{inputField}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val input = backStackEntry.arguments?.getString("inputField")
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            val viewModel: OtpVerifyViewModel = viewModel(
+            val viewModel: OtpVerifyViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             OtpVerifyView(
@@ -221,44 +204,49 @@ fun ProfileNavHost() {
                 inputField = input!!
             )
         }
+        
         composable(ProfileScreenRoute.LoginOptions.route) {
-            val viewModel: LoginOptionsViewModel = viewModel(
+            val viewModel: LoginOptionsViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             LoginOptionsView(viewModel)
         }
+        
         composable("${ProfileScreenRoute.AuthMethods.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            val viewModel: TFAAuthenticationViewModel = viewModel(
+            val viewModel: TFAAuthenticationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             AuthMethodsView(viewModel, resolvable)
         }
+        
         composable("${ProfileScreenRoute.PhoneSelection.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            val viewModel: TFAAuthenticationViewModel = viewModel(
+            val viewModel: TFAAuthenticationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             PhoneSelectionView(viewModel)
         }
+        
         composable("${ProfileScreenRoute.PhoneVerification.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
             val resolvableJson =
                 String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
-            val viewModel: TFAAuthenticationViewModel = viewModel(
+            val viewModel: TFAAuthenticationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             PhoneVerificationView(viewModel)
         }
+        
         composable("${ProfileScreenRoute.TOTPVerification.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
             val resolvableJson =
                 String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
-            val viewModel: TFAAuthenticationViewModel = viewModel(
+            val viewModel: TFAAuthenticationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             TOTPVerificationView(viewModel)
