@@ -1,9 +1,9 @@
 package com.sap.cdc.android.sdk.auth
 
 import androidx.core.content.edit
-import com.sap.cdc.android.sdk.auth.notifications.CDCNotificationManager
-import com.sap.cdc.android.sdk.auth.notifications.CDCNotificationOptions
-import com.sap.cdc.android.sdk.auth.notifications.IFCMTokenRequest
+import com.sap.cdc.android.sdk.notifications.CDCNotificationManager
+import com.sap.cdc.android.sdk.notifications.CDCNotificationOptions
+import com.sap.cdc.android.sdk.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.auth.sequence.AuthAccount
 import com.sap.cdc.android.sdk.auth.sequence.AuthApis
 import com.sap.cdc.android.sdk.auth.sequence.AuthResolvers
@@ -17,7 +17,7 @@ import com.sap.cdc.android.sdk.auth.sequence.IAuthTFA
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.core.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.events.CDCEventBusProvider
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.serialization.json.Json
 

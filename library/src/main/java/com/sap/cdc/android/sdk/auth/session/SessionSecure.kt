@@ -11,11 +11,11 @@ import androidx.work.WorkerParameters
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.core.events.EventScope
-import com.sap.cdc.android.sdk.core.events.EventSubscription
-import com.sap.cdc.android.sdk.core.events.SessionEvent
-import com.sap.cdc.android.sdk.core.events.emitSessionExpired
-import com.sap.cdc.android.sdk.core.events.subscribeToSessionEventsManual
+import com.sap.cdc.android.sdk.events.EventScope
+import com.sap.cdc.android.sdk.events.EventSubscription
+import com.sap.cdc.android.sdk.events.SessionEvent
+import com.sap.cdc.android.sdk.events.emitSessionExpired
+import com.sap.cdc.android.sdk.events.subscribeToSessionEventsManual
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json

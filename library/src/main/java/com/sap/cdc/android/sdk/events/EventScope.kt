@@ -1,4 +1,6 @@
-package com.sap.cdc.android.sdk.core.events
+package com.sap.cdc.android.sdk.events
+
+import kotlin.reflect.KClass
 
 /**
  * Defines the scope for event distribution in the lifecycle-aware event bus.
@@ -40,6 +42,6 @@ sealed class EventScope {
  * Combines event class type with scope for unique identification.
  */
 internal data class EventKey(
-    val eventClass: kotlin.reflect.KClass<*>,
+    val eventClass: KClass<*>,
     val scope: EventScope
 )

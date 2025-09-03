@@ -14,8 +14,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.core.events.SessionEvent
-import com.sap.cdc.android.sdk.core.events.subscribeToSessionEvents
+import com.sap.cdc.android.sdk.events.SessionEvent
+import com.sap.cdc.android.sdk.events.subscribeToSessionEvents
 import com.sap.cdc.bitsnbytes.BuildConfig
 import com.sap.cdc.bitsnbytes.ui.navigation.AppStateManager
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator

@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.core.events
+package com.sap.cdc.android.sdk.events
 
 /**
  * Represents a manual event subscription that can be controlled and cleaned up.

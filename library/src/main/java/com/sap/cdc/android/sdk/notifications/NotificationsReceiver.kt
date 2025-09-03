@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.auth.notifications
+package com.sap.cdc.android.sdk.notifications
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -6,8 +6,8 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationManagerCompat
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.core.events.CDCEventBusProvider
-import com.sap.cdc.android.sdk.core.events.emitNotificationActionReceived
+import com.sap.cdc.android.sdk.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.events.emitNotificationActionReceived
 
 /**
  * Notification receiver for push authentication flows.

@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.core.events
+package com.sap.cdc.android.sdk.events
 
 /**
  * Global provider for the CDC Event Bus instance.

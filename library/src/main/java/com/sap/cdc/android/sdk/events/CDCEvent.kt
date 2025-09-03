@@ -1,6 +1,6 @@
-package com.sap.cdc.android.sdk.core.events
+package com.sap.cdc.android.sdk.events
 
-import com.sap.cdc.android.sdk.auth.notifications.CDCNotificationActionData
+import com.sap.cdc.android.sdk.notifications.CDCNotificationActionData
 import java.util.UUID
 
 /**

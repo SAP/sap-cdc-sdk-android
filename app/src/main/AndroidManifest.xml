@@ -53,7 +53,7 @@
         </service>
 
         <receiver
-            android:name="com.sap.cdc.android.sdk.auth.notifications.CDCNotificationReceiver"
+            android:name="com.sap.cdc.android.sdk.notifications.CDCNotificationReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="approve" />

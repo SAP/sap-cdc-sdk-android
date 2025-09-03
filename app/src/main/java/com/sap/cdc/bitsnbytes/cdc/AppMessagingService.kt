@@ -2,8 +2,8 @@ package com.sap.cdc.bitsnbytes.cdc
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.sap.cdc.android.sdk.core.events.emitRemoteMessageReceived
-import com.sap.cdc.android.sdk.core.events.emitTokenReceived
+import com.sap.cdc.android.sdk.events.emitRemoteMessageReceived
+import com.sap.cdc.android.sdk.events.emitTokenReceived
 
 
 class AppMessagingService() : FirebaseMessagingService() {

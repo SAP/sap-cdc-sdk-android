@@ -8,7 +8,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
-import com.sap.cdc.android.sdk.auth.notifications.IFCMTokenRequest
+import com.sap.cdc.android.sdk.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
@@ -16,8 +16,8 @@ import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.core.events.CDCEventBusProvider
-import com.sap.cdc.android.sdk.core.events.emitTokenReceived
+import com.sap.cdc.android.sdk.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.events.emitTokenReceived
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.bitsnbytes.social.FacebookAuthenticationProvider
 import com.sap.cdc.bitsnbytes.social.GoogleAuthenticationProvider

@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.core.events
+package com.sap.cdc.android.sdk.events
 
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CoroutineDispatcher

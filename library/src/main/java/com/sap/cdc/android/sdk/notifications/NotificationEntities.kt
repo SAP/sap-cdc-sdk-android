@@ -1,5 +1,6 @@
-package com.sap.cdc.android.sdk.auth.notifications
+package com.sap.cdc.android.sdk.notifications
 
+import android.R
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import java.util.concurrent.TimeUnit
@@ -10,7 +11,7 @@ import java.util.concurrent.TimeUnit
 data class CDCNotificationOptions(
     val contentView: Class<*>? = null, // Class used for setContent
     val actionsReceiver: Class<*>? = CDCNotificationReceiver::class.java,
-    val smallIcon: Int? = android.R.drawable.ic_dialog_info,
+    val smallIcon: Int? = R.drawable.ic_dialog_info,
     val backgroundColor: Int? = null, // argb color
     val autoCancel: Boolean? = true,
     val timeout: Long? = TimeUnit.SECONDS.toMillis(5),

@@ -1,5 +1,6 @@
-package com.sap.cdc.android.sdk.auth.notifications
+package com.sap.cdc.android.sdk.notifications
 
+import android.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -10,9 +11,9 @@ import androidx.core.app.NotificationManagerCompat
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.DeviceInfo
-import com.sap.cdc.android.sdk.core.events.EventSubscription
-import com.sap.cdc.android.sdk.core.events.MessageEvent
-import com.sap.cdc.android.sdk.core.events.subscribeToMessageEventsManual
+import com.sap.cdc.android.sdk.events.EventSubscription
+import com.sap.cdc.android.sdk.events.MessageEvent
+import com.sap.cdc.android.sdk.events.subscribeToMessageEventsManual
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -272,7 +273,7 @@ class CDCNotificationManager(
         // Build notification.
         val builder: NotificationCompat.Builder =
             NotificationCompat.Builder(context, CDC_NOTIFICATIONS_CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_dialog_info)
                 .setContentTitle(title?.trim { it <= ' ' } ?: "")
                 .setContentText(body?.trim { it <= ' ' } ?: "")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -336,12 +337,12 @@ class CDCNotificationManager(
 
         builder
             .addAction(
-                android.R.drawable.ic_menu_close_clear_cancel,
+                R.drawable.ic_menu_close_clear_cancel,
                 notificationOptions.actionNegative?.title ?: "Deny",
                 denyPendingIntent
             )
             .addAction(
-                android.R.drawable.ic_menu_save,
+                R.drawable.ic_menu_save,
                 notificationOptions.actionPositive?.title ?: "Approve",
                 approvePendingIntent
             )
