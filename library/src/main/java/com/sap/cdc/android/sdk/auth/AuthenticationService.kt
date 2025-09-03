@@ -8,15 +8,17 @@ import com.sap.cdc.android.sdk.auth.sequence.AuthAccount
 import com.sap.cdc.android.sdk.auth.sequence.AuthApis
 import com.sap.cdc.android.sdk.auth.sequence.AuthResolvers
 import com.sap.cdc.android.sdk.auth.sequence.AuthSession
+import com.sap.cdc.android.sdk.auth.sequence.AuthTFA
 import com.sap.cdc.android.sdk.auth.sequence.IAuthAccount
 import com.sap.cdc.android.sdk.auth.sequence.IAuthApis
 import com.sap.cdc.android.sdk.auth.sequence.IAuthResolvers
 import com.sap.cdc.android.sdk.auth.sequence.IAuthSession
+import com.sap.cdc.android.sdk.auth.sequence.IAuthTFA
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.core.events.CDCEventBusProvider
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -29,6 +31,13 @@ class AuthenticationService(
     val coreClient: CoreClient = CoreClient(siteConfig)
     val sessionService: SessionService = SessionService(siteConfig)
     private lateinit var notificationManager: CDCNotificationManager
+
+    init {
+        // Initialize the lifecycle-aware event bus when the SDK is first created
+        if (!CDCEventBusProvider.isInitialized()) {
+            CDCEventBusProvider.initialize()
+        }
+    }
 
     companion object {
         const val CDC_AUTHENTICATION_SERVICE_SECURE_PREFS =

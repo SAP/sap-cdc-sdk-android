@@ -95,6 +95,11 @@
             android:launchMode="singleInstance"
             android:theme="@style/Theme.CDC.NoAnimationActivity" />
 
+        <meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
+
+
+        <!-- START Social providers -->
+
         <activity
             android:name=".wxapi.WXEntryActivity"
             android:exported="true"
@@ -127,8 +132,7 @@
             </intent-filter>
         </activity>
 
-        <meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
-
+        <!-- END social providers -->
     </application>
 
 </manifest>

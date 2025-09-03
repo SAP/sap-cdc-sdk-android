@@ -5,8 +5,6 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
-import com.sap.cdc.android.sdk.CDCMessageEventBus
-import com.sap.cdc.android.sdk.MessageEvent
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
@@ -18,6 +16,8 @@ import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.core.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.core.events.emitTokenReceived
 import com.sap.cdc.android.sdk.screensets.WebBridgeJS
 import com.sap.cdc.bitsnbytes.social.FacebookAuthenticationProvider
 import com.sap.cdc.bitsnbytes.social.GoogleAuthenticationProvider
@@ -52,6 +52,13 @@ class IdentityServiceRepository private constructor(context: Context) {
      */
     private var siteConfig = SiteConfig(context)
 
+    init {
+        // Initialize the lifecycle-aware event bus when the SDK is first created
+        if (!CDCEventBusProvider.isInitialized()) {
+            CDCEventBusProvider.initialize()
+        }
+    }
+
     /**
      * Initialize authentication service.
      */
@@ -65,7 +72,7 @@ class IdentityServiceRepository private constructor(context: Context) {
 
                     // Get new FCM registration token
                     val token = task.result
-                    CDCMessageEventBus.emitMessageEvent(MessageEvent.EventWithToken(token))
+                    emitTokenReceived(token)
                 })
             }
         }

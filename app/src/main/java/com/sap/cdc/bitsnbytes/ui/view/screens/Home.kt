@@ -50,7 +50,6 @@ import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.ui.navigation.AppStateManager
 import com.sap.cdc.bitsnbytes.ui.route.MainScreenRoute
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomBottomBar
@@ -87,15 +86,12 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
     val rootNavController = rememberNavController()
     val navBackStackEntry by rootNavController.currentBackStackEntryAsState()
     
-    // Track back navigation state from NavigationCoordinator for profile tab
-    val profileBackNav by NavigationCoordinator.INSTANCE.backNav.collectAsState()
-    
-    // Calculate combined back navigation state
-    val shouldShowBackButton = remember(navBackStackEntry, canNavigateBack, profileBackNav) {
+    // Calculate back navigation state using AppStateManager only
+    val shouldShowBackButton = remember(navBackStackEntry, canNavigateBack) {
         val currentRoute = navBackStackEntry?.destination?.route
         when (currentRoute) {
             MainScreenRoute.Configuration.route -> true // Always show back button in configuration
-            MainScreenRoute.Profile.route -> profileBackNav // Use profile navigation state
+            MainScreenRoute.Profile.route -> canNavigateBack // Use app state manager for profile navigation
             else -> canNavigateBack // Use app state manager for other tabs
         }
     }
@@ -122,8 +118,8 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
                     appStateManager.setCanNavigateBack(true)
                 }
                 MainScreenRoute.Profile.route -> {
-                    // Profile navigation state is handled by NavigationCoordinator
-                    // Don't override it here
+                    // Profile navigation state is handled by AppStateManager
+                    // Don't override it here - let the profile nav controller manage it
                 }
                 else -> {
                     // For other tabs, no back navigation at root level
@@ -171,11 +167,11 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
                                 }
                                 MainScreenRoute.Profile.route -> {
                                     // Use NavigationCoordinator for profile navigation
-                                    NavigationCoordinator.INSTANCE.navigateUp()
+                                    com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator.INSTANCE.navigateUp()
                                 }
                                 else -> {
-                                    // For other tabs, use app state manager logic
-                                    NavigationCoordinator.INSTANCE.navigateUp()
+                                    // For other tabs, use NavigationCoordinator for consistency
+                                    com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator.INSTANCE.navigateUp()
                                 }
                             }
                         }) {

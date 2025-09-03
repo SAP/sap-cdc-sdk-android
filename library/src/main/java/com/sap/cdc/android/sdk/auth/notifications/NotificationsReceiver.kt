@@ -6,8 +6,8 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationManagerCompat
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.CDCMessageEventBus
-import com.sap.cdc.android.sdk.MessageEvent
+import com.sap.cdc.android.sdk.core.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.core.events.emitNotificationActionReceived
 
 /**
  * Notification receiver for push authentication flows.
@@ -50,12 +50,11 @@ class CDCNotificationReceiver : BroadcastReceiver() {
 
         CDCDebuggable.log(LOG_TAG, "onReceive: emitting actionData: $actionData")
 
+
         // Emit action data.
-        CDCMessageEventBus.emitMessageEvent(
-            MessageEvent.EventWithRemoteActionData(
-                intent.action!!,
-                actionData!!
-            )
+        CDCEventBusProvider.getEventBus().emitNotificationActionReceived(
+            intent.action!!,
+            actionData!!
         )
     }
 

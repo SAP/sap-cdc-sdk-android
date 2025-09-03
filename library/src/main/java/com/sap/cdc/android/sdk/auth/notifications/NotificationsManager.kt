@@ -8,10 +8,11 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.CDCMessageEventBus
-import com.sap.cdc.android.sdk.MessageEvent
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.DeviceInfo
+import com.sap.cdc.android.sdk.core.events.EventSubscription
+import com.sap.cdc.android.sdk.core.events.MessageEvent
+import com.sap.cdc.android.sdk.core.events.subscribeToMessageEventsManual
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -51,22 +52,21 @@ class CDCNotificationManager(
     }
 
     private lateinit var notificationManager: NotificationManagerCompat
+    private var eventSubscription: EventSubscription? = null
 
     init {
         // Reference context.
         val context = authenticationService.siteConfig.applicationContext
         notificationManager = NotificationManagerCompat.from(context)
 
-        // Create a new CoroutineScope with a Job
-        val job = Job()
-        val scope = CoroutineScope(Dispatchers.Main + job)
-
-        CDCMessageEventBus.initializeMessageScope(scope)
-        CDCMessageEventBus.subscribeToMessageEvents {
-            when (it) {
-                is MessageEvent.EventWithToken -> onNewToken(it.token)
-                is MessageEvent.EventWithRemoteMessageData -> onMessageReceived(it.data)
-                is MessageEvent.EventWithRemoteActionData -> onActionReceived(it.action, it.data)
+        // Subscribe to message events using the new event bus
+        eventSubscription = subscribeToMessageEventsManual(
+            dispatcher = Dispatchers.IO // Use IO dispatcher for background work
+        ) { event ->
+            when (event) {
+                is MessageEvent.TokenReceived -> onNewToken(event.token)
+                is MessageEvent.RemoteMessageReceived -> onMessageReceived(event.data)
+                is MessageEvent.NotificationActionReceived -> onActionReceived(event.action, event.data)
             }
         }
 
@@ -79,6 +79,14 @@ class CDCNotificationManager(
             )
             notificationManager.createNotificationChannel(channel)
         }
+    }
+
+    /**
+     * Clean up the event subscription when the notification manager is no longer needed.
+     */
+    fun dispose() {
+        eventSubscription?.unsubscribe()
+        eventSubscription = null
     }
 
     /**

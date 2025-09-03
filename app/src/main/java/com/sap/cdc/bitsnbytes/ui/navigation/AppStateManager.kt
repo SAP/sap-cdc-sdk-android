@@ -1,103 +1,107 @@
 package com.sap.cdc.bitsnbytes.ui.navigation
 
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
+import androidx.navigation.navOptions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Centralized state manager for the entire application.
- * Manages global state that needs to persist across navigation and configuration changes.
+ * AppStateManager handles app-wide navigation and UI state.
+ * This is separate from authentication state and focuses on navigation concerns.
+ * 
+ * Responsibilities:
+ * - Tab selection state
+ * - Navigation back button state
+ * - Navigation controller management
+ * - General loading states
+ * - General error messages (non-authentication)
  */
 class AppStateManager : ViewModel() {
-
-    // Authentication state
-    private val _isAuthenticated = MutableStateFlow(false)
-    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
-
-    // Current selected tab
+    
+    // NAVIGATION STATE
     private val _selectedTab = MutableStateFlow(0)
     val selectedTab: StateFlow<Int> = _selectedTab.asStateFlow()
-
-    // Navigation state for back button handling
+    
     private val _canNavigateBack = MutableStateFlow(false)
     val canNavigateBack: StateFlow<Boolean> = _canNavigateBack.asStateFlow()
-
-    // Loading states
+    
+    // NAVIGATION CONTROLLER MANAGEMENT
+    private var currentNavController: NavController? = null
+    
+    // GENERAL APP STATE
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    // Error state
+    
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    // User session data
-    private val _userSession = MutableStateFlow<UserSessionData?>(null)
-    val userSession: StateFlow<UserSessionData?> = _userSession.asStateFlow()
-
-    /**
-     * Update authentication state
-     */
-    fun setAuthenticated(isAuth: Boolean) {
-        _isAuthenticated.value = isAuth
-    }
-
-    /**
-     * Update selected tab
-     */
+    
+    // NAVIGATION METHODS
     fun setSelectedTab(tabIndex: Int) {
         _selectedTab.value = tabIndex
     }
-
-    /**
-     * Update back navigation state
-     */
+    
     fun setCanNavigateBack(canGoBack: Boolean) {
         _canNavigateBack.value = canGoBack
     }
-
-    /**
-     * Set loading state
-     */
+    
+    // NAVIGATION CONTROLLER METHODS
+    fun setNavController(navController: NavController) {
+        currentNavController = navController
+        // Update back navigation state when controller changes
+        updateBackNavigationState()
+    }
+    
+    fun navigate(route: String) {
+        currentNavController?.navigate(route) {
+            launchSingleTop = true
+            restoreState = true
+        }
+        updateBackNavigationState()
+    }
+    
+    fun navigate(route: String, builder: NavOptionsBuilder.() -> Unit) {
+        currentNavController?.navigate(route, navOptions(builder))
+        updateBackNavigationState()
+    }
+    
+    fun popToRootAndNavigate(toRoute: String, rootRoute: String) {
+        currentNavController?.popBackStack(
+            route = rootRoute,
+            inclusive = true
+        )
+        currentNavController?.navigate(toRoute)
+        updateBackNavigationState()
+    }
+    
+    fun navigateUp() {
+        currentNavController?.popBackStack()
+        updateBackNavigationState()
+    }
+    
+    private fun updateBackNavigationState() {
+        _canNavigateBack.value = currentNavController?.previousBackStackEntry != null
+    }
+    
+    // GENERAL STATE METHODS
     fun setLoading(loading: Boolean) {
         _isLoading.value = loading
     }
-
-    /**
-     * Set error message
-     */
-    fun setError(message: String?) {
+    
+    fun setErrorMessage(message: String?) {
         _errorMessage.value = message
     }
-
-    /**
-     * Update user session data
-     */
-    fun setUserSession(session: UserSessionData?) {
-        _userSession.value = session
-        _isAuthenticated.value = session != null
+    
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
-
-    /**
-     * Clear all state (for logout)
-     */
-    fun clearState() {
-        _isAuthenticated.value = false
-        _userSession.value = null
+    
+    fun clearAllState() {
         _selectedTab.value = 0
         _canNavigateBack.value = false
         _isLoading.value = false
         _errorMessage.value = null
     }
 }
-
-/**
- * Data class for user session information
- */
-data class UserSessionData(
-    val userId: String,
-    val email: String?,
-    val displayName: String?,
-    val profileImageUrl: String?,
-    val sessionToken: String
-)

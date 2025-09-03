@@ -2,9 +2,7 @@ package com.sap.cdc.android.sdk.auth.sequence
 
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.auth.AuthState
-import com.sap.cdc.android.sdk.auth.AuthTFA
 import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.IAuthTFA
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.flow.AccountAuthFlow
 import com.sap.cdc.android.sdk.auth.flow.CaptchaAuthFlow

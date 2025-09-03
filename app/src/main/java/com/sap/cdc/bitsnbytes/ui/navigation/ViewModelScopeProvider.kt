@@ -82,6 +82,37 @@ object ViewModelScopeProvider {
             viewModel<T>(viewModelStoreOwner = navBackStackEntry)
         }
     }
+
+    /**
+     * Creates an activity-scoped authentication delegate.
+     * This provides a shared authentication state and direct CDC SDK access
+     * across all ViewModels in the application.
+     * 
+     * IMPORTANT: This ensures only ONE instance of AuthenticationDelegate exists
+     * per activity, shared across all ViewModels.
+     */
+    @Composable
+    fun activityScopedAuthenticationDelegate(
+        context: android.content.Context
+    ): AuthenticationFlowDelegate {
+        // Use activity-scoped ViewModel to ensure the delegate survives ViewModel recreation
+        val factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return AuthenticationDelegateViewModel(context) as T
+            }
+        }
+        val viewModel = activityScopedViewModel<AuthenticationDelegateViewModel>(factory)
+        return viewModel.authenticationFlowDelegate
+    }
+}
+
+/**
+ * ViewModel wrapper for AuthenticationDelegate to ensure proper lifecycle management.
+ * This ensures only ONE AuthenticationDelegate instance exists per activity.
+ */
+class AuthenticationDelegateViewModel(context: android.content.Context) : ViewModel() {
+    val authenticationFlowDelegate = AuthenticationFlowDelegate(context)
 }
 
 /**

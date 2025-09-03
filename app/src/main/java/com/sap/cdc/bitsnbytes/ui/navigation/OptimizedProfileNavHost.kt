@@ -11,7 +11,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.bitsnbytes.cdc.IdentityServiceRepository
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.route.ScreenSetsRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
@@ -62,8 +61,8 @@ import kotlinx.serialization.json.Json
 fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
     val profileNavController = rememberNavController()
     
-    // Update the navigation coordinator to use our new controller
-    NavigationCoordinator.INSTANCE.setNavController(profileNavController)
+    // Update the app state manager to use our profile navigation controller
+    appStateManager.setNavController(profileNavController)
 
     val context = LocalContext.current.applicationContext
     val identityServiceRepository = IdentityServiceRepository.getInstance(context)

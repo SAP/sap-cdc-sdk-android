@@ -9,14 +9,15 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.CDCMessageEventBus
-import com.sap.cdc.android.sdk.SessionEvent
 import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.core.events.EventScope
+import com.sap.cdc.android.sdk.core.events.EventSubscription
+import com.sap.cdc.android.sdk.core.events.SessionEvent
+import com.sap.cdc.android.sdk.core.events.emitSessionExpired
+import com.sap.cdc.android.sdk.core.events.subscribeToSessionEventsManual
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.serialization.json.Json
 import java.util.concurrent.TimeUnit
 
@@ -39,29 +40,39 @@ internal class SessionSecure(
 
     // Holding reference to session entity in memory.
     private var sessionEntity: SessionEntity? = null
+    private var eventSubscription: EventSubscription? = null
 
     init {
         subscribeToSessionEvents()
         loadToMem()
     }
 
+    // Clean up subscription when SessionSecure is no longer needed
+    fun dispose() {
+        eventSubscription?.unsubscribe()
+        eventSubscription = null
+    }
+
     private fun subscribeToSessionEvents() {
         CDCDebuggable.log(LOG_TAG, "Subscribing to session events.")
-        // Create a new CoroutineScope with a Job
-        val job = Job()
-        val scope = CoroutineScope(Dispatchers.Main + job)
 
-        CDCMessageEventBus.initializeSessionScope(scope)
-        CDCMessageEventBus.subscribeToSessionEvents {
-            when (it) {
-                is SessionEvent.ExpiredSession -> {
-                    CDCDebuggable.log(LOG_TAG, "Invalidate session event received from bus.")
+        // Use manual subscription for SDK internal components
+        eventSubscription = subscribeToSessionEventsManual(
+            scope = EventScope.GLOBAL,
+            dispatcher = Dispatchers.IO // Use IO dispatcher for background work
+        ) { event ->
+            when (event) {
+                is SessionEvent.SessionExpired -> {
+                    CDCDebuggable.log(LOG_TAG, "Session expired event received from bus.")
                     clearSession(true)
                 }
-
                 is SessionEvent.VerifySession -> {
                     CDCDebuggable.log(LOG_TAG, "Verify session event received from bus.")
-                    // Verify session
+                    // Handle session verification
+                }
+                is SessionEvent.SessionRefreshed -> {
+                    CDCDebuggable.log(LOG_TAG, "Session refreshed event received from bus.")
+                    // Handle session refresh
                 }
             }
         }
@@ -376,7 +387,10 @@ internal class CDCSessionExpirationWorker(
 
     override fun doWork(): Result {
         CDCDebuggable.log(SessionSecure.LOG_TAG, "Session expiration worker triggered.")
-        CDCMessageEventBus.emitSessionEvent(SessionEvent.ExpiredSession)
+        emitSessionExpired(
+            sessionId = "", // Session ID is not tracked in this implementation.
+            scope = EventScope.GLOBAL
+        )
         return Result.success()
     }
 

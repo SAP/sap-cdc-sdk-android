@@ -2,12 +2,12 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.sequence.AuthResolvers
-import com.sap.cdc.android.sdk.auth.AuthTFA
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.ResolvableLinking
 import com.sap.cdc.android.sdk.auth.ResolvableOtp
 import com.sap.cdc.android.sdk.auth.ResolvableRegistration
 import com.sap.cdc.android.sdk.auth.ResolvableTFA
+import com.sap.cdc.android.sdk.auth.sequence.AuthTFA
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient

@@ -2,16 +2,22 @@ package com.sap.cdc.bitsnbytes.ui.route
 
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
-import androidx.navigation.navOptions
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.sap.cdc.bitsnbytes.ui.navigation.AppStateManager
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
- *
- * Navigation coordinator singleton instance. Used to control and sync with the navigation flow
+ * Navigation coordinator singleton instance. Used to control and coordinate the navigation flow
  * of multiple navigation controllers.
+ * 
+ * This coordinator acts as a mediator that delegates state management to AppStateManager
+ * while providing a clean navigation API for the rest of the application.
+ * 
+ * Responsibilities:
+ * - Coordinate navigation operations across the app
+ * - Delegate state management to AppStateManager
+ * - Provide a consistent navigation API
+ * - Handle navigation controller lifecycle
  */
 class NavigationCoordinator private constructor() {
 
@@ -20,56 +26,60 @@ class NavigationCoordinator private constructor() {
         { NavigationCoordinator() }
     }
 
-    private var currentNavController: NavController? = null
+    private var appStateManager: AppStateManager? = null
 
-    // Tracking back state for back icon navigation in toolbar. Kind of a hack.
-    private val _backNav = MutableStateFlow(false)
-    val backNav = _backNav.asStateFlow()
+    /**
+     * Expose back navigation state from AppStateManager.
+     * This maintains backward compatibility with existing code that uses backNav.
+     */
+    val backNav: StateFlow<Boolean>
+        get() = appStateManager?.canNavigateBack ?: kotlinx.coroutines.flow.MutableStateFlow(false).asStateFlow()
+
+    /**
+     * Set the AppStateManager to delegate navigation state management to.
+     * This should be called when the AppStateManager is available.
+     */
+    fun setAppStateManager(manager: AppStateManager) {
+        appStateManager = manager
+    }
 
     /**
      * Set current used navigation controller.
+     * Delegates to AppStateManager for actual state management.
      */
     fun setNavController(navController: NavController) {
-        currentNavController = navController
+        appStateManager?.setNavController(navController)
     }
 
     /**
      * Navigate to new route.
+     * Delegates to AppStateManager for actual navigation.
      */
     fun navigate(route: String) {
-        currentNavController?.navigate(route) {
-            launchSingleTop = true
-            restoreState = true
-        }
-        // Update back stack custom state.
-        _backNav.value = currentNavController?.previousBackStackEntry != null
+        appStateManager?.navigate(route)
     }
 
     /**
      * Pop controller backstack until specified root route (including) it and navigate to specified route.
+     * Delegates to AppStateManager for actual navigation.
      */
     fun popToRootAndNavigate(toRoute: String, rootRoute: String) {
-        currentNavController?.popBackStack(
-            route = rootRoute,
-            inclusive = true
-        )
-        currentNavController?.navigate(toRoute)
+        appStateManager?.popToRootAndNavigate(toRoute, rootRoute)
     }
 
     /**
      * Navigate to new route providing special options for this navigation operation.
+     * Delegates to AppStateManager for actual navigation.
      */
     fun navigate(route: String, builder: NavOptionsBuilder.() -> Unit) {
-        currentNavController?.navigate(route, navOptions(builder))
+        appStateManager?.navigate(route, builder)
     }
 
     /**
      * Navigate back/up the stack.
+     * Delegates to AppStateManager for actual navigation.
      */
     fun navigateUp() {
-        currentNavController?.popBackStack()
-        // Update back stack custom state.
-        _backNav.value = currentNavController?.previousBackStackEntry != null
+        appStateManager?.navigateUp()
     }
-
 }

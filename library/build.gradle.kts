@@ -64,6 +64,10 @@ android {
     publishing {
         singleVariant("release")
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
