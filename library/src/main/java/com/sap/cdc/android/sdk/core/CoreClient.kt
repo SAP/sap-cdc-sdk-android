@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.core
 
-import com.sap.cdc.android.sdk.core.network.RequestQueue
 import com.sap.cdc.android.sdk.core.network.NetworkClient
+import com.sap.cdc.android.sdk.core.network.RequestQueue
 
 
 /**

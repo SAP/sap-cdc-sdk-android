@@ -3,10 +3,10 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.auth.AuthState
-import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.bitsnbytes.cdc.PasskeysAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.auth.AuthState
+import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 

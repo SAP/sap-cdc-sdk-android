@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 
 /**
  * Created by Tal Mirmelshtein on 14/12/2024

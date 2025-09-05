@@ -1,7 +1,7 @@
 package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
-import com.sap.cdc.android.sdk.screensets.WebBridgeJS
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
 
 
 /**

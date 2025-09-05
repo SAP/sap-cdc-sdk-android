@@ -36,10 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.ResolvableContext
-import com.sap.cdc.android.sdk.auth.ResolvableRegistration
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.auth.ResolvableRegistration
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill

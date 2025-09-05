@@ -40,7 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomColoredSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer

@@ -37,7 +37,7 @@ import androidx.fragment.app.FragmentActivity
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeHorizontalSpacer

@@ -8,12 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.auth.AuthState
-import com.sap.cdc.android.sdk.auth.biometric.BiometricAuth
-import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
-import com.sap.cdc.android.sdk.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.bitsnbytes.cdc.PasskeysAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.auth.AuthState
+import com.sap.cdc.android.sdk.feature.auth.session.SessionSecureLevel
+import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
+import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor

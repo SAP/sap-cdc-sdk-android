@@ -1,7 +1,7 @@
 package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.sap.cdc.bitsnbytes.ui.navigation.AuthenticationFlowDelegate
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 
 /**
  * ViewModel for MainActivity demonstrating AuthenticationDelegate injection.
@@ -18,12 +18,9 @@ class MainActivityViewModel(
     
     // Expose authentication state to UI
     val isAuthenticated = authenticationFlowDelegate.isAuthenticated
-    val userSession = authenticationFlowDelegate.userSession
-    val authenticationError = authenticationFlowDelegate.authenticationError
-    val isAuthenticating = authenticationFlowDelegate.isAuthenticating
+    val userAccount = authenticationFlowDelegate.userAccount
     
     // Direct access to CDC SDK components
-    val siteConfig = authenticationFlowDelegate.siteConfig
     val authenticationService = authenticationFlowDelegate.authenticationService
     
     // Example methods would go here - implementation details removed to avoid compilation errors

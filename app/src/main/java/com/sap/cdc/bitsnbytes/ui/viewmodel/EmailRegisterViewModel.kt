@@ -2,11 +2,10 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.auth.AuthState
-import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.ResolvableContext
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.auth.model.Credentials
 import com.sap.cdc.bitsnbytes.extensions.splitFullName
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.encodeToJsonElement
 
@@ -16,36 +15,32 @@ import kotlinx.serialization.json.encodeToJsonElement
  */
 
 interface IEmailRegisterViewModel {
+
     fun register(
-        email: String,
-        password: String,
+        credentials: Credentials,
         name: String,
-        onLogin: () -> Unit,
-        onPendingTwoFactorRegistration: (IAuthResponse?) -> Unit,
-        onPendingTwoFactorVerification: (IAuthResponse?) -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
-        //Stub
+        // Stub
     }
 }
 
 // Mock preview class for the EmailRegisterViewModel
 class EmailRegisterViewModelPreview : IEmailRegisterViewModel
 
-class EmailRegisterViewModel(context: Context) : BaseViewModel(context), IEmailRegisterViewModel {
+class EmailRegisterViewModel(
+    context: Context,
+    private val authenticationFlowDelegate: AuthenticationFlowDelegate
+) : BaseViewModel(context), IEmailRegisterViewModel {
 
     /**
      * Register new account using credentials (email,password)
      * Additional profile fields are included to set profile.firstName & profile.lastName fields.
      */
     override fun register(
-        email: String,
-        password: String,
+        credentials: Credentials,
         name: String,
-        onLogin: () -> Unit,
-        onPendingTwoFactorRegistration: (IAuthResponse?) -> Unit,
-        onPendingTwoFactorVerification: (IAuthResponse?) -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         viewModelScope.launch {
             val namePair = name.splitFullName()
@@ -56,29 +51,11 @@ class EmailRegisterViewModel(context: Context) : BaseViewModel(context), IEmailR
                         "lastName" to namePair.second
                     )
                 )
-            val authResponse = identityService.register(email, password, profileObject.toString())
-            // Check response state for flow success/error/continuation.
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    onLogin()
-                }
-
-                AuthState.ERROR -> {
-                    onFailedWith(authResponse.toDisplayError())
-                }
-
-                AuthState.INTERRUPTED -> {
-                    when (authResponse.cdcResponse().errorCode()) {
-                        ResolvableContext.ERR_PENDING_TWO_FACTOR_REGISTRATION -> {
-                            onPendingTwoFactorRegistration(authResponse)
-                        }
-
-                        ResolvableContext.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
-                            onPendingTwoFactorVerification(authResponse)
-                        }
-                    }
-                }
-            }
+            authenticationFlowDelegate.cdc.register(
+                credentials,
+                authCallbacks,
+                mutableMapOf("profile" to profileObject.toString())
+            )
         }
     }
 }

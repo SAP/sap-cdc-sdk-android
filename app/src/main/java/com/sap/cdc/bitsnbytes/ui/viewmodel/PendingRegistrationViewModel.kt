@@ -2,8 +2,8 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.auth.AuthState
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.auth.AuthState
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

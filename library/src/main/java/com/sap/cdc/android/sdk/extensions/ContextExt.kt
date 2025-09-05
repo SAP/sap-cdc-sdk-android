@@ -60,6 +60,7 @@ fun Context.getSecureStorage(
         keyAlias = keyAlias
     )
 }
+
 fun Context.isOnline(): Boolean {
     val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)

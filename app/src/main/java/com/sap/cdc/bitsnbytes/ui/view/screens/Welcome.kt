@@ -20,10 +20,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.bitsnbytes.ApplicationConfig
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.route.ScreenSetsRoute
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.navigation.ScreenSetsRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionTextButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer

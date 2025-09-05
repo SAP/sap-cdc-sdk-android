@@ -2,10 +2,10 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.auth.AuthState
-import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.auth.AuthState
+import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
+import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

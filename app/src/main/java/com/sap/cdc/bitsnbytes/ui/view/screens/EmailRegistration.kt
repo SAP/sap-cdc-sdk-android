@@ -18,9 +18,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.android.sdk.feature.auth.flow.TwoFactorInitiator
+import com.sap.cdc.android.sdk.feature.auth.model.Credentials
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.extensions.toJson
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
@@ -147,6 +150,7 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
         )
 
         MediumVerticalSpacer()
+
         ActionOutlineButton(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -156,41 +160,45 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
                 loading = true
                 // Credentials registration.
                 viewModel.register(
-                    email = email,
-                    password = password,
+                    Credentials(email = email, password = password),
                     name = name,
-                    onLogin = {
+                ) {
+                    onSuccess = {
                         loading = false
+                        registerError = ""
                         NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                    },
-                    onPendingTwoFactorVerification = { authResponse ->
+                    }
+                    onError = { error ->
+                        loading = false
+                        registerError = error.message
+                    }
+                    onTwoFactorRequired = { twoFactorContext ->
                         loading = false
                         registerError = ""
-                        NavigationCoordinator.INSTANCE
-                            .navigate(
-                                "${ProfileScreenRoute.AuthMethods.route}/${
-                                    authResponse?.resolvable()?.toJson()
-                                }"
-                            )
-                    },
-                    onPendingTwoFactorRegistration = { authResponse ->
-                        loading = false
-                        registerError = ""
-                        NavigationCoordinator.INSTANCE
-                            .navigate(
-                                "${ProfileScreenRoute.AuthMethods.route}/${
-                                    authResponse?.resolvable()?.toJson()
-                                }"
-                            )
-                    },
-                    onFailedWith = { error ->
-                        loading = false
-                        if (error != null) {
-                            // Need to display error information.
-                            registerError = error.errorDetails!!
+                        when (twoFactorContext.initiator) {
+                            TwoFactorInitiator.REGISTRATION -> {
+                                NavigationCoordinator.INSTANCE
+                                    .navigate(
+                                        "${ProfileScreenRoute.AuthMethods.route}/${
+                                            twoFactorContext.toJson()
+                                        }"
+                                    )
+                            }
+
+                            TwoFactorInitiator.VERIFICATION -> {
+                                NavigationCoordinator.INSTANCE
+                                    .navigate(
+                                        "${ProfileScreenRoute.AuthMethods.route}/${
+                                            twoFactorContext.toJson()
+                                        }"
+                                    )
+                            }
+
+                            null -> { /* no-op */
+                            }
                         }
                     }
-                )
+                }
             }
         )
 

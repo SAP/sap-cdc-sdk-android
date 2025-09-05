@@ -5,11 +5,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.auth.AuthState
-import com.sap.cdc.android.sdk.auth.IAuthResponse
-import com.sap.cdc.android.sdk.auth.ResolvableContext
-import com.sap.cdc.android.sdk.auth.model.TFAPhoneEntity
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.auth.AuthState
+import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
+import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.auth.model.TFAPhoneEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

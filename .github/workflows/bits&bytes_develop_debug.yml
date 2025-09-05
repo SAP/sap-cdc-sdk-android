@@ -41,6 +41,11 @@ jobs:
         sed -i '/<\/resources>/i \    <string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_VARIANT_API_KEY }}</string>' app/src/variant/res/values/strings.xml
         sed -i '/<\/resources>/i \    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>' app/src/variant/res/values/strings.xml
 
+    - name: Add asset statements required resources to strings.xml (passkeys)
+      run: |
+        sed -i '/<\/resources>/i \    <string name="asset_statements" translatable="false">${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}</string>' app/src/main/res/values/strings.xml
+        sed -i '/<\/resources>/i \    <string name="asset_statements" translatable="false">${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}</string>' app/src/variant/res/values/strings.xml
+
     - name: Add Google required resources to strings.xml resource (actual value for demo only)
       run: |
         sed -i '/<\/resources>/i \    <string name="google_server_client_id">${{ secrets.GOOGLE_WEB_SERVER_CLIENT_ID }}</string>' app/src/main/res/values/strings.xml

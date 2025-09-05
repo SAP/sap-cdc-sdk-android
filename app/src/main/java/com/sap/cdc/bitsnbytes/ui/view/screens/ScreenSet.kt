@@ -18,16 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder
-import com.sap.cdc.android.sdk.screensets.WebBridgeJS
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSConfig
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.CANCELED
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.HIDE
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGIN
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGOUT
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebChromeClient
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
+import com.sap.cdc.android.sdk.feature.screensets.ScreenSetUrlBuilder
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSConfig
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.CANCELED
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.HIDE
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.LOGIN
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.LOGOUT
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebChromeClient
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebViewClient
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 

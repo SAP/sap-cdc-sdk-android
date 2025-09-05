@@ -14,13 +14,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.events.CDCEventBusProvider
 import com.sap.cdc.android.sdk.events.SessionEvent
 import com.sap.cdc.android.sdk.events.subscribeToSessionEvents
 import com.sap.cdc.bitsnbytes.BuildConfig
-import com.sap.cdc.bitsnbytes.ui.navigation.AppStateManager
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.AppStateManager
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.screens.HomeScaffoldView
 import com.sap.cdc.bitsnbytes.ui.viewmodel.MainActivityViewModel
 import kotlinx.coroutines.launch
@@ -100,6 +101,9 @@ class MainActivity : FragmentActivity() {
      * Setup session event handling with proper lifecycle management
      */
     private fun setupSessionEventHandling() {
+        if (!CDCEventBusProvider.isInitialized()) {
+            CDCEventBusProvider.initialize()
+        }
         // Subscribe to session events with lifecycle awareness
         subscribeToSessionEvents { event ->
             when (event) {

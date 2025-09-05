@@ -2,7 +2,7 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import com.sap.cdc.bitsnbytes.cdc.IdentityServiceRepository
+import com.sap.cdc.bitsnbytes.feature.auth.IdentityServiceRepository
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
  *
  * Base class for application view models.
  */
-open class BaseViewModel(context: Context) : ViewModel() {
+open class BaseViewModel(context: Context): ViewModel() {
 
     /**
      * Available Json interface.

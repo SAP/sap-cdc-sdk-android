@@ -3,6 +3,7 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel.factory
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ConfigurationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
@@ -20,7 +21,10 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
 
 @Suppress("UNCHECKED_CAST")
-class CustomViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+class CustomViewModelFactory(
+    private val context: Context,
+    private val authenticationFlowDelegate: AuthenticationFlowDelegate? = null
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(WelcomeViewModel::class.java) -> {
@@ -64,11 +68,17 @@ class CustomViewModelFactory(private val context: Context) : ViewModelProvider.F
             }
 
             modelClass.isAssignableFrom(EmailSignInViewModel::class.java) -> {
-                EmailSignInViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) { 
+                    "AuthenticationFlowDelegate is required for EmailSignInViewModel" 
+                }
+                EmailSignInViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(EmailRegisterViewModel::class.java) -> {
-                EmailRegisterViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for EmailSignInViewModel"
+                }
+                EmailRegisterViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(ConfigurationViewModel::class.java) -> {

@@ -22,7 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.ViewModelScopeProvider
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegisterView
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInView
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
@@ -87,17 +88,19 @@ fun AuthenticationTabView(selected: Int) {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
+                val authDelegate =
+                    ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
                 when (selectedTabIndex.value) {
                     0 -> {
                         val viewModel: EmailRegisterViewModel = viewModel(
-                            factory = CustomViewModelFactory(context)
+                            factory = CustomViewModelFactory(context, authDelegate)
                         )
                         EmailRegisterView(viewModel)
                     }
 
                     1 -> {
                         val viewModel: EmailSignInViewModel = viewModel(
-                            factory = CustomViewModelFactory(context)
+                            factory = CustomViewModelFactory(context, authDelegate)
                         )
                         EmailSignInView(viewModel)
                     }
@@ -116,4 +119,3 @@ fun AuthenticationTabViewPreview() {
         )
     }
 }
-

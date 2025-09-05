@@ -48,9 +48,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.bitsnbytes.R
-import com.sap.cdc.bitsnbytes.ui.navigation.AppStateManager
-import com.sap.cdc.bitsnbytes.ui.route.MainScreenRoute
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.MainScreenRoute
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.OptimizedProfileNavHost
+import com.sap.cdc.bitsnbytes.navigation.AppStateManager
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomBottomBar
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
@@ -167,11 +169,11 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
                                 }
                                 MainScreenRoute.Profile.route -> {
                                     // Use NavigationCoordinator for profile navigation
-                                    com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator.INSTANCE.navigateUp()
+                                    NavigationCoordinator.INSTANCE.navigateUp()
                                 }
                                 else -> {
                                     // For other tabs, use NavigationCoordinator for consistency
-                                    com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator.INSTANCE.navigateUp()
+                                    NavigationCoordinator.INSTANCE.navigateUp()
                                 }
                             }
                         }) {
@@ -249,7 +251,7 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
                 }
                 composable(MainScreenRoute.Profile.route) {
                     // Use the existing OptimizedProfileNavHost with enhanced integration
-                    com.sap.cdc.bitsnbytes.ui.navigation.OptimizedProfileNavHost(appStateManager)
+                    OptimizedProfileNavHost(appStateManager)
                 }
                 composable(MainScreenRoute.Configuration.route) {
                     val viewModel: ConfigurationViewModel = viewModel(
@@ -261,7 +263,6 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
         }
     }
 }
-
 
 val bottomAppBarItems = listOf(
     MainScreenRoute.Home,

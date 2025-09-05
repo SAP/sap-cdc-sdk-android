@@ -45,7 +45,7 @@
         </activity>
 
         <service
-            android:name=".cdc.AppMessagingService"
+            android:name=".feature.messaging.AppMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -53,7 +53,7 @@
         </service>
 
         <receiver
-            android:name="com.sap.cdc.android.sdk.notifications.CDCNotificationReceiver"
+            android:name="com.sap.cdc.android.sdk.feature.notifications.CDCNotificationReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="approve" />
@@ -62,14 +62,14 @@
         </receiver>
 
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.activity.WebLoginActivity"
+            android:name="com.sap.cdc.android.sdk.feature.provider.web.WebLoginActivity"
             android:allowTaskReparenting="true"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.CXCDCAndroidSDK" />
 
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.activity.SSOLoginActivity"
+            android:name="com.sap.cdc.android.sdk.feature.provider.sso.SSOLoginActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.CDC.NoAnimationActivity">
@@ -90,7 +90,7 @@
         </activity>
 
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.activity.ResultLoginActivity"
+            android:name="com.sap.cdc.android.sdk.feature.provider.ResultLoginActivity"
             android:exported="true"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.CDC.NoAnimationActivity" />
