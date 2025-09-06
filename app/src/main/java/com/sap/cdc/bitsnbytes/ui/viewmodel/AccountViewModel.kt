@@ -2,21 +2,22 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.biometric.BiometricPrompt
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.AuthState
+import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
 import com.sap.cdc.bitsnbytes.extensions.splitFullName
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.feature.auth.model.AccountEntity
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.encodeToJsonElement
 import java.util.concurrent.Executor
 
 interface IAccountViewModel {
+
+    val flowDelegate: AuthenticationFlowDelegate?
+        get() = null
 
     fun updateAccountInfoWith(name: String, success: () -> Unit, onFailed: (CDCError) -> Unit) {
         //Stub
@@ -34,61 +35,40 @@ interface IAccountViewModel {
 
     fun getAccountInfo(
         parameters: MutableMap<String, String>? = mutableMapOf(),
-        success: () -> Unit, onFailed: (CDCError) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        //Stub
+        // Stub
     }
 
-    fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {
+    fun logOut(authCallbacks: AuthCallbacks.() -> Unit = {}) {
         //Stub
     }
 }
 
 // Mocked preview class for AccountViewModel
-class AccountViewModelPreview: IAccountViewModel
+class AccountViewModelPreview : IAccountViewModel
 
-class AccountViewModel(context: Context) : BaseViewModel(context), IAccountViewModel {
+class AccountViewModel(context: Context, override val flowDelegate: AuthenticationFlowDelegate) : BaseViewModel(context),
+    IAccountViewModel {
 
     private var biometricAuth = BiometricAuth(identityService.authenticationService.sessionService)
 
-
-    /**
-     * Holding reference to account information object.
-     */
-    private var accountInfo by mutableStateOf<AccountEntity?>(null)
-
     /**
      * Getter for account information view model interactions.
+     * Now delegates to AuthenticationFlowDelegate for single source of truth.
      */
-    override fun accountInfo(): AccountEntity? = accountInfo
+    override fun accountInfo(): AccountEntity? = flowDelegate.userAccount.value
 
-    /**
-     * Request account information.
-     */
     override fun getAccountInfo(
         parameters: MutableMap<String, String>?,
-        success: () -> Unit,
-        onFailed: (CDCError) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        if (!identityService.availableSession()) {
-            return
-        }
         viewModelScope.launch {
-            val authResponse = identityService.getAccountInfo()
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    // Deserialize account data.
-                    accountInfo =
-                        json.decodeFromString<AccountEntity>(authResponse.asJsonString()!!)
-                    success()
-                }
-
-                else -> {
-                    onFailed(authResponse.toDisplayError()!!)
-                }
-            }
+            // Delegate to AuthenticationFlowDelegate which manages state
+            flowDelegate.getAccountInfo(parameters, authCallbacks)
         }
     }
+
 
     /**
      * Update account information with new name.
@@ -106,32 +86,23 @@ class AccountViewModel(context: Context) : BaseViewModel(context), IAccountViewM
             )
         val parameters = mutableMapOf("profile" to profileObject.toString())
         viewModelScope.launch {
-            val setAuthResponse = identityService.setAccountInfo(parameters)
-            when (setAuthResponse.state()) {
-                AuthState.SUCCESS -> {
-                    getAccountInfo(success = success, onFailed = onFailed)
-                }
-
-                else -> onFailed(setAuthResponse.toDisplayError()!!)
-            }
+//            val setAuthResponse = identityService.setAccountInfo(parameters)
+//            when (setAuthResponse.state()) {
+//                AuthState.SUCCESS -> {
+//                    getAccountInfo(success = success, onFailed = onFailed)
+//                }
+//
+//                else -> onFailed(setAuthResponse.toDisplayError()!!)
+//            }
         }
     }
 
     /**
      * Log out of current session.
      */
-    override fun logOut(success: () -> Unit, onFailed: (CDCError) -> Unit) {
+    override fun logOut(authCallbacks: AuthCallbacks.() -> Unit) {
         viewModelScope.launch {
-            val authResponse = identityService.logout()
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    success()
-                }
-
-                else -> {
-                    onFailed(authResponse.toDisplayError()!!)
-                }
-            }
+            flowDelegate.cdc.logOut(authCallbacks = authCallbacks)
         }
     }
 

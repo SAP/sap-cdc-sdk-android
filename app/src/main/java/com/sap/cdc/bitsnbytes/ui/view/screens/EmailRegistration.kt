@@ -198,6 +198,15 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
                             }
                         }
                     }
+                    onPendingRegistration = { registrationContext ->
+                        loading = false
+                        NavigationCoordinator.INSTANCE
+                            .navigate(
+                                "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                    registrationContext.toJson()
+                                }"
+                            )
+                    }
                 }
             }
         )

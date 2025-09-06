@@ -83,6 +83,7 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
     // Navigation state from enhanced navigation manager
     val canNavigateBack by appStateManager.canNavigateBack.collectAsState()
     val selectedTab by appStateManager.selectedTab.collectAsState()
+    val hasProfileBackStack by appStateManager.hasProfileBackStack.collectAsState()
     
     // Root navigation controller for tabs
     val rootNavController = rememberNavController()
@@ -168,8 +169,20 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
                                     rootNavController.popBackStack()
                                 }
                                 MainScreenRoute.Profile.route -> {
-                                    // Use NavigationCoordinator for profile navigation
-                                    NavigationCoordinator.INSTANCE.navigateUp()
+                                    // For profile navigation, check if we have a profile back stack
+                                    if (hasProfileBackStack) {
+                                        // If there's a profile back stack, use NavigationCoordinator to go back within profile
+                                        NavigationCoordinator.INSTANCE.navigateUp()
+                                    } else {
+                                        // If no profile back stack (MyProfile is root), go back to Home tab
+                                        rootNavController.navigate(MainScreenRoute.Home.route) {
+                                            popUpTo(rootNavController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
                                 }
                                 else -> {
                                     // For other tabs, use NavigationCoordinator for consistency

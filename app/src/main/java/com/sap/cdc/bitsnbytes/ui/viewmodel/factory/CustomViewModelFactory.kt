@@ -44,7 +44,10 @@ class CustomViewModelFactory(
             }
 
             modelClass.isAssignableFrom(PendingRegistrationViewModel::class.java) -> {
-                PendingRegistrationViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for EmailRegisterViewModel"
+                }
+                PendingRegistrationViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(OtpSignInViewModel::class.java) -> {
@@ -68,15 +71,15 @@ class CustomViewModelFactory(
             }
 
             modelClass.isAssignableFrom(EmailSignInViewModel::class.java) -> {
-                requireNotNull(authenticationFlowDelegate) { 
-                    "AuthenticationFlowDelegate is required for EmailSignInViewModel" 
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for EmailSignInViewModel"
                 }
                 EmailSignInViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(EmailRegisterViewModel::class.java) -> {
                 requireNotNull(authenticationFlowDelegate) {
-                    "AuthenticationFlowDelegate is required for EmailSignInViewModel"
+                    "AuthenticationFlowDelegate is required for EmailRegisterViewModel"
                 }
                 EmailRegisterViewModel(context, authenticationFlowDelegate) as T
             }
@@ -86,7 +89,10 @@ class CustomViewModelFactory(
             }
 
             modelClass.isAssignableFrom(AccountViewModel::class.java) -> {
-                AccountViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for AccountViewModel"
+                }
+                AccountViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(TFAAuthenticationViewModel::class.java) -> {

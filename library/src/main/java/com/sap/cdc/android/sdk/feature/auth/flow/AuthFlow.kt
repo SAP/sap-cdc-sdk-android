@@ -241,6 +241,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 ?.parseRequiredMissingFieldsForRegistration()
 
             val registrationContext = RegistrationContext(
+                regToken = regToken,
                 missingRequiredFields = missingFields
             )
             callbacks.onPendingRegistration?.invoke(registrationContext)
@@ -293,7 +294,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
     protected fun createAuthSuccess(response: CDCResponse): AuthSuccess {
         val userData = response.jsonObject?.toMap() ?: emptyMap()
-        return AuthSuccess(userData)
+        return AuthSuccess(response.jsonResponse ?: "{}", userData)
     }
 
     protected fun createAuthError(response: CDCResponse): AuthError {

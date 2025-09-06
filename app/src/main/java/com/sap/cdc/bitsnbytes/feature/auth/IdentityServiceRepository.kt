@@ -159,27 +159,6 @@ class IdentityServiceRepository private constructor(context: Context) {
     //region AUTHENTICATION FLOWS
 
     /**
-     * Request cdc SDK latest account information.
-     */
-    suspend fun getAccountInfo(parameters: MutableMap<String, String>? = mutableMapOf()): IAuthResponse {
-        return authenticationService.account().get(parameters!!)
-    }
-
-    /**
-     * Update cdc SDK account information.
-     */
-    suspend fun setAccountInfo(parameters: MutableMap<String, String>): IAuthResponse {
-        return authenticationService.account().set(parameters)
-    }
-
-    /**
-     * Logout from current CDC session.
-     */
-    suspend fun logout(): IAuthResponse {
-        return authenticationService.authenticate().logout()
-    }
-
-    /**
      * Initiate cdc SDK native social provider login flow.
      */
     suspend fun nativeSocialSignIn(
@@ -273,23 +252,6 @@ class IdentityServiceRepository private constructor(context: Context) {
 
     //region RESOLVE INTERRUPTIONS
 
-    /**
-     * Attempt to resolve "Account Pending Registration" interruption by providing the necessary
-     * missing fields.
-     * Note: regToken is required for authenticating the request.
-     */
-    suspend fun resolvePendingRegistrationWithMissingFields(
-        key: String,
-        serializedJsonValue: String,
-        regToken: String,
-    ): IAuthResponse {
-        val params = mutableMapOf(key to serializedJsonValue)
-        return authenticationService
-            .authenticate()
-            .register()
-            .resolve()
-            .pendingRegistrationWith(regToken, params)
-    }
 
     /**
      * Attempt to resolve account linking interruption to an existing site account.

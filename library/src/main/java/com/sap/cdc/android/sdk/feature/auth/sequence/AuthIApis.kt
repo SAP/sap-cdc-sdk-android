@@ -3,18 +3,17 @@ package com.sap.cdc.android.sdk.feature.auth.sequence
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.feature.auth.AuthState
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import com.sap.cdc.android.sdk.feature.auth.flow.AccountAuthFlow
+import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.flow.CaptchaAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.LoginAuthFlow
-import com.sap.cdc.android.sdk.feature.auth.flow.LogoutAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.PasskeysAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.ProviderAuthFow
-import com.sap.cdc.android.sdk.feature.auth.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.login.AuthLogin
 import com.sap.cdc.android.sdk.feature.auth.flow.login.IAuthLogin
+import com.sap.cdc.android.sdk.feature.auth.flow.logout.AuthLogoutFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.register.AuthRegister
 import com.sap.cdc.android.sdk.feature.auth.flow.register.IAuthRegister
 import com.sap.cdc.android.sdk.feature.auth.session.SessionService
@@ -30,7 +29,7 @@ interface IAuthApis {
     /**
      * Log out of current account interface
      */
-    suspend fun logout(): IAuthResponse
+    suspend fun logout(authCallbacks: AuthCallbacks.() -> Unit)
 
     fun register(): IAuthRegister
 
@@ -62,9 +61,9 @@ internal class AuthApis(
      * Log out of current account implementation.
      * Logging out will remove all session data.
      */
-    override suspend fun logout(): IAuthResponse {
-        val flow = LogoutAuthFlow(coreClient, sessionService)
-        return flow.logout()
+    override suspend fun logout(authCallbacks: AuthCallbacks.() -> Unit) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        AuthLogoutFlow(coreClient, sessionService).logout(callbacks)
     }
 
     override fun register(): IAuthRegister = AuthRegister(coreClient, sessionService)
@@ -85,65 +84,7 @@ internal class AuthApis(
 
 }
 
-// region IAuthRegister
 
-interface IAuthRegisterResolvers {
-
-    /**
-     * Finalize registration process interface.
-     */
-    suspend fun finalizeRegistration(
-        parameters: MutableMap<String, String>
-    ): IAuthResponse
-
-    /**
-     * Resolve "Account Pending Registration" interruption error.
-     * 1. Flow will initiate a "setAccount" flow to update account information.
-     * 2. Flow will attempt to finalize the registration to complete registration process.
-     */
-    suspend fun pendingRegistrationWith(
-        regToken: String,
-        missingFields: MutableMap<String, String>
-    ): IAuthResponse
-}
-
-internal class AuthRegisterResolvers(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
-) : IAuthRegisterResolvers {
-
-    /**
-     * Finalize registration process implementation.
-     */
-    override suspend fun finalizeRegistration(
-        parameters: MutableMap<String, String>
-    ): IAuthResponse {
-        val resolver = RegistrationAuthFlow(coreClient, sessionService)
-        return resolver.finalize(parameters)
-    }
-
-    override suspend fun pendingRegistrationWith(
-        regToken: String,
-        missingFields: MutableMap<String, String>
-    ): IAuthResponse {
-        val setAccountResolver = AccountAuthFlow(coreClient, sessionService)
-        missingFields["regToken"] = regToken
-        val setAccountAuthResponse = setAccountResolver.setAccountInfo(missingFields)
-        when (setAccountAuthResponse.state()) {
-            AuthState.SUCCESS -> {
-                // Error in flow.
-                val finalizeRegistrationResolver = RegistrationAuthFlow(coreClient, sessionService)
-                return finalizeRegistrationResolver.finalize(mutableMapOf("regToken" to regToken))
-            }
-
-            else -> {
-                return setAccountAuthResponse
-            }
-        }
-    }
-}
-
-// endregion
 
 //region IAuthPasskeys
 

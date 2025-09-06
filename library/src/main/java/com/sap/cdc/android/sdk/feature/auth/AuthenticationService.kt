@@ -1,24 +1,24 @@
 package com.sap.cdc.android.sdk.feature.auth
 
 import androidx.core.content.edit
-import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationManager
-import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationOptions
-import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
-import com.sap.cdc.android.sdk.feature.auth.sequence.AuthAccount
+import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.feature.auth.flow.account.AuthAccount
+import com.sap.cdc.android.sdk.feature.auth.flow.account.IAuthAccount
 import com.sap.cdc.android.sdk.feature.auth.sequence.AuthApis
 import com.sap.cdc.android.sdk.feature.auth.sequence.AuthResolvers
 import com.sap.cdc.android.sdk.feature.auth.sequence.AuthSession
 import com.sap.cdc.android.sdk.feature.auth.sequence.AuthTFA
-import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthAccount
 import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthApis
 import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthResolvers
 import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthSession
 import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthTFA
 import com.sap.cdc.android.sdk.feature.auth.session.SessionService
-import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.events.CDCEventBusProvider
-import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationManager
+import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationOptions
+import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import kotlinx.serialization.json.Json
 
 /**

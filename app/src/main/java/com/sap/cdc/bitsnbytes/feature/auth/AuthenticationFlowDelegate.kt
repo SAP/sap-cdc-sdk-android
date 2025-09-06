@@ -11,9 +11,12 @@ import com.sap.cdc.android.sdk.feature.auth.model.Credentials
 import com.sap.cdc.android.sdk.feature.auth.session.Session
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.bitsnbytes.feature.auth.model.AccountEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.json.Json
 
 /**
  * Complete authentication state solution for ViewModels.
@@ -60,6 +63,12 @@ class AuthenticationFlowDelegate(context: Context) {
 
     private val _userAccount = MutableStateFlow<AccountEntity?>(null)
     val userAccount: StateFlow<AccountEntity?> = _userAccount.asStateFlow()
+
+    // JSON serializer for parsing account data
+    private val json = Json { ignoreUnknownKeys = true }
+
+    // Coroutine scope for async operations
+    private val scope = CoroutineScope(Dispatchers.Main)
 
     init {
         // Initialize state based on existing CDC session
@@ -111,6 +120,37 @@ class AuthenticationFlowDelegate(context: Context) {
     fun refreshAuthenticationState() {
         syncWithCDCSession()
     }
+
+    /**
+     * Get account information with state management.
+     * This method intercepts the response and updates the userAccount StateFlow.
+     */
+    suspend fun getAccountInfo(
+        parameters: MutableMap<String, String>? = mutableMapOf(),
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        cdc.getAccountInfo(parameters) {
+            // Register original callbacks first
+            authCallbacks()
+            
+            // Add state management side-effect
+            doOnSuccess { authSuccess ->
+                try {
+                    // Parse and update the state
+                    val accountData = json.decodeFromString<AccountEntity>(authSuccess.jsonData)
+                    _userAccount.value = accountData
+                } catch (e: Exception) {
+                    // Handle parsing errors silently - don't break the callback chain
+                    // Could add logging here if needed
+                }
+            }
+            
+            doOnError { error ->
+                // Optionally clear account state on error
+                // _userAccount.value = null
+            }
+        }
+    }
 }
 
 class AuthenticationFlowCDCDelegate(val service: AuthenticationService) {
@@ -126,11 +166,36 @@ class AuthenticationFlowCDCDelegate(val service: AuthenticationService) {
         parameters: MutableMap<String, String> = mutableMapOf()
     ) {
         service.authenticate().register().credentials(
-            credentials = credentials,
-            configure = authCallbacks,
+            credentials = credentials, configure = authCallbacks,
             parameters = parameters
         )
     }
+
+    suspend fun logOut(authCallbacks: AuthCallbacks.() -> Unit) {
+        service.authenticate().logout(authCallbacks = authCallbacks)
+    }
+
+    suspend fun getAccountInfo(
+        parameters: MutableMap<String, String>? = mutableMapOf(), authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        service.account().get(
+            parameters = parameters!!,
+            configure = authCallbacks
+        )
+    }
+
+    suspend fun resolvePendingRegistration(
+        missingFieldsSerialized: MutableMap<String, String>,
+        regToken: String,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        service.authenticate().register().resolve().pendingRegistrationWith(
+            missingFields = missingFieldsSerialized,
+            regToken = regToken,
+            configure = authCallbacks
+        )
+    }
+
 }
 
 /**
@@ -139,4 +204,3 @@ class AuthenticationFlowCDCDelegate(val service: AuthenticationService) {
 fun AuthenticationFlowDelegate.isUserLoggedIn(): Boolean = isAuthenticated.value
 
 fun AuthenticationFlowDelegate.getCurrentUser(): AccountEntity? = userAccount.value
-

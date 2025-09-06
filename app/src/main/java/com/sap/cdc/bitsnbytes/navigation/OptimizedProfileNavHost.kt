@@ -2,11 +2,15 @@ package com.sap.cdc.bitsnbytes.navigation
 
 import android.util.Base64
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.auth.flow.RegistrationContext
 import com.sap.cdc.bitsnbytes.feature.auth.IdentityServiceRepository
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
@@ -46,7 +50,7 @@ import kotlinx.serialization.json.Json
 /**
  * Optimized Profile Navigation Host with proper ViewModel scoping.
  * This demonstrates the solution to ViewModel state loss during navigation.
- * 
+ *
  * Key improvements:
  * - ViewModels are properly scoped to retain state
  * - Uses AppStateManager for centralized state management
@@ -55,9 +59,22 @@ import kotlinx.serialization.json.Json
 @Composable
 fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
     val profileNavController = rememberNavController()
-    
+
     // Update the app state manager to use our profile navigation controller
     appStateManager.setNavController(profileNavController)
+    
+    // Listen to navigation changes and update back navigation state
+    val navBackStackEntry by profileNavController.currentBackStackEntryAsState()
+    LaunchedEffect(navBackStackEntry) {
+        // Always show back navigation in profile section since user can go back to main home
+        // Even when MyProfile is the start destination (logged in state), user should be able to go back
+        val canGoBack = true // Always show back arrow in profile section
+        appStateManager.setCanNavigateBack(canGoBack)
+        
+        // Track if we have profile navigation stack for proper back navigation handling
+        val hasProfileBackStack = profileNavController.previousBackStackEntry != null
+        appStateManager.setHasProfileBackStack(hasProfileBackStack)
+    }
 
     val context = LocalContext.current.applicationContext
     val identityServiceRepository = IdentityServiceRepository.getInstance(context)
@@ -76,7 +93,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             WelcomeView(viewModel)
         }
-        
+
         composable(ProfileScreenRoute.SignIn.route) {
             // ✅ OPTIMIZED: Activity-scoped ViewModel retains login form state
             val viewModel: SignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
@@ -84,7 +101,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             SignInView(viewModel)
         }
-        
+
         composable(ProfileScreenRoute.Register.route) {
             // ✅ OPTIMIZED: Activity-scoped ViewModel retains registration form state
             val viewModel: RegisterViewModel = ViewModelScopeProvider.activityScopedViewModel(
@@ -92,12 +109,12 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             RegisterView(viewModel)
         }
-        
+
         composable("${ProfileScreenRoute.AuthTabView.route}/{selected}") { backStackEntry ->
             val selected = backStackEntry.arguments?.getString("selected")
             AuthenticationTabView(selected = selected!!.toInt())
         }
-        
+
         composable(ProfileScreenRoute.EmailSignIn.route) {
             // ✅ OPTIMIZED: Retains email and form state during navigation
             val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
@@ -106,7 +123,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             EmailSignInView(viewModel)
         }
-        
+
         composable(ProfileScreenRoute.EmailRegister.route) {
             // ✅ OPTIMIZED: Retains registration form data
             val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
@@ -115,17 +132,18 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             EmailRegisterView(viewModel)
         }
-        
-        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{resolvableContext}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
-            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
+
+        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{RegistrationContext}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("RegistrationContext")
+            val registrationContext = Json.decodeFromString<RegistrationContext>(resolvableJson!!)
             // Screen-scoped for temporary resolution flows
+            val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
             val viewModel: PendingRegistrationViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
-            PendingRegistrationView(viewModel, resolvable)
+            PendingRegistrationView(viewModel, registrationContext)
         }
-        
+
         composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
@@ -135,23 +153,25 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             LinkAccountView(viewModel, resolvable)
         }
-        
+
         composable(ProfileScreenRoute.MyProfile.route) {
             // ✅ OPTIMIZED: Profile data persists across navigation
+            val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
             val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             MyProfileView(viewModel)
         }
-        
+
         composable(ProfileScreenRoute.AboutMe.route) {
             // ✅ OPTIMIZED: Shares AccountViewModel with MyProfile for consistent data
+            val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
             val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             AboutMeView(viewModel)
         }
-        
+
         // Continue with existing screens using optimized scoping...
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route) {
             val viewModel: ScreenSetViewModel = ViewModelScopeProvider.screenScopedViewModel(
@@ -163,7 +183,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
                 "gigya-login-screen"
             )
         }
-        
+
         composable(ScreenSetsRoute.ScreenSetRegistrationLoginRegister.route) {
             val viewModel: ScreenSetViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
@@ -174,7 +194,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
                 "gigya-register-screen"
             )
         }
-        
+
         composable("${ProfileScreenRoute.OTPSignIn.route}/{type}") { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
@@ -183,7 +203,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             OtpSignInView(viewModel, otpType = otpType!!)
         }
-        
+
         composable("${ProfileScreenRoute.OTPVerify.route}/{resolvableContext}/{type}/{inputField}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val input = backStackEntry.arguments?.getString("inputField")
@@ -200,14 +220,14 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
                 inputField = input!!
             )
         }
-        
+
         composable(ProfileScreenRoute.LoginOptions.route) {
             val viewModel: LoginOptionsViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             LoginOptionsView(viewModel)
         }
-        
+
         composable("${ProfileScreenRoute.AuthMethods.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
@@ -216,7 +236,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             AuthMethodsView(viewModel, resolvable)
         }
-        
+
         composable("${ProfileScreenRoute.PhoneSelection.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
             val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
@@ -225,7 +245,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             PhoneSelectionView(viewModel)
         }
-        
+
         composable("${ProfileScreenRoute.PhoneVerification.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
             val resolvableJson =
@@ -236,7 +256,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             )
             PhoneVerificationView(viewModel)
         }
-        
+
         composable("${ProfileScreenRoute.TOTPVerification.route}/{resolvableContext}") { backStackEntry ->
             val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
             val resolvableJson =

@@ -2,36 +2,38 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.AuthState
+import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 interface IPendingRegistrationViewModel {
 
-    fun resolvePendingRegistrationWithMissingProfileFields(
+    fun resolve(
         map: MutableMap<String, String>,
         regToken: String,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
-    ) { }
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+    }
 }
 
 // Mock preview class for the PendingRegistrationViewModel
 class PendingRegistrationViewModelPreview : IPendingRegistrationViewModel
 
-class PendingRegistrationViewModel(context: Context) : BaseViewModel(context),
+class PendingRegistrationViewModel(
+    context: Context,
+    private val authenticationFlowDelegate: AuthenticationFlowDelegate
+) : BaseViewModel(context),
     IPendingRegistrationViewModel {
 
     /**
      * Resolve pending registration interruption with provided missing fields for registration.
      */
-    override fun resolvePendingRegistrationWithMissingProfileFields(
+    override fun resolve(
         map: MutableMap<String, String>,
         regToken: String,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         viewModelScope.launch {
             val jsonMap = mutableMapOf<String, JsonPrimitive>()
@@ -40,18 +42,13 @@ class PendingRegistrationViewModel(context: Context) : BaseViewModel(context),
                 // as a best practice form.
                 jsonMap[key.substring(key.lastIndexOf(".") + 1)] = JsonPrimitive(value)
             }
-            val authResponse = identityService.resolvePendingRegistrationWithMissingFields(
-                "profile", JsonObject(jsonMap).toString(), regToken,
-            )
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    onLogin()
-                }
 
-                else -> {
-                    onFailedWith(authResponse.toDisplayError())
-                }
-            }
+            authenticationFlowDelegate.cdc.resolvePendingRegistration(
+                missingFieldsSerialized = mutableMapOf("profile" to JsonObject(jsonMap).toString()),
+                regToken = regToken,
+                authCallbacks = authCallbacks
+            )
+
         }
     }
 

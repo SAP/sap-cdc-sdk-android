@@ -5,6 +5,7 @@ import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_FINALIZE_REGISTRATION
 import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_INIT_REGISTRATION
 import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_REGISTER
+import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthFlow
@@ -21,10 +22,10 @@ class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
 
     suspend fun register(
         credentials: Credentials,
+        parameters: MutableMap<String, String> = mutableMapOf(),
         callbacks: AuthCallbacks
     ) {
         // Create parameter map according to credentials input.
-        val parameters = mutableMapOf<String, String>()
         credentials.email?.let { parameters["email"] = it }
         parameters["password"] = credentials.password
         register(parameters, callbacks)
@@ -121,5 +122,46 @@ class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
         // Success case
         secureNewSession(response)
         callbacks.onSuccess?.invoke(createAuthSuccess(response))
+    }
+
+    suspend fun resolveWith(
+        parameters: MutableMap<String, String>,
+        callbacks: AuthCallbacks
+    ) {
+        CDCDebuggable.log(
+            LOG_TAG,
+            "resolveWith: with parameters:$parameters"
+        )
+
+        val regToken = parameters["regToken"]
+
+        val setAccount =
+            AuthenticationApi(coreClient, sessionService).send(
+                EP_ACCOUNTS_SET_ACCOUNT_INFO,
+                parameters
+            )
+
+        // Error case
+        if (setAccount.isError()) {
+            val authError = createAuthError(setAccount)
+            callbacks.onError?.invoke(authError)
+            return
+        }
+
+        // Success case
+        val finalize = AuthenticationApi(coreClient, sessionService).send(
+            EP_ACCOUNTS_FINALIZE_REGISTRATION,
+            mutableMapOf("regToken" to regToken!!)
+        )
+
+        if (finalize.isError()) {
+            val authError = createAuthError(finalize)
+            callbacks.onError?.invoke(authError)
+            return
+        }
+
+        // success case
+        secureNewSession(finalize)
+        callbacks.onSuccess?.invoke(createAuthSuccess(finalize))
     }
 }

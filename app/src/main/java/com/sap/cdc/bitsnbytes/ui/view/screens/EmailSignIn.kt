@@ -191,7 +191,15 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
                             captchaRequired = true
                             signInError = "Captcha required"
                         }
-
+                        onPendingRegistration = { registrationContext ->
+                            loading = false
+                            NavigationCoordinator.INSTANCE
+                                .navigate(
+                                    "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                        registrationContext.toJson()
+                                    }"
+                                )
+                        }
                     }
                 }
             )

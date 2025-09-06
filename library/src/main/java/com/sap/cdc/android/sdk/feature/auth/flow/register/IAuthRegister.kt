@@ -3,9 +3,9 @@ package com.sap.cdc.android.sdk.feature.auth.flow.register
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
-import com.sap.cdc.android.sdk.feature.auth.sequence.AuthRegisterResolvers
-import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthRegisterResolvers
 import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+
+//region REGISTER INTERFACE
 
 interface IAuthRegister {
 
@@ -30,16 +30,17 @@ internal class AuthRegister(
 
 ) : IAuthRegister {
 
-    override fun resolve(): IAuthRegisterResolvers =
-        AuthRegisterResolvers(coreClient, sessionService)
-
     override suspend fun credentials(
         credentials: Credentials,
         configure: AuthCallbacks.() -> Unit,
         parameters: MutableMap<String, String>
     ) {
         val callbacks = AuthCallbacks().apply(configure)
-        AuthRegisterFlow(coreClient, sessionService).register(credentials, callbacks)
+        AuthRegisterFlow(coreClient, sessionService).register(
+            credentials = credentials,
+            parameters = parameters,
+            callbacks = callbacks
+        )
     }
 
     override suspend fun parameters(
@@ -49,4 +50,64 @@ internal class AuthRegister(
         val callbacks = AuthCallbacks().apply(configure)
         AuthRegisterFlow(coreClient, sessionService).register(parameters, callbacks)
     }
+
+    override fun resolve(): IAuthRegisterResolvers =
+        AuthRegisterResolvers(coreClient, sessionService)
+
 }
+
+//endregion
+
+//region REGISTER INTERFACE RESOLVERS
+
+interface IAuthRegisterResolvers {
+
+    /**
+     * Finalize registration process interface.
+     */
+    suspend fun finalize(
+        parameters: MutableMap<String, String>,
+        configure: AuthCallbacks.() -> Unit
+    )
+
+    /**
+     * Resolve "Account Pending Registration" interruption error.
+     * 1. Flow will initiate a "setAccount" flow to update account information.
+     * 2. Flow will attempt to finalize the registration to complete registration process.
+     */
+    suspend fun pendingRegistrationWith(
+        regToken: String,
+        missingFields: MutableMap<String, String>,
+        configure: AuthCallbacks.() -> Unit
+    )
+}
+
+internal class AuthRegisterResolvers(
+    private val coreClient: CoreClient,
+    private val sessionService: SessionService
+) : IAuthRegisterResolvers {
+
+    /**
+     * Finalize registration process implementation.
+     */
+    override suspend fun finalize(
+        parameters: MutableMap<String, String>,
+        configure: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(configure)
+        AuthRegisterFlow(coreClient, sessionService).finalize(parameters, callbacks)
+    }
+
+    override suspend fun pendingRegistrationWith(
+        regToken: String,
+        missingFields: MutableMap<String, String>,
+        configure: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(configure)
+        missingFields["regToken"] = regToken
+        AuthRegisterFlow(coreClient, sessionService).resolveWith(missingFields, callbacks)
+    }
+}
+
+//endregion
+

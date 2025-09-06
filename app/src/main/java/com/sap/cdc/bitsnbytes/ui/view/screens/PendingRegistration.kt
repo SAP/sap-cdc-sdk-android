@@ -36,8 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
-import com.sap.cdc.android.sdk.feature.auth.ResolvableRegistration
+import com.sap.cdc.android.sdk.feature.auth.flow.RegistrationContext
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
@@ -59,14 +58,14 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModelPreview
 @Composable
 fun PendingRegistrationView(
     viewModel: IPendingRegistrationViewModel,
-    resolvableContext: ResolvableContext
+    registrationContext: RegistrationContext
 ) {
     val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     var registerError by remember { mutableStateOf("") }
     val values = remember {
-        mutableStateMapOf(*resolvableContext.registration?.missingRequiredFields!!.map { it to "" }
+        mutableStateMapOf(*registrationContext.missingRequiredFields!!.map { it to "" }
             .toTypedArray())
     }
 
@@ -94,12 +93,13 @@ fun PendingRegistrationView(
                 .padding(start = 48.dp, end = 48.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            resolvableContext.registration?.missingRequiredFields?.forEach { field ->
+            registrationContext.missingRequiredFields?.forEach { field ->
                 var inputText = values[field].toString()
                 val autoFillHandler =
-                    autoFillRequestHandler(autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Password),
+                    autoFillRequestHandler(
+                        autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Password),
                         onFill = {
-                            inputText  = it
+                            inputText = it
                         }
                     )
                 Text(
@@ -109,7 +109,9 @@ fun PendingRegistrationView(
                 )
                 TextField(
                     value = inputText,
-                    modifier = Modifier.fillMaxWidth().connectNode(handler = autoFillHandler)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .connectNode(handler = autoFillHandler)
                         .defaultFocusChangeAutoFill(handler = autoFillHandler),
                     placeholder = {
                         Text(
@@ -143,10 +145,11 @@ fun PendingRegistrationView(
                     registerError = ""
                     loading = true
                     // Resolve pending registration.
-                    viewModel.resolvePendingRegistrationWithMissingProfileFields(
+                    viewModel.resolve(
                         values,
-                        resolvableContext.regToken!!,
-                        onLogin = {
+                        registrationContext.regToken!!
+                    ) {
+                        onSuccess = {
                             loading = false
                             // Route to profile page and pop all routes inclusively so
                             // The root route will return to the main home screen.
@@ -154,14 +157,12 @@ fun PendingRegistrationView(
                                 toRoute = ProfileScreenRoute.MyProfile.route,
                                 rootRoute = ProfileScreenRoute.Welcome.route
                             )
-                        },
-                        onFailedWith = { error ->
+                        }
+                        onError = { error ->
                             loading = false
-                            if (error != null) {
-                                // Need to display error information.
-                                registerError = error.errorDescription ?: ""
-                            }
-                        })
+                            registerError = error.message
+                        }
+                    }
                 }) {
                 Text("Resolve")
             }
@@ -179,7 +180,7 @@ fun PendingRegistrationView(
 fun PendingRegistrationViewPreview() {
     PendingRegistrationView(
         PendingRegistrationViewModelPreview(),
-        ResolvableContext("", null, null, ResolvableRegistration(listOf("email", "password"))),
+        RegistrationContext("", listOf("email", "password"))
     )
 }
 

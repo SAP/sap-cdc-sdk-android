@@ -28,6 +28,9 @@ class AppStateManager : ViewModel() {
     private val _canNavigateBack = MutableStateFlow(false)
     val canNavigateBack: StateFlow<Boolean> = _canNavigateBack.asStateFlow()
     
+    private val _hasProfileBackStack = MutableStateFlow(false)
+    val hasProfileBackStack: StateFlow<Boolean> = _hasProfileBackStack.asStateFlow()
+    
     // NAVIGATION CONTROLLER MANAGEMENT
     private var currentNavController: NavController? = null
     
@@ -45,6 +48,10 @@ class AppStateManager : ViewModel() {
     
     fun setCanNavigateBack(canGoBack: Boolean) {
         _canNavigateBack.value = canGoBack
+    }
+    
+    fun setHasProfileBackStack(hasBackStack: Boolean) {
+        _hasProfileBackStack.value = hasBackStack
     }
     
     // NAVIGATION CONTROLLER METHODS
