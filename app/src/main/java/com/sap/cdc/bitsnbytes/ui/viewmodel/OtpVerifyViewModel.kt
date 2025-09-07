@@ -3,9 +3,10 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.AuthState
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,12 +29,25 @@ interface IOtpVerifyViewModel {
     ) {
         //Stub
     }
+
+    fun verifyCode(
+        code: String,
+        vToken: String,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        // Stub
+    }
 }
 
 // Mocked preview class for OtpVerifyViewModel
 class OtpVerifyViewModelPreview : IOtpVerifyViewModel
 
-class OtpVerifyViewModel(context: Context): BaseViewModel(context), IOtpVerifyViewModel {
+class OtpVerifyViewModel(
+    context: Context,
+    val authenticationFlowDelegate: AuthenticationFlowDelegate
+) : BaseViewModel(context), IOtpVerifyViewModel {
+
+    //region TIMER
 
     override fun startOtpTimer(whenEnded: () -> Unit) {
         startTimer {
@@ -70,7 +84,16 @@ class OtpVerifyViewModel(context: Context): BaseViewModel(context), IOtpVerifyVi
         stopTimer()
     }
 
+    //endregion TIMER
+
+    override fun verifyCode(code: String, vToken: String, authCallbacks: AuthCallbacks.() -> Unit) {
+        viewModelScope.launch {
+            authenticationFlowDelegate.otpVerify(code, vToken, authCallbacks)
+        }
+    }
+
     /**
+     *
      * Resolve phone login. Verify code sent to phone number.
      */
     override fun resolveLoginWithCode(
@@ -81,24 +104,24 @@ class OtpVerifyViewModel(context: Context): BaseViewModel(context), IOtpVerifyVi
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
-            val authResponse = identityService.resolveLoginWithCode(code, resolvable)
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    onLogin()
-                }
-
-                AuthState.INTERRUPTED -> {
-                    when (authResponse.cdcResponse().errorCode()) {
-                        ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
-                            onPendingRegistration(authResponse)
-                        }
-                    }
-                }
-
-                else -> {
-                    onFailedWith(authResponse.toDisplayError()!!)
-                }
-            }
+//            val authResponse = identityService.resolveLoginWithCode(code, resolvable)
+//            when (authResponse.state()) {
+//                AuthState.SUCCESS -> {
+//                    onLogin()
+//                }
+//
+//                AuthState.INTERRUPTED -> {
+//                    when (authResponse.cdcResponse().errorCode()) {
+//                        ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+//                            onPendingRegistration(authResponse)
+//                        }
+//                    }
+//                }
+//
+//                else -> {
+//                    onFailedWith(authResponse.toDisplayError()!!)
+//                }
+//            }
         }
     }
 

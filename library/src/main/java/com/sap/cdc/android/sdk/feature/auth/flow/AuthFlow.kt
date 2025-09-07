@@ -131,14 +131,6 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         callbacks: AuthCallbacks
     ) {
         val regToken: String? = response.stringField("regToken")
-        if (regToken == null) {
-            val authError = AuthError(
-                message = "Interruption occurred but no regToken provided",
-                code = response.errorCode().toString()
-            )
-            callbacks.onError?.invoke(authError)
-            return
-        }
 
         when (response.errorCode()) {
             ResolvableContext.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
@@ -161,7 +153,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
             ResolvableContext.ERR_NONE -> {
                 if (response.containsKey("vToken")) {
-                    handleOTPRequired(response, regToken, callbacks)
+                    handleOTPRequired(response, callbacks)
                 }
             }
 
@@ -187,13 +179,13 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     protected suspend fun handleTwoFactorRequired(
         initiator: TwoFactorInitiator,
         response: CDCResponse,
-        regToken: String,
+        regToken: String?,
         callbacks: AuthCallbacks
     ) {
         if (callbacks.onTwoFactorRequired != null) {
             // Get TFA providers
             val tfaResolve = AuthTFA(coreClient, sessionService)
-            val tfaProviders = tfaResolve.getProviders(regToken = regToken)
+            val tfaProviders = tfaResolve.getProviders(regToken = regToken ?: "")
             val parsedProviders = tfaResolve.parseTFAProviders(tfaProviders)
 
             val tfaContext = TwoFactorContext(
@@ -213,7 +205,6 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
     protected suspend fun handleOTPRequired(
         response: CDCResponse,
-        regToken: String,
         callbacks: AuthCallbacks
     ) {
         if (callbacks.onOTPRequired != null) {
@@ -233,7 +224,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
     protected suspend fun handlePendingRegistration(
         response: CDCResponse,
-        regToken: String,
+        regToken: String?,
         callbacks: AuthCallbacks
     ) {
         if (callbacks.onPendingRegistration != null) {
@@ -257,7 +248,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
     protected suspend fun handleLinkingRequired(
         response: CDCResponse,
-        regToken: String,
+        regToken: String?,
         callbacks: AuthCallbacks
     ) {
         if (callbacks.onLinkingRequired != null) {
@@ -267,7 +258,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             // Get conflicting accounts
             val resolve = AuthResolvers(coreClient, sessionService)
             val conflictingAccounts = resolve.getConflictingAccounts(
-                mutableMapOf("regToken" to regToken)
+                mutableMapOf("regToken" to (regToken ?: ""))
             )
             val parsedConflictingAccounts = resolve.parseConflictingAccounts(conflictingAccounts)
 

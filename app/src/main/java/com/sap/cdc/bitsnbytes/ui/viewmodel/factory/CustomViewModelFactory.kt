@@ -46,17 +46,23 @@ class CustomViewModelFactory(
 
             modelClass.isAssignableFrom(PendingRegistrationViewModel::class.java) -> {
                 requireNotNull(authenticationFlowDelegate) {
-                    "AuthenticationFlowDelegate is required for EmailRegisterViewModel"
+                    "AuthenticationFlowDelegate is required for PendingRegistrationViewModel"
                 }
                 PendingRegistrationViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(OtpSignInViewModel::class.java) -> {
-                OtpSignInViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for OtpSignInViewModel"
+                }
+                OtpSignInViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(OtpVerifyViewModel::class.java) -> {
-                OtpVerifyViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for OtpSignInViewModel"
+                }
+                OtpVerifyViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(LoginOptionsViewModel::class.java) -> {
@@ -80,7 +86,7 @@ class CustomViewModelFactory(
 
             modelClass.isAssignableFrom(CustomIDSignInViewModel::class.java) -> {
                 requireNotNull(authenticationFlowDelegate) {
-                    "AuthenticationFlowDelegate is required for EmailSignInViewModel"
+                    "AuthenticationFlowDelegate is required for CustomIDSignInViewModel"
                 }
                 CustomIDSignInViewModel(context, authenticationFlowDelegate) as T
             }

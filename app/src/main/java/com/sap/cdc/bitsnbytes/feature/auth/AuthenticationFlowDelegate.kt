@@ -221,6 +221,29 @@ class AuthenticationFlowDelegate(context: Context) {
             }
         }
     }
+
+    suspend fun otpSendCode(
+        parameters: MutableMap<String, String>,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().otp().sendCode(
+            parameters = parameters,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun otpVerify(
+        code: String,
+        vToken: String,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        //TODO: Add error break if vToken is null in otpContext
+        authenticationService.authenticate().otp().resolve().login(
+            code = code,
+            vToken = vToken,
+            authCallbacks = authCallbacks
+        )
+    }
 }
 
 /**

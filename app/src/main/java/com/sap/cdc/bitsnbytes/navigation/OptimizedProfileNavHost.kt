@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.auth.flow.OTPContext
 import com.sap.cdc.android.sdk.feature.auth.flow.RegistrationContext
 import com.sap.cdc.bitsnbytes.feature.auth.IdentityServiceRepository
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
@@ -206,23 +207,23 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
             val viewModel: OtpSignInViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             OtpSignInView(viewModel, otpType = otpType!!)
         }
 
-        composable("${ProfileScreenRoute.OTPVerify.route}/{resolvableContext}/{type}/{inputField}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
+        composable("${ProfileScreenRoute.OTPVerify.route}/{otpContext}/{type}/{inputField}") { backStackEntry ->
+            val otpContextJson = backStackEntry.arguments?.getString("otpContext")
             val input = backStackEntry.arguments?.getString("inputField")
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
-            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
+            val otpContext: OTPContext = Json.decodeFromString<OTPContext>(otpContextJson!!)
             val viewModel: OtpVerifyViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             OtpVerifyView(
                 viewModel,
-                resolvable,
+                otpContext,
                 otpType = otpType!!,
                 inputField = input!!
             )

@@ -4,16 +4,16 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import com.sap.cdc.android.sdk.feature.auth.flow.AccountAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.flow.CaptchaAuthFlow
-import com.sap.cdc.android.sdk.feature.auth.flow.LoginAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.PasskeysAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.feature.auth.flow.login.AuthLogin
 import com.sap.cdc.android.sdk.feature.auth.flow.login.IAuthLogin
 import com.sap.cdc.android.sdk.feature.auth.flow.logout.AuthLogoutFlow
+import com.sap.cdc.android.sdk.feature.auth.flow.otp.AuthOtp
+import com.sap.cdc.android.sdk.feature.auth.flow.otp.IAuthOtp
 import com.sap.cdc.android.sdk.feature.auth.flow.register.AuthRegister
 import com.sap.cdc.android.sdk.feature.auth.flow.register.IAuthRegister
 import com.sap.cdc.android.sdk.feature.auth.session.SessionService
@@ -85,7 +85,6 @@ internal class AuthApis(
 }
 
 
-
 //region IAuthPasskeys
 
 interface IAuthPasskeys {
@@ -139,85 +138,6 @@ internal class AuthPasskeys(
                 authenticationProvider = authenticationProvider
             )
         return flow.clearPasskeyCredential()
-    }
-}
-
-//endregion
-
-//region IAuthOtp
-
-interface IAuthOtp {
-
-    fun resolve(): IAuthOtpResolvers
-
-    suspend fun sendCode(parameters: MutableMap<String, String>): IAuthResponse
-
-}
-
-internal class AuthOtp(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
-) : IAuthOtp {
-
-    override fun resolve(): IAuthOtpResolvers = AuthOtpResolvers(coreClient, sessionService)
-
-    /**
-     * Initiate phone number sign in flow.
-     */
-    override suspend fun sendCode(parameters: MutableMap<String, String>): IAuthResponse {
-        val flow = LoginAuthFlow(coreClient, sessionService)
-        return flow.otpSendCode(parameters)
-    }
-}
-
-interface IAuthOtpResolvers {
-
-    suspend fun login(
-        code: String,
-        resolvableContext: ResolvableContext
-    ): IAuthResponse
-
-    suspend fun otpUpdate(
-        code: String,
-        resolvableContext: ResolvableContext
-    ): IAuthResponse
-}
-
-internal class AuthOtpResolvers(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
-) : IAuthOtpResolvers {
-
-    /**
-     * Resolve phone login flow using provided code/vToken available in the "AuthResolvable" entity.
-     */
-    override suspend fun login(
-        code: String,
-        resolvableContext: ResolvableContext
-    ): IAuthResponse {
-        val codeVerify = LoginAuthFlow(coreClient, sessionService)
-        return codeVerify.otpLogin(
-            mutableMapOf(
-                "vToken" to resolvableContext.otp?.vToken!!,
-                "code" to code
-            )
-        )
-    }
-
-    /**
-     * Resolve phone update flow provided code/vToken available in the "AuthResolvable" entity.
-     */
-    override suspend fun otpUpdate(
-        code: String,
-        resolvableContext: ResolvableContext
-    ): IAuthResponse {
-        val codeVerify = LoginAuthFlow(coreClient, sessionService)
-        return codeVerify.otpUpdate(
-            mutableMapOf(
-                "vToken" to resolvableContext.otp?.vToken!!,
-                "code" to code
-            )
-        )
     }
 }
 

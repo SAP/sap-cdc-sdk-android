@@ -33,7 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.auth.flow.OTPContext
+import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
@@ -53,7 +54,7 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModelPreview
 @Composable
 fun OtpVerifyView(
     viewModel: IOtpVerifyViewModel,
-    resolvableContext: ResolvableContext,
+    otpContext: OTPContext,
     otpType: OTPType,
     inputField: String? = null,
 ) {
@@ -133,7 +134,8 @@ fun OtpVerifyView(
 
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 val autoFillHandler =
-                    autoFillRequestHandler(autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
+                    autoFillRequestHandler(
+                        autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
                         onFill = {
                             otpValue = it
                         }
@@ -168,32 +170,38 @@ fun OtpVerifyView(
 
             Spacer(modifier = Modifier.size(48.dp))
 
-            OutlinedButton(modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp),
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
                     loading = true
-                    viewModel.resolveLoginWithCode(code = otpValue,
-                        resolvable = resolvableContext,
-                        onLogin = {
+                    viewModel.verifyCode(
+                        code = otpValue,
+                        vToken = otpContext.vToken ?: "",
+                    ) {
+                        onSuccess = {
                             loading = false
                             signInError = ""
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        },
-                        onPendingRegistration =  { authResponse ->
+                        }
+
+                        onError = { error ->
+                            signInError = error.message
+                            loading = false
+                        }
+
+                        onPendingRegistration = { registrationContext ->
                             loading = false
                             NavigationCoordinator.INSTANCE
                                 .navigate(
                                     "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                        authResponse?.resolvable()?.toJson()
+                                        registrationContext.toJson()
                                     }"
                                 )
-                        },
-                        onFailedWith = { error ->
-                            signInError = error?.errorDescription!!
-                            loading = false
-                        })
+                        }
+                    }
                 }) {
                 Text("Verify")
             }
@@ -232,7 +240,7 @@ fun OtpVerifyView(
 fun PhoneOtpVerifyView() {
     OtpVerifyView(
         viewModel = OtpVerifyViewModelPreview(),
-        resolvableContext = ResolvableContext(),
+        otpContext = OTPContext(""),
         otpType = OTPType.PHONE,
         inputField = ""
     )

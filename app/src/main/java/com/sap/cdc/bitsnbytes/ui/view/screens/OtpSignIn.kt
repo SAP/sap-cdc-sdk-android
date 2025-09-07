@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
@@ -113,10 +114,11 @@ fun OtpSignInView(
         LargeVerticalSpacer()
 
         val autoFillHandler =
-            autoFillRequestHandler(autofillTypes = listOf(
-                AutofillType.EmailAddress,
-                AutofillType.PhoneNumber
-            ),
+            autoFillRequestHandler(
+                autofillTypes = listOf(
+                    AutofillType.EmailAddress,
+                    AutofillType.PhoneNumber
+                ),
                 onFill = {
                     inputField = it
                 }
@@ -138,7 +140,9 @@ fun OtpSignInView(
 
                     TextField(
                         inputField,
-                        modifier = Modifier.fillMaxWidth().connectNode(handler = autoFillHandler)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .connectNode(handler = autoFillHandler)
                             .defaultFocusChangeAutoFill(handler = autoFillHandler),
                         placeholder = {
                             Text(
@@ -168,7 +172,9 @@ fun OtpSignInView(
                     )
                     TextField(
                         inputField,
-                        modifier = Modifier.fillMaxWidth().connectNode(handler = autoFillHandler)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .connectNode(handler = autoFillHandler)
                             .defaultFocusChangeAutoFill(handler = autoFillHandler),
                         placeholder = {
                             Text(
@@ -199,29 +205,41 @@ fun OtpSignInView(
 
             CustomSizeVerticalSpacer(48.dp)
 
-            OutlinedButton(modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp),
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
                     loading = true
                     signInError = ""
-                    viewModel.otpSignIn(
+                    viewModel.signIn(
                         otpType = otpType,
-                        inputField = inputField,
-                        success = { resolvable ->
+                        inputField = inputField
+                    )
+                    {
+                        onSuccess = {
                             loading = false
                             NavigationCoordinator.INSTANCE.navigate(
                                 "${ProfileScreenRoute.OTPVerify.route}/${
-                                    resolvable.toJson()
+                                    ""
                                 }/${otpType.value}/${inputField}"
                             )
-                        },
-                        onFailed = { error ->
-                            signInError = error.errorDescription!!
-                            loading = false
-                        })
+                        }
 
+                        onOTPRequired = { otpContext ->
+                            loading = false
+                            NavigationCoordinator.INSTANCE.navigate(
+                                "${ProfileScreenRoute.OTPVerify.route}/${
+                                    otpContext.toJson()
+                                }/${otpType.value}/${inputField}"
+                            )
+                        }
+                        onError = { error ->
+                            signInError = error.message
+                            loading = false
+                        }
+                    }
                 }) {
                 Text("Send code")
             }

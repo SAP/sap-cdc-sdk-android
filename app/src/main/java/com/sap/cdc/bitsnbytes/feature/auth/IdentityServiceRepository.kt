@@ -207,9 +207,9 @@ class IdentityServiceRepository private constructor(context: Context) {
      * 1. call signInWithPhone to request authentication code to be sent to the phone number provided.
      * 2. login/update using the code received.
      */
-    suspend fun otpSignIn(
-        parameters: MutableMap<String, String>
-    ): IAuthResponse = authenticationService.authenticate().otp().sendCode(parameters)
+//    suspend fun otpSignIn(
+//        parameters: MutableMap<String, String>
+//    ): IAuthResponse = authenticationService.authenticate().otp().sendCode(parameters)
 
     suspend fun createPasskey(
         passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
@@ -283,15 +283,15 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Attempt to resolve phone number sign in flow.
      */
-    suspend fun resolveLoginWithCode(
-        code: String,
-        resolvableContext: ResolvableContext
-    ): IAuthResponse {
-        return authenticationService.authenticate()
-            .otp()
-            .resolve()
-            .login(code, resolvableContext)
-    }
+//    suspend fun resolveLoginWithCode(
+//        code: String,
+//        resolvableContext: ResolvableContext
+//    ): IAuthResponse {
+//        return authenticationService.authenticate()
+//            .otp()
+//            .resolve()
+//            .login(code, resolvableContext)
+//    }
 
     //endregion
 
