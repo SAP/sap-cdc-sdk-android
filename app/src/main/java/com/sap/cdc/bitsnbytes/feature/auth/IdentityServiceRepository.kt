@@ -8,17 +8,16 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.events.CDCEventBusProvider
 import com.sap.cdc.android.sdk.events.emitTokenReceived
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService
+import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
-import com.sap.cdc.android.sdk.feature.auth.session.Session
-import com.sap.cdc.android.sdk.feature.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.sso.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
+import com.sap.cdc.android.sdk.feature.session.Session
+import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
 import com.sap.cdc.bitsnbytes.feature.provider.FacebookAuthenticationProvider
 import com.sap.cdc.bitsnbytes.feature.provider.GoogleAuthenticationProvider
 
@@ -200,43 +199,6 @@ class IdentityServiceRepository private constructor(context: Context) {
             hostActivity, webAuthenticationProvider
         )
     }
-
-    /**
-     * Initiate cdc phone number sign in flow.
-     * This is a 2 step flow.
-     * 1. call signInWithPhone to request authentication code to be sent to the phone number provided.
-     * 2. login/update using the code received.
-     */
-//    suspend fun otpSignIn(
-//        parameters: MutableMap<String, String>
-//    ): IAuthResponse = authenticationService.authenticate().otp().sendCode(parameters)
-
-    suspend fun createPasskey(
-        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
-    ): IAuthResponse {
-        return authenticationService.authenticate().passkeys()
-            .create(passkeysAuthenticationProvider)
-    }
-
-    suspend fun passkeySignIn(
-        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
-    ): IAuthResponse {
-        return authenticationService.authenticate().passkeys()
-            .signIn(passkeysAuthenticationProvider)
-    }
-
-    suspend fun clearPasskey(
-        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
-    ): IAuthResponse {
-        return authenticationService.authenticate().passkeys()
-            .clear(passkeysAuthenticationProvider)
-    }
-
-//    suspend fun getSaptchaToken(): IAuthResponse {
-//        return authenticationService.authenticate().captcha().getSaptchaToken()
-//    }
-
-    //endregion
 
     //region PUSH
 

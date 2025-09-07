@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth.session
+package com.sap.cdc.android.sdk.feature.session
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

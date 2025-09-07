@@ -3,19 +3,18 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.AuthState
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
-interface ISignInViewModel : ISocialSignInViewModel {
+interface ISignInViewModel: ISocialSignInViewModel {
 
-    fun passkeySignIn(
+    fun passkeyLogin(
         activity: ComponentActivity,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         //Stub.
     }
@@ -24,30 +23,23 @@ interface ISignInViewModel : ISocialSignInViewModel {
 // Mock preview class for the SignInViewModel
 class SignInViewModelPreview : ISignInViewModel
 
-class SignInViewModel(context: Context) : SocialSignInViewModel(context), ISignInViewModel {
+class SignInViewModel(context: Context, val authenticationFlowDelegate: AuthenticationFlowDelegate) :
+    SocialSignInViewModel(context), ISignInViewModel {
 
     private var passkeysAuthenticationProvider: IPasskeysAuthenticationProvider? = null
 
-    override fun passkeySignIn(
+    override fun passkeyLogin(
         activity: ComponentActivity,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         if (passkeysAuthenticationProvider == null) {
             passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
         }
         viewModelScope.launch {
-            val authResponse = identityService.passkeySignIn(passkeysAuthenticationProvider!!)
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    // Handle success.
-                    onLogin()
-                }
-
-                else -> {
-                    onFailedWith(authResponse.cdcResponse().toCDCError())
-                }
-            }
+            authenticationFlowDelegate.passkeylogin(
+                provider = passkeysAuthenticationProvider!!,
+                authCallbacks = authCallbacks
+            )
         }
     }
 }

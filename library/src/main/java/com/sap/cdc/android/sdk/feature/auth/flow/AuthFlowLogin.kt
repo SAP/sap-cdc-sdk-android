@@ -2,15 +2,16 @@ package com.sap.cdc.android.sdk.feature.auth.flow
 
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_LOGIN
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_OTP_LOGIN
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_OTP_SEND_CODE
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_OTP_UPDATE
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGIN
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_OTP_LOGIN
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_OTP_SEND_CODE
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_OTP_UPDATE
+import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.auth.AuthResponse
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.SessionService
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

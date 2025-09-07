@@ -6,7 +6,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService
+import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 import kotlinx.coroutines.CoroutineScope

@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth.flow
+package com.sap.cdc.android.sdk.feature
 
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
@@ -11,8 +11,8 @@ import com.sap.cdc.android.sdk.feature.auth.ResolvableRegistration
 import com.sap.cdc.android.sdk.feature.auth.ResolvableTFA
 import com.sap.cdc.android.sdk.feature.auth.sequence.AuthResolvers
 import com.sap.cdc.android.sdk.feature.auth.sequence.AuthTFA
-import com.sap.cdc.android.sdk.feature.auth.session.Session
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.Session
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import kotlinx.serialization.json.Json
 
 /**
@@ -59,7 +59,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      */
     suspend fun initResolvableState(cdcResponse: CDCResponse): ResolvableContext? {
         // Init auth resolvable entity with RegToken field.
-        if (ResolvableContext.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey(
+        if (ResolvableContext.Companion.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey(
                 "vToken"
             )
         ) {
@@ -69,7 +69,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             when (cdcResponse.errorCode()) {
 
                 //OTP
-                ResolvableContext.ERR_NONE -> {
+                ResolvableContext.Companion.ERR_NONE -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_NONE")
                     // Resolvable state can occur on successful call in OTP flows.
                     // vToken is required for OTP verification.
@@ -78,12 +78,12 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 }
 
 
-                ResolvableContext.ERR_CAPTCHA_REQUIRED -> {
+                ResolvableContext.Companion.ERR_CAPTCHA_REQUIRED -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_SAPTCHA_REQUIRED")
                 }
 
                 // REGISTRATION
-                ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+                ResolvableContext.Companion.ERR_ACCOUNT_PENDING_REGISTRATION -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_ACCOUNT_PENDING_REGISTRATION")
                     // Parse missing fields required for registration.
                     val missingFields =
@@ -93,7 +93,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 }
 
                 // LINKING
-                ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
+                ResolvableContext.Companion.ERR_ENTITY_EXIST_CONFLICT -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_ENTITY_EXIST_CONFLICT")
                     // Add fields required for v2 linking flow.
                     val provider = cdcResponse.stringField("provider")
@@ -109,8 +109,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 }
 
                 // TFA
-                ResolvableContext.ERR_PENDING_TWO_FACTOR_REGISTRATION,
-                ResolvableContext.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
+                ResolvableContext.Companion.ERR_PENDING_TWO_FACTOR_REGISTRATION,
+                ResolvableContext.Companion.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION")
                     // Get providers
                     val tfaResolve = AuthTFA(coreClient, sessionService)
@@ -133,7 +133,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         val regToken: String? = response.stringField("regToken")
 
         when (response.errorCode()) {
-            ResolvableContext.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
+            ResolvableContext.Companion.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
                 handleTwoFactorRequired(
                     TwoFactorInitiator.VERIFICATION,
                     response,
@@ -142,7 +142,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 )
             }
 
-            ResolvableContext.ERR_PENDING_TWO_FACTOR_REGISTRATION -> {
+            ResolvableContext.Companion.ERR_PENDING_TWO_FACTOR_REGISTRATION -> {
                 handleTwoFactorRequired(
                     TwoFactorInitiator.REGISTRATION,
                     response,
@@ -151,17 +151,17 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 )
             }
 
-            ResolvableContext.ERR_NONE -> {
+            ResolvableContext.Companion.ERR_NONE -> {
                 if (response.containsKey("vToken")) {
                     handleOTPRequired(response, callbacks)
                 }
             }
 
-            ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+            ResolvableContext.Companion.ERR_ACCOUNT_PENDING_REGISTRATION -> {
                 handlePendingRegistration(response, regToken, callbacks)
             }
 
-            ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
+            ResolvableContext.Companion.ERR_ENTITY_EXIST_CONFLICT -> {
                 handleLinkingRequired(response, regToken, callbacks)
             }
 
@@ -279,7 +279,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     }
 
     protected fun isResolvableContext(response: CDCResponse): Boolean {
-        return ResolvableContext.resolvables.containsKey(response.errorCode()) ||
+        return ResolvableContext.Companion.resolvables.containsKey(response.errorCode()) ||
                 response.containsKey("vToken")
     }
 

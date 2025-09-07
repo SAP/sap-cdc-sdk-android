@@ -15,13 +15,12 @@ import com.sap.cdc.android.sdk.core.api.utils.Signing
 import com.sap.cdc.android.sdk.core.api.utils.SigningSpec
 import com.sap.cdc.android.sdk.core.api.utils.toEncodedQuery
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService
-import com.sap.cdc.android.sdk.feature.auth.session.Session
+import com.sap.cdc.android.sdk.feature.AuthEndpoints
+import com.sap.cdc.android.sdk.feature.AuthenticationService
+import com.sap.cdc.android.sdk.feature.session.Session
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.ProviderType
-import com.sap.cdc.android.sdk.feature.provider.web.WebLoginActivity
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
 import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
 import io.ktor.http.HttpMethod

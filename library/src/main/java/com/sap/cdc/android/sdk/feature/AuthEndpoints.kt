@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth
+package com.sap.cdc.android.sdk.feature
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -44,6 +44,7 @@ class AuthEndpoints {
         const val EP_PASSKEYS_INIT = "accounts.auth.fido.initRegisterCredentials"
         const val EP_PASSKEYS_REGISTER = "accounts.auth.fido.registerCredentials"
         const val EP_PASSKEYS_VERIFY_ASSERTION = "accounts.auth.fido.verifyAssertion"
+        const val EP_PASSKEYS_GET_CREDENTIALS = "accounts.auth.fido.getCredentials"
 
         const val EP_TFA_INIT = "accounts.tfa.initTFA"
         const val EP_TFA_FINALIZE = "accounts.tfa.finalizeTFA"

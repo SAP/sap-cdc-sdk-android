@@ -1,17 +1,17 @@
-package com.sap.cdc.android.sdk.feature.auth.flow.login
+package com.sap.cdc.android.sdk.feature.login
 
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_ID_CREATE_TOKEN
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_LOGIN
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthError
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthFlow
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_ID_CREATE_TOKEN
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGIN
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthError
+import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
 import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {

@@ -9,9 +9,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.sap.cdc.android.sdk.feature.OTPContext
+import com.sap.cdc.android.sdk.feature.RegistrationContext
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
-import com.sap.cdc.android.sdk.feature.auth.flow.OTPContext
-import com.sap.cdc.android.sdk.feature.auth.flow.RegistrationContext
 import com.sap.cdc.bitsnbytes.feature.auth.IdentityServiceRepository
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
@@ -103,7 +103,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         composable(ProfileScreenRoute.SignIn.route) {
             // ✅ OPTIMIZED: Activity-scoped ViewModel retains login form state
             val viewModel: SignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             SignInView(viewModel)
         }
@@ -231,7 +231,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
         composable(ProfileScreenRoute.LoginOptions.route) {
             val viewModel: LoginOptionsViewModel = ViewModelScopeProvider.activityScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             LoginOptionsView(viewModel)
         }

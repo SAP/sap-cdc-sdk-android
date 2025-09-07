@@ -3,11 +3,11 @@ package com.sap.cdc.android.sdk.feature.auth.flow
 import android.util.Log
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
 import com.sap.cdc.android.sdk.feature.auth.AuthResponse
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
@@ -16,11 +16,12 @@ import com.sap.cdc.android.sdk.feature.provider.SSOAuthenticationData
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
 import com.sap.cdc.android.sdk.feature.provider.sso.SSOUtil
 import com.sap.cdc.android.sdk.feature.provider.sso.SSOResponseEntity
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.Api
 import com.sap.cdc.android.sdk.core.api.CDCRequest
 import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.feature.AuthFlow
 import java.lang.ref.WeakReference
 
 /**

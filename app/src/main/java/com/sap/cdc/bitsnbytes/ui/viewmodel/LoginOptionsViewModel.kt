@@ -10,9 +10,10 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.feature.auth.AuthState
-import com.sap.cdc.android.sdk.feature.auth.session.SessionSecureLevel
 import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
@@ -91,7 +92,10 @@ class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
     override fun isBiometricLocked(): Boolean = false
 }
 
-class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
+class LoginOptionsViewModel(
+    context: Context,
+    val authenticationFlowDelegate: AuthenticationFlowDelegate
+) : BaseViewModel(context),
     ILoginOptionsViewModel {
 
 
@@ -255,19 +259,19 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
         if (passkeysAuthenticationProvider == null) {
             passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
         }
-        viewModelScope.launch {
-            val authResponse = identityService.createPasskey(passkeysAuthenticationProvider!!)
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    // Handle success.
-                    success()
-                }
-
-                else -> {
-                    onFailed(authResponse.cdcResponse().toCDCError())
-                }
-            }
-        }
+//        viewModelScope.launch {
+//            val authResponse = identityService.createPasskey(passkeysAuthenticationProvider!!)
+//            when (authResponse.state()) {
+//                AuthState.SUCCESS -> {
+//                    // Handle success.
+//                    success()
+//                }
+//
+//                else -> {
+//                    onFailed(authResponse.cdcResponse().toCDCError())
+//                }
+//            }
+//        }
     }
 
     override fun clearPasskey(
@@ -275,22 +279,22 @@ class LoginOptionsViewModel(context: Context) : BaseViewModel(context),
         success: () -> Unit,
         onFailed: (CDCError) -> Unit
     ) {
-        if (passkeysAuthenticationProvider == null) {
-            passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
-        }
-        viewModelScope.launch {
-            val authResponse = identityService.clearPasskey(passkeysAuthenticationProvider!!)
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    // Handle success.
-                    success()
-                }
-
-                else -> {
-                    onFailed(authResponse.cdcResponse().toCDCError())
-                }
-            }
-        }
+//        if (passkeysAuthenticationProvider == null) {
+//            passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
+//        }
+//        viewModelScope.launch {
+//            val authResponse = identityService.clearPasskey(passkeysAuthenticationProvider!!)
+//            when (authResponse.state()) {
+//                AuthState.SUCCESS -> {
+//                    // Handle success.
+//                    success()
+//                }
+//
+//                else -> {
+//                    onFailed(authResponse.cdcResponse().toCDCError())
+//                }
+//            }
+//        }
     }
 
     //endregion

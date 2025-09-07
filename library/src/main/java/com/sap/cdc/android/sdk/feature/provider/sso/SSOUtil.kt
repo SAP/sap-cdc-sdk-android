@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.feature.provider.sso
 
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.feature.auth.session.Session
+import com.sap.cdc.android.sdk.feature.session.Session
 import org.json.JSONObject
 import java.net.URLEncoder
 

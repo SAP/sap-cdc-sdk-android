@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth.session
+package com.sap.cdc.android.sdk.feature.session
 
 import android.content.Context
 import androidx.core.content.edit
@@ -9,7 +9,7 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.events.EventScope
 import com.sap.cdc.android.sdk.events.EventSubscription

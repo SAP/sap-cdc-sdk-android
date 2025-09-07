@@ -1,8 +1,8 @@
-package com.sap.cdc.android.sdk.feature.auth.flow.account
+package com.sap.cdc.android.sdk.feature.account
 
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.session.SessionService
 
 interface IAuthAccount {
 

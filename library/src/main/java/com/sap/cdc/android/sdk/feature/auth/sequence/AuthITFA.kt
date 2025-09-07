@@ -1,13 +1,13 @@
 package com.sap.cdc.android.sdk.feature.auth.sequence
 
+import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import com.sap.cdc.android.sdk.feature.auth.flow.TFAAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.model.TFAPhoneMethod
 import com.sap.cdc.android.sdk.feature.auth.model.TFAProvider
 import com.sap.cdc.android.sdk.feature.auth.model.TFAProvidersEntity
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
-import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.feature.session.SessionService
 
 interface IAuthTFA {
 

@@ -9,8 +9,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService
-import com.sap.cdc.android.sdk.feature.auth.DeviceInfo
+import com.sap.cdc.android.sdk.feature.AuthenticationService
+import com.sap.cdc.android.sdk.feature.DeviceInfo
 import com.sap.cdc.android.sdk.events.EventSubscription
 import com.sap.cdc.android.sdk.events.MessageEvent
 import com.sap.cdc.android.sdk.events.subscribeToMessageEventsManual

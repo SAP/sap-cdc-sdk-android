@@ -1,25 +1,26 @@
-package com.sap.cdc.android.sdk.feature.auth.sequence
+package com.sap.cdc.android.sdk.feature
 
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.auth.flow.AccountAuthFlow
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.flow.PasskeysAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.ProviderAuthFow
-import com.sap.cdc.android.sdk.feature.auth.flow.captcha.AuthCaptcha
-import com.sap.cdc.android.sdk.feature.auth.flow.captcha.IAuthCaptcha
-import com.sap.cdc.android.sdk.feature.auth.flow.login.AuthLogin
-import com.sap.cdc.android.sdk.feature.auth.flow.login.IAuthLogin
-import com.sap.cdc.android.sdk.feature.auth.flow.logout.AuthLogoutFlow
-import com.sap.cdc.android.sdk.feature.auth.flow.otp.AuthOtp
-import com.sap.cdc.android.sdk.feature.auth.flow.otp.IAuthOtp
-import com.sap.cdc.android.sdk.feature.auth.flow.register.AuthRegister
-import com.sap.cdc.android.sdk.feature.auth.flow.register.IAuthRegister
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.auth.sequence.AuthTFA
+import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthTFA
+import com.sap.cdc.android.sdk.feature.captcha.AuthCaptcha
+import com.sap.cdc.android.sdk.feature.captcha.IAuthCaptcha
+import com.sap.cdc.android.sdk.feature.login.AuthLogin
+import com.sap.cdc.android.sdk.feature.login.IAuthLogin
+import com.sap.cdc.android.sdk.feature.logout.AuthLogoutFlow
+import com.sap.cdc.android.sdk.feature.otp.AuthOtp
+import com.sap.cdc.android.sdk.feature.otp.IAuthOtp
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.provider.passkey.AuthPasskeys
+import com.sap.cdc.android.sdk.feature.provider.passkey.IAuthPasskeys
+import com.sap.cdc.android.sdk.feature.register.AuthRegister
+import com.sap.cdc.android.sdk.feature.register.IAuthRegister
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import java.lang.ref.WeakReference
 
 /**
@@ -84,65 +85,6 @@ internal class AuthApis(
     override fun tfa(): IAuthTFA = AuthTFA(coreClient, sessionService)
 
 }
-
-
-//region IAuthPasskeys
-
-interface IAuthPasskeys {
-
-    suspend fun create(
-        authenticationProvider: IPasskeysAuthenticationProvider,
-    ): IAuthResponse
-
-    suspend fun signIn(
-        authenticationProvider: IPasskeysAuthenticationProvider,
-    ): IAuthResponse
-
-    suspend fun clear(
-        authenticationProvider: IPasskeysAuthenticationProvider,
-    ): IAuthResponse
-}
-
-internal class AuthPasskeys(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
-) : IAuthPasskeys {
-
-    override suspend fun create(
-        authenticationProvider: IPasskeysAuthenticationProvider,
-    ): IAuthResponse {
-        val flow =
-            PasskeysAuthFlow(
-                coreClient, sessionService,
-                authenticationProvider = authenticationProvider
-            )
-        return flow.createPasskey()
-    }
-
-    override suspend fun signIn(
-        authenticationProvider: IPasskeysAuthenticationProvider,
-    ): IAuthResponse {
-        val flow =
-            PasskeysAuthFlow(
-                coreClient, sessionService,
-                authenticationProvider = authenticationProvider
-            )
-        return flow.authenticateWithPasskey()
-    }
-
-    override suspend fun clear(
-        authenticationProvider: IPasskeysAuthenticationProvider,
-    ): IAuthResponse {
-        val flow =
-            PasskeysAuthFlow(
-                coreClient, sessionService,
-                authenticationProvider = authenticationProvider
-            )
-        return flow.clearPasskeyCredential()
-    }
-}
-
-//endregion
 
 //region IAuthPush
 

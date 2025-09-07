@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth.flow
+package com.sap.cdc.android.sdk.feature
 
 import com.sap.cdc.android.sdk.feature.auth.model.LinkEntities
 import com.sap.cdc.android.sdk.feature.auth.model.TFAEmailEntity

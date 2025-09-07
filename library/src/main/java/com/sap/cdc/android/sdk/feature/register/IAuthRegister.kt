@@ -1,9 +1,9 @@
-package com.sap.cdc.android.sdk.feature.auth.flow.register
+package com.sap.cdc.android.sdk.feature.register
 
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.SessionService
 
 //region REGISTER INTERFACE
 

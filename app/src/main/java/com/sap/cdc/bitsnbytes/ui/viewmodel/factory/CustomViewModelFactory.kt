@@ -33,7 +33,10 @@ class CustomViewModelFactory(
             }
 
             modelClass.isAssignableFrom(SignInViewModel::class.java) -> {
-                SignInViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for PendingRegistrationViewModel"
+                }
+                SignInViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(SocialSignInViewModel::class.java) -> {
@@ -66,7 +69,10 @@ class CustomViewModelFactory(
             }
 
             modelClass.isAssignableFrom(LoginOptionsViewModel::class.java) -> {
-                LoginOptionsViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for LoginOptionsViewModel"
+                }
+                LoginOptionsViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(LinkAccountViewModel::class.java) -> {

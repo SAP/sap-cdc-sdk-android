@@ -119,7 +119,21 @@ fun SignInView(viewModel: ISignInViewModel) {
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Passwordless",
             onClick = {
-                NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
+                viewModel.passkeyLogin(context as ComponentActivity) {
+                    onSuccess = {
+                        loading = false
+                        signInError = ""
+                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                            toRoute = ProfileScreenRoute.MyProfile.route,
+                            rootRoute = ProfileScreenRoute.Welcome.route
+                        )
+                    }
+
+                    onError = { error ->
+                        loading = false
+                        signInError = error.message
+                    }
+                }
             },
             iconResourceId = R.drawable.ic_faceid,
 

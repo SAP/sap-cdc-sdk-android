@@ -1,7 +1,7 @@
-package com.sap.cdc.android.sdk.feature.auth.session
+package com.sap.cdc.android.sdk.feature.session
 
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_GMID
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_GMID
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 

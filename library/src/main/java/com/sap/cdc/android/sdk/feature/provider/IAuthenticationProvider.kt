@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.feature.provider
 
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.feature.auth.session.Session
+import com.sap.cdc.android.sdk.feature.session.Session
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

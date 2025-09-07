@@ -13,11 +13,11 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
-import com.sap.cdc.android.sdk.feature.auth.session.Session
-import com.sap.cdc.android.sdk.feature.auth.session.SessionEntity
-import com.sap.cdc.android.sdk.feature.auth.session.SessionSecure
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.feature.session.Session
+import com.sap.cdc.android.sdk.feature.session.SessionEntity
+import com.sap.cdc.android.sdk.feature.session.SessionSecure
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import kotlinx.serialization.json.Json
 import java.nio.charset.Charset

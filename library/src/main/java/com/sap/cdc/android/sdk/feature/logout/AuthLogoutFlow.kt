@@ -1,13 +1,13 @@
-package com.sap.cdc.android.sdk.feature.auth.flow.logout
+package com.sap.cdc.android.sdk.feature.logout
 
 import android.webkit.CookieManager
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthFlow
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthFlow
+import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthLogoutFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {

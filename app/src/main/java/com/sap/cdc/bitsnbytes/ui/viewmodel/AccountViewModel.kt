@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
 import com.sap.cdc.bitsnbytes.extensions.splitFullName
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate

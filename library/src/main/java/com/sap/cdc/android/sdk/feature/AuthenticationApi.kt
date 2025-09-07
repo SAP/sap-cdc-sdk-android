@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth
+package com.sap.cdc.android.sdk.feature
 
 import androidx.core.content.edit
 import com.sap.cdc.android.sdk.CDCDebuggable
@@ -7,14 +7,10 @@ import com.sap.cdc.android.sdk.core.api.Api
 import com.sap.cdc.android.sdk.core.api.CDCRequest
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.InvalidGMIDResponseEvaluator
+import com.sap.cdc.android.sdk.core.api.model.GMIDEntity
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.extensions.prepareApiUrl
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_GMID
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_GMID_REFRESH_TS
-import com.sap.cdc.android.sdk.feature.auth.model.GMIDEntity
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import io.ktor.http.HttpMethod
 
 
@@ -109,7 +105,7 @@ class AuthenticationApi(
     private suspend fun fetchIDs(inject: Boolean = false): CDCResponse {
         CDCDebuggable.log(LOG_TAG, "Fetching IDs")
         val cdcRequest =
-            buildCDCRequest(EP_SOCIALIZE_GET_IDS, mutableMapOf(), HttpMethod.Post.value)
+            buildCDCRequest(AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS, mutableMapOf(), HttpMethod.Post.value)
         val idsResponse = if (inject) injectRequest(cdcRequest) else send(cdcRequest)
         if (!idsResponse.isError()) {
             // Deserialize the response to GMIDEntity
@@ -119,11 +115,11 @@ class AuthenticationApi(
             if (gmidEntity != null) {
                 val esp =
                     coreClient.siteConfig.applicationContext.getEncryptedPreferences(
-                        CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+                        AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
                     )
                 esp.edit {
-                    putString(CDC_GMID, gmidEntity.gmid)
-                        .putLong(CDC_GMID_REFRESH_TS, gmidEntity.refreshTime!!)
+                    putString(AuthenticationService.Companion.CDC_GMID, gmidEntity.gmid)
+                        .putLong(AuthenticationService.Companion.CDC_GMID_REFRESH_TS, gmidEntity.refreshTime!!)
                 }
             }
             CDCDebuggable.log(LOG_TAG, "gmidEntity: $gmidEntity")
@@ -153,10 +149,10 @@ class AuthenticationApi(
     private fun isLocalGmidValid(): Boolean {
         CDCDebuggable.log(LOG_TAG, "Validating local GMID")
         val prefs = coreClient.siteConfig.applicationContext.getEncryptedPreferences(
-            CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+            AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
         )
-        val gmid = prefs.getString(CDC_GMID, null)
-        val refreshTimestamp = prefs.getLong(CDC_GMID_REFRESH_TS, 0L)
+        val gmid = prefs.getString(AuthenticationService.Companion.CDC_GMID, null)
+        val refreshTimestamp = prefs.getLong(AuthenticationService.Companion.CDC_GMID_REFRESH_TS, 0L)
         return gmid != null && refreshTimestamp > System.currentTimeMillis()
     }
 

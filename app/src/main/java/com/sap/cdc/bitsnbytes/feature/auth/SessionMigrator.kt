@@ -5,9 +5,9 @@ import android.content.SharedPreferences
 import android.util.Base64
 import android.util.Log
 import androidx.core.content.edit
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService
-import com.sap.cdc.android.sdk.feature.auth.session.Session
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.AuthenticationService
+import com.sap.cdc.android.sdk.feature.session.Session
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import kotlinx.serialization.json.Json
 import java.math.BigInteger
 import java.security.KeyStore

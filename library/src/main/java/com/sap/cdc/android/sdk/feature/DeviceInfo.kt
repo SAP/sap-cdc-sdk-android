@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth
+package com.sap.cdc.android.sdk.feature
 
 import android.os.Build
 import kotlinx.serialization.Serializable

@@ -9,7 +9,7 @@ import com.sap.cdc.android.sdk.feature.auth.flow.AccountAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.LoginAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.feature.auth.model.LinkEntities
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

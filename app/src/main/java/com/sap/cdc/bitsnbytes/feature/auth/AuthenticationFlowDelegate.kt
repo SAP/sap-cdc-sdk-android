@@ -5,12 +5,13 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.events.emitTokenReceived
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
 import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
-import com.sap.cdc.android.sdk.feature.auth.session.Session
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
+import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.session.Session
 import com.sap.cdc.bitsnbytes.feature.auth.model.AccountEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -249,6 +250,16 @@ class AuthenticationFlowDelegate(context: Context) {
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
         authenticationService.authenticate().captcha().getSaptchaToken(authCallbacks)
+    }
+
+    suspend fun passkeylogin(
+        provider: IPasskeysAuthenticationProvider,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().passkeys().login(
+            authenticationProvider = provider,
+            authCallbacks = authCallbacks
+        )
     }
 }
 

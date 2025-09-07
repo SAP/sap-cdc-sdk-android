@@ -1,19 +1,20 @@
 package com.sap.cdc.android.sdk.feature.auth.flow
 
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_ID_TOKEN_EXCHANGE
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNT_AUTH_DEVICE_REGISTER
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_ID_TOKEN_EXCHANGE
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNT_AUTH_DEVICE_REGISTER
 import com.sap.cdc.android.sdk.feature.auth.AuthResponse
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationService.Companion.CDC_DEVICE_INFO
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_DEVICE_INFO
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.feature.AuthFlow
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

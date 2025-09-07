@@ -1,17 +1,17 @@
-package com.sap.cdc.android.sdk.feature.auth.flow.captcha
+package com.sap.cdc.android.sdk.feature.captcha
 
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.utils.AndroidBase64Encoder
 import com.sap.cdc.android.sdk.extensions.encodeWith
 import com.sap.cdc.android.sdk.extensions.jwtDecode
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_RISK_SAPTCHA_GET_CHALLENGE
-import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_RISK_SAPTCHA_VERIFY
-import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthFlow
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_RISK_SAPTCHA_GET_CHALLENGE
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_RISK_SAPTCHA_VERIFY
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.TFAAuthFlow
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthCaptchaFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {

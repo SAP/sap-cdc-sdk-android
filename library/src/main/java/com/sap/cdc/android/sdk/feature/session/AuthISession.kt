@@ -1,8 +1,5 @@
-package com.sap.cdc.android.sdk.feature.auth.sequence
+package com.sap.cdc.android.sdk.feature.session
 
-import com.sap.cdc.android.sdk.feature.auth.session.Session
-import com.sap.cdc.android.sdk.feature.auth.session.SessionSecureLevel
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.SiteConfig
 
 interface IAuthSession {

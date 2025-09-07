@@ -1,8 +1,8 @@
-package com.sap.cdc.android.sdk.feature.auth.flow.captcha
+package com.sap.cdc.android.sdk.feature.captcha
 
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.session.SessionService
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.session.SessionService
 
 interface IAuthCaptcha {
 
