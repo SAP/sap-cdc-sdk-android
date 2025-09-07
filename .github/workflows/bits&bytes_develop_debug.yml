@@ -41,10 +41,24 @@ jobs:
         sed -i '/<\/resources>/i \    <string name="com.sap.cxcdc.apikey">${{ secrets.BITS_N_BYTES_VARIANT_API_KEY }}</string>' app/src/variant/res/values/strings.xml
         sed -i '/<\/resources>/i \    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>' app/src/variant/res/values/strings.xml
 
-    - name: Add asset statements required resources to strings.xml (passkeys)
+    - name: Helper to upsert a <string> in strings.xml
+      shell: bash
       run: |
-        sed -i '/<\/resources>/i \    <string name="asset_statements" translatable="false">${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}</string>' app/src/main/res/values/strings.xml
-        sed -i '/<\/resources>/i \    <string name="asset_statements" translatable="false">${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}</string>' app/src/variant/res/values/strings.xml
+        upsert_string () {
+          local file="$1" name="$2" value="$3"
+          # one-line sanitize
+          value=$(printf '%s' "$value" | tr -d '\n\r')
+          sed -i "/<string[[:space:]][^>]*name=\"$name\"[^>]*>/d" "$file"
+          awk -v n="$name" -v v="$value" '
+            /<\/resources>/ {
+              print "    <string name=\"" n "\">" v "</string>"
+            }
+            { print }
+          ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+        }
+
+        upsert_string app/src/main/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'
+        upsert_string app/src/variant/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'
 
     - name: Add Google required resources to strings.xml resource (actual value for demo only)
       run: |
