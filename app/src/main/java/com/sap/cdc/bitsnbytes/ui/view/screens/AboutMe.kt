@@ -1,5 +1,8 @@
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +18,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,8 +36,10 @@ import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
+import com.sap.cdc.bitsnbytes.ui.view.composables.SuccessBanner
 import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModelPreview
 import com.sap.cdc.bitsnbytes.ui.viewmodel.IAccountViewModel
+import kotlinx.coroutines.delay
 
 
 /**
@@ -47,10 +54,20 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.IAccountViewModel
 fun AboutMeView(viewModel: IAccountViewModel) {
     var loading by remember { mutableStateOf(false) }
     var setError by remember { mutableStateOf("") }
+    var showBanner by remember { mutableStateOf(false) }
+
+    val accountInfo by viewModel.flowDelegate?.userAccount?.collectAsState() ?: remember { mutableStateOf(null) }
 
     var name by remember {
         mutableStateOf(
-            "${viewModel.accountInfo()?.profile?.firstName ?: ""} ${viewModel.accountInfo()?.profile?.lastName ?: ""}".trim()
+            "${accountInfo?.profile?.firstName ?: ""} ${accountInfo?.profile?.lastName ?: ""}".trim()
+        )
+    }
+
+    if (showBanner) {
+        SuccessBanner(
+            message = "Account updated successfully",
+            onDismiss = { showBanner = false }
         )
     }
 
@@ -93,9 +110,9 @@ fun AboutMeView(viewModel: IAccountViewModel) {
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 BasicTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -136,11 +153,11 @@ fun AboutMeView(viewModel: IAccountViewModel) {
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Text(
-                    text = viewModel.accountInfo()?.profile?.email ?: "",
+                    text = accountInfo?.profile?.email ?: "",
                     style = AppTheme.typography.labelNormal,
                     color = Color.Black,
                     fontSize = 16.sp,
@@ -156,25 +173,39 @@ fun AboutMeView(viewModel: IAccountViewModel) {
             SimpleErrorMessages(setError)
             Spacer(modifier = Modifier.height(16.dp))
         }
-        
+
         // Save Changes button
         ActionOutlineInverseButton(
             modifier = Modifier.padding(horizontal = 24.dp),
             text = "Save Changes",
             onClick = {
                 loading = true
-                viewModel.updateAccountInfoWith(
-                    name = name,
-                    success = {
-                        loading = false
-                    },
-                    onFailed = { error ->
-                        loading = false
-                        setError = error.errorDetails ?: "An error occurred"
+                viewModel.setAccountInfo(
+                    newName = name,
+                    authCallbacks = {
+                        onSuccess = {
+                            loading = false
+                            showBanner = true
+                        }
+                        onError = { error ->
+                            loading = false
+                            setError = error.message
+                        }
                     }
                 )
             }
         )
+
+        AnimatedVisibility(
+            visible = showBanner,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            SuccessBanner(
+                message = "Account updated successfully",
+                onDismiss = { showBanner = false }
+            )
+        }
 
         // Loading indicator
         if (loading) {
@@ -184,6 +215,14 @@ fun AboutMeView(viewModel: IAccountViewModel) {
                     .padding(top = 16.dp)
             ) {
                 IndeterminateLinearIndicator(loading)
+            }
+        }
+
+        // Auto-hide after 2 seconds
+        if (showBanner) {
+            LaunchedEffect(Unit) {
+                delay(2000)
+                showBanner = false
             }
         }
     }

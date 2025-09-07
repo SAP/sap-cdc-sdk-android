@@ -78,6 +78,9 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
     val context = LocalContext.current.applicationContext
     val identityServiceRepository = IdentityServiceRepository.getInstance(context)
+    
+    // ✅ Create the shared AuthenticationFlowDelegate ONCE at the top level
+    val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
 
     NavHost(
         profileNavController, startDestination =
@@ -117,7 +120,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
         composable(ProfileScreenRoute.EmailSignIn.route) {
             // ✅ OPTIMIZED: Retains email and form state during navigation
-            val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
             val viewModel: EmailSignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -126,7 +128,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
         composable(ProfileScreenRoute.EmailRegister.route) {
             // ✅ OPTIMIZED: Retains registration form data
-            val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
             val viewModel: EmailRegisterViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -137,7 +138,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             val resolvableJson = backStackEntry.arguments?.getString("RegistrationContext")
             val registrationContext = Json.decodeFromString<RegistrationContext>(resolvableJson!!)
             // Screen-scoped for temporary resolution flows
-            val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
             val viewModel: PendingRegistrationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -156,7 +156,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
         composable(ProfileScreenRoute.MyProfile.route) {
             // ✅ OPTIMIZED: Profile data persists across navigation
-            val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
             val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -165,7 +164,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
         composable(ProfileScreenRoute.AboutMe.route) {
             // ✅ OPTIMIZED: Shares AccountViewModel with MyProfile for consistent data
-            val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
             val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )

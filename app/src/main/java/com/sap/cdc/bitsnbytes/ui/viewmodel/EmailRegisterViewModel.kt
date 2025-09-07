@@ -51,7 +51,7 @@ class EmailRegisterViewModel(
                         "lastName" to namePair.second
                     )
                 )
-            authenticationFlowDelegate.cdc.register(
+            authenticationFlowDelegate.register(
                 credentials,
                 authCallbacks,
                 mutableMapOf("profile" to profileObject.toString())

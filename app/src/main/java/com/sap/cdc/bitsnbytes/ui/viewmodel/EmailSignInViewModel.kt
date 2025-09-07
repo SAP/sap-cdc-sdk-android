@@ -62,7 +62,7 @@ class EmailSignInViewModel(
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
         viewModelScope.launch {
-            authenticationFlowDelegate.cdc.login(
+            authenticationFlowDelegate.login(
                 credentials = credentials,
                 authCallbacks = authCallbacks
             )

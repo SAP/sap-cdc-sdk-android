@@ -43,7 +43,7 @@ class PendingRegistrationViewModel(
                 jsonMap[key.substring(key.lastIndexOf(".") + 1)] = JsonPrimitive(value)
             }
 
-            authenticationFlowDelegate.cdc.resolvePendingRegistration(
+            authenticationFlowDelegate.resolvePendingRegistration(
                 missingFieldsSerialized = mutableMapOf("profile" to JsonObject(jsonMap).toString()),
                 regToken = regToken,
                 authCallbacks = authCallbacks

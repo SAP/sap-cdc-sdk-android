@@ -55,8 +55,6 @@ class AuthenticationFlowDelegate(context: Context) {
         }
     )
 
-    val cdc = AuthenticationFlowCDCDelegate(authenticationService)
-
     // Authentication state flows
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
@@ -113,12 +111,36 @@ class AuthenticationFlowDelegate(context: Context) {
         clearAuthenticationState()
     }
 
-    /**
-     * Refresh authentication state from CDC session
-     * Useful when session might have been updated externally
-     */
-    fun refreshAuthenticationState() {
-        syncWithCDCSession()
+    suspend fun login(credentials: Credentials, authCallbacks: AuthCallbacks.() -> Unit) {
+        authenticationService.authenticate().login()
+            .credentials(credentials = credentials, configure = authCallbacks)
+    }
+
+    suspend fun register(
+        credentials: Credentials,
+        authCallbacks: AuthCallbacks.() -> Unit,
+        parameters: MutableMap<String, String> = mutableMapOf()
+    ) {
+        authenticationService.authenticate().register().credentials(
+            credentials = credentials, configure = authCallbacks,
+            parameters = parameters
+        )
+    }
+
+    suspend fun logOut(authCallbacks: AuthCallbacks.() -> Unit) {
+        authenticationService.authenticate().logout(authCallbacks = authCallbacks)
+    }
+
+    suspend fun resolvePendingRegistration(
+        missingFieldsSerialized: MutableMap<String, String>,
+        regToken: String,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().register().resolve().pendingRegistrationWith(
+            missingFields = missingFieldsSerialized,
+            regToken = regToken,
+            configure = authCallbacks
+        )
     }
 
     /**
@@ -126,13 +148,13 @@ class AuthenticationFlowDelegate(context: Context) {
      * This method intercepts the response and updates the userAccount StateFlow.
      */
     suspend fun getAccountInfo(
-        parameters: MutableMap<String, String>? = mutableMapOf(),
+        parameters: MutableMap<String, String> = mutableMapOf(),
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        cdc.getAccountInfo(parameters) {
+        authenticationService.account().get(parameters) {
             // Register original callbacks first
             authCallbacks()
-            
+
             // Add state management side-effect
             doOnSuccess { authSuccess ->
                 try {
@@ -144,58 +166,35 @@ class AuthenticationFlowDelegate(context: Context) {
                     // Could add logging here if needed
                 }
             }
-            
+
             doOnError { error ->
                 // Optionally clear account state on error
                 // _userAccount.value = null
             }
         }
     }
-}
 
-class AuthenticationFlowCDCDelegate(val service: AuthenticationService) {
-
-    suspend fun login(credentials: Credentials, authCallbacks: AuthCallbacks.() -> Unit) {
-        service.authenticate().login()
-            .credentials(credentials = credentials, configure = authCallbacks)
-    }
-
-    suspend fun register(
-        credentials: Credentials,
-        authCallbacks: AuthCallbacks.() -> Unit,
-        parameters: MutableMap<String, String> = mutableMapOf()
-    ) {
-        service.authenticate().register().credentials(
-            credentials = credentials, configure = authCallbacks,
-            parameters = parameters
-        )
-    }
-
-    suspend fun logOut(authCallbacks: AuthCallbacks.() -> Unit) {
-        service.authenticate().logout(authCallbacks = authCallbacks)
-    }
-
-    suspend fun getAccountInfo(
-        parameters: MutableMap<String, String>? = mutableMapOf(), authCallbacks: AuthCallbacks.() -> Unit
-    ) {
-        service.account().get(
-            parameters = parameters!!,
-            configure = authCallbacks
-        )
-    }
-
-    suspend fun resolvePendingRegistration(
-        missingFieldsSerialized: MutableMap<String, String>,
-        regToken: String,
+    suspend fun setAccountInfo(
+        parameters: MutableMap<String, String> = mutableMapOf(),
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        service.authenticate().register().resolve().pendingRegistrationWith(
-            missingFields = missingFieldsSerialized,
-            regToken = regToken,
-            configure = authCallbacks
-        )
-    }
+        authenticationService.account().set(parameters) {
+            // Register original callbacks first
+            authCallbacks()
 
+            // Add state management side-effect
+            doOnSuccess { authSuccess ->
+                try {
+                    // Parse and update the state
+                    val accountData = json.decodeFromString<AccountEntity>(authSuccess.jsonData)
+                    _userAccount.value = accountData
+                } catch (e: Exception) {
+                    // Handle parsing errors silently - don't break the callback chain
+                    // Could add logging here if needed
+                }
+            }
+        }
+    }
 }
 
 /**
