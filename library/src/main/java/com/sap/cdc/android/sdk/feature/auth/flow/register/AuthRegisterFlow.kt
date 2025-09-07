@@ -9,7 +9,6 @@ import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_ACCOUNTS_
 import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthFlow
-import com.sap.cdc.android.sdk.feature.auth.flow.RegistrationAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
 import com.sap.cdc.android.sdk.feature.auth.session.SessionService
 
@@ -105,7 +104,7 @@ class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
      */
     suspend fun finalize(parameters: MutableMap<String, String>, callbacks: AuthCallbacks) {
         CDCDebuggable.log(
-            RegistrationAuthFlow.Companion.LOG_TAG,
+            LOG_TAG,
             "finalize: with parameters:$parameters"
         )
         val response =

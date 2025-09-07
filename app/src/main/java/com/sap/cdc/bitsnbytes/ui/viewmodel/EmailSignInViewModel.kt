@@ -2,8 +2,6 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.AuthState
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
@@ -17,8 +15,7 @@ import kotlinx.coroutines.launch
 interface IEmailSignInViewModel {
 
     fun getSaptchaToken(
-        token: (String) -> Unit,
-        onFailedWith: (CDCError?) -> Unit,
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         //Stub
     }
@@ -40,18 +37,14 @@ class EmailSignInViewModel(
 ) : BaseViewModel(context), IEmailSignInViewModel {
 
     override fun getSaptchaToken(
-        token: (String) -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         viewModelScope.launch {
-            val authResponse = identityService.getSaptchaToken()
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    token(authResponse.cdcResponse().stringField("saptchaToken") as String)
-                }
+            authenticationFlowDelegate.getSaptchaToken {
+                authCallbacks()
 
-                else -> {
-                    onFailedWith(authResponse.toDisplayError())
+                doOnSuccess { authSuccess ->
+                    val token = authSuccess.userData["saptchaToken"] as String
                 }
             }
         }

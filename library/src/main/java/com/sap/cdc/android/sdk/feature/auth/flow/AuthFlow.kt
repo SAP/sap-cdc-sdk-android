@@ -203,7 +203,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         }
     }
 
-    protected suspend fun handleOTPRequired(
+    protected fun handleOTPRequired(
         response: CDCResponse,
         callbacks: AuthCallbacks
     ) {
@@ -222,7 +222,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         }
     }
 
-    protected suspend fun handlePendingRegistration(
+    protected fun handlePendingRegistration(
         response: CDCResponse,
         regToken: String?,
         callbacks: AuthCallbacks

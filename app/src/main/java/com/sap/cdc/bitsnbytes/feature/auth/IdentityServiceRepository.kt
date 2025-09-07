@@ -232,9 +232,9 @@ class IdentityServiceRepository private constructor(context: Context) {
             .clear(passkeysAuthenticationProvider)
     }
 
-    suspend fun getSaptchaToken(): IAuthResponse {
-        return authenticationService.authenticate().captcha().getSaptchaToken()
-    }
+//    suspend fun getSaptchaToken(): IAuthResponse {
+//        return authenticationService.authenticate().captcha().getSaptchaToken()
+//    }
 
     //endregion
 

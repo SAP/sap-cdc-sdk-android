@@ -2,7 +2,6 @@
 
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -211,16 +210,15 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
                     onCheckedChange = { isChecked ->
                         isSwitchChecked = isChecked
                         if (isChecked) {
-                            viewModel.getSaptchaToken(
-                                token = { token ->
+                            viewModel.getSaptchaToken {
+                                onSuccess = {
                                     loading = false
-                                    Toast.makeText(context, token, Toast.LENGTH_SHORT).show()
-                                },
-                                onFailedWith = { error ->
-                                    loading = false
-                                    signInError = error?.errorDescription!!
                                 }
-                            )
+                                onError = { error ->
+                                    loading = false
+                                    signInError = error.message
+                                }
+                            }
                         }
                     }
                 )

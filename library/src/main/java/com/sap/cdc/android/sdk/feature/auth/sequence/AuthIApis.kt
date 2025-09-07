@@ -6,9 +6,10 @@ import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.auth.flow.AccountAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.flow.CaptchaAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.PasskeysAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.flow.ProviderAuthFow
+import com.sap.cdc.android.sdk.feature.auth.flow.captcha.AuthCaptcha
+import com.sap.cdc.android.sdk.feature.auth.flow.captcha.IAuthCaptcha
 import com.sap.cdc.android.sdk.feature.auth.flow.login.AuthLogin
 import com.sap.cdc.android.sdk.feature.auth.flow.login.IAuthLogin
 import com.sap.cdc.android.sdk.feature.auth.flow.logout.AuthLogoutFlow
@@ -138,27 +139,6 @@ internal class AuthPasskeys(
                 authenticationProvider = authenticationProvider
             )
         return flow.clearPasskeyCredential()
-    }
-}
-
-//endregion
-
-//region IAuthSaptcha
-
-interface IAuthCaptcha {
-
-    suspend fun getSaptchaToken(): IAuthResponse
-
-}
-
-internal class AuthCaptcha(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
-) : IAuthCaptcha {
-
-    override suspend fun getSaptchaToken(): IAuthResponse {
-        val flow = CaptchaAuthFlow(coreClient, sessionService)
-        return flow.getSaptchaToken()
     }
 }
 

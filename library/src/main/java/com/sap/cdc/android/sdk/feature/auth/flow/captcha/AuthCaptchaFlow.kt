@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth.flow
+package com.sap.cdc.android.sdk.feature.auth.flow.captcha
 
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
@@ -7,29 +7,33 @@ import com.sap.cdc.android.sdk.extensions.encodeWith
 import com.sap.cdc.android.sdk.extensions.jwtDecode
 import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_RISK_SAPTCHA_GET_CHALLENGE
 import com.sap.cdc.android.sdk.feature.auth.AuthEndpoints.Companion.EP_RISK_SAPTCHA_VERIFY
-import com.sap.cdc.android.sdk.feature.auth.AuthResponse
 import com.sap.cdc.android.sdk.feature.auth.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
+import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.auth.flow.AuthFlow
+import com.sap.cdc.android.sdk.feature.auth.flow.TFAAuthFlow
 import com.sap.cdc.android.sdk.feature.auth.session.SessionService
 
-class CaptchaAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
+class AuthCaptchaFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {
 
     companion object {
-        const val LOG_TAG = "AuthFlowCaptcha"
+        const val LOG_TAG = "AuthCaptchaFlow"
     }
 
-    suspend fun getSaptchaToken(): IAuthResponse {
+    suspend fun getSaptchaToken(authCallbacks: AuthCallbacks) {
         CDCDebuggable.log(TFAAuthFlow.LOG_TAG, "startChallenge")
+
         val getJwt =
             AuthenticationApi(coreClient, sessionService).send(
                 EP_RISK_SAPTCHA_GET_CHALLENGE,
                 parameters = mutableMapOf()
             )
-        val authResponse = AuthResponse(getJwt)
-        if (authResponse.isError()) {
-            // Flow ends with error.
-            return authResponse
+
+        // Error clause
+        if (getJwt.isError()) {
+            val authError = createAuthError(getJwt)
+            authCallbacks.onError?.invoke(authError)
+            return
         }
 
         val token = getJwt.stringField("saptchaToken") as String
@@ -55,8 +59,15 @@ class CaptchaAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
                 parameters = params
             )
 
-        val verifyResponse = AuthResponse(verifyJwt)
-        return verifyResponse
+        // Error clause
+        if (verifyJwt.isError()) {
+            val authError = createAuthError(verifyJwt)
+            authCallbacks.onError?.invoke(authError)
+            return
+        }
+
+        val authSuccess = createAuthSuccess(verifyJwt)
+        authCallbacks.onSuccess?.invoke(authSuccess)
     }
 
     private fun verifyChallenge(challengeId: String, pattern: String, i: Int): Boolean {
@@ -64,5 +75,4 @@ class CaptchaAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
         val regex = pattern.toRegex()
         return regex.containsMatchIn(value)
     }
-
 }

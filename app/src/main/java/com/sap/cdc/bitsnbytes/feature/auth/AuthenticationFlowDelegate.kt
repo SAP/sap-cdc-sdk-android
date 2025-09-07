@@ -244,6 +244,12 @@ class AuthenticationFlowDelegate(context: Context) {
             authCallbacks = authCallbacks
         )
     }
+
+    suspend fun getSaptchaToken(
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().captcha().getSaptchaToken(authCallbacks)
+    }
 }
 
 /**
