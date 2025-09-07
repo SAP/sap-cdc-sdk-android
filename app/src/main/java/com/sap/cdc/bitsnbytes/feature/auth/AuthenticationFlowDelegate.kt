@@ -178,7 +178,10 @@ class AuthenticationFlowDelegate(context: Context) {
         parameters: MutableMap<String, String> = mutableMapOf(),
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        authenticationService.account().set(parameters) {
+        authenticationService.account().set(
+            parameters = parameters,
+            refreshOnSuccess = true
+        ) {
             // Register original callbacks first
             authCallbacks()
 

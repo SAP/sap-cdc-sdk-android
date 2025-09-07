@@ -54,7 +54,7 @@ jobs:
 
         upsert_string app/src/main/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'
         upsert_string app/src/variant/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'
-      
+
     - name: Add Google required resources to strings.xml resource (actual value for demo only)
       run: |
         sed -i '/<\/resources>/i \    <string name="google_server_client_id">${{ secrets.GOOGLE_WEB_SERVER_CLIENT_ID }}</string>' app/src/main/res/values/strings.xml

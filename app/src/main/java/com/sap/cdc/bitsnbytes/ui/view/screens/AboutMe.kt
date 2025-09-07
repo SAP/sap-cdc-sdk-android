@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
-import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
+import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SuccessBanner
 import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModelPreview
@@ -71,11 +71,12 @@ fun AboutMeView(viewModel: IAccountViewModel) {
         )
     }
 
-    Column(
+    LoadingStateColumn(
         modifier = Modifier
             .background(Color(0xFFF5F5F5))
             .fillMaxWidth()
             .fillMaxHeight(),
+        loading = loading
     ) {
         // About me section header with gray background
         Box(
@@ -166,7 +167,6 @@ fun AboutMeView(viewModel: IAccountViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
 
         // Error message
         if (setError.isNotEmpty()) {
@@ -205,17 +205,6 @@ fun AboutMeView(viewModel: IAccountViewModel) {
                 message = "Account updated successfully",
                 onDismiss = { showBanner = false }
             )
-        }
-
-        // Loading indicator
-        if (loading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-            ) {
-                IndeterminateLinearIndicator(loading)
-            }
         }
 
         // Auto-hide after 2 seconds

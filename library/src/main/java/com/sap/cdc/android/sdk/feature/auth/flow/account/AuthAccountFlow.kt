@@ -57,6 +57,7 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
      */
     suspend fun setAccountInfo(
         parameters: MutableMap<String, String>? = mutableMapOf(),
+        refreshOnSuccess: Boolean = false,
         callbacks: AuthCallbacks,
     ) {
         CDCDebuggable.log(
@@ -78,8 +79,15 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
         }
 
         // Success case
-        val authSuccess = createAuthSuccess(request)
-        callbacks.onSuccess?.invoke(authSuccess)
+        if (!refreshOnSuccess) {
+            // If not refreshing, return the current response
+            val authSuccess = createAuthSuccess(request)
+            callbacks.onSuccess?.invoke(authSuccess)
+            return
+        }
+
+        // Perform a getAccountInfo to refresh the data
+        getAccountInfo(mutableMapOf(), callbacks)
     }
 
     /**

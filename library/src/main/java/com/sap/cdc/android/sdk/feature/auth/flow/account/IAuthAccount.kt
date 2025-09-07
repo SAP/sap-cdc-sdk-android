@@ -13,7 +13,8 @@ interface IAuthAccount {
 
     suspend fun set(
         parameters: MutableMap<String, String>,
-        configure: AuthCallbacks.() -> Unit
+        refreshOnSuccess: Boolean = false,
+        configure: AuthCallbacks.() -> Unit,
     )
 
     suspend fun authCode(
@@ -37,10 +38,12 @@ internal class AuthAccount(
 
     override suspend fun set(
         parameters: MutableMap<String, String>,
-        configure: AuthCallbacks.() -> Unit
+        refreshOnSuccess: Boolean,
+        configure: AuthCallbacks.() -> Unit,
     ) {
         val callbacks = AuthCallbacks().apply(configure)
-        AuthAccountFlow(coreClient, sessionService).setAccountInfo(parameters, callbacks)
+        AuthAccountFlow(coreClient, sessionService).setAccountInfo(
+            parameters = parameters, refreshOnSuccess = refreshOnSuccess, callbacks = callbacks)
     }
 
     override suspend fun authCode(
