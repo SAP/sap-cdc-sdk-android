@@ -34,6 +34,7 @@ interface IAccountViewModel {
 
     fun setAccountInfo(
         newName: String,
+        alias: String? = null,
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
         // Stub
@@ -63,13 +64,26 @@ class AccountViewModel(context: Context, override val flowDelegate: Authenticati
         }
     }
 
-    override fun setAccountInfo(newName: String, authCallbacks: AuthCallbacks.() -> Unit) {
+    override fun setAccountInfo(
+        newName: String,
+        alias: String?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
         val newName = newName.splitFullName()
         val profileObject =
             json.encodeToJsonElement(
                 mutableMapOf("firstName" to newName.first, "lastName" to newName.second)
             )
         val parameters = mutableMapOf("profile" to profileObject.toString())
+
+        // Update alias (custom custom identifier) if provided
+        if (alias != null) {
+            val customIdentifierObject =
+                json.encodeToJsonElement(
+                    mutableMapOf("alias" to alias)
+                )
+            parameters["customIdentifiers"] = customIdentifierObject.toString()
+        }
         viewModelScope.launch {
             flowDelegate.setAccountInfo(parameters = parameters, authCallbacks = authCallbacks)
         }

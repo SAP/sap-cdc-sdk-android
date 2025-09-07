@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ConfigurationViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.CustomIDSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModel
@@ -75,6 +76,13 @@ class CustomViewModelFactory(
                     "AuthenticationFlowDelegate is required for EmailSignInViewModel"
                 }
                 EmailSignInViewModel(context, authenticationFlowDelegate) as T
+            }
+
+            modelClass.isAssignableFrom(CustomIDSignInViewModel::class.java) -> {
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for EmailSignInViewModel"
+                }
+                CustomIDSignInViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(EmailRegisterViewModel::class.java) -> {

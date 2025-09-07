@@ -78,7 +78,7 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         parameters.clear()
         parameters["aToken"] = aToken ?: ""
         parameters["password"] = credentials.password
-        login(parameters, callbacks)
+        login(parameters = parameters, callbacks = callbacks)
     }
 
     private suspend fun handleLoginResponse(

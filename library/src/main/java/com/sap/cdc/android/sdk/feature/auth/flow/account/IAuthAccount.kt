@@ -8,6 +8,7 @@ interface IAuthAccount {
 
     suspend fun get(
         parameters: MutableMap<String, String>,
+        includeFields: List<String>? = null,
         configure: AuthCallbacks.() -> Unit
     )
 
@@ -30,10 +31,12 @@ internal class AuthAccount(
 
     override suspend fun get(
         parameters: MutableMap<String, String>,
+        includeFields: List<String>?,
         configure: AuthCallbacks.() -> Unit
     ) {
         val callbacks = AuthCallbacks().apply(configure)
-        AuthAccountFlow(coreClient, sessionService).getAccountInfo(parameters, callbacks)
+        AuthAccountFlow(coreClient, sessionService).getAccountInfo(
+            parameters = parameters, includeFields = includeFields, callbacks = callbacks)
     }
 
     override suspend fun set(

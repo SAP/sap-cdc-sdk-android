@@ -64,6 +64,8 @@ fun AboutMeView(viewModel: IAccountViewModel) {
         )
     }
 
+    var alias by remember { mutableStateOf("") }
+
     if (showBanner) {
         SuccessBanner(
             message = "Account updated successfully",
@@ -137,6 +139,49 @@ fun AboutMeView(viewModel: IAccountViewModel) {
             color = Color.LightGray
         )
 
+        // Alias section
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 1.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Alias",
+                    style = AppTheme.typography.body,
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BasicTextField(
+                    value = alias,
+                    onValueChange = { alias = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = AppTheme.typography.labelNormal.copy(
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    cursorBrush = SolidColor(Color.Black),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    singleLine = true
+                )
+            }
+        }
+
+        // Divider
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 1.dp),
+            thickness = 1.dp,
+            color = Color.LightGray
+        )
+
         // Email section
         Card(
             modifier = Modifier
@@ -182,6 +227,7 @@ fun AboutMeView(viewModel: IAccountViewModel) {
                 loading = true
                 viewModel.setAccountInfo(
                     newName = name,
+                    alias = alias,
                     authCallbacks = {
                         onSuccess = {
                             loading = false

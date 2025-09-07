@@ -149,8 +149,14 @@ fun MyProfileView(viewModel: IAccountViewModel) {
             onRefresh = {
                 isRefreshing = true
                 viewModel.getAccountInfo {
-                    onSuccess = { isRefreshing = false }
-                    onError = { isRefreshing = false }
+                    onSuccess = {
+                        isRefreshing = false
+                        loading = false
+                    }
+                    onError = {
+                        isRefreshing = false
+                        loading = false
+                    }
                 }
             },
             modifier = Modifier.fillMaxSize()
@@ -318,16 +324,20 @@ private fun ProfileMenuSection(viewModel: IAccountViewModel) {
 private fun handleLogout(viewModel: IAccountViewModel) {
     viewModel.logOut {
         onSuccess = {
-            NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                toRoute = ProfileScreenRoute.Welcome.route,
-                rootRoute = ProfileScreenRoute.Welcome.route
-            )
+            // Navigate to Welcome screen and clear the profile navigation stack
+            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.Welcome.route) {
+                // Clear the entire profile navigation stack
+                popUpTo(ProfileScreenRoute.Welcome.route) { inclusive = true }
+                launchSingleTop = true
+            }
         }
         onError = { error ->
-            NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                toRoute = ProfileScreenRoute.Welcome.route,
-                rootRoute = ProfileScreenRoute.Welcome.route
-            )
+            // Even on error, navigate to Welcome screen and clear the profile navigation stack
+            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.Welcome.route) {
+                // Clear the entire profile navigation stack
+                popUpTo(ProfileScreenRoute.Welcome.route) { inclusive = true }
+                launchSingleTop = true
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ import com.sap.cdc.bitsnbytes.feature.auth.IdentityServiceRepository
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsView
+import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegisterView
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountView
@@ -32,6 +33,7 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
 import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.CustomIDSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModel
@@ -62,7 +64,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
     // Update the app state manager to use our profile navigation controller
     appStateManager.setNavController(profileNavController)
-    
+
     // Listen to navigation changes and update back navigation state
     val navBackStackEntry by profileNavController.currentBackStackEntryAsState()
     LaunchedEffect(navBackStackEntry) {
@@ -70,7 +72,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         // Even when MyProfile is the start destination (logged in state), user should be able to go back
         val canGoBack = true // Always show back arrow in profile section
         appStateManager.setCanNavigateBack(canGoBack)
-        
+
         // Track if we have profile navigation stack for proper back navigation handling
         val hasProfileBackStack = profileNavController.previousBackStackEntry != null
         appStateManager.setHasProfileBackStack(hasProfileBackStack)
@@ -78,13 +80,13 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
     val context = LocalContext.current.applicationContext
     val identityServiceRepository = IdentityServiceRepository.getInstance(context)
-    
+
     // ✅ Create the shared AuthenticationFlowDelegate ONCE at the top level
     val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
 
     NavHost(
         profileNavController, startDestination =
-            when (identityServiceRepository.availableSession()) {
+            when (authDelegate.hasValidSession()) {
                 true -> ProfileScreenRoute.MyProfile.route
                 false -> ProfileScreenRoute.Welcome.route
             }
@@ -124,6 +126,13 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
                 factory = CustomViewModelFactory(context, authDelegate)
             )
             EmailSignInView(viewModel)
+        }
+
+        composable(ProfileScreenRoute.CustomIdSignIn.route) {
+            val viewModel: CustomIDSignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
+                factory = CustomViewModelFactory(context, authDelegate)
+            )
+            CustomIDSignInView(viewModel)
         }
 
         composable(ProfileScreenRoute.EmailRegister.route) {

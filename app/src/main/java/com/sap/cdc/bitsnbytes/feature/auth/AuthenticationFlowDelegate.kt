@@ -8,6 +8,7 @@ import com.sap.cdc.android.sdk.events.emitTokenReceived
 import com.sap.cdc.android.sdk.feature.auth.AuthenticationService
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
+import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
 import com.sap.cdc.android.sdk.feature.auth.session.Session
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.bitsnbytes.feature.auth.model.AccountEntity
@@ -116,6 +117,11 @@ class AuthenticationFlowDelegate(context: Context) {
             .credentials(credentials = credentials, configure = authCallbacks)
     }
 
+    suspend fun loginWithCustomId(credentials: CustomIdCredentials, authCallbacks: AuthCallbacks.() -> Unit) {
+        authenticationService.authenticate().login()
+            .customIdentifier(credentials = credentials, authCallbacks = authCallbacks)
+    }
+
     suspend fun register(
         credentials: Credentials,
         authCallbacks: AuthCallbacks.() -> Unit,
@@ -128,7 +134,20 @@ class AuthenticationFlowDelegate(context: Context) {
     }
 
     suspend fun logOut(authCallbacks: AuthCallbacks.() -> Unit) {
-        authenticationService.authenticate().logout(authCallbacks = authCallbacks)
+        authenticationService.authenticate().logout {
+            // Register original callbacks first
+            authCallbacks()
+
+            // Add state management side-effect to clear account state on successful logout
+            doOnSuccess {
+                clearAuthenticationState()
+            }
+
+            doOnError {
+                // Even on error, clear local state since logout was attempted
+                clearAuthenticationState()
+            }
+        }
     }
 
     suspend fun resolvePendingRegistration(
@@ -151,7 +170,16 @@ class AuthenticationFlowDelegate(context: Context) {
         parameters: MutableMap<String, String> = mutableMapOf(),
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        authenticationService.account().get(parameters) {
+        authenticationService.account().get(
+            parameters = parameters,
+            includeFields = listOf(
+                "data",
+                "profile",
+                "emails",
+                "missing-required-fields",
+                "customIdentifiers"
+            )
+        ) {
             // Register original callbacks first
             authCallbacks()
 
@@ -165,11 +193,6 @@ class AuthenticationFlowDelegate(context: Context) {
                     // Handle parsing errors silently - don't break the callback chain
                     // Could add logging here if needed
                 }
-            }
-
-            doOnError { error ->
-                // Optionally clear account state on error
-                // _userAccount.value = null
             }
         }
     }

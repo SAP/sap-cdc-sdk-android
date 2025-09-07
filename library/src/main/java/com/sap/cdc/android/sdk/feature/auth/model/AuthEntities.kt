@@ -9,6 +9,6 @@ data class Credentials(
 
 data class CustomIdCredentials(
     val identifier: String,
-    val identifierType: String,
+    var identifierType: String,
     val password: String
 )

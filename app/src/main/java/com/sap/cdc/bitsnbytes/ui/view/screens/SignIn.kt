@@ -21,9 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sap.cdc.bitsnbytes.R import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.IconAndTextOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
@@ -60,7 +61,7 @@ fun SignInView(viewModel: ISignInViewModel) {
         LargeVerticalSpacer()
         Text("Sign In", style = AppTheme.typography.titleLarge)
         SmallVerticalSpacer()
-        Text("Use your preferred method",  style = AppTheme.typography.body)
+        Text("Use your preferred method", style = AppTheme.typography.body)
         MediumVerticalSpacer()
 
         // Social selection view
@@ -138,6 +139,18 @@ fun SignInView(viewModel: ISignInViewModel) {
                     .navigate("${ProfileScreenRoute.AuthTabView.route}/1")
             },
             iconResourceId = R.drawable.ic_email,
+        )
+        Spacer(modifier = Modifier.size(10.dp))
+
+        // Custom identifier sign in
+        IconAndTextOutlineButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
+            text = "Sign in with Custom ID",
+            onClick = {
+                NavigationCoordinator.INSTANCE
+                    .navigate(ProfileScreenRoute.CustomIdSignIn.route)
+            },
+            iconResourceId = R.drawable.ic_profile_row,
         )
         Spacer(modifier = Modifier.size(10.dp))
 

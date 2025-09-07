@@ -30,6 +30,7 @@ sealed class ProfileScreenRoute(
     data object Register : ProfileScreenRoute("Register")
     data object AuthTabView : ProfileScreenRoute("AuthTabView")
     data object EmailSignIn : ProfileScreenRoute("EmailSignIn")
+    data object CustomIdSignIn : ProfileScreenRoute("CustomIdSignIn")
     data object EmailRegister : ProfileScreenRoute("EmailRegister")
     data object MyProfile : ProfileScreenRoute("MyProfile")
     data object AboutMe : ProfileScreenRoute("AboutMe")

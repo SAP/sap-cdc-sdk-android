@@ -24,7 +24,8 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.getAccountInfo](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/cab69a86edae49e2be93fd51b78fc35b.html?q=accounts.getAccountInfo)
      */
     suspend fun getAccountInfo(
-        parameters: MutableMap<String, String>? = mutableMapOf(),
+        parameters: MutableMap<String, String> = mutableMapOf(),
+        includeFields: List<String>? = null,
         callbacks: AuthCallbacks
     ) {
         CDCDebuggable.log(
@@ -32,10 +33,14 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
             "getAccountInfo: with parameters:$parameters"
         )
 
+        if (includeFields != null) {
+            parameters["include"] = includeFields.joinToString(",")
+        }
+
         val request =
             AuthenticationApi(coreClient, sessionService).send(
                 EP_ACCOUNTS_GET_ACCOUNT_INFO,
-                parameters!!
+                parameters
             )
         // Error case
         if (request.isError()) {
@@ -87,7 +92,7 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
         }
 
         // Perform a getAccountInfo to refresh the data
-        getAccountInfo(mutableMapOf(), callbacks)
+        getAccountInfo(parameters = mutableMapOf(), callbacks = callbacks)
     }
 
     /**
