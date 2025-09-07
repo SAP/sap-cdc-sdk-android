@@ -3,6 +3,7 @@ package com.sap.cdc.android.sdk.feature.auth.flow.login
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.auth.flow.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
+import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
 import com.sap.cdc.android.sdk.feature.auth.session.SessionService
 
 interface IAuthLogin {
@@ -11,6 +12,11 @@ interface IAuthLogin {
     suspend fun credentials(
         credentials: Credentials,
         configure: AuthCallbacks.() -> Unit
+    )
+
+    suspend fun customIdentifier(
+        credentials: CustomIdCredentials,
+        authCallbacks: AuthCallbacks.() -> Unit
     )
 
     suspend fun parameters(
@@ -29,6 +35,14 @@ internal class AuthLogin(
         configure: AuthCallbacks.() -> Unit
     ) {
         val callbacks = AuthCallbacks().apply(configure)
+        AuthLoginFlow(coreClient, sessionService).login(credentials, callbacks)
+    }
+
+    override suspend fun customIdentifier(
+        credentials: CustomIdCredentials,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
         AuthLoginFlow(coreClient, sessionService).login(credentials, callbacks)
     }
 
