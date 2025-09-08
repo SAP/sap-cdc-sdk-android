@@ -5,11 +5,15 @@ import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCO
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_ID_TOKEN_EXCHANGE
 import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
+import com.sap.cdc.android.sdk.auth.AuthEndpoints.Companion.EP_ACCOUNT_AUTH_DEVICE_REGISTER
 import com.sap.cdc.android.sdk.auth.AuthResponse
 import com.sap.cdc.android.sdk.auth.AuthenticationApi
+import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.auth.AuthenticationService.Companion.CDC_DEVICE_INFO
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -19,9 +23,9 @@ import com.sap.cdc.android.sdk.core.CoreClient
 class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
     AuthFlow(coreClient, sessionService) {
 
-        companion object {
-            const val LOG_TAG = "AccountAuthFlow"
-        }
+    companion object {
+        const val LOG_TAG = "AccountAuthFlow"
+    }
 
     /**
      * Request updated account information.
@@ -83,6 +87,30 @@ class AccountAuthFlow(coreClient: CoreClient, sessionService: SessionService) :
             parameters
         )
         return AuthResponse(tokenExchange)
-
     }
+
+    suspend fun registerAuthDevice(): IAuthResponse {
+        // Obtain device info from secure storage.
+        val esp = coreClient.siteConfig.applicationContext.getEncryptedPreferences(
+            CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+        )
+        val deviceInfo = esp.getString(CDC_DEVICE_INFO, "") ?: ""
+
+        CDCDebuggable.log(LOG_TAG, "registerDevice: with deviceInfo:$deviceInfo")
+        val registerDevice = AuthenticationApi(coreClient, sessionService).genericSend(
+            EP_ACCOUNT_AUTH_DEVICE_REGISTER,
+            mutableMapOf("deviceInfo" to deviceInfo)
+        )
+        return AuthResponse(registerDevice)
+    }
+
+    suspend fun verifyAuthPush(vToken: String): IAuthResponse {
+        CDCDebuggable.log(LOG_TAG, "verifyAuthPush: with vToken:$vToken")
+        val verifyAuthPush = AuthenticationApi(coreClient, sessionService).genericSend(
+            EP_ACCOUNT_AUTH_DEVICE_REGISTER,
+            mutableMapOf("vToken" to vToken)
+        )
+        return AuthResponse(verifyAuthPush)
+    }
+
 }

@@ -16,6 +16,7 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SocialSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
 
 @Suppress("UNCHECKED_CAST")
@@ -76,6 +77,10 @@ class CustomViewModelFactory(private val context: Context) : ViewModelProvider.F
 
             modelClass.isAssignableFrom(AccountViewModel::class.java) -> {
                 AccountViewModel(context) as T
+            }
+
+            modelClass.isAssignableFrom(TFAAuthenticationViewModel::class.java) -> {
+                TFAAuthenticationViewModel(context) as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class")

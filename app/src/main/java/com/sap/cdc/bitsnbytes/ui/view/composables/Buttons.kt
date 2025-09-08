@@ -224,3 +224,28 @@ fun ActionTextButtonPreview() {
         ActionTextButton("Sign in with SSO") { }
     }
 }
+
+@Composable
+fun SmallActionTextButton(
+    text: String,
+    onClick: () -> Unit,
+) {
+    // Button will use ripple effect only.
+    TextButton(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = Color.Black
+        )
+    ) {
+        Text(text, style = AppTheme.typography.titleSmall)
+    }
+}
+
+@Preview
+@Composable
+fun SmallActionTextButtonPreview() {
+    AppTheme {
+        SmallActionTextButton("Sign in with SSO") { }
+    }
+}

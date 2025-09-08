@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.sap.cdc.android"
-version = "0.1.0"
+version = "0.3.0"
 
 ext["name"] = "SAP Customer Data Cloud for Android"
 ext["artifactId"] = "sdk"

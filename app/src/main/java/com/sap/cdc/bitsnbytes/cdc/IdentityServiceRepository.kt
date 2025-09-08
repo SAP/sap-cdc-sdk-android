@@ -3,10 +3,16 @@ package com.sap.cdc.bitsnbytes.cdc
 import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
+import com.sap.cdc.android.sdk.CDCMessageEventBus
+import com.sap.cdc.android.sdk.MessageEvent
 import com.sap.cdc.android.sdk.auth.AuthenticationService
 import com.sap.cdc.android.sdk.auth.IAuthResponse
 import com.sap.cdc.android.sdk.auth.ResolvableContext
+import com.sap.cdc.android.sdk.auth.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.auth.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.auth.provider.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.provider.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.auth.session.Session
@@ -39,6 +45,8 @@ class IdentityServiceRepository private constructor(context: Context) {
         }
     }
 
+    //region INIT
+
     /**
      * Initialize the site configuration class
      */
@@ -47,7 +55,21 @@ class IdentityServiceRepository private constructor(context: Context) {
     /**
      * Initialize authentication service.
      */
-    var authenticationService = AuthenticationService(siteConfig)
+    var authenticationService = AuthenticationService(siteConfig).registerForPushAuthentication(
+        object : IFCMTokenRequest {
+            override fun requestFCMToken() {
+                FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        return@OnCompleteListener
+                    }
+
+                    // Get new FCM registration token
+                    val token = task.result
+                    CDCMessageEventBus.emitMessageEvent(MessageEvent.EventWithToken(token))
+                })
+            }
+        }
+    )
 
     /**
      * Authentication providers map.
@@ -56,12 +78,12 @@ class IdentityServiceRepository private constructor(context: Context) {
     private var authenticationProviderMap: MutableMap<String, IAuthenticationProvider> =
         mutableMapOf()
 
-
     init {
         // Using session migrator to try and migrate an existing session in an application using old versions
         // of the gigya-android-sdk library.
         val sessionMigrator = SessionMigrator(context)
-        sessionMigrator.tryMigrateSession(authenticationService,
+        sessionMigrator.tryMigrateSession(
+            authenticationService,
             success = {
                 Log.e(SessionMigrator.LOG_TAG, "Session migration success")
 
@@ -74,6 +96,8 @@ class IdentityServiceRepository private constructor(context: Context) {
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
         registerAuthenticationProvider("google", GoogleAuthenticationProvider())
     }
+
+    //endregion
 
     //region CONFIGURATION
 
@@ -219,6 +243,39 @@ class IdentityServiceRepository private constructor(context: Context) {
         parameters: MutableMap<String, String>
     ): IAuthResponse = authenticationService.authenticate().otpSendCode(parameters)
 
+    suspend fun createPasskey(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .createPasskey(passkeysAuthenticationProvider)
+    }
+
+    suspend fun passkeySignIn(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .passkeySignIn(passkeysAuthenticationProvider)
+    }
+
+    suspend fun clearPasskey(
+        passkeysAuthenticationProvider: IPasskeysAuthenticationProvider
+    ): IAuthResponse {
+        return authenticationService.authenticate()
+            .clearPasskey(passkeysAuthenticationProvider)
+    }
+
+    //endregion
+
+    //region PUSH
+
+    suspend fun optInForPushTFA(): IAuthResponse {
+        return authenticationService.tfa().optInForPushAuthentication()
+    }
+
+    suspend fun optInForPushAuth(): IAuthResponse {
+        return authenticationService.authenticate().registerForAuthPushNotifications()
+    }
+
     //endregion
 
     //region RESOLVE INTERRUPTIONS
@@ -272,6 +329,69 @@ class IdentityServiceRepository private constructor(context: Context) {
         resolvableContext: ResolvableContext
     ): IAuthResponse {
         return authenticationService.resolve().otpLogin(code, resolvableContext)
+    }
+
+    //endregion
+
+    //region TWO FACTOR AUTHENTICATION
+
+    suspend fun registerTFAPhoneNumber(
+        phoneNumber: String,
+        resolvableContext: ResolvableContext,
+        language: String? = "en",
+    ): IAuthResponse {
+        return authenticationService.tfa().registerPhone(
+            phoneNumber = phoneNumber,
+            resolvableContext = resolvableContext,
+            language = language
+        )
+    }
+
+    suspend fun sendRegisteredPhoneCode(
+        phoneId: String,
+        resolvableContext: ResolvableContext,
+        language: String? = "en",
+    ): IAuthResponse {
+        return authenticationService.tfa().sendPhoneCode(
+            phoneId = phoneId,
+            resolvableContext = resolvableContext,
+            language = language,
+        )
+    }
+
+    suspend fun verifyTFAPhoneCode(
+        code: String,
+        resolvableContext: ResolvableContext,
+        rememberDevice: Boolean,
+    ): IAuthResponse {
+        return authenticationService.tfa().verifyPhoneCode(
+            code = code,
+            resolvableContext = resolvableContext,
+            rememberDevice = rememberDevice
+        )
+    }
+
+    suspend fun getRegisteredTFAPhoneNumbers(
+        resolvableContext: ResolvableContext,
+    ): IAuthResponse {
+        return authenticationService.tfa().getRegisteredPhoneNumbers(resolvableContext)
+    }
+
+    suspend fun registerNewAuthenticatorApp(
+        resolvableContext: ResolvableContext,
+    ): IAuthResponse {
+        return authenticationService.tfa().registerTOTP(resolvableContext)
+    }
+
+    suspend fun verifyTotpCode(
+        code: String,
+        resolvableContext: ResolvableContext,
+        rememberDevice: Boolean? = false,
+    ): IAuthResponse {
+        return authenticationService.tfa().verifyTOTPCode(
+            resolvableContext,
+            code, rememberDevice
+        )
     }
 
     //endregion

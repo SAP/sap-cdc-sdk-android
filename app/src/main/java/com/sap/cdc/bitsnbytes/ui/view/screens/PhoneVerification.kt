@@ -33,33 +33,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IOtpVerifyViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModelPreview
-
-/**
- * Created by Tal Mirmelshtein on 25/11/2024
- * Copyright: SAP LTD.
- */
+import com.sap.cdc.bitsnbytes.ui.viewmodel.ITFAAuthenticationViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModelPreview
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun OtpVerifyView(
-    viewModel: IOtpVerifyViewModel,
-    resolvableContext: ResolvableContext,
-    otpType: OTPType,
-    inputField: String? = null,
+fun PhoneVerificationView(
+    viewModel: ITFAAuthenticationViewModel,
 ) {
     var loading by remember { mutableStateOf(false) }
 
-    var signInError by remember { mutableStateOf("") }
+    var verificationError by remember { mutableStateOf("") }
 
     var codeSent by remember { mutableStateOf(false) }
 
@@ -79,27 +71,13 @@ fun OtpVerifyView(
 
         Spacer(modifier = Modifier.size(80.dp))
         Text(
-            when (otpType) {
-                OTPType.PHONE -> {
-                    "Sign In with Phone"
-                }
-
-                OTPType.Email -> {
-                    "Sign In with Email"
-                }
-            }, fontSize = 28.sp, fontWeight = FontWeight.Bold
+            "Sign In with Phone", fontSize = 28.sp, fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.size(12.dp))
         Text(
-            when (otpType) {
-                OTPType.PHONE -> {
-                    "Please enter the code sent to your phone"
-                }
-
-                OTPType.Email -> {
-                    "Please enter the code sent to your email"
-                }
-            }, fontSize = 16.sp, fontWeight = FontWeight.Light
+            "Please enter the code sent to your phone",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Light
         )
         Spacer(modifier = Modifier.size(32.dp))
 
@@ -112,10 +90,6 @@ fun OtpVerifyView(
                     Icons.Filled.Info, contentDescription = "", tint = Color.Blue
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = "A new code was sent to $inputField",
-                    color = Color.Blue,
-                )
             }
         }
 
@@ -133,7 +107,8 @@ fun OtpVerifyView(
 
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 val autoFillHandler =
-                    autoFillRequestHandler(autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
+                    autoFillRequestHandler(
+                        autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
                         onFill = {
                             otpValue = it
                         }
@@ -150,7 +125,7 @@ fun OtpVerifyView(
 
             Spacer(modifier = Modifier.size(6.dp))
 
-            if (signInError.isNotEmpty()) {
+            if (verificationError.isNotEmpty()) {
                 Spacer(modifier = Modifier.size(12.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -160,7 +135,7 @@ fun OtpVerifyView(
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = signInError,
+                        text = verificationError,
                         color = Color.Red,
                     )
                 }
@@ -168,32 +143,27 @@ fun OtpVerifyView(
 
             Spacer(modifier = Modifier.size(48.dp))
 
-            OutlinedButton(modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp),
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
                     loading = true
-                    viewModel.resolveLoginWithCode(code = otpValue,
-                        resolvable = resolvableContext,
-                        onLogin = {
+                    viewModel.verifyPhoneCode(
+                        otpValue,
+                        rememberDevice = false,
+                        onVerified = {
                             loading = false
-                            signInError = ""
+                            verificationError = ""
                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         },
-                        onPendingRegistration =  { authResponse ->
-                            loading = false
-                            NavigationCoordinator.INSTANCE
-                                .navigate(
-                                    "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                        authResponse?.resolvable()?.toJson()
-                                    }"
-                                )
-                        },
                         onFailedWith = { error ->
-                            signInError = error?.errorDescription!!
+                            verificationError = error?.errorDescription!!
                             loading = false
-                        })
+
+                        }
+                    )
                 }) {
                 Text("Verify")
             }
@@ -215,10 +185,6 @@ fun OtpVerifyView(
             modifier = Modifier
                 .clickable(enabled = !codeSent) {
                     codeSent = true
-                    //TODO: cancel timer when composable is not active.
-                    viewModel.startOtpTimer {
-                        codeSent = false
-                    }
                 }
                 .padding(start = 16.dp, end = 16.dp),
         )
@@ -227,14 +193,12 @@ fun OtpVerifyView(
     }
 }
 
-@Composable
 @Preview
-fun PhoneOtpVerifyView() {
-    OtpVerifyView(
-        viewModel = OtpVerifyViewModelPreview(),
-        resolvableContext = ResolvableContext(),
-        otpType = OTPType.PHONE,
-        inputField = ""
-    )
+@Composable
+fun PhoneVerificationViewPreview() {
+    AppTheme {
+        PhoneVerificationView(
+            viewModel = TFAAuthenticationViewModelPreview(),
+        )
+    }
 }
-

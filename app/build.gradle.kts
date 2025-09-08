@@ -14,8 +14,8 @@ android {
         minSdk = 26
         //noinspection EditedTargetSdkVersion,OldTargetApi
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.1"
+        versionCode = 3
+        versionName = "0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -116,5 +116,6 @@ dependencies {
     implementation(libs.googleid)
 
     implementation(platform(libs.firebase.bom))
-
+    implementation(libs.firebase.messaging)
+    implementation(libs.accompanist.permissions)
 }

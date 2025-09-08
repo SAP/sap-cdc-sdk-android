@@ -2,15 +2,18 @@ package com.sap.cdc.android.sdk.auth.flow
 
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.auth.AuthResolvers
+import com.sap.cdc.android.sdk.auth.AuthTFA
 import com.sap.cdc.android.sdk.auth.ResolvableContext
 import com.sap.cdc.android.sdk.auth.ResolvableLinking
 import com.sap.cdc.android.sdk.auth.ResolvableOtp
 import com.sap.cdc.android.sdk.auth.ResolvableRegistration
+import com.sap.cdc.android.sdk.auth.ResolvableTFA
 import com.sap.cdc.android.sdk.auth.session.Session
 import com.sap.cdc.android.sdk.auth.session.SessionService
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.extensions.parseRequiredMissingFieldsForRegistration
+import kotlinx.serialization.json.Json
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -21,6 +24,12 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
     companion object {
         const val LOG_TAG = "AuthFlow"
+    }
+
+    internal open val json: Json = Json {
+        prettyPrint = true
+        isLenient = true
+        ignoreUnknownKeys = true
     }
 
     /**
@@ -98,6 +107,13 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION,
                 ResolvableContext.ERR_ERROR_PENDING_TWO_FACTOR_VERIFICATION -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION")
+                    // Get providers
+                    val tfaResolve = AuthTFA(coreClient, sessionService)
+                    val tfaProviders =
+                        tfaResolve.getProviders(regToken = resolvableContext.regToken!!)
+                    resolvableContext.tfa = ResolvableTFA(
+                        tfaProviders = tfaResolve.parseTFAProviders(tfaProviders)
+                    )
                 }
             }
             return resolvableContext

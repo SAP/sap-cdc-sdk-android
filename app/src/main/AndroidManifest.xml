@@ -34,6 +34,23 @@
 
         </activity>
 
+        <service
+            android:name=".cdc.AppMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name="com.sap.cdc.android.sdk.auth.notifications.CDCNotificationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="approve" />
+                <action android:name="deny" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name="com.sap.cdc.android.sdk.auth.provider.activity.WebLoginActivity"
             android:allowTaskReparenting="true"
