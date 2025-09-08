@@ -36,7 +36,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.RegistrationContext
+import com.sap.cdc.bitsnbytes.extensions.parseRequiredMissingFieldsForRegistration
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
@@ -64,8 +66,11 @@ fun PendingRegistrationView(
     var loading by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     var registerError by remember { mutableStateOf("") }
+    val missingFields =
+        registrationContext.originatingError?.details
+            ?.parseRequiredMissingFieldsForRegistration()
     val values = remember {
-        mutableStateMapOf(*registrationContext.missingRequiredFields!!.map { it to "" }
+        mutableStateMapOf(*missingFields!!.map { it to "" }
             .toTypedArray())
     }
 
@@ -93,7 +98,7 @@ fun PendingRegistrationView(
                 .padding(start = 48.dp, end = 48.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            registrationContext.missingRequiredFields?.forEach { field ->
+            missingFields?.forEach { field ->
                 var inputText = values[field].toString()
                 val autoFillHandler =
                     autoFillRequestHandler(
@@ -180,7 +185,12 @@ fun PendingRegistrationView(
 fun PendingRegistrationViewPreview() {
     PendingRegistrationView(
         PendingRegistrationViewModelPreview(),
-        RegistrationContext("", listOf("email", "password"))
+        RegistrationContext(originatingError = AuthError(
+            message = "Pending registration error",
+            code = "400",
+            details = "Missing required fields for registration: nickname",
+            ""
+        ))
     )
 }
 

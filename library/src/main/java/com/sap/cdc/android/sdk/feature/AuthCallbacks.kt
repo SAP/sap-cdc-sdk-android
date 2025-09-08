@@ -11,6 +11,7 @@ data class AuthSuccess(
     val userData: Map<String, Any>
 )
 
+@Serializable
 data class AuthError(
     val message: String,
     val code: String?,
@@ -33,21 +34,31 @@ data class TwoFactorContext(
     var phones: List<TFAPhoneEntity>? = null,
     var qrCode: String? = null,
     var sctToken: String? = null,
+    val regToken: String? = null,
+    val originatingError: AuthError? = null
 )
 
 @Serializable
-data class OTPContext(var vToken: String? = null)
+data class OTPContext(
+    var vToken: String? = null,
+    val regToken: String? = null,
+    val originatingError: AuthError? = null
+)
 
 @Serializable
 data class RegistrationContext(
-    var regToken: String? = null,
-    var missingRequiredFields: List<String>? = null)
+    var missingRequiredFields: List<String>? = null,
+    val regToken: String? = null,
+    val originatingError: AuthError? = null
+)
 
 @Serializable
 data class LinkingContext(
     var provider: String? = null,
     var authToken: String? = null,
-    var conflictingAccounts: LinkEntities? = null
+    var conflictingAccounts: LinkEntities? = null,
+    val regToken: String? = null,
+    val originatingError: AuthError? = null
 )
 
 data class AuthCallbacks(

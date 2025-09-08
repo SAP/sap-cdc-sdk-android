@@ -3,7 +3,6 @@ package com.sap.cdc.android.sdk.feature
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.extensions.parseRequiredMissingFieldsForRegistration
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import com.sap.cdc.android.sdk.feature.auth.ResolvableLinking
 import com.sap.cdc.android.sdk.feature.auth.ResolvableOtp
@@ -84,12 +83,12 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
 
                 // REGISTRATION
                 ResolvableContext.Companion.ERR_ACCOUNT_PENDING_REGISTRATION -> {
-                    CDCDebuggable.log(LOG_TAG, "ERR_ACCOUNT_PENDING_REGISTRATION")
-                    // Parse missing fields required for registration.
-                    val missingFields =
-                        cdcResponse.errorDetails()
-                            ?.parseRequiredMissingFieldsForRegistration()
-                    resolvableContext.registration = ResolvableRegistration(missingFields)
+//                    CDCDebuggable.log(LOG_TAG, "ERR_ACCOUNT_PENDING_REGISTRATION")
+//                    // Parse missing fields required for registration.
+//                    val missingFields =
+//                        cdcResponse.errorDetails()
+//                            ?.parseRequiredMissingFieldsForRegistration()
+                    resolvableContext.registration = ResolvableRegistration()
                 }
 
                 // LINKING
@@ -189,6 +188,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             val parsedProviders = tfaResolve.parseTFAProviders(tfaProviders)
 
             val tfaContext = TwoFactorContext(
+                initiator = initiator,
+                originatingError = createAuthError(response),
                 tfaProviders = parsedProviders,
             )
 
@@ -209,7 +210,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     ) {
         if (callbacks.onOTPRequired != null) {
             val otpContext = OTPContext(
-                vToken = response.stringField("vToken")
+                vToken = response.stringField("vToken"),
+                originatingError = createAuthError(response),
             )
             callbacks.onOTPRequired?.invoke(otpContext)
         } else {
@@ -228,13 +230,11 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         callbacks: AuthCallbacks
     ) {
         if (callbacks.onPendingRegistration != null) {
-            val missingFields = response.errorDetails()
-                ?.parseRequiredMissingFieldsForRegistration()
-
             val registrationContext = RegistrationContext(
                 regToken = regToken,
-                missingRequiredFields = missingFields
+                originatingError = createAuthError(response),
             )
+
             callbacks.onPendingRegistration?.invoke(registrationContext)
         } else {
             // No registration handler provided - treat as error
@@ -265,7 +265,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             val linkingContext = LinkingContext(
                 provider = provider,
                 authToken = authToken,
-                conflictingAccounts = parsedConflictingAccounts
+                conflictingAccounts = parsedConflictingAccounts,
+                originatingError = createAuthError(response),
             )
             callbacks.onLinkingRequired?.invoke(linkingContext)
         } else {
