@@ -2,6 +2,9 @@ package com.sap.cdc.android.sdk.feature.screensets
 
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.extensions.capitalFirst
+import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_ADD_CONNECTION
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_LOGOUT
@@ -16,9 +19,6 @@ import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS.Companion.ACTION_S
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS.Companion.ACTION_SEND_REQUEST
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.LOGIN
 import com.sap.cdc.android.sdk.feature.session.Session
-import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.extensions.capitalFirst
-import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -240,29 +240,29 @@ class WebBridgeJSApiService(
             }
 
             // Initiate provider login flow.
-            val authResponse = authenticationService.authenticate().provider().signIn(
-                weakHostActivity.get()!!, authProvider, params.toMutableMap()
-            )
-            if (authResponse.cdcResponse().isError()) {
-                // Fail with error.
-                CDCDebuggable.log(
-                    LOG_TAG,
-                    "sendRequest: $api - request error: ${
-                        authResponse.cdcResponse().errorCode()
-                    } - ${authResponse.cdcResponse().errorDetails()}"
-                )
-                evaluateResult(
-                    Pair(containerId, authResponse.cdcResponse().jsonResponse ?: ""),
-                    WebBridgeJSEvent.errorEvent(authResponse.cdcResponse().serializeTo<CDCError>())
-                )
-                coroutineContext.cancel()
-            }
-
-            //Optional completion handler.
-            completion()
-
-            // Evaluate response.
-            evaluateResult(Pair(containerId, authResponse.cdcResponse().asJson() ?: ""), null)
+//            val authResponse = authenticationService.authenticate().provider().signIn(
+//                weakHostActivity.get()!!, authProvider, params.toMutableMap()
+//            )
+//            if (authResponse.cdcResponse().isError()) {
+//                // Fail with error.
+//                CDCDebuggable.log(
+//                    LOG_TAG,
+//                    "sendRequest: $api - request error: ${
+//                        authResponse.cdcResponse().errorCode()
+//                    } - ${authResponse.cdcResponse().errorDetails()}"
+//                )
+//                evaluateResult(
+//                    Pair(containerId, authResponse.cdcResponse().jsonResponse ?: ""),
+//                    WebBridgeJSEvent.errorEvent(authResponse.cdcResponse().serializeTo<CDCError>())
+//                )
+//                coroutineContext.cancel()
+//            }
+//
+//            //Optional completion handler.
+//            completion()
+//
+//            // Evaluate response.
+//            evaluateResult(Pair(containerId, authResponse.cdcResponse().asJson() ?: ""), null)
         }
     }
 

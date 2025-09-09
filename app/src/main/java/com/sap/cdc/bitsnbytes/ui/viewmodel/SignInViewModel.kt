@@ -36,7 +36,7 @@ class SignInViewModel(context: Context, val authenticationFlowDelegate: Authenti
             passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
         }
         viewModelScope.launch {
-            authenticationFlowDelegate.passkeylogin(
+            authenticationFlowDelegate.passkeyLogin(
                 provider = passkeysAuthenticationProvider!!,
                 authCallbacks = authCallbacks
             )

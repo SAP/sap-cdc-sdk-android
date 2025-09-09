@@ -22,6 +22,8 @@ interface IAuthAccount {
         parameters: MutableMap<String, String>,
         configure: AuthCallbacks.() -> Unit
     )
+
+    fun link(): IAuthLink
 }
 
 internal class AuthAccount(
@@ -36,7 +38,8 @@ internal class AuthAccount(
     ) {
         val callbacks = AuthCallbacks().apply(configure)
         AuthAccountFlow(coreClient, sessionService).getAccountInfo(
-            parameters = parameters, includeFields = includeFields, callbacks = callbacks)
+            parameters = parameters, includeFields = includeFields, callbacks = callbacks
+        )
     }
 
     override suspend fun set(
@@ -46,7 +49,8 @@ internal class AuthAccount(
     ) {
         val callbacks = AuthCallbacks().apply(configure)
         AuthAccountFlow(coreClient, sessionService).setAccountInfo(
-            parameters = parameters, refreshOnSuccess = refreshOnSuccess, callbacks = callbacks)
+            parameters = parameters, refreshOnSuccess = refreshOnSuccess, callbacks = callbacks
+        )
     }
 
     override suspend fun authCode(
@@ -57,5 +61,6 @@ internal class AuthAccount(
         AuthAccountFlow(coreClient, sessionService).getAuthCode(parameters, callbacks)
     }
 
+    override fun link(): IAuthLink = AuthLink(coreClient, sessionService)
 }
 

@@ -1,14 +1,18 @@
 package com.sap.cdc.android.sdk.feature.account
 
+import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_ID_TOKEN_EXCHANGE
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
-import com.sap.cdc.android.sdk.feature.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.auth.flow.AccountAuthFlow
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthFlow
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
+import com.sap.cdc.android.sdk.feature.LinkingContext
+import com.sap.cdc.android.sdk.feature.auth.flow.AccountAuthFlow
+import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
@@ -125,4 +129,47 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
         val authSuccess = createAuthSuccess(request)
         callbacks.onSuccess?.invoke(authSuccess)
     }
+
+    /**
+     * Request conflicting accounts information.
+     * NOTE: Call requires regToken due to interruption source.
+     *
+     * @see [accounts.getConflictingAccounts](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/4134d7df70b21014bbc5a10ce4041860.html?q=conflictingAccounts)
+     */
+    suspend fun getConflictingAccounts(
+        parameters: MutableMap<String, String>? = mutableMapOf(),
+        callbacks: AuthCallbacks
+    ) {
+        CDCDebuggable.log(AccountAuthFlow.Companion.LOG_TAG, "getConflictingAccounts: with parameters:$parameters")
+
+        val response = AuthenticationApi(coreClient, sessionService).send(
+            EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS,
+            parameters ?: mutableMapOf()
+        )
+
+        // Error case
+        if (response.isError()) {
+            val authError = createAuthError(response)
+            callbacks.onError?.invoke(authError)
+            return
+        }
+
+        // Success case
+        val authSuccess = createAuthSuccess(response)
+        callbacks.onSuccess?.invoke(authSuccess)
+    }
+
+
+
+
+
+    suspend fun linkToSocial(
+        hostActivity: ComponentActivity,
+        authenticationProvider: IAuthenticationProvider,
+        linkingContext: LinkingContext,
+        authCallbacks: AuthCallbacks,
+    ) {
+
+    }
+
 }

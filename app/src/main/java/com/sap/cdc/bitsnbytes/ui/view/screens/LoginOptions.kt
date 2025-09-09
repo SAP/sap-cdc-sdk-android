@@ -61,7 +61,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
 
     var loading by remember { mutableStateOf(false) }
     val executor = remember { ContextCompat.getMainExecutor(context) }
-    var optionsError by remember { mutableStateOf("") }
+    var optionsError: String? by remember { mutableStateOf("") }
 
     val view = LocalView.current
     val notificationPermission = if (view.isInEditMode) null
@@ -104,14 +104,17 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                 if (!isGranted!!) {
                     notificationPermission.launchPermissionRequest()
                 }
-                    loading = true
-                    viewModel.optOnForPushAuth(success = {
+                loading = true
+                viewModel.optOnForPushAuth {
+                    onSuccess = {
                         optionsError = ""
                         loading = false
-                    }, onFailedWith = { error ->
-                        optionsError = error?.errorDescription!!
+                    }
+                    onError = { error ->
+                        optionsError = error.message
                         loading = false
-                    })
+                    }
+                }
             }, inverse = false
         )
         SmallVerticalSpacer()
@@ -203,9 +206,9 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
         LargeVerticalSpacer()
 
         // Error message
-        if (optionsError.isNotEmpty()) {
+        if (optionsError?.isNotEmpty() ?: false) {
             SimpleErrorMessages(
-                text = optionsError
+                text = optionsError!!
             )
         }
     }

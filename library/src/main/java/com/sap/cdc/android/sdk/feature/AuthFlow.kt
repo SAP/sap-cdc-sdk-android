@@ -7,12 +7,14 @@ import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import com.sap.cdc.android.sdk.feature.auth.ResolvableLinking
 import com.sap.cdc.android.sdk.feature.auth.ResolvableOtp
 import com.sap.cdc.android.sdk.feature.auth.ResolvableRegistration
-import com.sap.cdc.android.sdk.feature.auth.ResolvableTFA
 import com.sap.cdc.android.sdk.feature.auth.sequence.AuthResolvers
-import com.sap.cdc.android.sdk.feature.auth.sequence.AuthTFA
 import com.sap.cdc.android.sdk.feature.session.Session
 import com.sap.cdc.android.sdk.feature.session.SessionService
+import com.sap.cdc.android.sdk.feature.tfa.AuthTFA
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -112,12 +114,12 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 ResolvableContext.Companion.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
                     CDCDebuggable.log(LOG_TAG, "ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION")
                     // Get providers
-                    val tfaResolve = AuthTFA(coreClient, sessionService)
-                    val tfaProviders =
-                        tfaResolve.getProviders(regToken = resolvableContext.regToken!!)
-                    resolvableContext.tfa = ResolvableTFA(
-                        tfaProviders = tfaResolve.parseTFAProviders(tfaProviders)
-                    )
+//                    val tfaResolve = AuthTFA(coreClient, sessionService)
+//                    val tfaProviders =
+//                        tfaResolve.getProviders(regToken = resolvableContext.regToken!!)
+//                    resolvableContext.tfa = ResolvableTFA(
+//                        tfaProviders = tfaResolve.parseTFAProviders(tfaProviders)
+//                    )
                 }
             }
             return resolvableContext
@@ -298,6 +300,35 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             asJson = response.jsonResponse
         )
         return authError
+    }
+
+    /**
+     * Connect accounts synchronously - returns AuthResult for use in override transformers.
+     * This method is shared between AuthProviderFlow and AuthLoginFlow.
+     * Only returns Success or Error - no resolvable interruptions.
+     */
+    protected suspend fun connectAccountSync(provider: String, authToken: String): AuthResult {
+        val json = JsonObject(
+            mapOf(
+                "provider" to JsonPrimitive(provider),
+                "authToken" to JsonPrimitive(authToken),
+            )
+        )
+        val providerSession = json.toString()
+        val parameters =
+            mutableMapOf("providerSession" to providerSession, "loginMode" to "connect")
+
+        val response = AuthenticationApi(coreClient, sessionService).send(
+            EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,
+            parameters
+        )
+
+        return if (response.isError()) {
+            AuthResult.Error(createAuthError(response))
+        } else {
+            secureNewSession(response)
+            AuthResult.Success(createAuthSuccess(response))
+        }
     }
 
 }

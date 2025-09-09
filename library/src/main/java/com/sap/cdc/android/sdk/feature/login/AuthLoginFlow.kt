@@ -3,12 +3,14 @@ package com.sap.cdc.android.sdk.feature.login
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_ID_CREATE_TOKEN
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGIN
-import com.sap.cdc.android.sdk.feature.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.AuthError
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
 import com.sap.cdc.android.sdk.feature.AuthFlow
+import com.sap.cdc.android.sdk.feature.AuthResult
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
+import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.auth.model.Credentials
 import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionService
@@ -22,27 +24,21 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
 
     suspend fun login(
         parameters: MutableMap<String, String>,
-        callbacks: AuthCallbacks
+        callbacks: AuthCallbacks,
     ) {
         CDCDebuggable.log(LOG_TAG, "login: with parameters:$parameters")
 
-        try {
-            val login = AuthenticationApi(coreClient, sessionService)
-                .send(EP_ACCOUNTS_LOGIN, parameters)
+        val login = AuthenticationApi(coreClient, sessionService)
+            .send(EP_ACCOUNTS_LOGIN, parameters)
 
-            // Direct callback handling - no IAuthResponse creation
-            handleLoginResponse(login, callbacks)
-
-        } catch (exception: Exception) {
-            val authError = AuthError(
-                message = exception.message ?: "Unknown error occurred",
-                code = null
-            )
-            callbacks.onError?.invoke(authError)
-        }
+        // Direct callback handling - no IAuthResponse creation
+        handleLoginResponse(login, callbacks)
     }
 
-    suspend fun login(credentials: Credentials, callbacks: AuthCallbacks) {
+    suspend fun login(
+        credentials: Credentials,
+        callbacks: AuthCallbacks
+    ) {
         // Create parameter map according to credentials input.
         val parameters = mutableMapOf<String, String>()
         credentials.loginId?.let { parameters["loginID"] = it }
@@ -51,7 +47,10 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         login(parameters, callbacks)
     }
 
-    suspend fun login(credentials: CustomIdCredentials, callbacks: AuthCallbacks) {
+    suspend fun login(
+        credentials: CustomIdCredentials,
+        callbacks: AuthCallbacks
+    ) {
         CDCDebuggable.log(LOG_TAG, "login: with customID:$credentials")
 
         // Create parameter map according to credentials input.
@@ -83,7 +82,7 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
 
     private suspend fun handleLoginResponse(
         response: CDCResponse,
-        callbacks: AuthCallbacks
+        callbacks: AuthCallbacks,
     ) {
         if (isResolvableContext(response)) {
             // Resolvable interruption case
@@ -101,5 +100,64 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         val authSuccess = createAuthSuccess(response)
         callbacks.onSuccess?.invoke(authSuccess)
     }
+
+    /**
+     * Initiate social login related authentication flow.
+     * "NotifySocialLogin" call is used with social sign in flows (simple & link).
+     * @see [accounts.notifySocialLogin](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/413795be70b21014bbc5a10ce4041860.html?q=notifySocialLogin)
+     */
+    suspend fun notifySocialLogin(
+        parameters: MutableMap<String, String>,
+        callbacks: AuthCallbacks
+    ) {
+        CDCDebuggable.log(LOG_TAG, "notifySocialLogin: with parameters:$parameters")
+        val notifySocialLogin =
+            AuthenticationApi(coreClient, sessionService).send(
+                EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,
+                parameters
+            )
+
+        // Resolvable case
+        if (isResolvableContext(notifySocialLogin)) {
+            handleResolvableInterruption(notifySocialLogin, callbacks)
+            return
+        }
+
+        // Error case
+        if (notifySocialLogin.isError()) {
+            val authError = createAuthError(notifySocialLogin)
+            callbacks.onError?.invoke(authError)
+            return
+        }
+
+        // Success case
+        secureNewSession(notifySocialLogin)
+        val authSuccess = createAuthSuccess(notifySocialLogin)
+        callbacks.onSuccess?.invoke(authSuccess)
+    }
+
+    suspend fun linkToSite(
+        parameters: MutableMap<String, String>,
+        linkingContext: LinkingContext,
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        parameters["loginMode"] = "link"
+
+        val callbacks = AuthCallbacks().apply {
+            doOnAnyAndOverride { authResult ->
+                when (authResult) {
+                    is AuthResult.Success -> {
+                        // Override login success with connectAccountSync result
+                        connectAccountSync(linkingContext.provider ?: "", linkingContext.authToken ?: "")
+                    }
+
+                    else -> authResult
+                }
+            }
+        }.apply(authCallbacks)
+
+        login(parameters, callbacks)
+    }
+
 
 }

@@ -1,27 +1,24 @@
 package com.sap.cdc.android.sdk.feature
 
-import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
-import com.sap.cdc.android.sdk.feature.auth.flow.AccountAuthFlow
-import com.sap.cdc.android.sdk.feature.auth.flow.ProviderAuthFow
-import com.sap.cdc.android.sdk.feature.auth.sequence.AuthTFA
-import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthTFA
 import com.sap.cdc.android.sdk.feature.captcha.AuthCaptcha
 import com.sap.cdc.android.sdk.feature.captcha.IAuthCaptcha
 import com.sap.cdc.android.sdk.feature.login.AuthLogin
 import com.sap.cdc.android.sdk.feature.login.IAuthLogin
 import com.sap.cdc.android.sdk.feature.logout.AuthLogoutFlow
+import com.sap.cdc.android.sdk.feature.notifications.AuthPush
+import com.sap.cdc.android.sdk.feature.notifications.IAuthPush
 import com.sap.cdc.android.sdk.feature.otp.AuthOtp
 import com.sap.cdc.android.sdk.feature.otp.IAuthOtp
-import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.provider.AuthProvider
+import com.sap.cdc.android.sdk.feature.provider.IAuthProvider
 import com.sap.cdc.android.sdk.feature.provider.passkey.AuthPasskeys
 import com.sap.cdc.android.sdk.feature.provider.passkey.IAuthPasskeys
 import com.sap.cdc.android.sdk.feature.register.AuthRegister
 import com.sap.cdc.android.sdk.feature.register.IAuthRegister
 import com.sap.cdc.android.sdk.feature.session.SessionService
-import java.lang.ref.WeakReference
+import com.sap.cdc.android.sdk.feature.tfa.AuthTFA
+import com.sap.cdc.android.sdk.feature.tfa.IAuthTFA
 
 /**
  * Authentication APIs interface.
@@ -85,82 +82,3 @@ internal class AuthApis(
     override fun tfa(): IAuthTFA = AuthTFA(coreClient, sessionService)
 
 }
-
-//region IAuthPush
-
-interface IAuthPush {
-
-    suspend fun registerForAuthNotifications(): IAuthResponse
-
-    suspend fun verifyAuthNotification(vToken: String): IAuthResponse
-}
-
-internal class AuthPush(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
-) : IAuthPush {
-
-    override suspend fun registerForAuthNotifications(): IAuthResponse {
-        val flow = AccountAuthFlow(coreClient, sessionService)
-        return flow.registerAuthDevice()
-    }
-
-    override suspend fun verifyAuthNotification(vToken: String): IAuthResponse {
-        val flow = AccountAuthFlow(coreClient, sessionService)
-        return flow.verifyAuthPush(vToken)
-    }
-
-}
-
-//endregion
-
-//region IAuthProvider
-
-interface IAuthProvider {
-
-    /**
-     * initiate provider authentication flow interface.
-     */
-    suspend fun signIn(
-        hostActivity: ComponentActivity,
-        authenticationProvider: IAuthenticationProvider,
-        parameters: MutableMap<String, String>? = null
-    ): IAuthResponse
-
-    /**
-     * Remove social connection from current account interface.
-     */
-    suspend fun removeConnection(
-        provider: String
-    ): CDCResponse
-}
-
-internal class AuthProvider(
-    private val coreClient: CoreClient,
-    private val sessionService: SessionService
-) : IAuthProvider {
-
-    /**
-     * initiate provider authentication flow implementation.
-     */
-    override suspend fun signIn(
-        hostActivity: ComponentActivity,
-        authenticationProvider: IAuthenticationProvider,
-        parameters: MutableMap<String, String>?
-    ): IAuthResponse {
-        val flow = ProviderAuthFow(
-            coreClient, sessionService, authenticationProvider, WeakReference(hostActivity)
-        )
-        return flow.signIn(parameters ?: mutableMapOf())
-    }
-
-    /**
-     * Remove social connection from current account implementation.
-     */
-    override suspend fun removeConnection(provider: String): CDCResponse = ProviderAuthFow(
-        coreClient, sessionService
-    ).removeConnection(provider)
-
-}
-
-//endregion

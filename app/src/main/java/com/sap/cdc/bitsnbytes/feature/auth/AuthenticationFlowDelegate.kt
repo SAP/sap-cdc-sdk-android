@@ -252,7 +252,7 @@ class AuthenticationFlowDelegate(context: Context) {
         authenticationService.authenticate().captcha().getSaptchaToken(authCallbacks)
     }
 
-    suspend fun passkeylogin(
+    suspend fun passkeyLogin(
         provider: IPasskeysAuthenticationProvider,
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
@@ -260,6 +260,12 @@ class AuthenticationFlowDelegate(context: Context) {
             authenticationProvider = provider,
             authCallbacks = authCallbacks
         )
+    }
+
+    suspend fun registerForAuthNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().push().registerForAuthNotifications(authCallbacks)
     }
 }
 

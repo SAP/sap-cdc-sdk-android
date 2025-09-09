@@ -2,14 +2,9 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.activity.ComponentActivity
-import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.AuthState
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
-import kotlinx.coroutines.launch
 
 interface ISocialSignInViewModel {
 
@@ -57,40 +52,40 @@ open class SocialSignInViewModel(context: Context) : BaseViewModel(context), IRe
             onFailedWith(CDCError.providerError())
             return
         }
-        viewModelScope.launch {
-            var authResponse: IAuthResponse?
-            authResponse = if (authenticationProvider is WebAuthenticationProvider) {
-                identityService.webSocialSignIn(
-                    hostActivity, provider
-                )
-            } else
-                identityService.nativeSocialSignIn(
-                    hostActivity, authenticationProvider
-                )
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    onLogin()
-                }
-
-                AuthState.ERROR -> {
-                    // Error in flow.
-                    onFailedWith(authResponse.toDisplayError())
-                }
-
-                AuthState.INTERRUPTED -> {
-                    // Handle available interruption.
-                    when (authResponse.cdcResponse().errorCode()) {
-                        ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
-                            onPendingRegistration(authResponse)
-                        }
-
-                        ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
-                            onLoginIdentifierExists(authResponse)
-                        }
-                    }
-                }
-            }
-        }
+//        viewModelScope.launch {
+//            var authResponse: IAuthResponse?
+//            authResponse = if (authenticationProvider is WebAuthenticationProvider) {
+//                identityService.webSocialSignIn(
+//                    hostActivity, provider
+//                )
+//            } else
+//                identityService.nativeSocialSignIn(
+//                    hostActivity, authenticationProvider
+//                )
+//            when (authResponse.state()) {
+//                AuthState.SUCCESS -> {
+//                    onLogin()
+//                }
+//
+//                AuthState.ERROR -> {
+//                    // Error in flow.
+//                    onFailedWith(authResponse.toDisplayError())
+//                }
+//
+//                AuthState.INTERRUPTED -> {
+//                    // Handle available interruption.
+//                    when (authResponse.cdcResponse().errorCode()) {
+//                        ResolvableContext.ERR_ACCOUNT_PENDING_REGISTRATION -> {
+//                            onPendingRegistration(authResponse)
+//                        }
+//
+//                        ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
+//                            onLoginIdentifierExists(authResponse)
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
 }

@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth.sequence
+package com.sap.cdc.android.sdk.feature.tfa
 
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.auth.IAuthResponse

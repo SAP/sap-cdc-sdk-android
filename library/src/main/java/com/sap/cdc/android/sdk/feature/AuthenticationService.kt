@@ -8,15 +8,13 @@ import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.account.AuthAccount
 import com.sap.cdc.android.sdk.feature.account.IAuthAccount
 import com.sap.cdc.android.sdk.feature.auth.sequence.AuthResolvers
-import com.sap.cdc.android.sdk.feature.session.AuthSession
-import com.sap.cdc.android.sdk.feature.auth.sequence.AuthTFA
 import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthResolvers
-import com.sap.cdc.android.sdk.feature.session.IAuthSession
-import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthTFA
-import com.sap.cdc.android.sdk.feature.session.SessionService
 import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationManager
 import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationOptions
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
+import com.sap.cdc.android.sdk.feature.session.AuthSession
+import com.sap.cdc.android.sdk.feature.session.IAuthSession
+import com.sap.cdc.android.sdk.feature.session.SessionService
 import kotlinx.serialization.json.Json
 
 /**
@@ -58,9 +56,6 @@ class AuthenticationService(
 
     fun resolve(): IAuthResolvers =
         AuthResolvers(coreClient, sessionService)
-
-    fun tfa(): IAuthTFA =
-        AuthTFA(coreClient, sessionService)
 
     /**
      * Update device info in secure storage.

@@ -13,7 +13,6 @@ import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.feature.provider.sso.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.feature.session.Session
@@ -157,58 +156,58 @@ class IdentityServiceRepository private constructor(context: Context) {
 
     //region AUTHENTICATION FLOWS
 
-    /**
-     * Initiate cdc SDK native social provider login flow.
-     */
-    suspend fun nativeSocialSignIn(
-        hostActivity: ComponentActivity,
-        provider: IAuthenticationProvider
-    ): IAuthResponse =
-        authenticationService.authenticate().provider().signIn(
-            hostActivity, provider
-        )
+//    /**
+//     * Initiate cdc SDK native social provider login flow.
+//     */
+//    suspend fun nativeSocialSignIn(
+//        hostActivity: ComponentActivity,
+//        provider: IAuthenticationProvider
+//    ): IAuthResponse =
+//        authenticationService.authenticate().provider().signIn(
+//            hostActivity, provider
+//        )
 
-    /**
-     * Initiate single sign on provider flow.
-     */
-    suspend fun sso(
-        hostActivity: ComponentActivity,
-        parameters: MutableMap<String, String>,
-    ): IAuthResponse =
-        authenticationService.authenticate().provider().signIn(
-            hostActivity, SSOAuthenticationProvider(
-                siteConfig = authenticationService.siteConfig,
-                mutableMapOf()
-            )
-        )
+//    /**
+//     * Initiate single sign on provider flow.
+//     */
+//    suspend fun sso(
+//        hostActivity: ComponentActivity,
+//        parameters: MutableMap<String, String>,
+//    ): IAuthResponse =
+//        authenticationService.authenticate().provider().signIn(
+//            hostActivity, SSOAuthenticationProvider(
+//                siteConfig = authenticationService.siteConfig,
+//                mutableMapOf()
+//            )
+//        )
 
 
-    /**
-     * Initiate cdc Web social provider login (any provider that is currently noy native).
-     */
-    suspend fun webSocialSignIn(
-        hostActivity: ComponentActivity,
-        socialProvider: String
-    ): IAuthResponse {
-        val webAuthenticationProvider = WebAuthenticationProvider(
-            socialProvider,
-            siteConfig,
-            authenticationService.session().getSession()
-        )
-        return authenticationService.authenticate().provider().signIn(
-            hostActivity, webAuthenticationProvider
-        )
-    }
+//    /**
+//     * Initiate cdc Web social provider login (any provider that is currently noy native).
+//     */
+//    suspend fun webSocialSignIn(
+//        hostActivity: ComponentActivity,
+//        socialProvider: String
+//    ): IAuthResponse {
+//        val webAuthenticationProvider = WebAuthenticationProvider(
+//            socialProvider,
+//            siteConfig,
+//            authenticationService.session().getSession()
+//        )
+//        return authenticationService.authenticate().provider().signIn(
+//            hostActivity, webAuthenticationProvider
+//        )
+//    }
 
     //region PUSH
 
-    suspend fun optInForPushTFA(): IAuthResponse {
-        return authenticationService.tfa().optInForPushAuthentication()
-    }
+//    suspend fun optInForPushTFA(): IAuthResponse {
+//        return authenticationService.tfa().optInForPushAuthentication()
+//    }
 
-    suspend fun optInForPushAuth(): IAuthResponse {
-        return authenticationService.authenticate().push().registerForAuthNotifications()
-    }
+//    suspend fun optInForPushAuth(): IAuthResponse {
+//        return authenticationService.authenticate().push().registerForAuthNotifications()
+//    }
 
     //endregion
 
@@ -259,64 +258,64 @@ class IdentityServiceRepository private constructor(context: Context) {
 
     //region TWO FACTOR AUTHENTICATION
 
-    suspend fun registerTFAPhoneNumber(
-        phoneNumber: String,
-        resolvableContext: ResolvableContext,
-        language: String? = "en",
-    ): IAuthResponse {
-        return authenticationService.tfa().registerPhone(
-            phoneNumber = phoneNumber,
-            resolvableContext = resolvableContext,
-            language = language
-        )
-    }
-
-    suspend fun sendRegisteredPhoneCode(
-        phoneId: String,
-        resolvableContext: ResolvableContext,
-        language: String? = "en",
-    ): IAuthResponse {
-        return authenticationService.tfa().sendPhoneCode(
-            phoneId = phoneId,
-            resolvableContext = resolvableContext,
-            language = language,
-        )
-    }
-
-    suspend fun verifyTFAPhoneCode(
-        code: String,
-        resolvableContext: ResolvableContext,
-        rememberDevice: Boolean,
-    ): IAuthResponse {
-        return authenticationService.tfa().verifyPhoneCode(
-            code = code,
-            resolvableContext = resolvableContext,
-            rememberDevice = rememberDevice
-        )
-    }
-
-    suspend fun getRegisteredTFAPhoneNumbers(
-        resolvableContext: ResolvableContext,
-    ): IAuthResponse {
-        return authenticationService.tfa().getRegisteredPhoneNumbers(resolvableContext)
-    }
-
-    suspend fun registerNewAuthenticatorApp(
-        resolvableContext: ResolvableContext,
-    ): IAuthResponse {
-        return authenticationService.tfa().registerTOTP(resolvableContext)
-    }
-
-    suspend fun verifyTotpCode(
-        code: String,
-        resolvableContext: ResolvableContext,
-        rememberDevice: Boolean? = false,
-    ): IAuthResponse {
-        return authenticationService.tfa().verifyTOTPCode(
-            resolvableContext,
-            code, rememberDevice
-        )
-    }
+//    suspend fun registerTFAPhoneNumber(
+//        phoneNumber: String,
+//        resolvableContext: ResolvableContext,
+//        language: String? = "en",
+//    ): IAuthResponse {
+//        return authenticationService.tfa().registerPhone(
+//            phoneNumber = phoneNumber,
+//            resolvableContext = resolvableContext,
+//            language = language
+//        )
+//    }
+//
+//    suspend fun sendRegisteredPhoneCode(
+//        phoneId: String,
+//        resolvableContext: ResolvableContext,
+//        language: String? = "en",
+//    ): IAuthResponse {
+//        return authenticationService.tfa().sendPhoneCode(
+//            phoneId = phoneId,
+//            resolvableContext = resolvableContext,
+//            language = language,
+//        )
+//    }
+//
+//    suspend fun verifyTFAPhoneCode(
+//        code: String,
+//        resolvableContext: ResolvableContext,
+//        rememberDevice: Boolean,
+//    ): IAuthResponse {
+//        return authenticationService.tfa().verifyPhoneCode(
+//            code = code,
+//            resolvableContext = resolvableContext,
+//            rememberDevice = rememberDevice
+//        )
+//    }
+//
+//    suspend fun getRegisteredTFAPhoneNumbers(
+//        resolvableContext: ResolvableContext,
+//    ): IAuthResponse {
+//        return authenticationService.tfa().getRegisteredPhoneNumbers(resolvableContext)
+//    }
+//
+//    suspend fun registerNewAuthenticatorApp(
+//        resolvableContext: ResolvableContext,
+//    ): IAuthResponse {
+//        return authenticationService.tfa().registerTOTP(resolvableContext)
+//    }
+//
+//    suspend fun verifyTotpCode(
+//        code: String,
+//        resolvableContext: ResolvableContext,
+//        rememberDevice: Boolean? = false,
+//    ): IAuthResponse {
+//        return authenticationService.tfa().verifyTOTPCode(
+//            resolvableContext,
+//            code, rememberDevice
+//        )
+//    }
 
     //endregion
 

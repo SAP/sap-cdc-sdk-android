@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.AuthState
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
@@ -61,8 +61,7 @@ interface ILoginOptionsViewModel {
     }
 
     fun optOnForPushAuth(
-        success: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         // Stub.
     }
@@ -208,17 +207,17 @@ class LoginOptionsViewModel(
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {
-            val response = identityService.optInForPushTFA()
-            when (response.state()) {
-                AuthState.SUCCESS -> {
-                    // Success.
-                    success()
-                }
-
-                else -> {
-                    onFailedWith(response.toDisplayError())
-                }
-            }
+//            val response = identityService.optInForPushTFA()
+//            when (response.state()) {
+//                AuthState.SUCCESS -> {
+//                    // Success.
+//                    success()
+//                }
+//
+//                else -> {
+//                    onFailedWith(response.toDisplayError())
+//                }
+//            }
         }
     }
 
@@ -227,21 +226,10 @@ class LoginOptionsViewModel(
     //region PUSH AUTH
 
     override fun optOnForPushAuth(
-        success: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         viewModelScope.launch {
-            val response = identityService.optInForPushTFA()
-            when (response.state()) {
-                AuthState.SUCCESS -> {
-                    // Success.
-                    success()
-                }
-
-                else -> {
-                    onFailedWith(response.toDisplayError())
-                }
-            }
+            authenticationFlowDelegate.registerForAuthNotifications(authCallbacks)
         }
     }
 
