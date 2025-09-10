@@ -3,7 +3,7 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.model.Credentials
+import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.bitsnbytes.extensions.splitFullName
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import kotlinx.coroutines.launch
@@ -30,7 +30,7 @@ class EmailRegisterViewModelPreview : IEmailRegisterViewModel
 
 class EmailRegisterViewModel(
     context: Context,
-    private val authenticationFlowDelegate: AuthenticationFlowDelegate
+    private val flowDelegate: AuthenticationFlowDelegate
 ) : BaseViewModel(context), IEmailRegisterViewModel {
 
     /**
@@ -51,7 +51,7 @@ class EmailRegisterViewModel(
                         "lastName" to namePair.second
                     )
                 )
-            authenticationFlowDelegate.register(
+            flowDelegate.register(
                 credentials,
                 authCallbacks,
                 mutableMapOf("profile" to profileObject.toString())

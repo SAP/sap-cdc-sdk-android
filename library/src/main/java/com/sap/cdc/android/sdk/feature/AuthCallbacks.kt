@@ -1,9 +1,9 @@
 package com.sap.cdc.android.sdk.feature
 
-import com.sap.cdc.android.sdk.feature.auth.model.LinkEntities
-import com.sap.cdc.android.sdk.feature.auth.model.TFAEmailEntity
-import com.sap.cdc.android.sdk.feature.auth.model.TFAPhoneEntity
-import com.sap.cdc.android.sdk.feature.auth.model.TFAProvidersEntity
+import com.sap.cdc.android.sdk.feature.account.LinkEntities
+import com.sap.cdc.android.sdk.feature.tfa.TFAEmailEntity
+import com.sap.cdc.android.sdk.feature.tfa.TFAPhoneEntity
+import com.sap.cdc.android.sdk.feature.tfa.TFAProvidersEntity
 import kotlinx.serialization.Serializable
 
 sealed class AuthResult {
@@ -24,7 +24,7 @@ data class AuthSuccess(
 @Serializable
 data class AuthError(
     val message: String,
-    val code: String?,
+    val code: String? = null,
     val details: String? = null,
     val asJson: String? = null
 )
@@ -80,6 +80,12 @@ data class AuthCallbacks(
     private var _onTwoFactorRequired: MutableList<(TwoFactorContext) -> Unit> = mutableListOf(),
     private var _onOTPRequired: MutableList<(OTPContext) -> Unit> = mutableListOf(),
     private var _onCaptchaRequired: MutableList<() -> Unit> = mutableListOf(),
+    
+    // NEW: Context update callbacks for multi-step flows
+    private var _onTwoFactorContextUpdated: MutableList<(TwoFactorContext) -> Unit> = mutableListOf(),
+    private var _onRegistrationContextUpdated: MutableList<(RegistrationContext) -> Unit> = mutableListOf(),
+    private var _onLinkingContextUpdated: MutableList<(LinkingContext) -> Unit> = mutableListOf(),
+    private var _onOTPContextUpdated: MutableList<(OTPContext) -> Unit> = mutableListOf(),
     
     // NEW: Override transformers stored separately
     private var _onSuccessOverrides: MutableList<suspend (AuthSuccess) -> AuthSuccess> = mutableListOf(),
@@ -183,6 +189,71 @@ data class AuthCallbacks(
             value?.let { _onCaptchaRequired.add(it) }
         }
 
+    // NEW: Context update callback setters
+    /**
+     * Called when TwoFactor context is updated with enriched data.
+     * 
+     * ✅ RECOMMENDED for TwoFactor UI: This provides ready-to-use enriched context.
+     * 
+     * Benefits:
+     * - Automatic SDK enrichment (emails, tokens, etc.)
+     * - Progressive context updates as flow progresses
+     * - Type-safe TwoFactor-specific data
+     * - Ready for immediate UI binding
+     * 
+     * This callback is called IN ADDITION to onSuccess, not instead of it.
+     * Use this when you want SDK to handle context enrichment automatically.
+     */
+    var onTwoFactorContextUpdated: ((TwoFactorContext) -> Unit)?
+        get() = if (_onTwoFactorContextUpdated.isEmpty()) null else { context -> 
+            _onTwoFactorContextUpdated.forEach { it(context) }
+        }
+        set(value) {
+            value?.let { _onTwoFactorContextUpdated.add(it) }
+        }
+
+    /**
+     * Called when Registration context is updated with enriched data.
+     * 
+     * This callback provides enriched registration context for multi-step registration flows.
+     * Called IN ADDITION to onSuccess, not instead of it.
+     */
+    var onRegistrationContextUpdated: ((RegistrationContext) -> Unit)?
+        get() = if (_onRegistrationContextUpdated.isEmpty()) null else { context -> 
+            _onRegistrationContextUpdated.forEach { it(context) }
+        }
+        set(value) {
+            value?.let { _onRegistrationContextUpdated.add(it) }
+        }
+
+    /**
+     * Called when Linking context is updated with enriched data.
+     * 
+     * This callback provides enriched linking context for account linking flows.
+     * Called IN ADDITION to onSuccess, not instead of it.
+     */
+    var onLinkingContextUpdated: ((LinkingContext) -> Unit)?
+        get() = if (_onLinkingContextUpdated.isEmpty()) null else { context -> 
+            _onLinkingContextUpdated.forEach { it(context) }
+        }
+        set(value) {
+            value?.let { _onLinkingContextUpdated.add(it) }
+        }
+
+    /**
+     * Called when OTP context is updated with enriched data.
+     * 
+     * This callback provides enriched OTP context for one-time password flows.
+     * Called IN ADDITION to onSuccess, not instead of it.
+     */
+    var onOTPContextUpdated: ((OTPContext) -> Unit)?
+        get() = if (_onOTPContextUpdated.isEmpty()) null else { context -> 
+            _onOTPContextUpdated.forEach { it(context) }
+        }
+        set(value) {
+            value?.let { _onOTPContextUpdated.add(it) }
+        }
+
     // Methods for side-effect callbacks (execute before original callbacks) - backward compatible
     fun doOnSuccess(callback: (AuthSuccess) -> Unit) = apply {
         _onSuccess.add(0, callback)
@@ -210,6 +281,23 @@ data class AuthCallbacks(
 
     fun doOnCaptchaRequired(callback: () -> Unit) = apply {
         _onCaptchaRequired.add(0, callback)
+    }
+
+    // NEW: Context update callback methods
+    fun doOnTwoFactorContextUpdated(callback: (TwoFactorContext) -> Unit) = apply {
+        _onTwoFactorContextUpdated.add(0, callback)
+    }
+
+    fun doOnRegistrationContextUpdated(callback: (RegistrationContext) -> Unit) = apply {
+        _onRegistrationContextUpdated.add(0, callback)
+    }
+
+    fun doOnLinkingContextUpdated(callback: (LinkingContext) -> Unit) = apply {
+        _onLinkingContextUpdated.add(0, callback)
+    }
+
+    fun doOnOTPContextUpdated(callback: (OTPContext) -> Unit) = apply {
+        _onOTPContextUpdated.add(0, callback)
     }
 
     // NEW: Override methods for response transformation

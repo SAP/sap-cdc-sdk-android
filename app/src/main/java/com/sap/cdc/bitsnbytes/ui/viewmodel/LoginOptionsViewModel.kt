@@ -101,12 +101,12 @@ class LoginOptionsViewModel(
     /**
      * Create instance of the biometric auth (no need to singleton it).
      */
-    private var biometricAuth = BiometricAuth(identityService.authenticationService.sessionService)
+    private var biometricAuth = BiometricAuth(authenticationFlowDelegate.authenticationService.sessionService)
 
     private var biometricLock by mutableStateOf(false)
 
     private var biometricActive by mutableStateOf(
-        identityService.authenticationService.session()
+        authenticationFlowDelegate.authenticationService.session()
             .sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
     )
 
@@ -143,7 +143,7 @@ class LoginOptionsViewModel(
             },
             onAuthenticationSucceeded = {
                 biometricActive =
-                    identityService.sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
+                    authenticationFlowDelegate.sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
             }
         )
     }
@@ -168,7 +168,7 @@ class LoginOptionsViewModel(
             },
             onAuthenticationSucceeded = {
                 biometricActive =
-                    identityService.sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
+                    authenticationFlowDelegate.sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
             }
         )
     }

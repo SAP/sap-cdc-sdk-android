@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
@@ -56,7 +56,7 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModelPreview
 @Composable
 fun LinkAccountView(
     viewModel: ILinkAccountViewModel,
-    resolvable: ResolvableContext,
+    linkingContext: LinkingContext,
 ) {
     val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }
@@ -87,8 +87,8 @@ fun LinkAccountView(
         Spacer(modifier = Modifier.size(24.dp))
 
         // Vary login providers list to display the correct link path (social or site).
-        if (resolvable.linking?.conflictingAccounts!!.loginProviders.contains("site")) {
-            // Login to site.
+        if (linkingContext.conflictingAccounts!!.loginProviders.contains("site")) {
+//            // Login to site.
             Text("Link with account password")
             Spacer(modifier = Modifier.size(12.dp))
             TextField(
@@ -124,21 +124,24 @@ fun LinkAccountView(
                 onClick = {
                     loading = true
                     // Link to site account using password.
-                    viewModel.resolveLinkToSiteAccount(
-                        loginId = resolvable.linking?.conflictingAccounts?.loginID!!,
+                    viewModel.linkToSiteAccount(
+                        loginId = linkingContext.conflictingAccounts?.loginID!!,
                         password = password,
-                        resolvableContext = resolvable,
-                        onLogin = {
+                        linkingContext = linkingContext
+                    ) {
+                        onSuccess = {
                             loading = false
                             NavigationCoordinator.INSTANCE.popToRootAndNavigate(
                                 toRoute = ProfileScreenRoute.MyProfile.route,
                                 rootRoute = ProfileScreenRoute.Welcome.route
                             )
-                        },
-                        onFailedWith = { error ->
-                            loading = false
                         }
-                    )
+
+                        onError = { error ->
+                            loading = false
+                            linkError = error.message
+                        }
+                    }
                 }) {
                 Text("Link Account")
             }
@@ -146,7 +149,7 @@ fun LinkAccountView(
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        val socialProvidersOnly = resolvable.linking?.conflictingAccounts!!.loginProviders.toMutableList()
+        val socialProvidersOnly = linkingContext.conflictingAccounts!!.loginProviders.toMutableList()
         socialProvidersOnly.remove("site")
         if (socialProvidersOnly.size > 0) {
             Text("Link with existing social accounts")
@@ -156,21 +159,25 @@ fun LinkAccountView(
                 socialProviders = socialProvidersOnly,
             ) { provider ->
                 loading = true
-                viewModel.resolveLinkToSocialAccount(
+                viewModel.linkToSocialProvider(
                     hostActivity = context as ComponentActivity,
                     provider = provider,
-                    resolvableContext = resolvable,
-                    onLogin = {
+                    linkingContext = linkingContext
+                ) {
+
+                    onSuccess = {
                         loading = false
                         NavigationCoordinator.INSTANCE.popToRootAndNavigate(
                             toRoute = ProfileScreenRoute.MyProfile.route,
                             rootRoute = ProfileScreenRoute.Welcome.route
                         )
-                    },
-                    onFailedWith = { error ->
-                        loading = false
                     }
-                )
+
+                    onError = { error ->
+                        loading = false
+                        linkError = error.message
+                    }
+                }
             }
         }
 
@@ -182,7 +189,8 @@ fun LinkAccountView(
         )
         Spacer(modifier = Modifier.size(24.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 240.dp, height = 44.dp),
+        OutlinedButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
@@ -207,7 +215,8 @@ fun LinkAccountView(
 
         Spacer(modifier = Modifier.size(10.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 240.dp, height = 44.dp),
+        OutlinedButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
@@ -267,8 +276,6 @@ fun LinkAccountView(
 fun LinkAccountViewPreview() {
     LinkAccountView(
         viewModel = LinkAccountViewModelPreview(),
-        resolvable = ResolvableContext(
-            "",
-        )
+        linkingContext = LinkingContext()
     )
 }

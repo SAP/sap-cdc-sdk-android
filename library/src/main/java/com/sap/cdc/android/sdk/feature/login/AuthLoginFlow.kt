@@ -11,8 +11,8 @@ import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.AuthResult
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.LinkingContext
-import com.sap.cdc.android.sdk.feature.auth.model.Credentials
-import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
+import com.sap.cdc.android.sdk.feature.Credentials
+import com.sap.cdc.android.sdk.feature.CustomIdCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :

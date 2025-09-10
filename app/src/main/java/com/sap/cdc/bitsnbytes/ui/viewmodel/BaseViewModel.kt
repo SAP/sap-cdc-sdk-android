@@ -2,7 +2,6 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import com.sap.cdc.bitsnbytes.feature.auth.IdentityServiceRepository
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
@@ -22,13 +21,6 @@ open class BaseViewModel(context: Context): ViewModel() {
         ignoreUnknownKeys = true
         explicitNulls = true
     }
-
-    /**
-     * Identity service repository instance.
-     */
-    val identityService: IdentityServiceRepository =
-        IdentityServiceRepository.getInstance(context)
-
 
     open fun cancelAllTimers() {
         // Stub.

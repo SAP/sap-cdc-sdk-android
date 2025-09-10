@@ -21,7 +21,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,8 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
-import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
@@ -56,21 +53,21 @@ fun TOTPVerificationView(
     var loading by remember { mutableStateOf(false) }
     var verificationError by remember { mutableStateOf("") }
 
-    if (viewModel.resolvableContext.collectAsState().value?.tfa?.tfaProviders?.activeProviders?.isEmpty() == true) {
-        // Need to register a new authenticator app
-        RegisterAuthenticatorAppWithQAView(
-            viewModel = viewModel,
-            onLoadChanged = { loading = it },
-            onVerificationErrorChanged = { verificationError = it }
-        )
-    } else {
-        // Show verification view only.
-        TOTPCodeVerificationView(
-            viewModel = viewModel,
-            onLoadChanged = { loading = it },
-            onVerificationErrorChanged = { verificationError = it }
-        )
-    }
+//    if (viewModel.resolvableContext.collectAsState().value?.tfa?.tfaProviders?.activeProviders?.isEmpty() == true) {
+//        // Need to register a new authenticator app
+//        RegisterAuthenticatorAppWithQAView(
+//            viewModel = viewModel,
+//            onLoadChanged = { loading = it },
+//            onVerificationErrorChanged = { verificationError = it }
+//        )
+//    } else {
+//        // Show verification view only.
+//        TOTPCodeVerificationView(
+//            viewModel = viewModel,
+//            onLoadChanged = { loading = it },
+//            onVerificationErrorChanged = { verificationError = it }
+//        )
+//    }
 }
 
 @Composable
@@ -188,10 +185,10 @@ fun RegisterAuthenticatorAppWithQAView(
                     onLoadChanged(true)
                     viewModel.verifyTOTPCode(
                         code = otpValue,
-                        onVerificationSuccess = {
-                            // Navigate to the next screen.
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        },
+//                        onVerificationSuccess = {
+//                            // Navigate to the next screen.
+//                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+//                        },
                         onFailedWith = {
                             onLoadChanged(false)
                             onVerificationErrorChanged(it?.errorDescription ?: "")
@@ -280,10 +277,10 @@ fun TOTPCodeVerificationView(
                 onLoadChanged(true)
                 viewModel.verifyTOTPCode(
                     code = otpValue,
-                    onVerificationSuccess = {
-                        // Navigate to the next screen.
-                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                    },
+//                    onVerificationSuccess = {
+//                        // Navigate to the next screen.
+//                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+//                    },
                     onFailedWith = {
                         onLoadChanged(false)
                         onVerificationErrorChanged(it?.errorDescription ?: "")

@@ -12,14 +12,6 @@ import java.lang.ref.WeakReference
 
 interface IAuthLink {
 
-    /**
-     * Get conflicting accounts interface.
-     */
-    suspend fun conflictingAccounts(
-        parameters: MutableMap<String, String>,
-        authCallbacks: AuthCallbacks.() -> Unit
-    )
-
     suspend fun toSite(
         parameters: MutableMap<String, String>,
         linkingContext: LinkingContext,
@@ -39,17 +31,6 @@ class AuthLink(
     private val coreClient: CoreClient,
     private val sessionService: SessionService
 ) : IAuthLink {
-
-    override suspend fun conflictingAccounts(
-        parameters: MutableMap<String, String>,
-        authCallbacks: AuthCallbacks.() -> Unit
-    ) {
-        val callbacks = AuthCallbacks().apply(authCallbacks)
-        AuthAccountFlow(coreClient, sessionService).getConflictingAccounts(
-            parameters,
-            callbacks
-        )
-    }
 
     override suspend fun toSite(
         parameters: MutableMap<String, String>,

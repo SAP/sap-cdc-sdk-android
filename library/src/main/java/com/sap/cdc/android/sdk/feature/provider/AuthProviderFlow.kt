@@ -15,7 +15,6 @@ import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.AuthResult
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.LinkingContext
-import com.sap.cdc.android.sdk.feature.auth.flow.ProviderAuthFow
 import com.sap.cdc.android.sdk.feature.provider.sso.SSOResponseEntity
 import com.sap.cdc.android.sdk.feature.provider.sso.SSOUtil
 import com.sap.cdc.android.sdk.feature.session.SessionService
@@ -36,7 +35,7 @@ class AuthProviderFlow(
         parameters: MutableMap<String, String>?,
         callbacks: AuthCallbacks,
     ) {
-        CDCDebuggable.log(ProviderAuthFow.Companion.LOG_TAG, "signIn: with parameters:$parameters")
+        CDCDebuggable.log(LOG_TAG, "signIn: with parameters:$parameters")
 
         if (provider == null) {
             // End flow with error.
@@ -51,7 +50,7 @@ class AuthProviderFlow(
                 // Native flows refer to social networks that require native SDK implementation
                 // in order to authenticate the user (eg. Facebook, Google, etc.).
                 ProviderType.NATIVE -> {
-                    CDCDebuggable.log(ProviderAuthFow.Companion.LOG_TAG, "signIn: native")
+                    CDCDebuggable.log(LOG_TAG, "signIn: native")
                     val parameters = parameters ?: mutableMapOf()
                     if (!parameters.containsKey("loginMode")) {
                         parameters["loginMode"] = "standard"
@@ -86,7 +85,7 @@ class AuthProviderFlow(
                 // Web flows refer to all social provider types that are not native SDK based.
                 // These providers require a web view to authenticate the user.
                 ProviderType.WEB -> {
-                    CDCDebuggable.log(ProviderAuthFow.Companion.LOG_TAG, "signIn: web")
+                    CDCDebuggable.log(LOG_TAG, "signIn: web")
                     //TODO: Possibility missing interruption or error handling.
                     // Secure new acquired session.
                     val session = signIn.session!!
@@ -115,7 +114,7 @@ class AuthProviderFlow(
 
                 // SSO provider authentication using a Central Login Page (CLP) only.
                 ProviderType.SSO -> {
-                    CDCDebuggable.log(ProviderAuthFow.Companion.LOG_TAG, "signIn: sso")
+                    CDCDebuggable.log(LOG_TAG, "signIn: sso")
                     val ssoData = signIn.ssoData!!
                     val ssoUtil = SSOUtil()
                     val tokenResponse = ssoToken(ssoUtil, ssoData)
@@ -158,7 +157,7 @@ class AuthProviderFlow(
                 }
             }
         } catch (exception: ProviderException) {
-            Log.d(ProviderAuthFow.Companion.LOG_TAG, exception.type.ordinal.toString())
+            Log.d(LOG_TAG, exception.type.ordinal.toString())
             callbacks.onError?.invoke(createAuthError(CDCResponse().fromError(exception.error!!)))
         }
     }

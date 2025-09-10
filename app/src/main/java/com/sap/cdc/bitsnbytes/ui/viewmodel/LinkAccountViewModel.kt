@@ -3,28 +3,26 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.AuthState
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.LinkingContext
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import kotlinx.coroutines.launch
 
 interface ILinkAccountViewModel {
 
-    fun resolveLinkToSiteAccount(
+    fun linkToSiteAccount(
         loginId: String, password: String,
-        resolvableContext: ResolvableContext,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        linkingContext: LinkingContext,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         //Stub
     }
 
-    fun resolveLinkToSocialAccount(
+    fun linkToSocialProvider(
         hostActivity: ComponentActivity,
         provider: String,
-        resolvableContext: ResolvableContext,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        linkingContext: LinkingContext,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         //Stub
     }
@@ -34,29 +32,24 @@ interface ILinkAccountViewModel {
 // Mocked preview class for LinkAccountViewModel
 class LinkAccountViewModelPreview : ILinkAccountViewModel
 
-class LinkAccountViewModel(context: Context) : BaseViewModel(context), ILinkAccountViewModel {
+class LinkAccountViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) : BaseViewModel(context),
+    ILinkAccountViewModel {
 
     /**
      * Resolve link account interruption with credentials input.
      */
-    override fun resolveLinkToSiteAccount(
-        loginId: String,
-        password: String,
-        resolvableContext: ResolvableContext,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+    override fun linkToSiteAccount(
+        loginId: String, password: String,
+        linkingContext: LinkingContext,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         viewModelScope.launch {
-            val authResponse = identityService.resolveLinkToSiteAccount(
-                loginId = loginId, password = password, resolvableContext = resolvableContext
+            flowDelegate.linkToSiteAccount(
+                loginId,
+                password,
+                linkingContext,
+                authCallbacks
             )
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    onLogin()
-                }
-
-                else -> onFailedWith(authResponse.toDisplayError())
-            }
         }
     }
 
@@ -64,28 +57,19 @@ class LinkAccountViewModel(context: Context) : BaseViewModel(context), ILinkAcco
     /**
      * Resolve link account interruption to social account.
      */
-    override fun resolveLinkToSocialAccount(
+    override fun linkToSocialProvider(
         hostActivity: ComponentActivity,
         provider: String,
-        resolvableContext: ResolvableContext,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        linkingContext: LinkingContext,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         viewModelScope.launch {
-            val authResponse = identityService.resolveLinkToSocialAccount(
+            flowDelegate.linkToSocialProvider(
                 hostActivity,
-                identityService.getAuthenticationProvider(provider)!!,
-                resolvableContext,
+                provider,
+                linkingContext,
+                authCallbacks
             )
-            when (authResponse.state()) {
-                AuthState.SUCCESS -> {
-                    onLogin()
-                }
-
-                else -> {
-                    onFailedWith(authResponse.toDisplayError())
-                }
-            }
         }
     }
 

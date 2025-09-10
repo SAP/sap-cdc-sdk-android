@@ -9,10 +9,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.OTPContext
 import com.sap.cdc.android.sdk.feature.RegistrationContext
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
-import com.sap.cdc.bitsnbytes.feature.auth.IdentityServiceRepository
+import com.sap.cdc.android.sdk.feature.ResolvableContext
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsView
@@ -80,7 +80,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
     }
 
     val context = LocalContext.current.applicationContext
-    val identityServiceRepository = IdentityServiceRepository.getInstance(context)
 
     // ✅ Create the shared AuthenticationFlowDelegate ONCE at the top level
     val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
@@ -154,14 +153,14 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             PendingRegistrationView(viewModel, registrationContext)
         }
 
-        composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{resolvableContext}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
-            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
+        composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{linkingContext}") { backStackEntry ->
+            val resolvableJson = backStackEntry.arguments?.getString("linkingContext")
+            val linkingContext = Json.decodeFromString<LinkingContext>(resolvableJson!!)
             // Screen-scoped for temporary resolution flows
             val viewModel: LinkAccountViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
-            LinkAccountView(viewModel, resolvable)
+            LinkAccountView(viewModel, linkingContext)
         }
 
         composable(ProfileScreenRoute.MyProfile.route) {

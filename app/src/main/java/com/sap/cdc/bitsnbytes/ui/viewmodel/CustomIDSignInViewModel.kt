@@ -3,7 +3,7 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
+import com.sap.cdc.android.sdk.feature.CustomIdCredentials
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import kotlinx.coroutines.launch
 
@@ -27,7 +27,7 @@ class CustomIDSignInViewModelPreview : ICustomIDSignInViewModel
 
 class CustomIDSignInViewModel(
     context: Context,
-    private val authenticationFlowDelegate: AuthenticationFlowDelegate
+    private val flowDelegate: AuthenticationFlowDelegate
 ) : BaseViewModel(context), ICustomIDSignInViewModel {
 
 
@@ -43,7 +43,7 @@ class CustomIDSignInViewModel(
                 identifierType = ICustomIDSignInViewModel.CUSTOM_ID_PREFIX + identifierType,
                 password = password
             )
-            authenticationFlowDelegate.loginWithCustomId(
+            flowDelegate.loginWithCustomId(
                 credentials = credentials,
                 authCallbacks = authCallbacks
             )

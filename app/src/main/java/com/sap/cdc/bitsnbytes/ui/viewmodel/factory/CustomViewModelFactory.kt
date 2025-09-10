@@ -40,11 +40,17 @@ class CustomViewModelFactory(
             }
 
             modelClass.isAssignableFrom(SocialSignInViewModel::class.java) -> {
-                SocialSignInViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for SocialSignInViewModel"
+                }
+                SocialSignInViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(ScreenSetViewModel::class.java) -> {
-                ScreenSetViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for ScreenSetViewModel"
+                }
+                ScreenSetViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(PendingRegistrationViewModel::class.java) -> {
@@ -76,11 +82,17 @@ class CustomViewModelFactory(
             }
 
             modelClass.isAssignableFrom(LinkAccountViewModel::class.java) -> {
-                LinkAccountViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for LinkAccountViewModel"
+                }
+                LinkAccountViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(RegisterViewModel::class.java) -> {
-                RegisterViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for RegisterViewModel"
+                }
+                RegisterViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(EmailSignInViewModel::class.java) -> {
@@ -105,7 +117,10 @@ class CustomViewModelFactory(
             }
 
             modelClass.isAssignableFrom(ConfigurationViewModel::class.java) -> {
-                ConfigurationViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for ConfigurationViewModel"
+                }
+                ConfigurationViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(AccountViewModel::class.java) -> {

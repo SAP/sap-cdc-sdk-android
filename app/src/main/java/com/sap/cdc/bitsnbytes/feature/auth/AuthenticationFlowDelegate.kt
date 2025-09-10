@@ -1,18 +1,28 @@
 package com.sap.cdc.bitsnbytes.feature.auth
 
 import android.content.Context
+import android.util.Log
+import androidx.activity.ComponentActivity
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.events.emitTokenReceived
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthenticationService
-import com.sap.cdc.android.sdk.feature.auth.model.Credentials
-import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
+import com.sap.cdc.android.sdk.feature.Credentials
+import com.sap.cdc.android.sdk.feature.CustomIdCredentials
+import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
+import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.feature.session.Session
+import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
 import com.sap.cdc.bitsnbytes.feature.auth.model.AccountEntity
+import com.sap.cdc.bitsnbytes.feature.provider.FacebookAuthenticationProvider
+import com.sap.cdc.bitsnbytes.feature.provider.GoogleAuthenticationProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +46,7 @@ class AuthenticationFlowDelegate(context: Context) {
     /**
      * Initialize the site configuration class
      */
-    private var siteConfig = SiteConfig(context)
+    var siteConfig = SiteConfig(context)
 
     /**
      * Initialize authentication service.
@@ -56,6 +66,44 @@ class AuthenticationFlowDelegate(context: Context) {
             }
         }
     )
+
+    /**
+     * Re-init the session service with new site configuration.
+     */
+    fun reinitializeSessionService(siteConfig: SiteConfig) =
+        authenticationService.session().resetWithConfig(siteConfig)
+
+    /**
+     * Get session security level (STANDARD/BIOMETRIC).
+     */
+    fun sessionSecurityLevel(): SessionSecureLevel =
+        authenticationService.session().sessionSecurityLevel()
+
+    /**
+     * Authentication providers map.
+     * Keeps record to registered authenticators (for this example Google, Facebook, WeChat & Line are used).
+     */
+    private var authenticationProviderMap: MutableMap<String, IAuthenticationProvider> =
+        mutableMapOf()
+
+    init {
+        // Using session migrator to try and migrate an existing session in an application using old versions
+        // of the gigya-android-sdk library.
+        val sessionMigrator = SessionMigrator(context)
+        sessionMigrator.tryMigrateSession(
+            authenticationService,
+            success = {
+                Log.e(SessionMigrator.LOG_TAG, "Session migration success")
+
+            },
+            failure = {
+                Log.e(SessionMigrator.LOG_TAG, "Session migration failed")
+            })
+
+        // Register application specific authentication providers.
+        registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
+        registerAuthenticationProvider("google", GoogleAuthenticationProvider())
+    }
 
     // Authentication state flows
     private val _isAuthenticated = MutableStateFlow(false)
@@ -113,6 +161,7 @@ class AuthenticationFlowDelegate(context: Context) {
         clearAuthenticationState()
     }
 
+    //region LOGIN / LOGOUT / REGISTER METHODS
     suspend fun login(credentials: Credentials, authCallbacks: AuthCallbacks.() -> Unit) {
         authenticationService.authenticate().login()
             .credentials(credentials = credentials, configure = authCallbacks)
@@ -134,6 +183,18 @@ class AuthenticationFlowDelegate(context: Context) {
         )
     }
 
+    suspend fun resolvePendingRegistration(
+        missingFieldsSerialized: MutableMap<String, String>,
+        regToken: String,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().register().resolve().pendingRegistrationWith(
+            missingFields = missingFieldsSerialized,
+            regToken = regToken,
+            configure = authCallbacks
+        )
+    }
+
     suspend fun logOut(authCallbacks: AuthCallbacks.() -> Unit) {
         authenticationService.authenticate().logout {
             // Register original callbacks first
@@ -151,17 +212,9 @@ class AuthenticationFlowDelegate(context: Context) {
         }
     }
 
-    suspend fun resolvePendingRegistration(
-        missingFieldsSerialized: MutableMap<String, String>,
-        regToken: String,
-        authCallbacks: AuthCallbacks.() -> Unit
-    ) {
-        authenticationService.authenticate().register().resolve().pendingRegistrationWith(
-            missingFields = missingFieldsSerialized,
-            regToken = regToken,
-            configure = authCallbacks
-        )
-    }
+    //endregion
+
+    //region ACCOUNT MANAGEMENT METHODS
 
     /**
      * Get account information with state management.
@@ -223,6 +276,9 @@ class AuthenticationFlowDelegate(context: Context) {
         }
     }
 
+    //endregion
+
+    //region ADDITIONAL AUTHENTICATION METHODS
     suspend fun otpSendCode(
         parameters: MutableMap<String, String>,
         authCallbacks: AuthCallbacks.() -> Unit
@@ -267,6 +323,81 @@ class AuthenticationFlowDelegate(context: Context) {
     ) {
         authenticationService.authenticate().push().registerForAuthNotifications(authCallbacks)
     }
+
+    //endregion
+
+    //region ACCOUNT LINKING METHODS
+
+    suspend fun linkToSiteAccount(
+        loginId: String, password: String,
+        linkingContext: LinkingContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.account().link().toSite(
+            mutableMapOf("loginID" to loginId, "password" to password),
+            linkingContext = linkingContext,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun linkToSocialProvider(
+        hostActivity: ComponentActivity,
+        provider: String,
+        linkingContext: LinkingContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val authenticationProvider = getAuthenticationProvider(provider)
+        if (authenticationProvider == null) {
+            // Handle unknown provider error
+            authCallbacks.invoke(AuthCallbacks().apply {
+                onError?.let { it(AuthError(message = "Unknown authentication provider: $provider")) }
+            })
+            return
+        }
+        authenticationService.account().link().toSocial(
+            hostActivity = hostActivity,
+            authenticationProvider = authenticationProvider,
+            linkingContext = linkingContext,
+            authCallbacks = authCallbacks
+        )
+    }
+    //endregion
+
+    //region SOCIAL PROVIDERS
+
+    /**
+     * Get reference to registered authentication provider.
+     */
+    fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
+        if (!authenticationProviderMap.containsKey(name)) {
+            return WebAuthenticationProvider(
+                name,
+                siteConfig,
+                authenticationService.session().getSession()
+            )
+        }
+        return authenticationProviderMap[name]
+    }
+
+    /**
+     * Register new authentication provider.
+     */
+    private fun registerAuthenticationProvider(name: String, provider: IAuthenticationProvider) {
+        authenticationProviderMap[name] = provider
+    }
+
+    fun getAuthenticatorMap() = authenticationProviderMap
+
+    //endregion
+
+    //region WEB BRIDGE
+
+    /**
+     * Instantiate a new WebBridgeJS element.
+     */
+    fun getWebBridge(): WebBridgeJS = WebBridgeJS(authenticationService)
+
+    //endregion
 }
 
 /**

@@ -1,6 +1,5 @@
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,38 +60,38 @@ fun RegisterView(viewModel: IRegisterViewModel) {
         ViewDynamicSocialSelection(
             listOf("facebook", "google", "apple", "line")
         ) { provider ->
-            viewModel.socialSignInWith(
-                context as ComponentActivity,
-                provider,
-                viewModel.getAuthenticationProvider(provider),
-                onLogin = {
-                    loading = false
-                    registerError = ""
-                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                },
-                onFailedWith = { error ->
-                    loading = false
-                    registerError = error?.errorDetails!!
-                },
-                onPendingRegistration = { authResponse ->
-                    loading = false
-                    NavigationCoordinator.INSTANCE
-                        .navigate(
-                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                authResponse?.resolvable()?.toJson()
-                            }"
-                        )
-                },
-                onLoginIdentifierExists = { authResponse ->
-                    loading = false
-                    NavigationCoordinator.INSTANCE
-                        .navigate(
-                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
-                                authResponse?.resolvable()?.toJson()
-                            }"
-                        )
-                }
-            )
+//            viewModel.socialSignInWith(
+//                context as ComponentActivity,
+//                provider,
+//                viewModel.getAuthenticationProvider(provider),
+//                onLogin = {
+//                    loading = false
+//                    registerError = ""
+//                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+//                },
+//                onFailedWith = { error ->
+//                    loading = false
+//                    registerError = error?.errorDetails!!
+//                },
+//                onPendingRegistration = { authResponse ->
+//                    loading = false
+//                    NavigationCoordinator.INSTANCE
+//                        .navigate(
+//                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+//                                authResponse?.resolvable()?.toJson()
+//                            }"
+//                        )
+//                },
+//                onLoginIdentifierExists = { authResponse ->
+//                    loading = false
+//                    NavigationCoordinator.INSTANCE
+//                        .navigate(
+//                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
+//                                authResponse?.resolvable()?.toJson()
+//                            }"
+//                        )
+//                }
+//            )
         }
 
         // Divider

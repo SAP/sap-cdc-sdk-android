@@ -3,6 +3,7 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.bitsnbytes.ApplicationConfig
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -22,14 +23,14 @@ interface IConfigurationViewModel {
 // Mocked preview class for ConfigurationViewModel
 class ConfigurationViewModelPreview : IConfigurationViewModel
 
-class ConfigurationViewModel(context: Context) : BaseViewModel(context), IConfigurationViewModel {
+class ConfigurationViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) : BaseViewModel(context), IConfigurationViewModel {
 
-    override fun currentApiKey(): String = identityService.getConfig().apiKey
+    override fun currentApiKey(): String = flowDelegate.siteConfig.apiKey
 
-    override fun currentApiDomain(): String = identityService.getConfig().domain
+    override fun currentApiDomain(): String = flowDelegate.siteConfig.domain
 
     override fun currentCname(): String {
-        var cName = identityService.getConfig().cname
+        var cName = flowDelegate.siteConfig.cname
         if (cName == null) {
             cName = ""
         }
@@ -37,7 +38,7 @@ class ConfigurationViewModel(context: Context) : BaseViewModel(context), IConfig
     }
 
     override fun updateWithNewConfig(siteConfig: SiteConfig) {
-        identityService.reinitializeSessionService(siteConfig)
+        flowDelegate.reinitializeSessionService(siteConfig)
     }
 
     override fun updateWebViewUse(use: Boolean) {

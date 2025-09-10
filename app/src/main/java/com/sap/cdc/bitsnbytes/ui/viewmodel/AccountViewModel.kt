@@ -52,7 +52,7 @@ class AccountViewModel(context: Context, override val flowDelegate: Authenticati
     BaseViewModel(context),
     IAccountViewModel {
 
-    private var biometricAuth = BiometricAuth(identityService.authenticationService.sessionService)
+    private var biometricAuth = BiometricAuth(flowDelegate.authenticationService.sessionService)
 
     override fun getAccountInfo(
         parameters: MutableMap<String, String>?,
@@ -106,7 +106,7 @@ class AccountViewModel(context: Context, override val flowDelegate: Authenticati
         promptInfo: BiometricPrompt.PromptInfo,
         executor: Executor
     ) {
-        if (identityService.authenticationService.sessionService.biometricLocked()
+        if (flowDelegate.authenticationService.sessionService.biometricLocked()
         ) {
             biometricAuth.unlockSessionWithBiometricAuthentication(
                 activity = activity,

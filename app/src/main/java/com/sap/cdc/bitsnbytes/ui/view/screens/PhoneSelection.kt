@@ -2,7 +2,6 @@
 
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
-import android.util.Base64
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -39,8 +38,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
@@ -90,21 +87,21 @@ fun PhoneSelectionView(
 
         // Vary provider state to show different phone numbers
         // or to register a new one if none available.
-        if (viewModel.resolvableContext.collectAsState().value?.tfa?.tfaProviders?.activeProviders?.isEmpty() == true) {
-            // Need to register a new phone number
-            RegisterNewPhoneNumber(
-                viewModel = viewModel,
-                onLoadChanged = { loading = it },
-                onVerificationErrorChanged = { verificationError = it }
-            )
-        } else {
-            // Show available phone numbers
-            RegisteredPhoneNumbers(
-                viewModel = viewModel,
-                onLoadChanged = { loading = it },
-                onVerificationErrorChanged = { verificationError = it }
-            )
-        }
+//        if (viewModel.resolvableContext.collectAsState().value?.tfa?.tfaProviders?.activeProviders?.isEmpty() == true) {
+//            // Need to register a new phone number
+//            RegisterNewPhoneNumber(
+//                viewModel = viewModel,
+//                onLoadChanged = { loading = it },
+//                onVerificationErrorChanged = { verificationError = it }
+//            )
+//        } else {
+//            // Show available phone numbers
+//            RegisteredPhoneNumbers(
+//                viewModel = viewModel,
+//                onLoadChanged = { loading = it },
+//                onVerificationErrorChanged = { verificationError = it }
+//            )
+//        }
 
         LargeVerticalSpacer()
 
@@ -188,15 +185,15 @@ fun RegisterNewPhoneNumber(
             viewModel.registerTFAPhoneNumber(
                 inputField,
                 "en",
-                onVerificationCodeSent = { authResponse ->
-                    onLoadChanged(false)
-                    NavigationCoordinator.INSTANCE
-                        .navigate(
-                            "${ProfileScreenRoute.PhoneVerification.route}/${
-                                authResponse?.resolvable()!!.toJson()
-                            }"
-                        )
-                },
+//                onVerificationCodeSent = { authResponse ->
+//                    onLoadChanged(false)
+//                    NavigationCoordinator.INSTANCE
+//                        .navigate(
+//                            "${ProfileScreenRoute.PhoneVerification.route}/${
+//                                authResponse?.resolvable()!!.toJson()
+//                            }"
+//                        )
+//                },
                 onFailedWith = { error ->
                     onLoadChanged(false)
                     onVerificationErrorChanged(
@@ -232,19 +229,19 @@ fun RegisteredPhoneNumbers(
                 viewModel.sendRegisteredPhoneCode(
                     tfaPhoneEntity.id ?: "",
                     "en",
-                    onVerificationCodeSent = { authResponse ->
-                        onLoadChanged(false)
-                        val resolvableJson = authResponse?.resolvable()!!.toJson()
-                        NavigationCoordinator.INSTANCE
-                            .navigate(
-                                "${ProfileScreenRoute.PhoneVerification.route}/${
-                                    Base64.encodeToString(
-                                        resolvableJson.toByteArray(Charsets.UTF_8),
-                                        Base64.DEFAULT
-                                    )
-                                }"
-                            )
-                    },
+//                    onVerificationCodeSent = { authResponse ->
+//                        onLoadChanged(false)
+//                        val resolvableJson = authResponse?.resolvable()!!.toJson()
+//                        NavigationCoordinator.INSTANCE
+//                            .navigate(
+//                                "${ProfileScreenRoute.PhoneVerification.route}/${
+//                                    Base64.encodeToString(
+//                                        resolvableJson.toByteArray(Charsets.UTF_8),
+//                                        Base64.DEFAULT
+//                                    )
+//                                }"
+//                            )
+//                    },
                     onFailedWith = { error ->
                         onLoadChanged(false)
                         onVerificationErrorChanged(

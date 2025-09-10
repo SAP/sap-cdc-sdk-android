@@ -3,9 +3,8 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.ResolvableContext
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,7 +23,7 @@ interface IOtpVerifyViewModel {
         code: String,
         resolvable: ResolvableContext,
         onLogin: () -> Unit,
-        onPendingRegistration: (IAuthResponse?) -> Unit,
+//        onPendingRegistration: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -100,7 +99,7 @@ class OtpVerifyViewModel(
         code: String,
         resolvable: ResolvableContext,
         onLogin: () -> Unit,
-        onPendingRegistration: (IAuthResponse?) -> Unit,
+//        onPendingRegistration: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         viewModelScope.launch {

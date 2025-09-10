@@ -2,6 +2,7 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 
 
 /**
@@ -14,10 +15,11 @@ interface IViewModelScreenSet {
 }
 
 // Mocked preview class for ScreenSetViewModel
-class ScreenSetViewModelPreview: IViewModelScreenSet
+class ScreenSetViewModelPreview : IViewModelScreenSet
 
-class ScreenSetViewModel(context: Context) : BaseViewModel(context), IViewModelScreenSet {
+class ScreenSetViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) : BaseViewModel(context),
+    IViewModelScreenSet {
 
-    override fun newWebBridgeJS(): WebBridgeJS = identityService.getWebBridge()
+    override fun newWebBridgeJS(): WebBridgeJS = flowDelegate.getWebBridge()
 }
 

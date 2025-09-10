@@ -3,7 +3,7 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.model.Credentials
+import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import kotlinx.coroutines.launch
 
@@ -33,14 +33,14 @@ class EmailSignInViewModelPreview : IEmailSignInViewModel
 
 class EmailSignInViewModel(
     context: Context,
-    private val authenticationFlowDelegate: AuthenticationFlowDelegate
+    private val flowDelegate: AuthenticationFlowDelegate
 ) : BaseViewModel(context), IEmailSignInViewModel {
 
     override fun getSaptchaToken(
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         viewModelScope.launch {
-            authenticationFlowDelegate.getSaptchaToken {
+            flowDelegate.getSaptchaToken {
                 authCallbacks()
 
                 doOnSuccess { authSuccess ->
@@ -55,7 +55,7 @@ class EmailSignInViewModel(
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
         viewModelScope.launch {
-            authenticationFlowDelegate.login(
+            flowDelegate.login(
                 credentials = credentials,
                 authCallbacks = authCallbacks
             )

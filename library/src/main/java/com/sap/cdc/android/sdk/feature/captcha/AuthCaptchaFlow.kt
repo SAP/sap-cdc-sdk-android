@@ -5,12 +5,11 @@ import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.utils.AndroidBase64Encoder
 import com.sap.cdc.android.sdk.extensions.encodeWith
 import com.sap.cdc.android.sdk.extensions.jwtDecode
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_RISK_SAPTCHA_GET_CHALLENGE
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_RISK_SAPTCHA_VERIFY
-import com.sap.cdc.android.sdk.feature.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthFlow
-import com.sap.cdc.android.sdk.feature.auth.flow.TFAAuthFlow
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthCaptchaFlow(coreClient: CoreClient, sessionService: SessionService) :
@@ -21,7 +20,7 @@ class AuthCaptchaFlow(coreClient: CoreClient, sessionService: SessionService) :
     }
 
     suspend fun getSaptchaToken(authCallbacks: AuthCallbacks) {
-        CDCDebuggable.log(TFAAuthFlow.LOG_TAG, "startChallenge")
+        CDCDebuggable.log(LOG_TAG, "startChallenge")
 
         val getJwt =
             AuthenticationApi(coreClient, sessionService).send(
@@ -37,7 +36,7 @@ class AuthCaptchaFlow(coreClient: CoreClient, sessionService: SessionService) :
         }
 
         val token = getJwt.stringField("saptchaToken") as String
-        CDCDebuggable.log(TFAAuthFlow.LOG_TAG, "token: $token")
+        CDCDebuggable.log(LOG_TAG, "token: $token")
 
         val jwtObject = token.jwtDecode(AndroidBase64Encoder())
         val jti = jwtObject.getString("jti")

@@ -7,8 +7,6 @@ import com.sap.cdc.android.sdk.events.CDCEventBusProvider
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.account.AuthAccount
 import com.sap.cdc.android.sdk.feature.account.IAuthAccount
-import com.sap.cdc.android.sdk.feature.auth.sequence.AuthResolvers
-import com.sap.cdc.android.sdk.feature.auth.sequence.IAuthResolvers
 import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationManager
 import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationOptions
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
@@ -53,9 +51,6 @@ class AuthenticationService(
     fun session(): IAuthSession = AuthSession(
         sessionService
     )
-
-    fun resolve(): IAuthResolvers =
-        AuthResolvers(coreClient, sessionService)
 
     /**
      * Update device info in secure storage.

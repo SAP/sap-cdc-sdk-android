@@ -1,6 +1,7 @@
 package com.sap.cdc.bitsnbytes.ui.viewmodel
 
 import android.content.Context
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -12,11 +13,12 @@ interface IViewModelHome {
     fun validSession(): Boolean = false
 }
 
-class HomeViewModel(context: Context) : BaseViewModel(context), IViewModelHome {
+class HomeViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) :
+    BaseViewModel(context), IViewModelHome {
 
     /**
      * Check Identity session state.
      */
     override
-    fun validSession(): Boolean = identityService.getSession() != null
+    fun validSession(): Boolean = flowDelegate.isAuthenticated.value
 }

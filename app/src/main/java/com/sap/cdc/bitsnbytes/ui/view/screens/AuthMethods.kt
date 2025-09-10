@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.ResolvableContext
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
@@ -117,9 +117,7 @@ fun AuthMethodsViewPreview() {
     AppTheme {
         AuthMethodsView(
             viewModel = TFAAuthenticationViewModelPreview(),
-            resolvableContext = ResolvableContext(
-                regToken = ""
-            )
+            resolvableContext = ResolvableContext()
         )
     }
 }

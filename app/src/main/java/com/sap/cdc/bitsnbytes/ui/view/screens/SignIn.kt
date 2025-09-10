@@ -68,41 +68,41 @@ fun SignInView(viewModel: ISignInViewModel) {
         ViewDynamicSocialSelection(
             listOf("facebook", "google", "apple", "linkedIn")
         ) { provider ->
-            viewModel.socialSignInWith(
-                context as ComponentActivity,
-                provider,
-                viewModel.getAuthenticationProvider(provider),
-                onLogin = {
-                    loading = false
-                    signInError = ""
-                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                        toRoute = ProfileScreenRoute.MyProfile.route,
-                        rootRoute = ProfileScreenRoute.Welcome.route
-                    )
-                },
-                onFailedWith = { error ->
-                    loading = false
-                    signInError = error?.errorDetails!!
-                },
-                onPendingRegistration = { authResponse ->
-                    loading = false
-                    NavigationCoordinator.INSTANCE
-                        .navigate(
-                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                authResponse?.resolvable()?.toJson()
-                            }"
-                        )
-                },
-                onLoginIdentifierExists = { authResponse ->
-                    loading = false
-                    NavigationCoordinator.INSTANCE
-                        .navigate(
-                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
-                                authResponse?.resolvable()?.toJson()
-                            }"
-                        )
-                }
-            )
+//            viewModel.socialSignInWith(
+//                context as ComponentActivity,
+//                provider,
+//                viewModel.getAuthenticationProvider(provider),
+//                onLogin = {
+//                    loading = false
+//                    signInError = ""
+//                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+//                        toRoute = ProfileScreenRoute.MyProfile.route,
+//                        rootRoute = ProfileScreenRoute.Welcome.route
+//                    )
+//                },
+//                onFailedWith = { error ->
+//                    loading = false
+//                    signInError = error?.errorDetails!!
+//                },
+//                onPendingRegistration = { authResponse ->
+//                    loading = false
+//                    NavigationCoordinator.INSTANCE
+//                        .navigate(
+//                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+//                                authResponse?.resolvable()?.toJson()
+//                            }"
+//                        )
+//                },
+//                onLoginIdentifierExists = { authResponse ->
+//                    loading = false
+//                    NavigationCoordinator.INSTANCE
+//                        .navigate(
+//                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
+//                                authResponse?.resolvable()?.toJson()
+//                            }"
+//                        )
+//                }
+//            )
         }
 
         // Divider

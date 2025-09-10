@@ -1,73 +1,80 @@
 package com.sap.cdc.android.sdk.feature.tfa
 
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
-import com.sap.cdc.android.sdk.feature.auth.flow.TFAAuthFlow
-import com.sap.cdc.android.sdk.feature.auth.model.TFAPhoneMethod
-import com.sap.cdc.android.sdk.feature.auth.model.TFAProvider
-import com.sap.cdc.android.sdk.feature.auth.model.TFAProvidersEntity
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 interface IAuthTFA {
 
-    suspend fun getProviders(regToken: String): IAuthResponse
+    suspend fun optInForPushNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit = {}
+    )
 
-    fun parseTFAProviders(authResponse: IAuthResponse): TFAProvidersEntity
-
-    suspend fun optInForPushAuthentication(): IAuthResponse
-
-    suspend fun finalizeOtpInForPushAuthentication(parameters: MutableMap<String, String>): IAuthResponse
-
-    suspend fun verifyPushTFA(parameters: MutableMap<String, String>): IAuthResponse
+    suspend fun verifyPushNotification(
+        parameters: MutableMap<String, String>,
+        finalize: Boolean = false,
+        authCallbacks: AuthCallbacks.() -> Unit = {}
+    )
 
     suspend fun getRegisteredEmails(
-        resolvableContext: ResolvableContext,
-    ): IAuthResponse
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
     suspend fun sendEmailCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         emailAddress: String,
-        language: String?
-    ): IAuthResponse
+        language: String?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
     suspend fun registerPhone(
+        twoFactorContext: TwoFactorContext,
         phoneNumber: String,
-        resolvableContext: ResolvableContext,
         language: String?,
-        method: TFAPhoneMethod? = TFAPhoneMethod.SMS
-    ): IAuthResponse
+        method: TFAPhoneMethod? = TFAPhoneMethod.SMS,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
     suspend fun registerTOTP(
-        resolvableContext: ResolvableContext,
-    ): IAuthResponse
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
-    suspend fun getRegisteredPhoneNumbers(resolvableContext: ResolvableContext): IAuthResponse
+    suspend fun getRegisteredPhoneNumbers(
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
     suspend fun sendPhoneCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         phoneId: String,
         method: TFAPhoneMethod? = TFAPhoneMethod.SMS,
-        language: String? = "en"
-    ): IAuthResponse
+        language: String? = "en",
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
     suspend fun verifyEmailCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         code: String,
         rememberDevice: Boolean? = false,
-    ): IAuthResponse
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
     suspend fun verifyPhoneCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         code: String,
-        rememberDevice: Boolean? = false
-    ): IAuthResponse
+        rememberDevice: Boolean? = false,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
     suspend fun verifyTOTPCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         code: String,
-        rememberDevice: Boolean? = false
-    ): IAuthResponse
+        rememberDevice: Boolean? = false,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 }
 
 internal class AuthTFA(
@@ -75,154 +82,165 @@ internal class AuthTFA(
     private val sessionService: SessionService
 ) : IAuthTFA {
 
-    override suspend fun getProviders(regToken: String): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.getTFAProviders(mutableMapOf("regToken" to regToken))
-    }
-
-    override fun parseTFAProviders(authResponse: IAuthResponse): TFAProvidersEntity {
-        val parsedEntity = authResponse.cdcResponse().json.decodeFromString<TFAProvidersEntity>(
-            authResponse.asJsonString()!!
-        )
-        return parsedEntity
-    }
-
-    override suspend fun optInForPushAuthentication(): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
+    override suspend fun optInForPushNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
         val parameters = mutableMapOf(
             "provider" to TFAProvider.PUSH.value, "mode" to "register"
         )
-        return tfaFlow.optInForPushTFA(parameters = parameters)
+        AuthTFAFlow(coreClient, sessionService)
+            .optInForPushNotifications(parameters, callbacks)
     }
 
-    override suspend fun finalizeOtpInForPushAuthentication(
-        parameters: MutableMap<String, String>
-    ): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.finalizeOptInForPushTFA(parameters)
+    override suspend fun verifyPushNotification(
+        parameters: MutableMap<String, String>,
+        finalize: Boolean,
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        AuthTFAFlow(coreClient, sessionService)
+            .verifyPushNotification(parameters, finalize, callbacks)
     }
 
-    override suspend fun verifyPushTFA(parameters: MutableMap<String, String>): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.verifyPushTFA(parameters)
-    }
 
     override suspend fun getRegisteredEmails(
-        resolvableContext: ResolvableContext
-    ): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.getRegisteredEmails(
-            resolvableContext,
-            mutableMapOf("provider" to TFAProvider.EMAIL.value, "mode" to "verify")
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "provider" to TFAProvider.EMAIL.value, "mode" to "verify"
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .getRegisteredEmails(parameters, twoFactorContext, callbacks)
     }
 
     override suspend fun sendEmailCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         emailAddress: String,
-        language: String?
-    ): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.sendEmailCode(
-            resolvableContext,
-            mutableMapOf("emailID" to emailAddress, "lang" to (language ?: "en"))
+        language: String?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "emailID" to emailAddress,
+            "lang" to (language ?: "en")
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .sendCodeToEmailAddress(parameters, twoFactorContext, callbacks)
     }
 
     override suspend fun registerPhone(
+        twoFactorContext: TwoFactorContext,
         phoneNumber: String,
-        resolvableContext: ResolvableContext,
         language: String?,
-        method: TFAPhoneMethod?
-    ): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.registerPhone(
-            resolvableContext, phoneNumber,
-            mutableMapOf(
-                "provider" to TFAProvider.PHONE.value,
-                "lang" to (language ?: "en"),
-                "mode" to "register",
-                "method" to (method?.value ?: TFAPhoneMethod.SMS.value)
-            )
+        method: TFAPhoneMethod?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "provider" to TFAProvider.PHONE.value,
+            "lang" to (language ?: "en"),
+            "mode" to "register",
+            "method" to (method?.value ?: TFAPhoneMethod.SMS.value),
+            "phoneID" to phoneNumber
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .registerPhone(parameters, twoFactorContext, callbacks)
     }
 
-    override suspend fun registerTOTP(resolvableContext: ResolvableContext): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.registerTOTP(
-            resolvableContext, mutableMapOf(
-                "provider" to TFAProvider.TOTP.value,
-                "mode" to "register"
-            )
+    override suspend fun registerTOTP(
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "provider" to TFAProvider.TOTP.value,
+            "mode" to "register"
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .registerTimeBasedOneTimePassword(parameters, twoFactorContext, callbacks)
     }
 
-    override suspend fun getRegisteredPhoneNumbers(resolvableContext: ResolvableContext): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.getRegisteredPhoneNumbers(
-            resolvableContext, mutableMapOf(
-                "provider" to TFAProvider.PHONE.value,
-                "mode" to "verify"
-            )
+    override suspend fun getRegisteredPhoneNumbers(
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "provider" to TFAProvider.PHONE.value, "mode" to "verify"
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .getRegisteredPhoneNumbers(parameters, twoFactorContext, callbacks)
+
     }
 
     override suspend fun sendPhoneCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         phoneId: String,
         method: TFAPhoneMethod?,
-        language: String?
-    ): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.sendPhoneCode(
-            resolvableContext,
-            mutableMapOf(
-                "lang" to (language ?: "en"),
-                "phoneID" to phoneId,
-                "method" to (method?.value ?: TFAPhoneMethod.SMS.value)
-            )
+        language: String?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "phoneID" to phoneId,
+            "method" to (method?.value ?: TFAPhoneMethod.SMS.value),
+            "lang" to (language ?: "en")
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .sendCodeToPhoneNumber(parameters, twoFactorContext, callbacks)
     }
 
     override suspend fun verifyEmailCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         code: String,
-        rememberDevice: Boolean?
-    ): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.verifyCode(
-            resolvableContext,
-            mutableMapOf("code" to code),
-            TFAProvider.EMAIL,
-            rememberDevice = rememberDevice!!
+        rememberDevice: Boolean?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "code" to code
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .verifyCode(
+                parameters, twoFactorContext, TFAProvider.EMAIL,
+                rememberDevice ?: false, callbacks
+            )
     }
 
     override suspend fun verifyPhoneCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         code: String,
-        rememberDevice: Boolean?
-    ): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.verifyCode(
-            resolvableContext,
-            mutableMapOf("code" to code),
-            TFAProvider.PHONE,
-            rememberDevice = rememberDevice!!
+        rememberDevice: Boolean?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "code" to code
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .verifyCode(
+                parameters, twoFactorContext, TFAProvider.PHONE,
+                rememberDevice ?: false, callbacks
+            )
     }
 
     override suspend fun verifyTOTPCode(
-        resolvableContext: ResolvableContext,
+        twoFactorContext: TwoFactorContext,
         code: String,
-        rememberDevice: Boolean?
-    ): IAuthResponse {
-        val tfaFlow = TFAAuthFlow(coreClient, sessionService)
-        return tfaFlow.verifyCode(
-            resolvableContext,
-            mutableMapOf("code" to code),
-            TFAProvider.TOTP,
-            rememberDevice = rememberDevice!!
+        rememberDevice: Boolean?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        val parameters = mutableMapOf(
+            "code" to code
         )
+        AuthTFAFlow(coreClient, sessionService)
+            .verifyCode(
+                parameters, twoFactorContext, TFAProvider.TOTP,
+                rememberDevice ?: false, callbacks
+            )
     }
 }

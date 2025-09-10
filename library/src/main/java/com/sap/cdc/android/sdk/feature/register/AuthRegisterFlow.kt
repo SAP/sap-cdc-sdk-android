@@ -9,7 +9,7 @@ import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_SET_A
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthFlow
-import com.sap.cdc.android.sdk.feature.auth.model.Credentials
+import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :

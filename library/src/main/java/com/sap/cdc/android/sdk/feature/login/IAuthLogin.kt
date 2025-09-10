@@ -2,8 +2,8 @@ package com.sap.cdc.android.sdk.feature.login
 
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.auth.model.Credentials
-import com.sap.cdc.android.sdk.feature.auth.model.CustomIdCredentials
+import com.sap.cdc.android.sdk.feature.Credentials
+import com.sap.cdc.android.sdk.feature.CustomIdCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 interface IAuthLogin {

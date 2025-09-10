@@ -10,7 +10,7 @@ import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
-interface ISignInViewModel: ISocialSignInViewModel {
+interface ISignInViewModel : ISocialSignInViewModel {
 
     fun passkeyLogin(
         activity: ComponentActivity,
@@ -23,8 +23,8 @@ interface ISignInViewModel: ISocialSignInViewModel {
 // Mock preview class for the SignInViewModel
 class SignInViewModelPreview : ISignInViewModel
 
-class SignInViewModel(context: Context, val authenticationFlowDelegate: AuthenticationFlowDelegate) :
-    SocialSignInViewModel(context), ISignInViewModel {
+class SignInViewModel(context: Context, flowDelegate: AuthenticationFlowDelegate) :
+    SocialSignInViewModel(context, flowDelegate), ISignInViewModel {
 
     private var passkeysAuthenticationProvider: IPasskeysAuthenticationProvider? = null
 
@@ -36,7 +36,7 @@ class SignInViewModel(context: Context, val authenticationFlowDelegate: Authenti
             passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
         }
         viewModelScope.launch {
-            authenticationFlowDelegate.passkeyLogin(
+            flowDelegate.passkeyLogin(
                 provider = passkeysAuthenticationProvider!!,
                 authCallbacks = authCallbacks
             )

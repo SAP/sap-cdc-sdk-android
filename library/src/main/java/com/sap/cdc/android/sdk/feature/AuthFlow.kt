@@ -3,15 +3,13 @@ package com.sap.cdc.android.sdk.feature
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
-import com.sap.cdc.android.sdk.feature.auth.ResolvableLinking
-import com.sap.cdc.android.sdk.feature.auth.ResolvableOtp
-import com.sap.cdc.android.sdk.feature.auth.ResolvableRegistration
-import com.sap.cdc.android.sdk.feature.auth.sequence.AuthResolvers
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_TFA_GET_PROVIDERS
+import com.sap.cdc.android.sdk.feature.account.LinkEntities
 import com.sap.cdc.android.sdk.feature.session.Session
 import com.sap.cdc.android.sdk.feature.session.SessionService
-import com.sap.cdc.android.sdk.feature.tfa.AuthTFA
-import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
+import com.sap.cdc.android.sdk.feature.tfa.TFAProvidersEntity
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -51,80 +49,6 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
                 sessionService.setSession(session)
             }
         }
-    }
-
-    /**
-     * Initialize resolvable state.
-     * According to provided error, the method will determine if this error is resolvable. If so, it will
-     * populate the "AuthResolvable" class with the data required to complete the flow.
-     */
-    suspend fun initResolvableState(cdcResponse: CDCResponse): ResolvableContext? {
-        // Init auth resolvable entity with RegToken field.
-        if (ResolvableContext.Companion.resolvables.containsKey(cdcResponse.errorCode()) || cdcResponse.containsKey(
-                "vToken"
-            )
-        ) {
-            val resolvableContext =
-                ResolvableContext(cdcResponse.stringField("regToken"))
-            val resolve = AuthResolvers(coreClient, sessionService)
-            when (cdcResponse.errorCode()) {
-
-                //OTP
-                ResolvableContext.Companion.ERR_NONE -> {
-                    CDCDebuggable.log(LOG_TAG, "ERR_NONE")
-                    // Resolvable state can occur on successful call in OTP flows.
-                    // vToken is required for OTP verification.
-                    resolvableContext.otp =
-                        ResolvableOtp(cdcResponse.stringField("vToken"))
-                }
-
-
-                ResolvableContext.Companion.ERR_CAPTCHA_REQUIRED -> {
-                    CDCDebuggable.log(LOG_TAG, "ERR_SAPTCHA_REQUIRED")
-                }
-
-                // REGISTRATION
-                ResolvableContext.Companion.ERR_ACCOUNT_PENDING_REGISTRATION -> {
-//                    CDCDebuggable.log(LOG_TAG, "ERR_ACCOUNT_PENDING_REGISTRATION")
-//                    // Parse missing fields required for registration.
-//                    val missingFields =
-//                        cdcResponse.errorDetails()
-//                            ?.parseRequiredMissingFieldsForRegistration()
-                    resolvableContext.registration = ResolvableRegistration()
-                }
-
-                // LINKING
-                ResolvableContext.Companion.ERR_ENTITY_EXIST_CONFLICT -> {
-                    CDCDebuggable.log(LOG_TAG, "ERR_ENTITY_EXIST_CONFLICT")
-                    // Add fields required for v2 linking flow.
-                    val provider = cdcResponse.stringField("provider")
-                    val authToken = cdcResponse.stringField("access_token")
-                    resolvableContext.linking = ResolvableLinking(provider, authToken)
-
-                    // Request conflicting accounts.
-                    val conflictingAccounts =
-                        resolve.getConflictingAccounts(mutableMapOf("regToken" to resolvableContext.regToken!!))
-                    // Add conflicting accounts data to resolvable context.
-                    resolvableContext.linking!!.conflictingAccounts =
-                        resolve.parseConflictingAccounts(conflictingAccounts)
-                }
-
-                // TFA
-                ResolvableContext.Companion.ERR_PENDING_TWO_FACTOR_REGISTRATION,
-                ResolvableContext.Companion.ERR_PENDING_TWO_FACTOR_VERIFICATION -> {
-                    CDCDebuggable.log(LOG_TAG, "ERR_ERROR_PENDING_TWO_FACTOR_REGISTRATION")
-                    // Get providers
-//                    val tfaResolve = AuthTFA(coreClient, sessionService)
-//                    val tfaProviders =
-//                        tfaResolve.getProviders(regToken = resolvableContext.regToken!!)
-//                    resolvableContext.tfa = ResolvableTFA(
-//                        tfaProviders = tfaResolve.parseTFAProviders(tfaProviders)
-//                    )
-                }
-            }
-            return resolvableContext
-        }
-        return null
     }
 
     protected suspend fun handleResolvableInterruption(
@@ -185,14 +109,17 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     ) {
         if (callbacks.onTwoFactorRequired != null) {
             // Get TFA providers
-            val tfaResolve = AuthTFA(coreClient, sessionService)
-            val tfaProviders = tfaResolve.getProviders(regToken = regToken ?: "")
-            val parsedProviders = tfaResolve.parseTFAProviders(tfaProviders)
+
+            var tfaProviders: TFAProvidersEntity? = null
+            val authResult = getTwoFactorProvidersSync(mutableMapOf("regToken" to (regToken ?: "")))
+            if (authResult is AuthResult.Success) {
+                tfaProviders = json.decodeFromString<TFAProvidersEntity>(authResult.authSuccess.jsonData)
+            }
 
             val tfaContext = TwoFactorContext(
                 initiator = initiator,
                 originatingError = createAuthError(response),
-                tfaProviders = parsedProviders,
+                tfaProviders = tfaProviders,
             )
 
             callbacks.onTwoFactorRequired?.invoke(tfaContext)
@@ -258,16 +185,17 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             val authToken = response.stringField("access_token")
 
             // Get conflicting accounts
-            val resolve = AuthResolvers(coreClient, sessionService)
-            val conflictingAccounts = resolve.getConflictingAccounts(
-                mutableMapOf("regToken" to (regToken ?: ""))
-            )
-            val parsedConflictingAccounts = resolve.parseConflictingAccounts(conflictingAccounts)
+            var linkEntities: LinkEntities? = null
+            val authResult = getConflictingAccountsSync(mutableMapOf("regToken" to (regToken ?: "")))
+            if (authResult is AuthResult.Success) {
+                val conflictingJson = authResult.authSuccess.userData["conflictingAccounts"] as String
+                linkEntities = json.decodeFromString<LinkEntities>(conflictingJson)
+            }
 
             val linkingContext = LinkingContext(
                 provider = provider,
                 authToken = authToken,
-                conflictingAccounts = parsedConflictingAccounts,
+                conflictingAccounts = linkEntities,
                 originatingError = createAuthError(response),
             )
             callbacks.onLinkingRequired?.invoke(linkingContext)
@@ -300,6 +228,52 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             asJson = response.jsonResponse
         )
         return authError
+    }
+
+    /**
+     * Request conflicting accounts information.
+     * NOTE: Call requires regToken due to interruption source.
+     *
+     * @see [accounts.getConflictingAccounts](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/4134d7df70b21014bbc5a10ce4041860.html?q=conflictingAccounts)
+     */
+    protected suspend fun getConflictingAccountsSync(
+        parameters: MutableMap<String, String>? = mutableMapOf()
+    ): AuthResult {
+        CDCDebuggable.log(LOG_TAG, "getConflictingAccounts: with parameters:$parameters")
+
+        val response = AuthenticationApi(coreClient, sessionService).send(
+            EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS,
+            parameters ?: mutableMapOf()
+        )
+
+        return if (response.isError()) {
+            AuthResult.Error(createAuthError(response))
+        } else {
+            secureNewSession(response)
+            AuthResult.Success(createAuthSuccess(response))
+        }
+    }
+
+
+    /**
+     * Request account two factor authentication providers:
+     * Active - Providers that are currently active and the user can use to authenticate.
+     * Inactive - Providers that are currently inactive and the user can activate to use for authentication.
+     */
+    protected suspend fun getTwoFactorProvidersSync(parameters: MutableMap<String, String>? = mutableMapOf())
+            : AuthResult {
+        CDCDebuggable.log(LOG_TAG, "getTFAProviders: with parameters:$parameters")
+        val response = AuthenticationApi(coreClient, sessionService).send(
+            EP_TFA_GET_PROVIDERS,
+            parameters!!
+        )
+
+        return if (response.isError()) {
+            AuthResult.Error(createAuthError(response))
+        } else {
+            secureNewSession(response)
+            AuthResult.Success(createAuthSuccess(response))
+        }
     }
 
     /**

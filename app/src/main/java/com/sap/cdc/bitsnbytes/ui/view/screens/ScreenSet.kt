@@ -75,8 +75,8 @@ fun ScreenSetView(
 
     // Build Uri.
     val screenSetUrl = ScreenSetUrlBuilder.Builder()
-        .apiKey(viewModel.identityService.getConfig().apiKey)
-        .domain(viewModel.identityService.getConfig().domain)
+//        .apiKey(viewModel.identityService.getConfig().apiKey)
+//        .domain(viewModel.identityService.getConfig().domain)
         .params(params)
         .build()
 
@@ -120,9 +120,9 @@ fun ScreenSetView(
 
                 // Set external authenticators. SDK will no longer use reflection to
                 // retrieve external providers.
-                webBridgeJS.setNativeSocialProviders(
-                    viewModel.identityService.getAuthenticatorMap()
-                )
+//                webBridgeJS.setNativeSocialProviders(
+//                    viewModel.identityService.getAuthenticatorMap()
+//                )
 
                 // Register for JS events.
                 webBridgeJS.registerForEvents { webBridgeJSEvent ->

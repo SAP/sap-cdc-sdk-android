@@ -1,4 +1,4 @@
-package com.sap.cdc.android.sdk.feature.auth.model
+package com.sap.cdc.android.sdk.feature
 
 data class Credentials(
     val loginId: String? = null,

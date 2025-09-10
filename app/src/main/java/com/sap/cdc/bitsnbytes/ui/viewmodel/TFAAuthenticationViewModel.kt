@@ -5,9 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
-import com.sap.cdc.android.sdk.feature.auth.ResolvableContext
-import com.sap.cdc.android.sdk.feature.auth.model.TFAPhoneEntity
+import com.sap.cdc.android.sdk.feature.ResolvableContext
+import com.sap.cdc.android.sdk.feature.tfa.TFAPhoneEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -23,7 +22,7 @@ interface ITFAAuthenticationViewModel {
     fun registerTFAPhoneNumber(
         phoneNumber: String,
         language: String?,
-        onVerificationCodeSent: (IAuthResponse?) -> Unit,
+//        onVerificationCodeSent: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -39,7 +38,7 @@ interface ITFAAuthenticationViewModel {
     fun sendRegisteredPhoneCode(
         phoneId: String,
         language: String?,
-        onVerificationCodeSent: (IAuthResponse?) -> Unit,
+//        onVerificationCodeSent: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         // Stub
@@ -63,7 +62,7 @@ interface ITFAAuthenticationViewModel {
 
     fun verifyTOTPCode(
         code: String,
-        onVerificationSuccess: (IAuthResponse) -> Unit,
+//        onVerificationSuccess: (IAuthResponse) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -103,7 +102,7 @@ class TFAAuthenticationViewModel(context: Context) : BaseViewModel(context),
     override fun registerTFAPhoneNumber(
         phoneNumber: String,
         language: String?,
-        onVerificationCodeSent: (IAuthResponse?) -> Unit,
+//        onVerificationCodeSent: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
 //        viewModelScope.launch {
@@ -146,7 +145,7 @@ class TFAAuthenticationViewModel(context: Context) : BaseViewModel(context),
     override fun sendRegisteredPhoneCode(
         phoneId: String,
         language: String?,
-        onVerificationCodeSent: (IAuthResponse?) -> Unit,
+//        onVerificationCodeSent: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
 //        viewModelScope.launch {
@@ -226,7 +225,7 @@ class TFAAuthenticationViewModel(context: Context) : BaseViewModel(context),
 
     override fun verifyTOTPCode(
         code: String,
-        onVerificationSuccess: (IAuthResponse) -> Unit,
+//        onVerificationSuccess: (IAuthResponse) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
 //        viewModelScope.launch {

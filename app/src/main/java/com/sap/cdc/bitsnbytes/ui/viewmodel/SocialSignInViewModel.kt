@@ -3,8 +3,8 @@ package com.sap.cdc.bitsnbytes.ui.viewmodel
 import android.content.Context
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.auth.IAuthResponse
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 
 interface ISocialSignInViewModel {
 
@@ -17,8 +17,8 @@ interface ISocialSignInViewModel {
         provider: String,
         authenticationProvider: IAuthenticationProvider?,
         onLogin: () -> Unit,
-        onPendingRegistration: (IAuthResponse?) -> Unit,
-        onLoginIdentifierExists: (IAuthResponse?) -> Unit,
+//        onPendingRegistration: (IAuthResponse?) -> Unit,
+//        onLoginIdentifierExists: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         //Stub
@@ -26,13 +26,13 @@ interface ISocialSignInViewModel {
 
 }
 
-open class SocialSignInViewModel(context: Context) : BaseViewModel(context), IRegisterViewModel {
+open class SocialSignInViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) : BaseViewModel(context), IRegisterViewModel {
 
     /**
      * Helper method to fetch a registered authentication provider.
      */
     override fun getAuthenticationProvider(name: String): IAuthenticationProvider? {
-        return identityService.getAuthenticationProvider(name)
+        return flowDelegate.getAuthenticationProvider(name)
     }
 
     /**
@@ -44,8 +44,8 @@ open class SocialSignInViewModel(context: Context) : BaseViewModel(context), IRe
         provider: String,
         authenticationProvider: IAuthenticationProvider?,
         onLogin: () -> Unit,
-        onPendingRegistration: (IAuthResponse?) -> Unit,
-        onLoginIdentifierExists: (IAuthResponse?) -> Unit,
+//        onPendingRegistration: (IAuthResponse?) -> Unit,
+//        onLoginIdentifierExists: (IAuthResponse?) -> Unit,
         onFailedWith: (CDCError?) -> Unit
     ) {
         if (authenticationProvider == null) {
