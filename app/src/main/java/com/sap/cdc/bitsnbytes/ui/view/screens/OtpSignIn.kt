@@ -46,8 +46,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IOtpSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 25/11/2024

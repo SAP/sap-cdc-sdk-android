@@ -53,8 +53,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.CustomColoredSizeVerticalSpace
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.UserHead
-import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IAccountViewModel
 import kotlin.math.absoluteValue
 
 /**
@@ -110,7 +108,7 @@ private object ProfileConstants {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyProfileView(viewModel: IAccountViewModel) {
+fun MyProfileView(viewModel: IMyProfileViewModel) {
     // Observe account state from AuthenticationFlowDelegate
     val accountInfo by viewModel.flowDelegate?.userAccount?.collectAsState() ?: remember { mutableStateOf(null) }
     
@@ -270,7 +268,7 @@ private fun WelcomeSection(fullName: String) {
 }
 
 @Composable
-private fun ProfileMenuSection(viewModel: IAccountViewModel) {
+private fun ProfileMenuSection(viewModel: IMyProfileViewModel) {
     Column {
         // Profile menu items
         SelectionRow(
@@ -321,7 +319,7 @@ private fun ProfileMenuSection(viewModel: IAccountViewModel) {
     }
 }
 
-private fun handleLogout(viewModel: IAccountViewModel) {
+private fun handleLogout(viewModel: IMyProfileViewModel) {
     viewModel.logOut {
         onSuccess = {
             // Navigate to Welcome screen and clear the profile navigation stack
@@ -427,7 +425,7 @@ fun SelectionRow(
 @Composable
 fun MyProfileViewPreview() {
     AppTheme {
-        MyProfileView(AccountViewModelPreview())
+        MyProfileView(MyProfileViewModelPreview())
     }
 }
 

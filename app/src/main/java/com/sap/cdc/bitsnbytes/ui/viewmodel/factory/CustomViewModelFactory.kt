@@ -7,14 +7,15 @@ import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.ConfigurationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.MyProfileViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
@@ -123,6 +124,13 @@ class CustomViewModelFactory(
                     "AuthenticationFlowDelegate is required for ConfigurationViewModel"
                 }
                 ConfigurationViewModel(context, authenticationFlowDelegate) as T
+            }
+
+            modelClass.isAssignableFrom(MyProfileViewModel::class.java) -> {
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for MyProfileViewModel"
+                }
+                MyProfileViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(AboutMeViewModel::class.java) -> {

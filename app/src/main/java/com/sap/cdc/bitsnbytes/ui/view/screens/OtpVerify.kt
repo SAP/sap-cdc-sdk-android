@@ -42,8 +42,6 @@ import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IOtpVerifyViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 25/11/2024

@@ -20,11 +20,17 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInView
+import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegisterView
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInView
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountView
+import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsView
+import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.MyProfileView
+import com.sap.cdc.bitsnbytes.ui.view.screens.MyProfileViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.OTPType
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyView
@@ -36,14 +42,8 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetView
 import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
-import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
-import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegistrationViewModel
-import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountViewModel
-import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
@@ -168,7 +168,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable(ProfileScreenRoute.MyProfile.route) {
-            val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
+            val viewModel: MyProfileViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
             MyProfileView(viewModel)
