@@ -1,8 +1,7 @@
-package com.sap.cdc.bitsnbytes.navigation
+package com.sap.cdc.bitsnbytes.ui.viewmodel.factory
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner

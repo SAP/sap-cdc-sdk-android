@@ -45,8 +45,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomColoredSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ConfigurationViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IConfigurationViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

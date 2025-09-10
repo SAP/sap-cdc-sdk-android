@@ -23,11 +23,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
-import com.sap.cdc.bitsnbytes.navigation.ViewModelScopeProvider
+import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.ViewModelScopeProvider
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegisterView
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInView
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegistrationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 import kotlinx.coroutines.launch
 
@@ -92,7 +92,7 @@ fun AuthenticationTabView(selected: Int) {
                     ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
                 when (selectedTabIndex.value) {
                     0 -> {
-                        val viewModel: EmailRegisterViewModel = viewModel(
+                        val viewModel: EmailRegistrationViewModel = viewModel(
                             factory = CustomViewModelFactory(context, authDelegate)
                         )
                         EmailRegisterView(viewModel)

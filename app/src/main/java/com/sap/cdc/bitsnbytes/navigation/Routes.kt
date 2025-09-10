@@ -11,8 +11,8 @@ import com.sap.cdc.bitsnbytes.R
 
 sealed class MainScreenRoute(
     val route: String,
-    @StringRes val resourceId: Int,
-    @DrawableRes val iconID: Int
+    @param:StringRes val resourceId: Int,
+    @param:DrawableRes val iconID: Int
 ) {
     data object Home : MainScreenRoute("Home", R.string.home, R.drawable.ic_home)
     data object Search : MainScreenRoute("Search", R.string.search, R.drawable.ic_search)
@@ -26,7 +26,7 @@ sealed class ProfileScreenRoute(
     val route: String,
 ) {
     data object Welcome : ProfileScreenRoute("Welcome")
-    data object SignIn: ProfileScreenRoute("SignIn")
+    data object SignIn : ProfileScreenRoute("SignIn")
     data object Register : ProfileScreenRoute("Register")
     data object AuthTabView : ProfileScreenRoute("AuthTabView")
     data object EmailSignIn : ProfileScreenRoute("EmailSignIn")
@@ -34,15 +34,15 @@ sealed class ProfileScreenRoute(
     data object EmailRegister : ProfileScreenRoute("EmailRegister")
     data object MyProfile : ProfileScreenRoute("MyProfile")
     data object AboutMe : ProfileScreenRoute("AboutMe")
-    data object ResolvePendingRegistration : ProfileScreenRoute("ResolvePendingRegistration",)
+    data object ResolvePendingRegistration : ProfileScreenRoute("ResolvePendingRegistration")
     data object ResolveLinkAccount : ProfileScreenRoute("ResolveLinkAccount")
     data object OTPSignIn : ProfileScreenRoute("OTPSignIn")
     data object OTPVerify : ProfileScreenRoute("OTPVerify")
-    data object LoginOptions: ProfileScreenRoute("LoginOptions")
-    data object AuthMethods: ProfileScreenRoute("AuthMethods")
-    data object PhoneSelection: ProfileScreenRoute("PhoneSelection")
-    data object PhoneVerification: ProfileScreenRoute("PhoneVerification")
-    data object TOTPVerification: ProfileScreenRoute("TOTPVerification")
+    data object LoginOptions : ProfileScreenRoute("LoginOptions")
+    data object AuthMethods : ProfileScreenRoute("AuthMethods")
+    data object PhoneSelection : ProfileScreenRoute("PhoneSelection")
+    data object PhoneVerification : ProfileScreenRoute("PhoneVerification")
+    data object TOTPVerification : ProfileScreenRoute("TOTPVerification")
 }
 
 sealed class ScreenSetsRoute(

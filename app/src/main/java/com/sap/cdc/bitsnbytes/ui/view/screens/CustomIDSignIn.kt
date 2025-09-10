@@ -27,8 +27,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.OutlineTitleAndEditPasswordTex
 import com.sap.cdc.bitsnbytes.ui.view.composables.OutlineTitleAndEditTextField
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.CustomIDSignInViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ICustomIDSignInViewModel
 
 
 /**
@@ -92,20 +90,6 @@ fun CustomIDSignInView(viewModel: ICustomIDSignInViewModel) {
                 focusManager = focusManager
             )
 
-            SmallVerticalSpacer()
-
-            // Identifier Type input.
-            OutlineTitleAndEditTextField(
-                modifier = Modifier,
-                titleText = "IdentifierType: *",
-                inputText = identifierType,
-                placeholderText = "IdentifierType placeholder",
-                onValueChange = {
-                    identifierType = it
-                },
-                focusManager = focusManager
-            )
-
             // Password input.
             SmallVerticalSpacer()
 
@@ -131,7 +115,6 @@ fun CustomIDSignInView(viewModel: ICustomIDSignInViewModel) {
                     loading = true
                     viewModel.login(
                             identifier,
-                            identifierType,
                             password
                     ) {
                         onSuccess = {

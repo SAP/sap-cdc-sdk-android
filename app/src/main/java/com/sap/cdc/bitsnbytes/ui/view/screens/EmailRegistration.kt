@@ -18,8 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.TwoFactorInitiator
 import com.sap.cdc.android.sdk.feature.Credentials
+import com.sap.cdc.android.sdk.feature.TwoFactorInitiator
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
@@ -33,8 +33,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.OutlineTitleAndEditTextField
 import com.sap.cdc.bitsnbytes.ui.view.composables.PasswordNotMatchingError
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IEmailRegisterViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -44,7 +42,7 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.IEmailRegisterViewModel
  */
 
 @Composable
-fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
+fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
     val context = LocalContext.current
     // Editable variables.
     var name by remember {
@@ -225,6 +223,6 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
 @Composable
 fun EmailRegisterViewPreview() {
     AppTheme {
-        EmailRegisterView(EmailRegisterViewModelPreview())
+        EmailRegisterView(EmailRegistrationViewModelPreview())
     }
 }

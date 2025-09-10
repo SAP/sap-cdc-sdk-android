@@ -13,9 +13,12 @@ import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.OTPContext
 import com.sap.cdc.android.sdk.feature.RegistrationContext
 import com.sap.cdc.android.sdk.feature.ResolvableContext
+import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
+import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsView
+import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegisterView
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInView
@@ -34,11 +37,11 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
 import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.CustomIDSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.LoginOptionsViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegistrationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
@@ -48,6 +51,7 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
+import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.ViewModelScopeProvider
 import kotlinx.serialization.json.Json
 
 /**
@@ -137,7 +141,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
         composable(ProfileScreenRoute.EmailRegister.route) {
             // ✅ OPTIMIZED: Retains registration form data
-            val viewModel: EmailRegisterViewModel = ViewModelScopeProvider.activityScopedViewModel(
+            val viewModel: EmailRegistrationViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
             EmailRegisterView(viewModel)
@@ -164,7 +168,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable(ProfileScreenRoute.MyProfile.route) {
-            // ✅ OPTIMIZED: Profile data persists across navigation
             val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -172,8 +175,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable(ProfileScreenRoute.AboutMe.route) {
-            // ✅ OPTIMIZED: Shares AccountViewModel with MyProfile for consistent data
-            val viewModel: AccountViewModel = ViewModelScopeProvider.activityScopedViewModel(
+            val viewModel: AboutMeViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
             AboutMeView(viewModel)
@@ -235,10 +237,10 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             LoginOptionsView(viewModel)
         }
 
-        composable("${ProfileScreenRoute.AuthMethods.route}/{resolvableContext}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
-            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            val viewModel: TFAAuthenticationViewModel = ViewModelScopeProvider.screenScopedViewModel(
+        composable("${ProfileScreenRoute.AuthMethods.route}/{twoFactorContext}") { backStackEntry ->
+            val twoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
+            val resolvable = Json.decodeFromString<TwoFactorContext>(twoFactorJson!!)
+            val viewModel: AuthMethodsViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
             AuthMethodsView(viewModel, resolvable)

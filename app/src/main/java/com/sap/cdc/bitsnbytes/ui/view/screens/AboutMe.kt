@@ -37,8 +37,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SuccessBanner
-import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IAccountViewModel
 import kotlinx.coroutines.delay
 
 
@@ -51,7 +49,7 @@ import kotlinx.coroutines.delay
  */
 
 @Composable
-fun AboutMeView(viewModel: IAccountViewModel) {
+fun AboutMeView(viewModel: IAboutMeViewModel) {
     var loading by remember { mutableStateOf(false) }
     var setError by remember { mutableStateOf("") }
     var showBanner by remember { mutableStateOf(false) }
@@ -267,6 +265,6 @@ fun AboutMeView(viewModel: IAccountViewModel) {
 @Composable
 fun AboutMeViewPreview() {
     AppTheme {
-        AboutMeView(AccountViewModelPreview())
+        AboutMeView(AboutMeViewModelPreview())
     }
 }

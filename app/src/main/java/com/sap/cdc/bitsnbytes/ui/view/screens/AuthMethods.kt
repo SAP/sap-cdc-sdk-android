@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,26 +17,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.ResolvableContext
+import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.IconAndTextOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallActionTextButton
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ITFAAuthenticationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModelPreview
 
 @Composable
 fun AuthMethodsView(
-    viewModel: ITFAAuthenticationViewModel,
-    resolvableContext: ResolvableContext
+    viewModel: IAuthMethodsViewModel,
+    twoFactorContext: TwoFactorContext,
 ) {
-    LaunchedEffect(Unit) {
-        // Update resolvable context in shared view model.
-        viewModel.updateResolvableContext(resolvableContext)
-    }
-
     //TODO: Dynamically show the auth methods based on the resolvable context available/unavailable providers
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -67,15 +59,15 @@ fun AuthMethodsView(
         Spacer(modifier = Modifier.size(24.dp))
 
         // Send Code to email button
-//        IconAndTextOutlineButton(
-//            modifier = Modifier.size(width = 240.dp, height = 44.dp),
-//            text = "Send Code to Email",
-//            onClick = {
-//            },
-//            iconResourceId = R.drawable.ic_email,
-//
-//            )
-//        Spacer(modifier = Modifier.size(10.dp))
+        IconAndTextOutlineButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
+            text = "Send Code to Email",
+            onClick = {
+                //TODO: SEND CODE TO EMAIL
+            },
+            iconResourceId = R.drawable.ic_email,
+        )
+        Spacer(modifier = Modifier.size(10.dp))
 
         // Send Code to Phone button
         IconAndTextOutlineButton(
@@ -116,8 +108,8 @@ fun AuthMethodsView(
 fun AuthMethodsViewPreview() {
     AppTheme {
         AuthMethodsView(
-            viewModel = TFAAuthenticationViewModelPreview(),
-            resolvableContext = ResolvableContext()
+            viewModel = AuthMethodsViewModelPreview(),
+            twoFactorContext = TwoFactorContext()
         )
     }
 }

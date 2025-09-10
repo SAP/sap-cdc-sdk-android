@@ -37,13 +37,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.feature.LinkingContext
+import com.sap.cdc.android.sdk.feature.account.LinkEntities
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.ViewDynamicSocialSelection
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ILinkAccountViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -88,7 +87,7 @@ fun LinkAccountView(
 
         // Vary login providers list to display the correct link path (social or site).
         if (linkingContext.conflictingAccounts!!.loginProviders.contains("site")) {
-//            // Login to site.
+            // Login to site.
             Text("Link with account password")
             Spacer(modifier = Modifier.size(12.dp))
             TextField(
@@ -136,7 +135,6 @@ fun LinkAccountView(
                                 rootRoute = ProfileScreenRoute.Welcome.route
                             )
                         }
-
                         onError = { error ->
                             loading = false
                             linkError = error.message
@@ -151,7 +149,7 @@ fun LinkAccountView(
 
         val socialProvidersOnly = linkingContext.conflictingAccounts!!.loginProviders.toMutableList()
         socialProvidersOnly.remove("site")
-        if (socialProvidersOnly.size > 0) {
+        if (socialProvidersOnly.isNotEmpty()) {
             Text("Link with existing social accounts")
             Spacer(modifier = Modifier.size(12.dp))
             // Login to social
@@ -164,7 +162,6 @@ fun LinkAccountView(
                     provider = provider,
                     linkingContext = linkingContext
                 ) {
-
                     onSuccess = {
                         loading = false
                         NavigationCoordinator.INSTANCE.popToRootAndNavigate(
@@ -172,7 +169,6 @@ fun LinkAccountView(
                             rootRoute = ProfileScreenRoute.Welcome.route
                         )
                     }
-
                     onError = { error ->
                         loading = false
                         linkError = error.message
@@ -276,6 +272,10 @@ fun LinkAccountView(
 fun LinkAccountViewPreview() {
     LinkAccountView(
         viewModel = LinkAccountViewModelPreview(),
-        linkingContext = LinkingContext()
+        linkingContext = LinkingContext(
+            conflictingAccounts = LinkEntities(
+                loginProviders = listOf("site", "google", "facebook"),
+            )
+        )
     )
 }

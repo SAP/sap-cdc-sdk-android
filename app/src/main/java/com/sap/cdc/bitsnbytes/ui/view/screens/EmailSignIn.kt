@@ -25,8 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.TwoFactorInitiator
 import com.sap.cdc.android.sdk.feature.Credentials
+import com.sap.cdc.android.sdk.feature.TwoFactorInitiator
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
@@ -42,8 +42,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.OutlineTitleAndEditPasswordTex
 import com.sap.cdc.bitsnbytes.ui.view.composables.OutlineTitleAndEditTextField
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IEmailSignInViewModel
 
 
 /**
@@ -184,7 +182,6 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
                                 }
                             }
                         }
-
                         onCaptchaRequired = { ->
                             loading = false
                             captchaRequired = true

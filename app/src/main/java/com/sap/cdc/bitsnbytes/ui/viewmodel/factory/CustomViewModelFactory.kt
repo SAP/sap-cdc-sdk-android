@@ -4,13 +4,15 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
+import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.ConfigurationViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ConfigurationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.CustomIDSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.LoginOptionsViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegistrationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
@@ -109,11 +111,11 @@ class CustomViewModelFactory(
                 CustomIDSignInViewModel(context, authenticationFlowDelegate) as T
             }
 
-            modelClass.isAssignableFrom(EmailRegisterViewModel::class.java) -> {
+            modelClass.isAssignableFrom(EmailRegistrationViewModel::class.java) -> {
                 requireNotNull(authenticationFlowDelegate) {
                     "AuthenticationFlowDelegate is required for EmailRegisterViewModel"
                 }
-                EmailRegisterViewModel(context, authenticationFlowDelegate) as T
+                EmailRegistrationViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(ConfigurationViewModel::class.java) -> {
@@ -121,6 +123,20 @@ class CustomViewModelFactory(
                     "AuthenticationFlowDelegate is required for ConfigurationViewModel"
                 }
                 ConfigurationViewModel(context, authenticationFlowDelegate) as T
+            }
+
+            modelClass.isAssignableFrom(AboutMeViewModel::class.java) -> {
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for AboutMeViewModel"
+                }
+                AboutMeViewModel(context, authenticationFlowDelegate) as T
+            }
+
+            modelClass.isAssignableFrom(AuthMethodsViewModel::class.java) -> {
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for AuthMethodsViewModel"
+                }
+                AuthMethodsViewModel(context) as T
             }
 
             modelClass.isAssignableFrom(AccountViewModel::class.java) -> {

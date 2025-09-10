@@ -45,8 +45,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ILoginOptionsViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.LoginOptionsViewModelPreview
 
 
 /**
