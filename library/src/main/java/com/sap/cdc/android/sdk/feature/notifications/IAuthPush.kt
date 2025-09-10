@@ -6,11 +6,11 @@ import com.sap.cdc.android.sdk.feature.session.SessionService
 
 interface IAuthPush {
 
-    suspend fun registerForAuthNotifications(
+    suspend fun optInForNotifications(
         authCallbacks: AuthCallbacks.() -> Unit,
     )
 
-    suspend fun verifyAuthNotification(
+    suspend fun verifyNotification(
         vToken: String,
         authCallbacks: AuthCallbacks.() -> Unit,
     )
@@ -21,14 +21,14 @@ internal class AuthPush(
     private val sessionService: SessionService
 ) : IAuthPush {
 
-    override suspend fun registerForAuthNotifications(
+    override suspend fun optInForNotifications(
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         val callbacks = AuthCallbacks().apply(authCallbacks)
         AuthPushFlow(coreClient, sessionService).registerAuthDevice(callbacks)
     }
 
-    override suspend fun verifyAuthNotification(
+    override suspend fun verifyNotification(
         vToken: String,
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {

@@ -7,11 +7,11 @@ import com.sap.cdc.android.sdk.feature.session.SessionService
 
 interface IAuthTFA {
 
-    suspend fun optInForPushNotifications(
+    suspend fun optInForNotifications(
         authCallbacks: AuthCallbacks.() -> Unit = {}
     )
 
-    suspend fun verifyPushNotification(
+    suspend fun verifyNotification(
         parameters: MutableMap<String, String>,
         finalize: Boolean = false,
         authCallbacks: AuthCallbacks.() -> Unit = {}
@@ -82,7 +82,7 @@ internal class AuthTFA(
     private val sessionService: SessionService
 ) : IAuthTFA {
 
-    override suspend fun optInForPushNotifications(
+    override suspend fun optInForNotifications(
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         val callbacks = AuthCallbacks().apply(authCallbacks)
@@ -93,7 +93,7 @@ internal class AuthTFA(
             .optInForPushNotifications(parameters, callbacks)
     }
 
-    override suspend fun verifyPushNotification(
+    override suspend fun verifyNotification(
         parameters: MutableMap<String, String>,
         finalize: Boolean,
         authCallbacks: AuthCallbacks.() -> Unit,

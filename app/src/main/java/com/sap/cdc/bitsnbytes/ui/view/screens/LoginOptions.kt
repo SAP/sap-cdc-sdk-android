@@ -4,7 +4,6 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
-import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.background
@@ -78,97 +77,42 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
         // Option cards
         OptionCard(
             title = "Passwordless Login",
-            status = "Activated",
-            actionLabel = "Deactivate",
+            status = if (viewModel.isPasswordlessLoginActive()) "Activated" else "Deactivated",
+            actionLabel = if (viewModel.isPasswordlessLoginActive()) "Deactivate" else "Activate",
             onClick = {
-                viewModel.createPasskey(
-                    context as ComponentActivity,
-                    success = {
-
-                    },
-                    onFailed = {
-
-                    }
-                )
+                viewModel.togglePasswordlessLogin()
             },
-            inverse = false
+            inverse = !viewModel.isPasswordlessLoginActive()
         )
         SmallVerticalSpacer()
         OptionCard(
             title = "Push Authentication",
-            status = "",
-            actionLabel = "Activate",
+            status = if (viewModel.isPushAuthenticationActive()) "Activated" else "Deactivated",
+            actionLabel = if (viewModel.isPushAuthenticationActive()) "Deactivate" else "Activate",
             onClick = {
-                if (!isGranted!!) {
-                    notificationPermission.launchPermissionRequest()
-                }
-                loading = true
-                viewModel.optOnForPushAuth {
-                    onSuccess = {
-                        optionsError = ""
-                        loading = false
-                    }
-                    onError = { error ->
-                        optionsError = error.message
-                        loading = false
-                    }
-                }
-            }, inverse = false
+                viewModel.togglePushAuthentication()
+            },
+            inverse = !viewModel.isPushAuthenticationActive()
         )
         SmallVerticalSpacer()
         OptionCard(
             title = "Push 2-Factor Authentication",
-            status = "",
-            actionLabel = "Activate",
+            status = if (viewModel.isPushTwoFactorAuthActive()) "Activated" else "Deactivated",
+            actionLabel = if (viewModel.isPushTwoFactorAuthActive()) "Deactivate" else "Activate",
             onClick = {
-                if (!isGranted!!) {
-                    notificationPermission.launchPermissionRequest()
-                }
-
-                loading = true
-                viewModel.optInForPushTFA(success = {
-                    optionsError = ""
-                    loading = false
-                }, onFailedWith = { error ->
-                    optionsError = error?.errorDescription!!
-                    loading = false
-                })
+                viewModel.togglePushTwoFactorAuth()
             },
-            inverse = false
+            inverse = !viewModel.isPushTwoFactorAuthActive()
         )
         SmallVerticalSpacer()
         OptionCard(
-            title = "Biometrics", status = when (viewModel.isBiometricActive()) {
-                false -> "Deactivated"
-                true -> "Activated"
-            }, actionLabel = when (viewModel.isBiometricActive()) {
-                false -> "Activate"
-                true -> "Deactivate"
-            }, onClick = {
-                val promptInfo =
-                    BiometricPrompt.PromptInfo.Builder().setAllowedAuthenticators(BIOMETRIC_STRONG)
-                        .setTitle("Biometric Authentication")
-                        .setSubtitle("Authenticate using your biometric credential")
-                        .setNegativeButtonText("Use another method").build()
-
-                when (viewModel.isBiometricActive()) {
-                    true -> {
-                        viewModel.biometricOptOut(
-                            activity = context as FragmentActivity,
-                            promptInfo = promptInfo,
-                            executor = executor
-                        )
-                    }
-
-                    false -> {
-                        viewModel.biometricOptIn(
-                            activity = context as FragmentActivity,
-                            promptInfo = promptInfo,
-                            executor = executor
-                        )
-                    }
-                }
-            }, inverse = !viewModel.isBiometricActive()
+            title = "Biometrics", 
+            status = if (viewModel.isBiometricActive()) "Activated" else "Deactivated",
+            actionLabel = if (viewModel.isBiometricActive()) "Deactivate" else "Activate",
+            onClick = {
+                viewModel.toggleBiometricAuthentication()
+            }, 
+            inverse = !viewModel.isBiometricActive()
         )
 
         // Biometrics lock toggle

@@ -1,8 +1,10 @@
 package com.sap.cdc.bitsnbytes.feature.auth
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.core.content.edit
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sap.cdc.android.sdk.core.SiteConfig
@@ -28,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
@@ -41,6 +44,14 @@ import kotlinx.serialization.json.Json
  * - Single instance shared across all ViewModels
  */
 class AuthenticationFlowDelegate(context: Context) {
+
+    // Context reference for SharedPreferences
+    private val appContext = context.applicationContext
+
+    // SharedPreferences for authentication options state
+    private val authOptionsPrefs: SharedPreferences by lazy {
+        appContext.getSharedPreferences("auth_options_state", Context.MODE_PRIVATE)
+    }
 
     // Direct CDC SDK access - eliminates repository passthrough boilerplate
     /**
@@ -203,11 +214,13 @@ class AuthenticationFlowDelegate(context: Context) {
             // Add state management side-effect to clear account state on successful logout
             doOnSuccess {
                 clearAuthenticationState()
+                clearAuthOptionsState()
             }
 
             doOnError {
                 // Even on error, clear local state since logout was attempted
                 clearAuthenticationState()
+                clearAuthOptionsState()
             }
         }
     }
@@ -279,6 +292,7 @@ class AuthenticationFlowDelegate(context: Context) {
     //endregion
 
     //region ADDITIONAL AUTHENTICATION METHODS
+
     suspend fun otpSendCode(
         parameters: MutableMap<String, String>,
         authCallbacks: AuthCallbacks.() -> Unit
@@ -308,6 +322,16 @@ class AuthenticationFlowDelegate(context: Context) {
         authenticationService.authenticate().captcha().getSaptchaToken(authCallbacks)
     }
 
+    suspend fun passkeyRegister(
+        provider: IPasskeysAuthenticationProvider,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().passkeys().create(
+            authenticationProvider = provider,
+            authCallbacks = authCallbacks
+        )
+    }
+
     suspend fun passkeyLogin(
         provider: IPasskeysAuthenticationProvider,
         authCallbacks: AuthCallbacks.() -> Unit
@@ -318,10 +342,16 @@ class AuthenticationFlowDelegate(context: Context) {
         )
     }
 
-    suspend fun registerForAuthNotifications(
+    suspend fun optInForTwoFactorNotifications(
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        authenticationService.authenticate().push().registerForAuthNotifications(authCallbacks)
+        authenticationService.authenticate().tfa().optInForNotifications(authCallbacks)
+    }
+
+    suspend fun optOnForAuthenticationNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().push().optInForNotifications(authCallbacks)
     }
 
     //endregion
@@ -396,6 +426,117 @@ class AuthenticationFlowDelegate(context: Context) {
      * Instantiate a new WebBridgeJS element.
      */
     fun getWebBridge(): WebBridgeJS = WebBridgeJS(authenticationService)
+
+    //endregion
+
+    //region AUTHENTICATION OPTIONS STATE MANAGEMENT
+
+    /**
+     * Data class representing the authentication options state
+     */
+    @Serializable
+    data class AuthOptionsState(
+        val passwordlessLogin: Boolean = false,
+        val pushAuthentication: Boolean = false,
+        val pushTwoFactorAuthentication: Boolean = false,
+        val biometricAuthentication: Boolean = false
+    )
+
+    /**
+     * Enum representing the different authentication options
+     */
+    enum class AuthOption {
+        PASSWORDLESS_LOGIN,
+        PUSH_AUTHENTICATION,
+        PUSH_TWO_FACTOR_AUTHENTICATION,
+        BIOMETRIC_AUTHENTICATION
+    }
+
+    companion object {
+        private const val AUTH_OPTIONS_STATE_KEY = "auth_options_state_json"
+        private const val LOG_TAG = "AuthOptionsState"
+    }
+
+    /**
+     * Save the authentication options state as JSON string in SharedPreferences
+     */
+    fun saveAuthOptionsState(state: AuthOptionsState) {
+        try {
+            val jsonString = json.encodeToString(state)
+            authOptionsPrefs.edit {
+                putString(AUTH_OPTIONS_STATE_KEY, jsonString)
+            }
+            Log.d(LOG_TAG, "Auth options state saved: $jsonString")
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Failed to save auth options state", e)
+        }
+    }
+
+    /**
+     * Get the authentication options state from SharedPreferences
+     */
+    fun getAuthOptionsState(): AuthOptionsState {
+        return try {
+            val jsonString = authOptionsPrefs.getString(AUTH_OPTIONS_STATE_KEY, null)
+            if (jsonString != null) {
+                json.decodeFromString<AuthOptionsState>(jsonString)
+            } else {
+                AuthOptionsState() // Return default state
+            }
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Failed to load auth options state, returning default", e)
+            AuthOptionsState() // Return default state on error
+        }
+    }
+
+    /**
+     * Check if a specific authentication option is active
+     */
+    fun isAuthOptionActive(option: AuthOption): Boolean {
+        val state = getAuthOptionsState()
+        return when (option) {
+            AuthOption.PASSWORDLESS_LOGIN -> state.passwordlessLogin
+            AuthOption.PUSH_AUTHENTICATION -> state.pushAuthentication
+            AuthOption.PUSH_TWO_FACTOR_AUTHENTICATION -> state.pushTwoFactorAuthentication
+            AuthOption.BIOMETRIC_AUTHENTICATION -> state.biometricAuthentication
+        }
+    }
+
+    /**
+     * Set the state of a specific authentication option
+     */
+    fun setAuthOptionState(option: AuthOption, isActive: Boolean) {
+        val currentState = getAuthOptionsState()
+        val newState = when (option) {
+            AuthOption.PASSWORDLESS_LOGIN -> currentState.copy(passwordlessLogin = isActive)
+            AuthOption.PUSH_AUTHENTICATION -> currentState.copy(pushAuthentication = isActive)
+            AuthOption.PUSH_TWO_FACTOR_AUTHENTICATION -> currentState.copy(pushTwoFactorAuthentication = isActive)
+            AuthOption.BIOMETRIC_AUTHENTICATION -> {
+                val updatedState = currentState.copy(biometricAuthentication = isActive)
+                // When biometric is activated, deactivate all other options
+                if (isActive) {
+                    updatedState.copy(
+                        passwordlessLogin = false,
+                        pushAuthentication = false,
+                        pushTwoFactorAuthentication = false
+                    )
+                } else {
+                    updatedState
+                }
+            }
+        }
+        saveAuthOptionsState(newState)
+    }
+
+    /**
+     * Clear all authentication options state
+     */
+    fun clearAuthOptionsState() {
+        authOptionsPrefs.edit {
+            remove(AUTH_OPTIONS_STATE_KEY)
+        }
+        Log.d(LOG_TAG, "Auth options state cleared")
+    }
 
     //endregion
 }

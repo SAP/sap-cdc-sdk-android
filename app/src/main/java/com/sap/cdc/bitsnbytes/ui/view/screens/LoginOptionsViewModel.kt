@@ -8,7 +8,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
@@ -25,6 +24,20 @@ interface ILoginOptionsViewModel {
     fun isBiometricActive(): Boolean
 
     fun isBiometricLocked(): Boolean
+
+    fun isPasswordlessLoginActive(): Boolean
+
+    fun togglePasswordlessLogin()
+
+    fun isPushAuthenticationActive(): Boolean
+
+    fun togglePushAuthentication()
+
+    fun isPushTwoFactorAuthActive(): Boolean
+
+    fun togglePushTwoFactorAuth()
+
+    fun toggleBiometricAuthentication()
 
     fun biometricOptIn(
         activity: FragmentActivity,
@@ -54,14 +67,13 @@ interface ILoginOptionsViewModel {
         // Stub.
     }
 
-    fun optInForPushTFA(
-        success: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+    fun optInForTwoFactorNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         //Stub.
     }
 
-    fun optOnForPushAuth(
+    fun optOnForAuthenticationNotifications(
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         // Stub.
@@ -69,16 +81,14 @@ interface ILoginOptionsViewModel {
 
     fun createPasskey(
         activity: ComponentActivity,
-        success: () -> Unit,
-        onFailed: (CDCError) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         // Stub.
     }
 
     fun clearPasskey(
         activity: ComponentActivity,
-        success: () -> Unit,
-        onFailed: (CDCError) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         // Stub.
     }
@@ -90,6 +100,13 @@ class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
 
     override fun isBiometricActive(): Boolean = true
     override fun isBiometricLocked(): Boolean = false
+    override fun isPasswordlessLoginActive(): Boolean = false
+    override fun togglePasswordlessLogin() {}
+    override fun isPushAuthenticationActive(): Boolean = false
+    override fun togglePushAuthentication() {}
+    override fun isPushTwoFactorAuthActive(): Boolean = false
+    override fun togglePushTwoFactorAuth() {}
+    override fun toggleBiometricAuthentication() {}
 }
 
 class LoginOptionsViewModel(
@@ -203,22 +220,17 @@ class LoginOptionsViewModel(
 
     //region PUSH TFA
 
-    override fun optInForPushTFA(
-        success: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+    override fun optInForTwoFactorNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         viewModelScope.launch {
-//            val response = identityService.optInForPushTFA()
-//            when (response.state()) {
-//                AuthState.SUCCESS -> {
-//                    // Success.
-//                    success()
-//                }
-//
-//                else -> {
-//                    onFailedWith(response.toDisplayError())
-//                }
-//            }
+            authenticationFlowDelegate.optInForTwoFactorNotifications {
+                authCallbacks()
+
+                doOnSuccess {
+                    togglePushTwoFactorAuth()
+                }
+            }
         }
     }
 
@@ -226,11 +238,17 @@ class LoginOptionsViewModel(
 
     //region PUSH AUTH
 
-    override fun optOnForPushAuth(
+    override fun optOnForAuthenticationNotifications(
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         viewModelScope.launch {
-            authenticationFlowDelegate.registerForAuthNotifications(authCallbacks)
+            authenticationFlowDelegate.optOnForAuthenticationNotifications {
+                authCallbacks()
+
+                doOnSuccess {
+                    togglePushAuthentication()
+                }
+            }
         }
     }
 
@@ -242,50 +260,110 @@ class LoginOptionsViewModel(
 
     override fun createPasskey(
         activity: ComponentActivity,
-        success: () -> Unit,
-        onFailed: (CDCError) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         if (passkeysAuthenticationProvider == null) {
             passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
         }
-//        viewModelScope.launch {
-//            val authResponse = identityService.createPasskey(passkeysAuthenticationProvider!!)
-//            when (authResponse.state()) {
-//                AuthState.SUCCESS -> {
-//                    // Handle success.
-//                    success()
-//                }
-//
-//                else -> {
-//                    onFailed(authResponse.cdcResponse().toCDCError())
-//                }
-//            }
-//        }
+        viewModelScope.launch {
+            authenticationFlowDelegate.passkeyRegister(
+                passkeysAuthenticationProvider!!,
+                authCallbacks
+            )
+        }
     }
 
     override fun clearPasskey(
         activity: ComponentActivity,
-        success: () -> Unit,
-        onFailed: (CDCError) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
-//        if (passkeysAuthenticationProvider == null) {
-//            passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
-//        }
-//        viewModelScope.launch {
-//            val authResponse = identityService.clearPasskey(passkeysAuthenticationProvider!!)
-//            when (authResponse.state()) {
-//                AuthState.SUCCESS -> {
-//                    // Handle success.
-//                    success()
-//                }
-//
-//                else -> {
-//                    onFailed(authResponse.cdcResponse().toCDCError())
-//                }
-//            }
-//        }
+        if (passkeysAuthenticationProvider == null) {
+            passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
+        }
+    }
+
+    //endregion
+
+    //region AUTHENTICATION OPTIONS STATE MANAGEMENT
+
+    /**
+     * Check if passwordless login is active
+     */
+    override fun isPasswordlessLoginActive(): Boolean {
+        return authenticationFlowDelegate.isAuthOptionActive(
+            AuthenticationFlowDelegate.AuthOption.PASSWORDLESS_LOGIN
+        )
+    }
+
+    /**
+     * Toggle passwordless login state
+     */
+    override fun togglePasswordlessLogin() {
+        val currentState = authenticationFlowDelegate.isAuthOptionActive(
+            AuthenticationFlowDelegate.AuthOption.PASSWORDLESS_LOGIN
+        )
+        authenticationFlowDelegate.setAuthOptionState(
+            AuthenticationFlowDelegate.AuthOption.PASSWORDLESS_LOGIN,
+            !currentState
+        )
+    }
+
+    /**
+     * Check if push authentication is active
+     */
+    override fun isPushAuthenticationActive(): Boolean {
+        return authenticationFlowDelegate.isAuthOptionActive(
+            AuthenticationFlowDelegate.AuthOption.PUSH_AUTHENTICATION
+        )
+    }
+
+    /**
+     * Toggle push authentication state
+     */
+    override fun togglePushAuthentication() {
+        val currentState = authenticationFlowDelegate.isAuthOptionActive(
+            AuthenticationFlowDelegate.AuthOption.PUSH_AUTHENTICATION
+        )
+        authenticationFlowDelegate.setAuthOptionState(
+            AuthenticationFlowDelegate.AuthOption.PUSH_AUTHENTICATION,
+            !currentState
+        )
+    }
+
+    /**
+     * Check if push 2-factor authentication is active
+     */
+    override fun isPushTwoFactorAuthActive(): Boolean {
+        return authenticationFlowDelegate.isAuthOptionActive(
+            AuthenticationFlowDelegate.AuthOption.PUSH_TWO_FACTOR_AUTHENTICATION
+        )
+    }
+
+    /**
+     * Toggle push 2-factor authentication state
+     */
+    override fun togglePushTwoFactorAuth() {
+        val currentState = authenticationFlowDelegate.isAuthOptionActive(
+            AuthenticationFlowDelegate.AuthOption.PUSH_TWO_FACTOR_AUTHENTICATION
+        )
+        authenticationFlowDelegate.setAuthOptionState(
+            AuthenticationFlowDelegate.AuthOption.PUSH_TWO_FACTOR_AUTHENTICATION,
+            !currentState
+        )
+    }
+
+    /**
+     * Toggle biometric authentication state
+     */
+    override fun toggleBiometricAuthentication() {
+        val currentState = authenticationFlowDelegate.isAuthOptionActive(
+            AuthenticationFlowDelegate.AuthOption.BIOMETRIC_AUTHENTICATION
+        )
+        authenticationFlowDelegate.setAuthOptionState(
+            AuthenticationFlowDelegate.AuthOption.BIOMETRIC_AUTHENTICATION,
+            !currentState
+        )
     }
 
     //endregion
 }
-
