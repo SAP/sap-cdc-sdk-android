@@ -1,26 +1,112 @@
 #file: noinspection YAMLSchemaValidation
 project:
   name: sap-cdc-sdk-android
-  version: 0.3
-  description: SAP CX-CDC SDK for Android
+  version: 0.3.0
+  description: SAP Customer Data Cloud SDK for Android
+  longDescription: |
+    The SAP Customer Data Cloud SDK for Android provides a comprehensive solution for integrating
+    SAP Customer Data Cloud services into Android applications. It includes authentication,
+    user management, and data synchronization capabilities.
   authors:
-    - SAP CX-CDC
+    - SAP SE
   license:
     name: Apache-2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.txt
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  links:
+    homepage: https://github.com/SAP/sap-cdc-sdk-android
+    documentation: https://github.com/SAP/sap-cdc-sdk-android/blob/main/README.md
+    issue: https://github.com/SAP/sap-cdc-sdk-android/issues
   scm:
     url: https://github.com/SAP/sap-cdc-sdk-android
-    connection: scm:git:ssh://git@github.com:SAP/sap-cdc-sdk-android.git
+    connection: scm:git:https://github.com/SAP/sap-cdc-sdk-android.git
     developerConnection: scm:git:ssh://git@github.com:SAP/sap-cdc-sdk-android.git
+  java:
+    groupId: com.sap.oss.cdc-android-sdk
+    version: 11
+  inceptionYear: 2024
+
+environment:
+  properties:
+    artifactsDir: out/jreleaser/assemble/sap-cdc-sdk-android/archive
+
+platform:
+  replacements:
+    'osx-x86_64': 'darwin-amd64'
+    'osx-aarch_64': 'darwin-arm64'
+    'linux-x86_64': 'linux-amd64'
+    'linux-aarch_64': 'linux-arm64'
+    'windows-x86_64': 'windows-amd64'
 
 release:
+  github:
+    overwrite: true
+    draft: true
+    sign: true
+    releaseName: 'SAP CDC Android SDK {{projectVersion}}'
+    skipTag: false
+    milestone:
+      close: false
+    changelog:
+      formatted: ALWAYS
+      preset: 'keepachangelog'
+      external: CHANGELOG.md
+      content: |
+        # SAP Customer Data Cloud Android SDK {{projectVersion}}
+        
+        {{changelogChanges}}
+        
+        ## Installation
+        
+        Add the following dependency to your `build.gradle.kts`:
+        
+        ```kotlin
+        dependencies {
+            implementation("com.sap.oss.cdc-android-sdk:cdc-android-sdk:{{projectVersion}}")
+        }
+        ```
+        
+        ## Documentation
+        
+        - [API Documentation](https://github.com/SAP/sap-cdc-sdk-android/blob/main/README.md)
+        
+        ---
+        
+        For support and questions, please visit our [GitHub Issues](https://github.com/SAP/sap-cdc-sdk-android/issues).
+
+signing:
+  active: ALWAYS
+  armored: true
+
+deploy:
   maven:
-    groupId: com.sap.oss.cdc-android-sdk
-    artifactId: android-core
-    url: https://oss.sonatype.org/service/local/staging/deploy/maven2/
-    username: {{ secrets.MVN_USERNAME }}
-    password: {{ secrets.MVN_PASSWORD }}
-    signing:
-      active: true
-      armored: true
-      passphrase: {{ secrets.MVN_SIGNING_PASSPHRASE }}
+    mavenCentral:
+      sonatype:
+        active: ALWAYS
+        url: https://central.sonatype.com/api/v1/publisher
+        stagingRepository: build/staging-deploy
+        applyMavenCentralRules: true
+        artifactId: cdc-android-sdk
+        groupId: com.sap.oss.cdc-android-sdk
+        version: '{{projectVersion}}'
+        username: '{{Env.SONATYPE_USERNAME}}'
+        password: '{{Env.SONATYPE_PASSWORD}}'
+
+distributions:
+  cdc-android-sdk:
+    type: JAVA_BINARY
+    artifacts:
+      - path: library/build/outputs/aar/library-release.aar
+        transform: 'cdc-android-sdk-{{projectVersion}}.aar'
+      - path: library/build/libs/library-{{projectVersion}}-sources.jar
+        transform: 'cdc-android-sdk-{{projectVersion}}-sources.jar'
+      - path: library/build/libs/library-{{projectVersion}}-javadoc.jar
+        transform: 'cdc-android-sdk-{{projectVersion}}-javadoc.jar'
+
+files:
+  artifacts:
+    - path: library/build/outputs/aar/library-release.aar
+      transform: 'artifacts/cdc-android-sdk-{{projectVersion}}.aar'
+    - path: library/build/libs/library-{{projectVersion}}-sources.jar
+      transform: 'artifacts/cdc-android-sdk-{{projectVersion}}-sources.jar'
+    - path: library/build/libs/library-{{projectVersion}}-javadoc.jar
+      transform: 'artifacts/cdc-android-sdk-{{projectVersion}}-javadoc.jar'

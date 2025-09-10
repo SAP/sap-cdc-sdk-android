@@ -7,13 +7,13 @@ plugins {
     alias(libs.plugins.jreleaser)
 }
 
-group = "com.sap.cdc.android"
+group = "com.sap.oss.cdc-android-sdk"
 version = "0.3.0"
 
-ext["name"] = "SAP Customer Data Cloud for Android"
-ext["artifactId"] = "sdk"
-ext["description"] = "SAP Customer Data Cloud for Android"
-ext["url"] = ""
+ext["name"] = "SAP Customer Data Cloud SDK for Android"
+ext["artifactId"] = "cdc-android-sdk"
+ext["description"] = "SAP Customer Data Cloud SDK for Android - A comprehensive solution for integrating SAP Customer Data Cloud services into Android applications"
+ext["url"] = "https://github.com/SAP/sap-cdc-sdk-android"
 
 android {
     namespace = "com.sap.cdc.android.sdk"
@@ -93,4 +93,22 @@ dependencies {
     api(libs.androidx.work.runtime.ktx)
     // Browser (CustomTabs)
     api(libs.androidx.browser)
+}
+
+// Create Javadoc JAR for JReleaser using Dokka
+val javadocJar by tasks.registering(Jar::class) {
+    dependsOn("dokkaHtml")
+    archiveClassifier.set("javadoc")
+    from(layout.buildDirectory.dir("dokka/html"))
+}
+
+// Create sources JAR for JReleaser
+val sourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(android.sourceSets["main"].java.srcDirs)
+}
+
+// Ensure JARs are built with the main build
+tasks.named("assemble") {
+    dependsOn(javadocJar, sourcesJar)
 }

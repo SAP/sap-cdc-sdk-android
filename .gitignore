@@ -62,3 +62,7 @@ google-services.json
 /example/keystore/
 /docs/
 /plans/
+
+# Internal release management files
+RELEASE_GUIDE.md
+validate-release-config.sh
