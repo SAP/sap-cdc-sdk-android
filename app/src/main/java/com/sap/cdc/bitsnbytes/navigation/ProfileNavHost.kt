@@ -33,23 +33,25 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.MyProfileView
 import com.sap.cdc.bitsnbytes.ui.view.screens.MyProfileViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.OTPType
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInView
+import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyView
+import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PendingRegistrationView
+import com.sap.cdc.bitsnbytes.ui.view.screens.PendingRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneSelectionView
+import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneSelectionViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationView
+import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterView
 import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetView
 import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
-import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.SignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.ViewModelScopeProvider
 import kotlinx.serialization.json.Json
@@ -246,24 +248,22 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             AuthMethodsView(viewModel, resolvable)
         }
 
-        composable("${ProfileScreenRoute.PhoneSelection.route}/{resolvableContext}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("resolvableContext")
-            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson!!)
-            val viewModel: TFAAuthenticationViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                factory = CustomViewModelFactory(context)
+        composable("${ProfileScreenRoute.PhoneSelection.route}/{TwoFactorContext}") { backStackEntry ->
+            val twoFactorJson = backStackEntry.arguments?.getString("TwoFactorContext")
+            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(twoFactorJson!!)
+            val viewModel: PhoneSelectionViewModel = ViewModelScopeProvider.screenScopedViewModel(
+                factory = CustomViewModelFactory(context, authDelegate)
             )
-            PhoneSelectionView(viewModel)
+            PhoneSelectionView(viewModel, twoFactorContext)
         }
 
-        composable("${ProfileScreenRoute.PhoneVerification.route}/{resolvableContext}") { backStackEntry ->
-            val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
-            val resolvableJson =
-                String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
-            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
-            val viewModel: TFAAuthenticationViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                factory = CustomViewModelFactory(context)
+        composable("${ProfileScreenRoute.PhoneVerification.route}/{twoFactorContext}") { backStackEntry ->
+            val twoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
+            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(twoFactorJson!!)
+            val viewModel: PhoneVerificationViewModel = ViewModelScopeProvider.screenScopedViewModel(
+                factory = CustomViewModelFactory(context, authDelegate)
             )
-            PhoneVerificationView(viewModel)
+            PhoneVerificationView(viewModel, twoFactorContext)
         }
 
         composable("${ProfileScreenRoute.TOTPVerification.route}/{resolvableContext}") { backStackEntry ->

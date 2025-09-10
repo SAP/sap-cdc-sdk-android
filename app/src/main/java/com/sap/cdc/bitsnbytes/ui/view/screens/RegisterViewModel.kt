@@ -1,7 +1,9 @@
-package com.sap.cdc.bitsnbytes.ui.viewmodel
+package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
+import com.sap.cdc.bitsnbytes.ui.viewmodel.ISocialSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.SocialSignInViewModel
 
 interface IRegisterViewModel : ISocialSignInViewModel {
 

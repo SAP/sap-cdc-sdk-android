@@ -1,4 +1,4 @@
-package com.sap.cdc.bitsnbytes.ui.viewmodel
+package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.activity.ComponentActivity
@@ -7,6 +7,8 @@ import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
+import com.sap.cdc.bitsnbytes.ui.viewmodel.ISocialSignInViewModel
+import com.sap.cdc.bitsnbytes.ui.viewmodel.SocialSignInViewModel
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 

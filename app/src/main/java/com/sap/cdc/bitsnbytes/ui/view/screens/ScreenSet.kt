@@ -29,7 +29,6 @@ import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebViewClient
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

@@ -31,8 +31,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IWelcomeViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

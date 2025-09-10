@@ -45,8 +45,6 @@ import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IPendingRegistrationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

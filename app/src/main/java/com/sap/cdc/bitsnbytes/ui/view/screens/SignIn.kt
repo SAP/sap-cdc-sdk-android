@@ -32,8 +32,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.ViewDynamicSocialSelection
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ISignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

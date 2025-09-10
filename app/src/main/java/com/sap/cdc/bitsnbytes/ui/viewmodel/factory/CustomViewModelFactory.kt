@@ -13,16 +13,17 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.EmailSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.LinkAccountViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.MyProfileViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.AccountViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.RegisterViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.SignInViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.PendingRegistrationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneSelectionViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.SignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.SocialSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeViewModel
 
 @Suppress("UNCHECKED_CAST")
 class CustomViewModelFactory(
@@ -147,11 +148,18 @@ class CustomViewModelFactory(
                 AuthMethodsViewModel(context) as T
             }
 
-            modelClass.isAssignableFrom(AccountViewModel::class.java) -> {
+            modelClass.isAssignableFrom(PhoneSelectionViewModel::class.java) -> {
                 requireNotNull(authenticationFlowDelegate) {
-                    "AuthenticationFlowDelegate is required for AccountViewModel"
+                    "AuthenticationFlowDelegate is required for PhoneSelectionViewModel"
                 }
-                AccountViewModel(context, authenticationFlowDelegate) as T
+                PhoneSelectionViewModel(context, authenticationFlowDelegate) as T
+            }
+
+            modelClass.isAssignableFrom(PhoneVerificationViewModel::class.java) -> {
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for PhoneVerificationViewModel"
+                }
+                PhoneVerificationViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(TFAAuthenticationViewModel::class.java) -> {

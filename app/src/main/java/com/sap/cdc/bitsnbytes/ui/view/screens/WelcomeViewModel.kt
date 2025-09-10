@@ -1,8 +1,9 @@
-package com.sap.cdc.bitsnbytes.ui.viewmodel
+package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.bitsnbytes.ui.viewmodel.BaseViewModel
 
 interface IWelcomeViewModel {
 

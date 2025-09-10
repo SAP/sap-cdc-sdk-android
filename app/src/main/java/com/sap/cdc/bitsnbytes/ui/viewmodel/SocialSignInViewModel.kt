@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
+import com.sap.cdc.bitsnbytes.ui.view.screens.IRegisterViewModel
 
 interface ISocialSignInViewModel {
 
@@ -26,7 +27,8 @@ interface ISocialSignInViewModel {
 
 }
 
-open class SocialSignInViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) : BaseViewModel(context), IRegisterViewModel {
+open class SocialSignInViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) : BaseViewModel(context),
+    IRegisterViewModel {
 
     /**
      * Helper method to fetch a registered authentication provider.

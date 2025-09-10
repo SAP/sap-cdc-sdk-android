@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.IconAndTextOutlineButton
@@ -88,7 +89,9 @@ fun AuthMethodsView(
             text = "Use a TOTP App",
             onClick = {
                 NavigationCoordinator.INSTANCE
-                    .navigate(ProfileScreenRoute.TOTPVerification.route)
+                    .navigate("${ProfileScreenRoute.TOTPVerification.route}/" +
+                            twoFactorContext.toJson()
+                    )
             },
             iconResourceId = R.drawable.ic_lock,
 

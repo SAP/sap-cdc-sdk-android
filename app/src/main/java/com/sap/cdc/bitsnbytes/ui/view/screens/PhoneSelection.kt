@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,22 +37,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
-import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallActionTextButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ITFAAuthenticationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModelPreview
 
 @Composable
 fun PhoneSelectionView(
-    viewModel: ITFAAuthenticationViewModel,
+    viewModel: IPhoneSelectionViewModel,
+    twoFactorContext: TwoFactorContext
 ) {
     var loading by remember { mutableStateOf(false) }
     var verificationError by remember { mutableStateOf("") }
@@ -116,7 +114,7 @@ fun PhoneSelectionView(
 
 @Composable
 fun RegisterNewPhoneNumber(
-    viewModel: ITFAAuthenticationViewModel,
+    viewModel: IPhoneSelectionViewModel,
     onLoadChanged: (Boolean) -> Unit,
     onVerificationErrorChanged: (String) -> Unit,
 ) {
@@ -182,25 +180,25 @@ fun RegisterNewPhoneNumber(
         onClick = {
             onLoadChanged(true)
             onVerificationErrorChanged("")
-            viewModel.registerTFAPhoneNumber(
-                inputField,
-                "en",
-//                onVerificationCodeSent = { authResponse ->
+//            viewModel.registerTFAPhoneNumber(
+//                inputField,
+//                "en",
+////                onVerificationCodeSent = { authResponse ->
+////                    onLoadChanged(false)
+////                    NavigationCoordinator.INSTANCE
+////                        .navigate(
+////                            "${ProfileScreenRoute.PhoneVerification.route}/${
+////                                twoFactorContext.toJson()
+////                            }"
+////                        )
+////                },
+//                onFailedWith = { error ->
 //                    onLoadChanged(false)
-//                    NavigationCoordinator.INSTANCE
-//                        .navigate(
-//                            "${ProfileScreenRoute.PhoneVerification.route}/${
-//                                authResponse?.resolvable()!!.toJson()
-//                            }"
-//                        )
-//                },
-                onFailedWith = { error ->
-                    onLoadChanged(false)
-                    onVerificationErrorChanged(
-                        error?.errorDescription!!
-                    )
-                }
-            )
+//                    onVerificationErrorChanged(
+//                        error?.errorDescription!!
+//                    )
+//                }
+//            )
 
         }) {
         Text("Send code")
@@ -209,7 +207,7 @@ fun RegisterNewPhoneNumber(
 
 @Composable
 fun RegisteredPhoneNumbers(
-    viewModel: ITFAAuthenticationViewModel,
+    viewModel: IPhoneSelectionViewModel,
     onLoadChanged: (Boolean) -> Unit,
     onVerificationErrorChanged: (String) -> Unit,
 ) {
@@ -218,39 +216,39 @@ fun RegisteredPhoneNumbers(
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        items(
-            phoneList
-        ) { tfaPhoneEntity ->
-            ActionOutlineButton(
-                modifier = Modifier,
-                text = tfaPhoneEntity.obfuscated ?: ""
-            ) {
-                onLoadChanged(true)
-                viewModel.sendRegisteredPhoneCode(
-                    tfaPhoneEntity.id ?: "",
-                    "en",
-//                    onVerificationCodeSent = { authResponse ->
+//        items(
+//            phoneList
+//        ) { tfaPhoneEntity ->
+//            ActionOutlineButton(
+//                modifier = Modifier,
+////                text = tfaPhoneEntity.obfuscated ?: ""
+//            ) {
+//                onLoadChanged(true)
+//                viewModel.sendRegisteredPhoneCode(
+//                    tfaPhoneEntity.id ?: "",
+//                    "en",
+////                    onVerificationCodeSent = { authResponse ->
+////                        onLoadChanged(false)
+////                        val resolvableJson = authResponse?.resolvable()!!.toJson()
+////                        NavigationCoordinator.INSTANCE
+////                            .navigate(
+////                                "${ProfileScreenRoute.PhoneVerification.route}/${
+////                                    Base64.encodeToString(
+////                                        resolvableJson.toByteArray(Charsets.UTF_8),
+////                                        Base64.DEFAULT
+////                                    )
+////                                }"
+////                            )
+////                    },
+//                    onFailedWith = { error ->
 //                        onLoadChanged(false)
-//                        val resolvableJson = authResponse?.resolvable()!!.toJson()
-//                        NavigationCoordinator.INSTANCE
-//                            .navigate(
-//                                "${ProfileScreenRoute.PhoneVerification.route}/${
-//                                    Base64.encodeToString(
-//                                        resolvableJson.toByteArray(Charsets.UTF_8),
-//                                        Base64.DEFAULT
-//                                    )
-//                                }"
-//                            )
-//                    },
-                    onFailedWith = { error ->
-                        onLoadChanged(false)
-                        onVerificationErrorChanged(
-                            error?.errorDescription!!
-                        )
-                    }
-                )
-            }
-        }
+//                        onVerificationErrorChanged(
+//                            error?.errorDescription!!
+//                        )
+//                    }
+//                )
+//            }
+//        }
     }
 
     LargeVerticalSpacer()
@@ -262,18 +260,18 @@ fun RegisteredPhoneNumbers(
     }
 
     onLoadChanged(true)
-    viewModel.getRegisteredPhoneNumbers(
-        onRegisteredPhoneNumbers = {
-            onLoadChanged(false)
-            onVerificationErrorChanged("")
-        },
-        onFailedWith = { error ->
-            onLoadChanged(false)
-            onVerificationErrorChanged(
-                error?.errorDescription!!
-            )
-        }
-    )
+//    viewModel.getRegisteredPhoneNumbers(
+//        onRegisteredPhoneNumbers = {
+//            onLoadChanged(false)
+//            onVerificationErrorChanged("")
+//        },
+//        onFailedWith = { error ->
+//            onLoadChanged(false)
+//            onVerificationErrorChanged(
+//                error?.errorDescription!!
+//            )
+//        }
+//    )
 
 }
 
@@ -282,7 +280,8 @@ fun RegisteredPhoneNumbers(
 fun PhoneSelectionViewPreview() {
     AppTheme {
         PhoneSelectionView(
-            viewModel = TFAAuthenticationViewModelPreview(),
+            viewModel = PhoneSelectionViewModelPreview(),
+            twoFactorContext = TwoFactorContext()
         )
     }
 }

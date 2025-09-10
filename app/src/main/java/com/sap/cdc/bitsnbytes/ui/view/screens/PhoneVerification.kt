@@ -33,21 +33,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
-import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ITFAAuthenticationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModelPreview
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PhoneVerificationView(
-    viewModel: ITFAAuthenticationViewModel,
+    viewModel: IPhoneVerificationViewModel,
+    twoFactorContext: TwoFactorContext
 ) {
     var loading by remember { mutableStateOf(false) }
 
@@ -150,20 +148,20 @@ fun PhoneVerificationView(
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
                     loading = true
-                    viewModel.verifyPhoneCode(
-                        otpValue,
-                        rememberDevice = false,
-                        onVerified = {
-                            loading = false
-                            verificationError = ""
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        },
-                        onFailedWith = { error ->
-                            verificationError = error?.errorDescription!!
-                            loading = false
-
-                        }
-                    )
+//                    viewModel.verify(
+//                        otpValue,
+//                        rememberDevice = false,
+//                        onVerified = {
+//                            loading = false
+//                            verificationError = ""
+//                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+//                        },
+//                        onFailedWith = { error ->
+//                            verificationError = error?.errorDescription!!
+//                            loading = false
+//
+//                        }
+//                    )
                 }) {
                 Text("Verify")
             }
@@ -198,7 +196,8 @@ fun PhoneVerificationView(
 fun PhoneVerificationViewPreview() {
     AppTheme {
         PhoneVerificationView(
-            viewModel = TFAAuthenticationViewModelPreview(),
+            viewModel = PhoneVerificationViewModelPreview(),
+            twoFactorContext = TwoFactorContext()
         )
     }
 }

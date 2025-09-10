@@ -15,6 +15,7 @@ import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.android.sdk.feature.CustomIdCredentials
 import com.sap.cdc.android.sdk.feature.LinkingContext
+import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
@@ -22,6 +23,7 @@ import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.feature.session.Session
 import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
+import com.sap.cdc.android.sdk.feature.tfa.TFAPhoneMethod
 import com.sap.cdc.bitsnbytes.feature.auth.model.AccountEntity
 import com.sap.cdc.bitsnbytes.feature.provider.FacebookAuthenticationProvider
 import com.sap.cdc.bitsnbytes.feature.provider.GoogleAuthenticationProvider
@@ -352,6 +354,60 @@ class AuthenticationFlowDelegate(context: Context) {
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
         authenticationService.authenticate().push().optInForNotifications(authCallbacks)
+    }
+
+    suspend fun getRegisteredPhoneNumbers(
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().tfa().getRegisteredPhoneNumbers(
+            twoFactorContext = twoFactorContext,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun registerPhoneNumber(
+        phoneNumber: String,
+        language: String = "en",
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().tfa().registerPhone(
+            twoFactorContext = twoFactorContext,
+            phoneNumber = phoneNumber,
+            language = language,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun sendPhoneCode(
+        phoneId: String,
+        method: TFAPhoneMethod?,
+        language: String = "en",
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().tfa().sendPhoneCode(
+            twoFactorContext = twoFactorContext,
+            phoneId = phoneId,
+            method = method,
+            language = language,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun verifyPhoneCode(
+        verificationCode: String,
+        rememberDevice: Boolean = false,
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().tfa().verifyPhoneCode(
+            twoFactorContext = twoFactorContext,
+            code = verificationCode,
+            rememberDevice = rememberDevice,
+            authCallbacks = authCallbacks
+        )
     }
 
     //endregion
