@@ -85,16 +85,18 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
     val context = LocalContext.current.applicationContext
 
-    // ✅ Create the shared AuthenticationFlowDelegate ONCE at the top level
-    val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
-
-    NavHost(
-        profileNavController, startDestination =
-            when (authDelegate.hasValidSession()) {
-                true -> ProfileScreenRoute.MyProfile.route
-                false -> ProfileScreenRoute.Welcome.route
-            }
-    ) {
+    // ✅ Provide the shared AuthenticationFlowDelegate to the entire composition tree
+    ViewModelScopeProvider.ProvideAuthenticationDelegate(context) {
+        // Get the delegate to determine start destination
+        val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
+        
+        NavHost(
+            profileNavController, startDestination =
+                when (authDelegate.hasValidSession()) {
+                    true -> ProfileScreenRoute.MyProfile.route
+                    false -> ProfileScreenRoute.Welcome.route
+                }
+        ) {
         composable(ProfileScreenRoute.Welcome.route) {
             val viewModel: WelcomeViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
@@ -266,6 +268,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
                 factory = CustomViewModelFactory(context, authDelegate)
             )
             TOTPVerificationView(viewModel, twoFactorContext)
+        }
         }
     }
 }

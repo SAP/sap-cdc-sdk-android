@@ -47,6 +47,17 @@ fun AuthenticationTabView(selected: Int) {
     val selectedTabIndex = remember { derivedStateOf { pagerState.currentPage } }
 
     val context = LocalContext.current
+    
+    // Get the authentication delegate - should be the same instance as ProfileNavHost
+    val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
+    
+    // Create both ViewModels using activity-scoped pattern like other screens
+    val emailRegistrationViewModel: EmailRegistrationViewModel = ViewModelScopeProvider.activityScopedViewModel(
+        factory = CustomViewModelFactory(context, authDelegate)
+    )
+    val emailSignInViewModel: EmailSignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
+        factory = CustomViewModelFactory(context, authDelegate)
+    )
 
     Column(
         modifier = Modifier
@@ -88,21 +99,13 @@ fun AuthenticationTabView(selected: Int) {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                val authDelegate =
-                    ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
                 when (selectedTabIndex.value) {
                     0 -> {
-                        val viewModel: EmailRegistrationViewModel = viewModel(
-                            factory = CustomViewModelFactory(context, authDelegate)
-                        )
-                        EmailRegisterView(viewModel)
+                        EmailRegisterView(emailRegistrationViewModel)
                     }
 
                     1 -> {
-                        val viewModel: EmailSignInViewModel = viewModel(
-                            factory = CustomViewModelFactory(context, authDelegate)
-                        )
-                        EmailSignInView(viewModel)
+                        EmailSignInView(emailSignInViewModel)
                     }
                 }
             }

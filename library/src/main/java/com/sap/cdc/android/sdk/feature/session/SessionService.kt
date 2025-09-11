@@ -1,9 +1,10 @@
 package com.sap.cdc.android.sdk.feature.session
 
-import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
-import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_GMID
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_GMID
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -15,6 +16,10 @@ class SessionService(
 ) {
     companion object {
         const val LOG_TAG = "SessionService"
+    }
+
+    init {
+        CDCDebuggable.log(LOG_TAG, "Initialized SessionService with siteConfig: $siteConfig")
     }
 
     private var sessionSecure: SessionSecure =

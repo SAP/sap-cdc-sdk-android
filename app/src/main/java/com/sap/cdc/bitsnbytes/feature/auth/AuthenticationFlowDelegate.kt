@@ -178,12 +178,42 @@ class AuthenticationFlowDelegate(context: Context) {
     //region LOGIN / LOGOUT / REGISTER METHODS
     suspend fun login(credentials: Credentials, authCallbacks: AuthCallbacks.() -> Unit) {
         authenticationService.authenticate().login()
-            .credentials(credentials = credentials, configure = authCallbacks)
+            .credentials(credentials = credentials) {
+                // Register original callbacks first
+                authCallbacks()
+
+                // Add state management side-effect
+                doOnSuccess { authSuccess ->
+                    try {
+                        // Parse and update the state
+                        val accountData = json.decodeFromString<AccountEntity>(authSuccess.jsonData)
+                        _userAccount.value = accountData
+                    } catch (e: Exception) {
+                        // Handle parsing errors silently - don't break the callback chain
+                        // Could add logging here if needed
+                    }
+                }
+            }
     }
 
     suspend fun loginWithCustomId(credentials: CustomIdCredentials, authCallbacks: AuthCallbacks.() -> Unit) {
         authenticationService.authenticate().login()
-            .customIdentifier(credentials = credentials, authCallbacks = authCallbacks)
+            .customIdentifier(credentials = credentials) {
+                // Register original callbacks first
+                authCallbacks()
+
+                // Add state management side-effect
+                doOnSuccess { authSuccess ->
+                    try {
+                        // Parse and update the state
+                        val accountData = json.decodeFromString<AccountEntity>(authSuccess.jsonData)
+                        _userAccount.value = accountData
+                    } catch (e: Exception) {
+                        // Handle parsing errors silently - don't break the callback chain
+                        // Could add logging here if needed
+                    }
+                }
+            }
     }
 
     suspend fun signInWithProvider(

@@ -2,6 +2,9 @@ package com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
@@ -10,6 +13,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
+
+// CompositionLocal for providing AuthenticationFlowDelegate across the composition tree
+val LocalAuthenticationDelegate = compositionLocalOf<AuthenticationFlowDelegate?> { null }
 
 /**
  * Provides proper ViewModel scoping for different navigation levels.
@@ -25,8 +31,14 @@ object ViewModelScopeProvider {
     inline fun <reified T : ViewModel> activityScopedViewModel(
         factory: ViewModelProvider.Factory? = null
     ): T {
-        return if (factory != null) {
+        // Get the activity's ViewModelStoreOwner to ensure true activity scoping
+        val activityViewModelStoreOwner = LocalViewModelStoreOwner.current
+        return if (factory != null && activityViewModelStoreOwner != null) {
+            viewModel<T>(viewModelStoreOwner = activityViewModelStoreOwner, factory = factory)
+        } else if (factory != null) {
             viewModel<T>(factory = factory)
+        } else if (activityViewModelStoreOwner != null) {
+            viewModel<T>(viewModelStoreOwner = activityViewModelStoreOwner)
         } else {
             viewModel<T>()
         }
@@ -98,15 +110,32 @@ object ViewModelScopeProvider {
     fun activityScopedAuthenticationDelegate(
         context: Context
     ): AuthenticationFlowDelegate {
-        // Use activity-scoped ViewModel to ensure the delegate survives ViewModel recreation
-        val factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return AuthenticationDelegateViewModel(context) as T
-            }
+        // Try to get from CompositionLocal first
+        val providedDelegate = LocalAuthenticationDelegate.current
+        return providedDelegate ?: throw IllegalStateException(
+            "AuthenticationFlowDelegate not provided. Make sure to wrap your composable with ProvideAuthenticationDelegate."
+        )
+    }
+
+    /**
+     * Provides the AuthenticationFlowDelegate to the composition tree.
+     * This should be called at the top level (e.g., in ProfileNavHost) to provide
+     * the delegate to all child composables.
+     */
+    @Composable
+    fun ProvideAuthenticationDelegate(
+        context: Context,
+        content: @Composable () -> Unit
+    ) {
+        val authDelegate = remember {
+            AuthenticationFlowDelegate(context)
         }
-        val viewModel = activityScopedViewModel<AuthenticationDelegateViewModel>(factory)
-        return viewModel.authenticationFlowDelegate
+        
+        CompositionLocalProvider(
+            LocalAuthenticationDelegate provides authDelegate
+        ) {
+            content()
+        }
     }
 }
 
