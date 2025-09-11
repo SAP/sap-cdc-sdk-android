@@ -21,8 +21,7 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.SignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.SocialSignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeViewModel
 
 @Suppress("UNCHECKED_CAST")
@@ -41,13 +40,6 @@ class CustomViewModelFactory(
                     "AuthenticationFlowDelegate is required for PendingRegistrationViewModel"
                 }
                 SignInViewModel(context, authenticationFlowDelegate) as T
-            }
-
-            modelClass.isAssignableFrom(SocialSignInViewModel::class.java) -> {
-                requireNotNull(authenticationFlowDelegate) {
-                    "AuthenticationFlowDelegate is required for SocialSignInViewModel"
-                }
-                SocialSignInViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(ScreenSetViewModel::class.java) -> {
@@ -162,8 +154,11 @@ class CustomViewModelFactory(
                 PhoneVerificationViewModel(context, authenticationFlowDelegate) as T
             }
 
-            modelClass.isAssignableFrom(TFAAuthenticationViewModel::class.java) -> {
-                TFAAuthenticationViewModel(context) as T
+            modelClass.isAssignableFrom(TOTPVerificationViewModel::class.java) -> {
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for PhoneVerificationViewModel"
+                }
+                TOTPVerificationViewModel(context, authenticationFlowDelegate) as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class")

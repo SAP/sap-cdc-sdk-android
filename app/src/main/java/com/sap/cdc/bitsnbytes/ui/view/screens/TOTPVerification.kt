@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
@@ -43,40 +47,43 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ITFAAuthenticationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModelPreview
 
 @Composable
 fun TOTPVerificationView(
-    viewModel: ITFAAuthenticationViewModel,
+    viewModel: ITOTPVerificationViewModel,
+    twoFactorContext: TwoFactorContext
 ) {
     var loading by remember { mutableStateOf(false) }
     var verificationError by remember { mutableStateOf("") }
 
-//    if (viewModel.resolvableContext.collectAsState().value?.tfa?.tfaProviders?.activeProviders?.isEmpty() == true) {
-//        // Need to register a new authenticator app
-//        RegisterAuthenticatorAppWithQAView(
-//            viewModel = viewModel,
-//            onLoadChanged = { loading = it },
-//            onVerificationErrorChanged = { verificationError = it }
-//        )
-//    } else {
-//        // Show verification view only.
-//        TOTPCodeVerificationView(
-//            viewModel = viewModel,
-//            onLoadChanged = { loading = it },
-//            onVerificationErrorChanged = { verificationError = it }
-//        )
-//    }
+    LaunchedEffect(twoFactorContext) {
+        viewModel.updateTwoFactorContext(twoFactorContext)
+    }
+
+    if (viewModel.twoFactorContext.collectAsState().value?.tfaProviders?.activeProviders?.isEmpty() == true) {
+        // Need to register a new authenticator app
+        RegisterAuthenticatorAppWithQAView(
+            viewModel = viewModel,
+            onLoadChanged = { loading = it },
+            onVerificationErrorChanged = { verificationError = it }
+        )
+    } else {
+        // Show verification view only.
+        TOTPCodeVerificationView(
+            viewModel = viewModel,
+            onLoadChanged = { loading = it },
+            onVerificationErrorChanged = { verificationError = it }
+        )
+    }
 }
 
 @Composable
 fun RegisterAuthenticatorAppWithQAView(
-    viewModel: ITFAAuthenticationViewModel,
+    viewModel: ITOTPVerificationViewModel,
     onLoadChanged: (Boolean) -> Unit,
     onVerificationErrorChanged: (String) -> Unit,
 ) {
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var bitmap = viewModel.qACode.collectAsState().value
 
     val scrollState = rememberScrollState()
 
@@ -86,17 +93,17 @@ fun RegisterAuthenticatorAppWithQAView(
 
     LaunchedEffect(Unit) {
         onLoadChanged(true)
-        viewModel.registerNewAuthenticatorApp(
-            onQACode = { newBitmap ->
+        viewModel.registerNewAuthenticatorApp() {
+            onSuccess = {
                 onLoadChanged(false)
                 onVerificationErrorChanged("")
-                bitmap = newBitmap
-            },
-            onFailedWith = { error ->
-                onLoadChanged(false)
-                onVerificationErrorChanged(error?.errorDescription!! ?: "")
             }
-        )
+
+            onError = { error ->
+                onLoadChanged(false)
+                onVerificationErrorChanged(error.message)
+            }
+        }
     }
 
 
@@ -183,18 +190,22 @@ fun RegisterAuthenticatorAppWithQAView(
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
                     onLoadChanged(true)
-                    viewModel.verifyTOTPCode(
-                        code = otpValue,
-//                        onVerificationSuccess = {
-//                            // Navigate to the next screen.
-//                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-//                        },
-                        onFailedWith = {
+                    viewModel.verifyCode(
+                        verificationCode = otpValue,
+                        rememberDevice = false,
+                    ) {
+                        onSuccess = {
                             onLoadChanged(false)
-                            onVerificationErrorChanged(it?.errorDescription ?: "")
+                            onVerificationErrorChanged("")
+                            // Navigate to the next screen.
+                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         }
-                    )
 
+                        onError = { error ->
+                            onLoadChanged(false)
+                            onVerificationErrorChanged(error.message)
+                        }
+                    }
                 }) {
                 Text("Finish")
             }
@@ -218,7 +229,7 @@ fun BitmapImageView(bitmap: Bitmap?) {
 
 @Composable
 fun TOTPCodeVerificationView(
-    viewModel: ITFAAuthenticationViewModel,
+    viewModel: ITOTPVerificationViewModel,
     onLoadChanged: (Boolean) -> Unit,
     onVerificationErrorChanged: (String) -> Unit,
 ) {
@@ -275,17 +286,17 @@ fun TOTPCodeVerificationView(
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 onLoadChanged(true)
-                viewModel.verifyTOTPCode(
-                    code = otpValue,
-//                    onVerificationSuccess = {
-//                        // Navigate to the next screen.
-//                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-//                    },
-                    onFailedWith = {
-                        onLoadChanged(false)
-                        onVerificationErrorChanged(it?.errorDescription ?: "")
-                    }
-                )
+//                viewModel.verifyTOTPCode(
+//                    code = otpValue,
+////                    onVerificationSuccess = {
+////                        // Navigate to the next screen.
+////                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+////                    },
+//                    onFailedWith = {
+//                        onLoadChanged(false)
+//                        onVerificationErrorChanged(it?.errorDescription ?: "")
+//                    }
+//                )
             }) {
             Text("Verify")
         }
@@ -297,7 +308,8 @@ fun TOTPCodeVerificationView(
 fun TOTPVerificationViewPreview() {
     AppTheme {
         TOTPVerificationView(
-            viewModel = TFAAuthenticationViewModelPreview(),
+            viewModel = TOTPVerificationViewModelPreview(),
+            twoFactorContext = TwoFactorContext()
         )
     }
 }

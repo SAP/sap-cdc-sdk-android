@@ -1,6 +1,5 @@
 package com.sap.cdc.bitsnbytes.navigation
 
-import android.util.Base64
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,7 +11,6 @@ import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.OTPContext
 import com.sap.cdc.android.sdk.feature.RegistrationContext
-import com.sap.cdc.android.sdk.feature.ResolvableContext
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.ui.view.composables.AuthenticationTabView
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeView
@@ -43,14 +41,14 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneSelectionViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterView
-import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetView
-import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
-import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationView
-import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
 import com.sap.cdc.bitsnbytes.ui.view.screens.RegisterViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetView
 import com.sap.cdc.bitsnbytes.ui.view.screens.ScreenSetViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.SignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.SignInViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.TFAAuthenticationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationView
+import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeViewModel
 import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
 import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.ViewModelScopeProvider
@@ -266,15 +264,13 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             PhoneVerificationView(viewModel, twoFactorContext)
         }
 
-        composable("${ProfileScreenRoute.TOTPVerification.route}/{resolvableContext}") { backStackEntry ->
-            val resolvableJsonEncoded = backStackEntry.arguments?.getString("resolvableContext")
-            val resolvableJson =
-                String(Base64.decode(resolvableJsonEncoded, Base64.DEFAULT), Charsets.UTF_8)
-            val resolvable = Json.decodeFromString<ResolvableContext>(resolvableJson)
-            val viewModel: TFAAuthenticationViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                factory = CustomViewModelFactory(context)
+        composable("${ProfileScreenRoute.TOTPVerification.route}/{twoFactorContext}") { backStackEntry ->
+            val twoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
+            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(twoFactorJson!!)
+            val viewModel: TOTPVerificationViewModel = ViewModelScopeProvider.screenScopedViewModel(
+                factory = CustomViewModelFactory(context, authDelegate)
             )
-            TOTPVerificationView(viewModel)
+            TOTPVerificationView(viewModel, twoFactorContext)
         }
     }
 }

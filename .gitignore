@@ -63,6 +63,6 @@ google-services.json
 /docs/
 /plans/
 
-# Internal release management files
-RELEASE_GUIDE.md
-validate-release-config.sh
+# Internal script management files
+/scripts/release/.
+

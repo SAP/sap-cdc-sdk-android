@@ -185,6 +185,26 @@ class AuthenticationFlowDelegate(context: Context) {
             .customIdentifier(credentials = credentials, authCallbacks = authCallbacks)
     }
 
+    suspend fun signInWithProvider(
+        hostActivity: ComponentActivity,
+        provider: String,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val authenticationProvider = getAuthenticationProvider(provider)
+        if (authenticationProvider == null) {
+            // Handle unknown provider error
+            authCallbacks.invoke(AuthCallbacks().apply {
+                onError?.let { it(AuthError(message = "Unknown authentication provider: $provider")) }
+            })
+            return
+        }
+        authenticationService.authenticate().provider().signIn(
+            hostActivity = hostActivity,
+            authenticationProvider = authenticationProvider,
+            authCallbacks = authCallbacks
+        )
+    }
+
     suspend fun register(
         credentials: Credentials,
         authCallbacks: AuthCallbacks.() -> Unit,
@@ -403,6 +423,30 @@ class AuthenticationFlowDelegate(context: Context) {
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
         authenticationService.authenticate().tfa().verifyPhoneCode(
+            twoFactorContext = twoFactorContext,
+            code = verificationCode,
+            rememberDevice = rememberDevice,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun registerNewAuthenticatorApp(
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().tfa().registerTOTP(
+            twoFactorContext = twoFactorContext,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun verifyTotpCode(
+        verificationCode: String,
+        rememberDevice: Boolean = false,
+        twoFactorContext: TwoFactorContext,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().tfa().verifyTOTPCode(
             twoFactorContext = twoFactorContext,
             code = verificationCode,
             rememberDevice = rememberDevice,
