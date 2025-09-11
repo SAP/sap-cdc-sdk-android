@@ -26,5 +26,6 @@ data class AccountEntity(
 data class ProfileEntity(
     val email: String,
     val firstName: String? = null,
-    val lastName: String? = null
+    val lastName: String? = null,
+    val nickname: String? = null,
 )

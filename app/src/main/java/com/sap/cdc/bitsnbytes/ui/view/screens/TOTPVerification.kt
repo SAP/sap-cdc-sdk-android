@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
+import com.sap.cdc.android.sdk.feature.tfa.TFAProvidersEntity
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
@@ -198,7 +199,7 @@ fun RegisterAuthenticatorAppWithQAView(
                             onLoadChanged(false)
                             onVerificationErrorChanged("")
                             // Navigate to the next screen.
-                             NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                         }
 
                         onError = { error ->
@@ -286,17 +287,22 @@ fun TOTPCodeVerificationView(
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 onLoadChanged(true)
-//                viewModel.verifyTOTPCode(
-//                    code = otpValue,
-////                    onVerificationSuccess = {
-////                        // Navigate to the next screen.
-////                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-////                    },
-//                    onFailedWith = {
-//                        onLoadChanged(false)
-//                        onVerificationErrorChanged(it?.errorDescription ?: "")
-//                    }
-//                )
+                viewModel.verifyCode(
+                    verificationCode = otpValue,
+                    rememberDevice = false,
+                ) {
+                    onSuccess = {
+                        onLoadChanged(false)
+                        onVerificationErrorChanged("")
+                        // Navigate to the next screen.
+                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                    }
+
+                    onError = { error ->
+                        onLoadChanged(false)
+                        onVerificationErrorChanged(error.message)
+                    }
+                }
             }) {
             Text("Verify")
         }
@@ -309,7 +315,11 @@ fun TOTPVerificationViewPreview() {
     AppTheme {
         TOTPVerificationView(
             viewModel = TOTPVerificationViewModelPreview(),
-            twoFactorContext = TwoFactorContext()
+            twoFactorContext = TwoFactorContext(
+                tfaProviders = TFAProvidersEntity(
+                    activeProviders = listOf()
+                )
+            )
         )
     }
 }

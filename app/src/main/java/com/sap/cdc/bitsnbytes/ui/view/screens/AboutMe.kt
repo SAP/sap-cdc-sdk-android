@@ -62,6 +62,12 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
         )
     }
 
+    var nickname by remember {
+        mutableStateOf(
+            accountInfo?.profile?.nickname ?: ""
+        )
+    }
+
     var alias by remember { mutableStateOf("") }
 
     if (showBanner) {
@@ -184,7 +190,7 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 1.dp),
+                .padding(top = 1.dp, bottom = 1.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
@@ -202,6 +208,43 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
 
                 Text(
                     text = accountInfo?.profile?.email ?: "",
+                    style = AppTheme.typography.labelNormal,
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
+        // Divider
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 1.dp),
+            thickness = 1.dp,
+            color = Color.LightGray
+        )
+
+        // Nickname section
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 1.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Nickname",
+                    style = AppTheme.typography.body,
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = nickname,
                     style = AppTheme.typography.labelNormal,
                     color = Color.Black,
                     fontSize = 16.sp,

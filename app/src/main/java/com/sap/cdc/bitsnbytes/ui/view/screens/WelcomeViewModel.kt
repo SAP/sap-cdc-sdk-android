@@ -2,26 +2,26 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.bitsnbytes.ui.viewmodel.BaseViewModel
+import androidx.lifecycle.viewModelScope
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
+import kotlinx.coroutines.launch
 
 interface IWelcomeViewModel {
 
     fun singleSignOn(
         hostActivity: ComponentActivity,
         parameters: MutableMap<String, String>?,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         //Stub
     }
 
 }
 
-// Mock preview class for the WelcomeViewModel
-class WelcomeViewModelPreview: IWelcomeViewModel
-
-class WelcomeViewModel(context: Context) : BaseViewModel(context), IWelcomeViewModel {
+class WelcomeViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) : BaseViewModel(context),
+    IWelcomeViewModel {
 
     /**
      * Single sign on provider flow.
@@ -29,20 +29,17 @@ class WelcomeViewModel(context: Context) : BaseViewModel(context), IWelcomeViewM
     override fun singleSignOn(
         hostActivity: ComponentActivity,
         parameters: MutableMap<String, String>?,
-        onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
-//        viewModelScope.launch {
-//            val authResponse = identityService.sso(hostActivity, parameters ?: mutableMapOf())
-//            when (authResponse.state()) {
-//                AuthState.SUCCESS -> {
-//                    onLogin()
-//                }
-//
-//                else -> {
-//                    onFailedWith(authResponse.toDisplayError())
-//                }
-//            }
-//        }
+        viewModelScope.launch {
+            flowDelegate.singleSignOn(
+                hostActivity = hostActivity,
+                parameters = parameters,
+                authCallbacks = authCallbacks
+            )
+        }
     }
 }
+
+// Mock preview class for the WelcomeViewModel
+class WelcomeViewModelPreview : IWelcomeViewModel

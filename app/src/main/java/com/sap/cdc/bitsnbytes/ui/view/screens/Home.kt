@@ -57,7 +57,7 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomBottomBar
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory.CustomViewModelFactory
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024

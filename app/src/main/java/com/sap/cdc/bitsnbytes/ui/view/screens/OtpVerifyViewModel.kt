@@ -6,7 +6,7 @@ import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.ResolvableContext
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
-import com.sap.cdc.bitsnbytes.ui.viewmodel.BaseViewModel
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

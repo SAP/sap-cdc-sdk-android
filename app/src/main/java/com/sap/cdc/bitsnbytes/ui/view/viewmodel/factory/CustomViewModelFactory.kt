@@ -1,4 +1,4 @@
-package com.sap.cdc.bitsnbytes.ui.viewmodel.factory
+package com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -32,7 +32,10 @@ class CustomViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(WelcomeViewModel::class.java) -> {
-                WelcomeViewModel(context) as T
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for WelcomeViewModel"
+                }
+                WelcomeViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(SignInViewModel::class.java) -> {

@@ -48,8 +48,8 @@ data class TFARegisteredPhoneEntities(
 data class TFAPhoneEntity(
     val id: String?,
     val obfuscated: String?,
-    val lastMethod: String?,
-    val lastVerification: String?,
+    val lastMethod: String? = null,
+    val lastVerification: String? = null,
 )
 
 

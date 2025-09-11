@@ -44,29 +44,15 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
 @Composable
 fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
     val context = LocalContext.current
-    // Editable variables.
-    var name by remember {
-        mutableStateOf("")
-    }
-    var email by remember {
-        mutableStateOf("")
-    }
-    var password by remember {
-        mutableStateOf("")
-    }
-    var confirmPassword by remember {
-        mutableStateOf("")
-    }
-    // State modifiers.
-    var passwordVisible: Boolean by remember { mutableStateOf(false) }
+    
+    // Use ViewModel state instead of local remember state
+    // This ensures field values persist across navigation
     val isNotMatching = remember {
         derivedStateOf {
-            password != confirmPassword
+            viewModel.password != viewModel.confirmPassword
         }
     }
-    var registerError by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
-    var loading by remember { mutableStateOf(false) }
 
     // UI elements.
 
@@ -74,7 +60,7 @@ fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .padding(48.dp),
-        loading = loading
+        loading = viewModel.loading
     ) {
 
         LargeVerticalSpacer()
@@ -89,10 +75,10 @@ fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
         OutlineTitleAndEditTextField(
             modifier = Modifier,
             titleText = "Name: *",
-            inputText = name,
+            inputText = viewModel.name,
             placeholderText = "Name placeholder",
             onValueChange = {
-                name = it
+                viewModel.name = it
             },
             focusManager = focusManager
         )
@@ -102,10 +88,10 @@ fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
         OutlineTitleAndEditTextField(
             modifier = Modifier,
             titleText = "Email: *",
-            inputText = email,
+            inputText = viewModel.email,
             placeholderText = "Email placeholder",
             onValueChange = {
-                email = it
+                viewModel.email = it
             },
             focusManager = focusManager
         )
@@ -114,13 +100,13 @@ fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
         SmallVerticalSpacer()
         OutlineTitleAndEditPasswordTextField(
             titleText = "Password: *",
-            inputText = password,
+            inputText = viewModel.password,
             placeholderText = "",
-            passwordVisible = passwordVisible,
+            passwordVisible = viewModel.passwordVisible,
             onValueChange = {
-                password = it
+                viewModel.password = it
             },
-            onEyeClick = { passwordVisible = it },
+            onEyeClick = { viewModel.passwordVisible = it },
             focusManager = focusManager
         )
 
@@ -128,13 +114,13 @@ fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
         SmallVerticalSpacer()
         OutlineTitleAndEditPasswordTextField(
             titleText = "Confirm password: *",
-            inputText = confirmPassword,
+            inputText = viewModel.confirmPassword,
             placeholderText = "",
-            passwordVisible = passwordVisible,
+            passwordVisible = viewModel.passwordVisible,
             onValueChange = {
-                confirmPassword = it
+                viewModel.confirmPassword = it
             },
-            onEyeClick = { passwordVisible = it },
+            onEyeClick = { viewModel.passwordVisible = it },
             focusManager = focusManager
         )
 
@@ -154,25 +140,25 @@ fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
                 .fillMaxWidth(),
             text = "Register",
             onClick = {
-                registerError = ""
-                loading = true
+                viewModel.registerError = ""
+                viewModel.loading = true
                 // Credentials registration.
                 viewModel.register(
-                    Credentials(email = email, password = password),
-                    name = name,
+                    Credentials(email = viewModel.email, password = viewModel.password),
+                    name = viewModel.name,
                 ) {
                     onSuccess = {
-                        loading = false
-                        registerError = ""
+                        viewModel.loading = false
+                        viewModel.registerError = ""
                         NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
                     }
                     onError = { error ->
-                        loading = false
-                        registerError = error.message
+                        viewModel.loading = false
+                        viewModel.registerError = error.message
                     }
                     onTwoFactorRequired = { twoFactorContext ->
-                        loading = false
-                        registerError = ""
+                        viewModel.loading = false
+                        viewModel.registerError = ""
                         when (twoFactorContext.initiator) {
                             TwoFactorInitiator.REGISTRATION -> {
                                 NavigationCoordinator.INSTANCE
@@ -197,7 +183,7 @@ fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
                         }
                     }
                     onPendingRegistration = { registrationContext ->
-                        loading = false
+                        viewModel.loading = false
                         NavigationCoordinator.INSTANCE
                             .navigate(
                                 "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
@@ -209,9 +195,9 @@ fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
             }
         )
 
-        if (registerError.isNotEmpty()) {
+        if (viewModel.registerError.isNotEmpty()) {
             SimpleErrorMessages(
-                text = registerError
+                text = viewModel.registerError
             )
         }
     }

@@ -1,4 +1,4 @@
-package com.sap.cdc.bitsnbytes.ui.viewmodel.factory
+package com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory
 
 import android.content.Context
 import androidx.compose.runtime.Composable

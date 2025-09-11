@@ -19,6 +19,7 @@ import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.provider.sso.SSOAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.feature.session.Session
@@ -207,9 +208,9 @@ class AuthenticationFlowDelegate(context: Context) {
 
     suspend fun register(
         credentials: Credentials,
+        parameters: MutableMap<String, String> = mutableMapOf(),
         authCallbacks: AuthCallbacks.() -> Unit,
-        parameters: MutableMap<String, String> = mutableMapOf()
-    ) {
+        ) {
         authenticationService.authenticate().register().credentials(
             credentials = credentials, configure = authCallbacks,
             parameters = parameters
@@ -450,6 +451,19 @@ class AuthenticationFlowDelegate(context: Context) {
             twoFactorContext = twoFactorContext,
             code = verificationCode,
             rememberDevice = rememberDevice,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun singleSignOn(
+        hostActivity: ComponentActivity,
+        parameters: MutableMap<String, String>?,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().provider().signIn(
+            hostActivity = hostActivity,
+            authenticationProvider = SSOAuthenticationProvider(siteConfig, mutableMapOf()),
+            parameters = parameters,
             authCallbacks = authCallbacks
         )
     }

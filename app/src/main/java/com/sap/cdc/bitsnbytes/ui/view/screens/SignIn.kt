@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.IconAndTextOutlineButton
@@ -66,41 +67,43 @@ fun SignInView(viewModel: ISignInViewModel) {
         ViewDynamicSocialSelection(
             listOf("facebook", "google", "apple", "linkedIn")
         ) { provider ->
-//            viewModel.socialSignInWith(
-//                context as ComponentActivity,
-//                provider,
-//                viewModel.getAuthenticationProvider(provider),
-//                onLogin = {
-//                    loading = false
-//                    signInError = ""
-//                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-//                        toRoute = ProfileScreenRoute.MyProfile.route,
-//                        rootRoute = ProfileScreenRoute.Welcome.route
-//                    )
-//                },
-//                onFailedWith = { error ->
-//                    loading = false
-//                    signInError = error?.errorDetails!!
-//                },
-//                onPendingRegistration = { authResponse ->
-//                    loading = false
-//                    NavigationCoordinator.INSTANCE
-//                        .navigate(
-//                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-//                                authResponse?.resolvable()?.toJson()
-//                            }"
-//                        )
-//                },
-//                onLoginIdentifierExists = { authResponse ->
-//                    loading = false
-//                    NavigationCoordinator.INSTANCE
-//                        .navigate(
-//                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
-//                                authResponse?.resolvable()?.toJson()
-//                            }"
-//                        )
-//                }
-//            )
+            viewModel.socialSignInWith(
+                hostActivity = context as ComponentActivity,
+                provider = provider
+            ) {
+                onSuccess = {
+                    loading = false
+                    signInError = ""
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.MyProfile.route,
+                        rootRoute = ProfileScreenRoute.Welcome.route
+                    )
+                }
+                onError = { error ->
+                    loading = false
+                    signInError = error.message
+                }
+
+                onPendingRegistration = { registrationContext ->
+                    loading = false
+                    NavigationCoordinator.INSTANCE
+                        .navigate(
+                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
+                                registrationContext.toJson()
+                            }"
+                        )
+                }
+
+                onLinkingRequired = { linkingContext ->
+                    loading = false
+                    NavigationCoordinator.INSTANCE
+                        .navigate(
+                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
+                                linkingContext.toJson()
+                            }"
+                        )
+                }
+            }
         }
 
         // Divider
@@ -188,7 +191,7 @@ fun SignInView(viewModel: ISignInViewModel) {
 
     }
 
-    // Loading indicator on top of all views.
+// Loading indicator on top of all views.
     Box(Modifier.fillMaxWidth()) {
         IndeterminateLinearIndicator(loading)
     }

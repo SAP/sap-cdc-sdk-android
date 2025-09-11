@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
@@ -148,20 +150,22 @@ fun PhoneVerificationView(
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
                     loading = true
-//                    viewModel.verify(
-//                        otpValue,
-//                        rememberDevice = false,
-//                        onVerified = {
-//                            loading = false
-//                            verificationError = ""
-//                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-//                        },
-//                        onFailedWith = { error ->
-//                            verificationError = error?.errorDescription!!
-//                            loading = false
-//
-//                        }
-//                    )
+                    viewModel.verifyCode(
+                        verificationCode = otpValue,
+                        rememberDevice = false,
+                        twoFactorContext = twoFactorContext,
+                    ) {
+                        onSuccess = {
+                            loading = false
+                            verificationError = ""
+                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                        }
+
+                        onError = { error ->
+                            verificationError = error.message
+                            loading = false
+                        }
+                    }
                 }) {
                 Text("Verify")
             }

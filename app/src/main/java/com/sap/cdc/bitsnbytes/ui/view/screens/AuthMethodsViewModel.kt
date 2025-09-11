@@ -1,7 +1,7 @@
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
-import com.sap.cdc.bitsnbytes.ui.viewmodel.BaseViewModel
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
 
 interface IAuthMethodsViewModel {
 

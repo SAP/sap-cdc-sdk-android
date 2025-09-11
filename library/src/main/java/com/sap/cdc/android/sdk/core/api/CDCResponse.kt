@@ -134,7 +134,7 @@ class CDCResponse {
      * Get an instance of the CDCError class. This class's data is limited and should only be used for display options.
      * To handle resolvable errors, use the CDCResponse class as it will contain all the necessary flow data.
      */
-    fun toCDCError(): CDCError = CDCError(errorCode()!!, errorDetails(), errorMessage())
+    fun toCDCError(): CDCError = CDCError(errorCode()!!, errorMessage(), errorDetails())
 
     /**
      * Determine of the response is considered as an error according to current backend schema.

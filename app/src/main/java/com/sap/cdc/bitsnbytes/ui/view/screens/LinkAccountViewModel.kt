@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
-import com.sap.cdc.bitsnbytes.ui.viewmodel.BaseViewModel
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
 import kotlinx.coroutines.launch
 
 interface ILinkAccountViewModel {

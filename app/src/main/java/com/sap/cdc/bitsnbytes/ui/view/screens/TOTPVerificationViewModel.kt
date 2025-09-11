@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
-import com.sap.cdc.bitsnbytes.ui.viewmodel.BaseViewModel
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

@@ -105,16 +105,19 @@ fun WelcomeView(viewModel: IWelcomeViewModel) {
             loading = true
             viewModel.singleSignOn(
                 context as ComponentActivity,
-                mutableMapOf(),
-                onLogin = {
+                mutableMapOf()
+            ) {
+
+                onSuccess = {
                     loading = false
                     NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                },
-                onFailedWith = { error ->
-                    loading = false
-                    ssoError = error?.errorDescription!!
                 }
-            )
+
+                onError = { error ->
+                    loading = false
+                    ssoError = error.message
+                }
+            }
         }
 
         LargeVerticalSpacer()

@@ -8,7 +8,7 @@ import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
-import com.sap.cdc.bitsnbytes.ui.viewmodel.BaseViewModel
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 

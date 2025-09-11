@@ -9,11 +9,6 @@ import kotlinx.serialization.Serializable
 sealed class AuthResult {
     data class Success(val authSuccess: AuthSuccess) : AuthResult()
     data class Error(val authError: AuthError) : AuthResult()
-    data class PendingRegistration(val context: RegistrationContext) : AuthResult()
-    data class LinkingRequired(val context: LinkingContext) : AuthResult()
-    data class TwoFactorRequired(val context: TwoFactorContext) : AuthResult()
-    data class OTPRequired(val context: OTPContext) : AuthResult()
-    object CaptchaRequired : AuthResult()
 }
 
 data class AuthSuccess(
@@ -80,13 +75,13 @@ data class AuthCallbacks(
     private var _onTwoFactorRequired: MutableList<(TwoFactorContext) -> Unit> = mutableListOf(),
     private var _onOTPRequired: MutableList<(OTPContext) -> Unit> = mutableListOf(),
     private var _onCaptchaRequired: MutableList<() -> Unit> = mutableListOf(),
-    
+
     // NEW: Context update callbacks for multi-step flows
     private var _onTwoFactorContextUpdated: MutableList<(TwoFactorContext) -> Unit> = mutableListOf(),
     private var _onRegistrationContextUpdated: MutableList<(RegistrationContext) -> Unit> = mutableListOf(),
     private var _onLinkingContextUpdated: MutableList<(LinkingContext) -> Unit> = mutableListOf(),
     private var _onOTPContextUpdated: MutableList<(OTPContext) -> Unit> = mutableListOf(),
-    
+
     // NEW: Override transformers stored separately
     private var _onSuccessOverrides: MutableList<suspend (AuthSuccess) -> AuthSuccess> = mutableListOf(),
     private var _onErrorOverrides: MutableList<suspend (AuthError) -> AuthError> = mutableListOf(),
@@ -96,20 +91,19 @@ data class AuthCallbacks(
     private var _onOTPRequiredOverrides: MutableList<suspend (OTPContext) -> OTPContext> = mutableListOf(),
     private var _onCaptchaRequiredOverrides: MutableList<suspend (Unit) -> Unit> = mutableListOf()
 ) {
-    
+
     // Public setters that append to the chain (backward compatible)
     var onSuccess: ((AuthSuccess) -> Unit)?
-        get() = if (_onSuccess.isEmpty()) null else { authSuccess -> 
-            // Handle universal override internally
-            if (hasUniversalOverride()) {
-                // Convert to AuthResult, apply universal override, then route back
-                val initialResult = AuthResult.Success(authSuccess)
-                // This needs to be handled asynchronously, but we can't do that in a getter
-                // The universal override will be handled when the callback is actually invoked
-                _onSuccess.forEach { it(authSuccess) }
-            } else if (_onSuccessOverrides.isNotEmpty()) {
-                throw IllegalStateException("Cannot execute synchronously when override transformers are present. Use suspend execution.")
+        get() = if (_onSuccess.isEmpty() && _onSuccessOverrides.isEmpty() && !hasUniversalOverride()) {
+            null
+        } else { authSuccess ->
+            if (_onSuccessOverrides.isNotEmpty() || hasUniversalOverride()) {
+                // Auto-bridge to async execution
+                kotlinx.coroutines.runBlocking {
+                    executeOnSuccess(authSuccess)
+                }
             } else {
+                // Pure sync execution for backward compatibility
                 _onSuccess.forEach { it(authSuccess) }
             }
         }
@@ -118,13 +112,16 @@ data class AuthCallbacks(
         }
 
     var onError: ((AuthError) -> Unit)?
-        get() = if (_onError.isEmpty()) null else { authError -> 
-            // Handle universal override internally
-            if (hasUniversalOverride()) {
-                _onError.forEach { it(authError) }
-            } else if (_onErrorOverrides.isNotEmpty()) {
-                throw IllegalStateException("Cannot execute synchronously when override transformers are present. Use suspend execution.")
+        get() = if (_onError.isEmpty() && _onErrorOverrides.isEmpty() && !hasUniversalOverride()) {
+            null
+        } else { authError ->
+            if (_onErrorOverrides.isNotEmpty() || hasUniversalOverride()) {
+                // Auto-bridge to async execution
+                kotlinx.coroutines.runBlocking {
+                    executeOnError(authError)
+                }
             } else {
+                // Pure sync execution for backward compatibility
                 _onError.forEach { it(authError) }
             }
         }
@@ -133,56 +130,91 @@ data class AuthCallbacks(
         }
 
     var onPendingRegistration: ((RegistrationContext) -> Unit)?
-        get() = if (_onPendingRegistration.isEmpty()) null else { context -> 
+        get() = if (_onPendingRegistration.isEmpty() && _onPendingRegistrationOverrides.isEmpty()) {
+            null
+        } else { context ->
             if (_onPendingRegistrationOverrides.isNotEmpty()) {
-                throw IllegalStateException("Cannot execute synchronously when override transformers are present. Use suspend execution.")
+                // Auto-bridge to async execution
+                kotlinx.coroutines.runBlocking {
+                    executeOnPendingRegistration(context)
+                }
+            } else {
+                // Pure sync execution for backward compatibility
+                _onPendingRegistration.forEach { it(context) }
             }
-            _onPendingRegistration.forEach { it(context) }
         }
         set(value) {
             value?.let { _onPendingRegistration.add(it) }
         }
 
     var onLinkingRequired: ((LinkingContext) -> Unit)?
-        get() = if (_onLinkingRequired.isEmpty()) null else { context -> 
+        get() = if (_onLinkingRequired.isEmpty() && _onLinkingRequiredOverrides.isEmpty()) {
+            null
+        } else { context ->
             if (_onLinkingRequiredOverrides.isNotEmpty()) {
-                throw IllegalStateException("Cannot execute synchronously when override transformers are present. Use suspend execution.")
+                // Auto-bridge to async execution
+                kotlinx.coroutines.runBlocking {
+                    executeOnLinkingRequired(context)
+                }
+            } else {
+                // Pure sync execution for backward compatibility
+                _onLinkingRequired.forEach { it(context) }
             }
-            _onLinkingRequired.forEach { it(context) }
         }
         set(value) {
             value?.let { _onLinkingRequired.add(it) }
         }
 
     var onTwoFactorRequired: ((TwoFactorContext) -> Unit)?
-        get() = if (_onTwoFactorRequired.isEmpty()) null else { context -> 
+        get() = if (_onTwoFactorRequired.isEmpty() && _onTwoFactorRequiredOverrides.isEmpty()) {
+            null
+        } else { context ->
             if (_onTwoFactorRequiredOverrides.isNotEmpty()) {
-                throw IllegalStateException("Cannot execute synchronously when override transformers are present. Use suspend execution.")
+                // Auto-bridge to async execution
+                kotlinx.coroutines.runBlocking {
+                    executeOnTwoFactorRequired(context)
+                }
+            } else {
+                // Pure sync execution for backward compatibility
+                _onTwoFactorRequired.forEach { it(context) }
             }
-            _onTwoFactorRequired.forEach { it(context) }
         }
         set(value) {
             value?.let { _onTwoFactorRequired.add(it) }
         }
 
     var onOTPRequired: ((OTPContext) -> Unit)?
-        get() = if (_onOTPRequired.isEmpty()) null else { context -> 
+        get() = if (_onOTPRequired.isEmpty() && _onOTPRequiredOverrides.isEmpty()) {
+            null
+        } else { context ->
             if (_onOTPRequiredOverrides.isNotEmpty()) {
-                throw IllegalStateException("Cannot execute synchronously when override transformers are present. Use suspend execution.")
+                // Auto-bridge to async execution
+                kotlinx.coroutines.runBlocking {
+                    executeOnOTPRequired(context)
+                }
+            } else {
+                // Pure sync execution for backward compatibility
+                _onOTPRequired.forEach { it(context) }
             }
-            _onOTPRequired.forEach { it(context) }
         }
         set(value) {
             value?.let { _onOTPRequired.add(it) }
         }
 
     var onCaptchaRequired: (() -> Unit)?
-        get() = if (_onCaptchaRequired.isEmpty()) null else {
-            { 
+        get() = if (_onCaptchaRequired.isEmpty() && _onCaptchaRequiredOverrides.isEmpty()) {
+            null
+        } else {
+            {
                 if (_onCaptchaRequiredOverrides.isNotEmpty()) {
-                    throw IllegalStateException("Cannot execute synchronously when override transformers are present. Use suspend execution.")
+                    // Auto-bridge to async execution
+                    kotlinx.coroutines.runBlocking {
+                        executeOnCaptchaRequired()
+                    }
+                } else {
+                    // Pure sync execution for backward compatibility
+                    _onCaptchaRequired.forEach { it() }
                 }
-                _onCaptchaRequired.forEach { it() }
             }
         }
         set(value) {
@@ -192,20 +224,20 @@ data class AuthCallbacks(
     // NEW: Context update callback setters
     /**
      * Called when TwoFactor context is updated with enriched data.
-     * 
+     *
      * ✅ RECOMMENDED for TwoFactor UI: This provides ready-to-use enriched context.
-     * 
+     *
      * Benefits:
      * - Automatic SDK enrichment (emails, tokens, etc.)
      * - Progressive context updates as flow progresses
      * - Type-safe TwoFactor-specific data
      * - Ready for immediate UI binding
-     * 
+     *
      * This callback is called IN ADDITION to onSuccess, not instead of it.
      * Use this when you want SDK to handle context enrichment automatically.
      */
     var onTwoFactorContextUpdated: ((TwoFactorContext) -> Unit)?
-        get() = if (_onTwoFactorContextUpdated.isEmpty()) null else { context -> 
+        get() = if (_onTwoFactorContextUpdated.isEmpty()) null else { context ->
             _onTwoFactorContextUpdated.forEach { it(context) }
         }
         set(value) {
@@ -214,12 +246,12 @@ data class AuthCallbacks(
 
     /**
      * Called when Registration context is updated with enriched data.
-     * 
+     *
      * This callback provides enriched registration context for multi-step registration flows.
      * Called IN ADDITION to onSuccess, not instead of it.
      */
     var onRegistrationContextUpdated: ((RegistrationContext) -> Unit)?
-        get() = if (_onRegistrationContextUpdated.isEmpty()) null else { context -> 
+        get() = if (_onRegistrationContextUpdated.isEmpty()) null else { context ->
             _onRegistrationContextUpdated.forEach { it(context) }
         }
         set(value) {
@@ -228,12 +260,12 @@ data class AuthCallbacks(
 
     /**
      * Called when Linking context is updated with enriched data.
-     * 
+     *
      * This callback provides enriched linking context for account linking flows.
      * Called IN ADDITION to onSuccess, not instead of it.
      */
     var onLinkingContextUpdated: ((LinkingContext) -> Unit)?
-        get() = if (_onLinkingContextUpdated.isEmpty()) null else { context -> 
+        get() = if (_onLinkingContextUpdated.isEmpty()) null else { context ->
             _onLinkingContextUpdated.forEach { it(context) }
         }
         set(value) {
@@ -242,12 +274,12 @@ data class AuthCallbacks(
 
     /**
      * Called when OTP context is updated with enriched data.
-     * 
+     *
      * This callback provides enriched OTP context for one-time password flows.
      * Called IN ADDITION to onSuccess, not instead of it.
      */
     var onOTPContextUpdated: ((OTPContext) -> Unit)?
-        get() = if (_onOTPContextUpdated.isEmpty()) null else { context -> 
+        get() = if (_onOTPContextUpdated.isEmpty()) null else { context ->
             _onOTPContextUpdated.forEach { it(context) }
         }
         set(value) {
@@ -345,96 +377,96 @@ data class AuthCallbacks(
     // NEW: Suspend execution methods for async callback chains
     suspend fun executeOnSuccess(authSuccess: AuthSuccess): AuthSuccess {
         var currentValue = authSuccess
-        
+
         // Apply all override transformers first
         for (transformer in _onSuccessOverrides) {
             currentValue = transformer(currentValue)
         }
-        
+
         // Execute all callbacks with the final transformed value
         _onSuccess.forEach { it(currentValue) }
-        
+
         return currentValue
     }
 
     suspend fun executeOnError(authError: AuthError): AuthError {
         var currentValue = authError
-        
+
         // Apply all override transformers first
         for (transformer in _onErrorOverrides) {
             currentValue = transformer(currentValue)
         }
-        
+
         // Execute all callbacks with the final transformed value
         _onError.forEach { it(currentValue) }
-        
+
         return currentValue
     }
 
     suspend fun executeOnPendingRegistration(context: RegistrationContext): RegistrationContext {
         var currentValue = context
-        
+
         // Apply all override transformers first
         for (transformer in _onPendingRegistrationOverrides) {
             currentValue = transformer(currentValue)
         }
-        
+
         // Execute all callbacks with the final transformed value
         _onPendingRegistration.forEach { it(currentValue) }
-        
+
         return currentValue
     }
 
     suspend fun executeOnLinkingRequired(context: LinkingContext): LinkingContext {
         var currentValue = context
-        
+
         // Apply all override transformers first
         for (transformer in _onLinkingRequiredOverrides) {
             currentValue = transformer(currentValue)
         }
-        
+
         // Execute all callbacks with the final transformed value
         _onLinkingRequired.forEach { it(currentValue) }
-        
+
         return currentValue
     }
 
     suspend fun executeOnTwoFactorRequired(context: TwoFactorContext): TwoFactorContext {
         var currentValue = context
-        
+
         // Apply all override transformers first
         for (transformer in _onTwoFactorRequiredOverrides) {
             currentValue = transformer(currentValue)
         }
-        
+
         // Execute all callbacks with the final transformed value
         _onTwoFactorRequired.forEach { it(currentValue) }
-        
+
         return currentValue
     }
 
     suspend fun executeOnOTPRequired(context: OTPContext): OTPContext {
         var currentValue = context
-        
+
         // Apply all override transformers first
         for (transformer in _onOTPRequiredOverrides) {
             currentValue = transformer(currentValue)
         }
-        
+
         // Execute all callbacks with the final transformed value
         _onOTPRequired.forEach { it(currentValue) }
-        
+
         return currentValue
     }
 
     suspend fun executeOnCaptchaRequired() {
         var currentValue = Unit
-        
+
         // Apply all override transformers first
         for (transformer in _onCaptchaRequiredOverrides) {
             currentValue = transformer(currentValue)
         }
-        
+
         // Execute all callbacks
         _onCaptchaRequired.forEach { it() }
     }
@@ -442,12 +474,12 @@ data class AuthCallbacks(
     // Helper methods to check if async execution is required
     fun hasOverrideTransformers(): Boolean {
         return _onSuccessOverrides.isNotEmpty() ||
-               _onErrorOverrides.isNotEmpty() ||
-               _onPendingRegistrationOverrides.isNotEmpty() ||
-               _onLinkingRequiredOverrides.isNotEmpty() ||
-               _onTwoFactorRequiredOverrides.isNotEmpty() ||
-               _onOTPRequiredOverrides.isNotEmpty() ||
-               _onCaptchaRequiredOverrides.isNotEmpty() ||
-               hasUniversalOverride()
+                _onErrorOverrides.isNotEmpty() ||
+                _onPendingRegistrationOverrides.isNotEmpty() ||
+                _onLinkingRequiredOverrides.isNotEmpty() ||
+                _onTwoFactorRequiredOverrides.isNotEmpty() ||
+                _onOTPRequiredOverrides.isNotEmpty() ||
+                _onCaptchaRequiredOverrides.isNotEmpty() ||
+                hasUniversalOverride()
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +20,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,10 +40,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
+import com.sap.cdc.android.sdk.feature.tfa.TFAPhoneEntity
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.extensions.toJson
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
+import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
@@ -55,6 +62,10 @@ fun PhoneSelectionView(
 ) {
     var loading by remember { mutableStateOf(false) }
     var verificationError by remember { mutableStateOf("") }
+
+    LaunchedEffect(twoFactorContext) {
+        viewModel.updateTwoFactorContext(twoFactorContext)
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -85,21 +96,21 @@ fun PhoneSelectionView(
 
         // Vary provider state to show different phone numbers
         // or to register a new one if none available.
-//        if (viewModel.resolvableContext.collectAsState().value?.tfa?.tfaProviders?.activeProviders?.isEmpty() == true) {
-//            // Need to register a new phone number
-//            RegisterNewPhoneNumber(
-//                viewModel = viewModel,
-//                onLoadChanged = { loading = it },
-//                onVerificationErrorChanged = { verificationError = it }
-//            )
-//        } else {
-//            // Show available phone numbers
-//            RegisteredPhoneNumbers(
-//                viewModel = viewModel,
-//                onLoadChanged = { loading = it },
-//                onVerificationErrorChanged = { verificationError = it }
-//            )
-//        }
+        if (viewModel.twoFactorContext.collectAsState().value?.tfaProviders?.activeProviders?.isEmpty() == true) {
+            // Need to register a new phone number
+            RegisterNewPhoneNumber(
+                viewModel = viewModel,
+                onLoadChanged = { loading = it },
+                onVerificationErrorChanged = { verificationError = it }
+            )
+        } else {
+            // Show available phone numbers
+            RegisteredPhoneNumbers(
+                viewModel = viewModel,
+                onLoadChanged = { loading = it },
+                onVerificationErrorChanged = { verificationError = it }
+            )
+        }
 
         LargeVerticalSpacer()
 
@@ -180,26 +191,31 @@ fun RegisterNewPhoneNumber(
         onClick = {
             onLoadChanged(true)
             onVerificationErrorChanged("")
-//            viewModel.registerTFAPhoneNumber(
-//                inputField,
-//                "en",
-////                onVerificationCodeSent = { authResponse ->
-////                    onLoadChanged(false)
-////                    NavigationCoordinator.INSTANCE
-////                        .navigate(
-////                            "${ProfileScreenRoute.PhoneVerification.route}/${
-////                                twoFactorContext.toJson()
-////                            }"
-////                        )
-////                },
-//                onFailedWith = { error ->
-//                    onLoadChanged(false)
-//                    onVerificationErrorChanged(
-//                        error?.errorDescription!!
-//                    )
-//                }
-//            )
+            viewModel.registerPhoneNumber(
+                inputField
+            )
+            {
+                onSuccess = {
+                    onLoadChanged(false)
+                }
 
+                onTwoFactorContextUpdated = { updatedContext ->
+                    onLoadChanged(false)
+                    NavigationCoordinator.INSTANCE
+                        .navigate(
+                            "${ProfileScreenRoute.PhoneVerification.route}/${
+                                updatedContext.toJson()
+                            }"
+                        )
+                }
+
+                onError = { error ->
+                    onLoadChanged(false)
+                    onVerificationErrorChanged(
+                        error.message
+                    )
+                }
+            }
         }) {
         Text("Send code")
     }
@@ -216,39 +232,42 @@ fun RegisteredPhoneNumbers(
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-//        items(
-//            phoneList
-//        ) { tfaPhoneEntity ->
-//            ActionOutlineButton(
-//                modifier = Modifier,
-////                text = tfaPhoneEntity.obfuscated ?: ""
-//            ) {
-//                onLoadChanged(true)
-//                viewModel.sendRegisteredPhoneCode(
-//                    tfaPhoneEntity.id ?: "",
-//                    "en",
-////                    onVerificationCodeSent = { authResponse ->
-////                        onLoadChanged(false)
-////                        val resolvableJson = authResponse?.resolvable()!!.toJson()
-////                        NavigationCoordinator.INSTANCE
-////                            .navigate(
-////                                "${ProfileScreenRoute.PhoneVerification.route}/${
-////                                    Base64.encodeToString(
-////                                        resolvableJson.toByteArray(Charsets.UTF_8),
-////                                        Base64.DEFAULT
-////                                    )
-////                                }"
-////                            )
-////                    },
-//                    onFailedWith = { error ->
-//                        onLoadChanged(false)
-//                        onVerificationErrorChanged(
-//                            error?.errorDescription!!
-//                        )
-//                    }
-//                )
-//            }
-//        }
+        items(
+            phoneList
+        ) { tfaPhoneEntity ->
+            ActionOutlineButton(
+                modifier = Modifier,
+                text = tfaPhoneEntity.obfuscated ?: ""
+            ) {
+                onLoadChanged(true)
+                viewModel.sendCode(
+                    tfaPhoneEntity.id ?: "",
+                    "en"
+                ) {
+
+                    onSuccess = {
+                        onLoadChanged(false)
+                    }
+
+                    onTwoFactorContextUpdated = { updatedContext ->
+                        onLoadChanged(false)
+                        NavigationCoordinator.INSTANCE
+                            .navigate(
+                                "${ProfileScreenRoute.PhoneVerification.route}/${
+                                    updatedContext.toJson()
+                                }"
+                            )
+                    }
+
+                    onError = { error ->
+                        onLoadChanged(false)
+                        onVerificationErrorChanged(
+                            error.message
+                        )
+                    }
+                }
+            }
+        }
     }
 
     LargeVerticalSpacer()
@@ -260,19 +279,19 @@ fun RegisteredPhoneNumbers(
     }
 
     onLoadChanged(true)
-//    viewModel.getRegisteredPhoneNumbers(
-//        onRegisteredPhoneNumbers = {
-//            onLoadChanged(false)
-//            onVerificationErrorChanged("")
-//        },
-//        onFailedWith = { error ->
-//            onLoadChanged(false)
-//            onVerificationErrorChanged(
-//                error?.errorDescription!!
-//            )
-//        }
-//    )
+    viewModel.getRegisteredPhoneNumbers() {
+        onSuccess = {
+            onLoadChanged(false)
+            onVerificationErrorChanged("")
+        }
 
+        onError = { error ->
+            onLoadChanged(false)
+            onVerificationErrorChanged(
+                error.message
+            )
+        }
+    }
 }
 
 @Preview
@@ -281,7 +300,18 @@ fun PhoneSelectionViewPreview() {
     AppTheme {
         PhoneSelectionView(
             viewModel = PhoneSelectionViewModelPreview(),
-            twoFactorContext = TwoFactorContext()
+            twoFactorContext = TwoFactorContext(
+                phones = listOf(
+                    TFAPhoneEntity(
+                        id = "1",
+                        obfuscated = "+1******789",
+                    ),
+                    TFAPhoneEntity(
+                        id = "2",
+                        obfuscated = "+1******123",
+                    )
+                )
+            )
         )
     }
 }

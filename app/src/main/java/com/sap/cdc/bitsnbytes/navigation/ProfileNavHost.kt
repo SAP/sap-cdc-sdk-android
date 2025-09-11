@@ -50,8 +50,8 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.TOTPVerificationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeView
 import com.sap.cdc.bitsnbytes.ui.view.screens.WelcomeViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.CustomViewModelFactory
-import com.sap.cdc.bitsnbytes.ui.viewmodel.factory.ViewModelScopeProvider
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory.CustomViewModelFactory
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory.ViewModelScopeProvider
 import kotlinx.serialization.json.Json
 
 /**
@@ -96,15 +96,13 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             }
     ) {
         composable(ProfileScreenRoute.Welcome.route) {
-            // ✅ OPTIMIZED: Use activity-scoped ViewModel to retain state across navigation
             val viewModel: WelcomeViewModel = ViewModelScopeProvider.activityScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             WelcomeView(viewModel)
         }
 
         composable(ProfileScreenRoute.SignIn.route) {
-            // ✅ OPTIMIZED: Activity-scoped ViewModel retains login form state
             val viewModel: SignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -112,9 +110,8 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable(ProfileScreenRoute.Register.route) {
-            // ✅ OPTIMIZED: Activity-scoped ViewModel retains registration form state
             val viewModel: RegisterViewModel = ViewModelScopeProvider.activityScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             RegisterView(viewModel)
         }
@@ -125,7 +122,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable(ProfileScreenRoute.EmailSignIn.route) {
-            // ✅ OPTIMIZED: Retains email and form state during navigation
             val viewModel: EmailSignInViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -140,7 +136,6 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable(ProfileScreenRoute.EmailRegister.route) {
-            // ✅ OPTIMIZED: Retains registration form data
             val viewModel: EmailRegistrationViewModel = ViewModelScopeProvider.activityScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )

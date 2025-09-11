@@ -95,6 +95,7 @@ dependencies {
     implementation(libs.bundles.lifecycle)
     implementation(libs.bundles.compose)
     implementation(libs.bundles.material)
+    implementation(libs.androidx.compose.foundation)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

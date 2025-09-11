@@ -39,6 +39,7 @@ junitVersion = "1.3.0"
 mockitoCore = "5.19.0"
 mockitoInline = "5.2.0"
 mockitoKotlin = "6.0.0"
+foundation = "1.9.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -95,6 +96,7 @@ mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito
 facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebookLogin" }
 linesdk = { module = "com.linecorp.linesdk:linesdk", version.ref = "linesdk" }
 wechat = { module = "com.tencent.mm.opensdk:wechat-sdk-android-without-mta", version.ref = "wechatSdkAndroidWithoutMta" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

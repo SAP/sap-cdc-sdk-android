@@ -1,4 +1,4 @@
-package com.sap.cdc.bitsnbytes.ui.viewmodel
+package com.sap.cdc.bitsnbytes.ui.view.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
