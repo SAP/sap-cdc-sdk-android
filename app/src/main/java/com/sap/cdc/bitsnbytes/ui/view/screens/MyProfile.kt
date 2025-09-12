@@ -138,6 +138,10 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
                     isRefreshing = false
                 }
             }
+        } else {
+            // Account info already available, no need to load
+            loading = false
+            isRefreshing = false
         }
     }
 

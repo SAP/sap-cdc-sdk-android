@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.biometric.BiometricPrompt
 import androidx.core.content.edit
+import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sap.cdc.android.sdk.core.SiteConfig
@@ -16,6 +18,7 @@ import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.android.sdk.feature.CustomIdCredentials
 import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
+import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
@@ -35,6 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.util.concurrent.Executor
 
 /**
  * Complete authentication state solution for ViewModels.
@@ -240,7 +244,7 @@ class AuthenticationFlowDelegate(context: Context) {
         credentials: Credentials,
         parameters: MutableMap<String, String> = mutableMapOf(),
         authCallbacks: AuthCallbacks.() -> Unit,
-        ) {
+    ) {
         authenticationService.authenticate().register().credentials(
             credentials = credentials, configure = authCallbacks,
             parameters = parameters
@@ -393,6 +397,20 @@ class AuthenticationFlowDelegate(context: Context) {
             authenticationProvider = provider,
             authCallbacks = authCallbacks
         )
+    }
+
+    suspend fun revokePasskey(
+        keyId: String,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().passkeys().revoke(
+            id = keyId,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    suspend fun getPasskeys(authCallbacks: AuthCallbacks.() -> Unit) {
+        authenticationService.authenticate().passkeys().get(authCallbacks)
     }
 
     suspend fun optInForTwoFactorNotifications(
@@ -573,6 +591,90 @@ class AuthenticationFlowDelegate(context: Context) {
 
     //endregion
 
+    //region BIOMETRIC AUTHENTICATION
+
+    /**
+     * Lazy biometric auth instance - only initialized when first used to save memory
+     * since it contains keystore elements that shouldn't be allocated until needed.
+     */
+    private val biometricAuth: BiometricAuth by lazy {
+        BiometricAuth(authenticationService.sessionService)
+    }
+
+    /**
+     * Check if biometric session encryption is active.
+     */
+    fun isBiometricActive(): Boolean {
+        return sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
+    }
+
+    /**
+     * Check if biometric session is locked.
+     */
+    fun isBiometricLocked(): Boolean {
+        return authenticationService.sessionService.biometricLocked()
+    }
+
+    /**
+     * Opt in for biometric session encryption.
+     */
+    fun biometricOptIn(
+        activity: FragmentActivity,
+        promptInfo: BiometricPrompt.PromptInfo,
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        biometricAuth.optInForBiometricSessionAuthentication(
+            activity = activity,
+            promptInfo = promptInfo,
+            executor = executor,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    /**
+     * Opt out of biometric session encryption.
+     */
+    fun biometricOptOut(
+        activity: FragmentActivity,
+        promptInfo: BiometricPrompt.PromptInfo,
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        biometricAuth.optOutFromBiometricSessionAuthentication(
+            activity = activity,
+            promptInfo = promptInfo,
+            executor = executor,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    /**
+     * Lock the biometric session - remove from memory only.
+     */
+    fun biometricLock() {
+        biometricAuth.lockBiometricSession()
+    }
+
+    /**
+     * Unlock the session with biometric authentication.
+     */
+    fun biometricUnlock(
+        activity: FragmentActivity,
+        promptInfo: BiometricPrompt.PromptInfo,
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        biometricAuth.unlockSessionWithBiometricAuthentication(
+            activity = activity,
+            promptInfo = promptInfo,
+            executor = executor,
+            authCallbacks = authCallbacks
+        )
+    }
+
+    //endregion
+
     //region AUTHENTICATION OPTIONS STATE MANAGEMENT
 
     /**
@@ -590,10 +692,8 @@ class AuthenticationFlowDelegate(context: Context) {
      * Enum representing the different authentication options
      */
     enum class AuthOption {
-        PASSWORDLESS_LOGIN,
         PUSH_AUTHENTICATION,
         PUSH_TWO_FACTOR_AUTHENTICATION,
-        BIOMETRIC_AUTHENTICATION
     }
 
     companion object {
@@ -639,10 +739,8 @@ class AuthenticationFlowDelegate(context: Context) {
     fun isAuthOptionActive(option: AuthOption): Boolean {
         val state = getAuthOptionsState()
         return when (option) {
-            AuthOption.PASSWORDLESS_LOGIN -> state.passwordlessLogin
             AuthOption.PUSH_AUTHENTICATION -> state.pushAuthentication
             AuthOption.PUSH_TWO_FACTOR_AUTHENTICATION -> state.pushTwoFactorAuthentication
-            AuthOption.BIOMETRIC_AUTHENTICATION -> state.biometricAuthentication
         }
     }
 
@@ -652,22 +750,8 @@ class AuthenticationFlowDelegate(context: Context) {
     fun setAuthOptionState(option: AuthOption, isActive: Boolean) {
         val currentState = getAuthOptionsState()
         val newState = when (option) {
-            AuthOption.PASSWORDLESS_LOGIN -> currentState.copy(passwordlessLogin = isActive)
             AuthOption.PUSH_AUTHENTICATION -> currentState.copy(pushAuthentication = isActive)
             AuthOption.PUSH_TWO_FACTOR_AUTHENTICATION -> currentState.copy(pushTwoFactorAuthentication = isActive)
-            AuthOption.BIOMETRIC_AUTHENTICATION -> {
-                val updatedState = currentState.copy(biometricAuthentication = isActive)
-                // When biometric is activated, deactivate all other options
-                if (isActive) {
-                    updatedState.copy(
-                        passwordlessLogin = false,
-                        pushAuthentication = false,
-                        pushTwoFactorAuthentication = false
-                    )
-                } else {
-                    updatedState
-                }
-            }
         }
         saveAuthOptionsState(newState)
     }

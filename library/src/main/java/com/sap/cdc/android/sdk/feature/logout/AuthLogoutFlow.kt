@@ -3,10 +3,10 @@ package com.sap.cdc.android.sdk.feature.logout
 import android.webkit.CookieManager
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
-import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
 import com.sap.cdc.android.sdk.feature.AuthFlow
+import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthLogoutFlow(coreClient: CoreClient, sessionService: SessionService) :
@@ -27,10 +27,11 @@ class AuthLogoutFlow(coreClient: CoreClient, sessionService: SessionService) :
             AuthenticationApi(coreClient, sessionService).send(EP_ACCOUNTS_LOGOUT)
 
         // Success case
-        if (!response.isError() || response.errorCode() == 403005) {
+        if (!response.isError() || response.errorCode() == 403005 || response.errorCode() == 403007) {
             CDCDebuggable.log(LOG_TAG, "logout: success")
             // Invalidate session if the response does not contain any errors.
-            // If an "Unauthorized user" (403005) error is received, the session is already invalidated in the backend.
+            // If an "Unauthorized user" (403005, 403007) error is received, the session is already invalidated in the backend or
+            // permission was denied to invalidate it from server side. In both cases, we need to clear the local session as well.
             sessionService.invalidateSession()
             clearCookies()
 

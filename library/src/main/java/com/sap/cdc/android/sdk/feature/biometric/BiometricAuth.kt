@@ -14,6 +14,9 @@ import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthError
+import com.sap.cdc.android.sdk.feature.AuthSuccess
 import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.feature.session.Session
 import com.sap.cdc.android.sdk.feature.session.SessionEntity
@@ -38,6 +41,14 @@ class BiometricAuth(private val sessionService: SessionService) {
         const val LOG_TAG = "BiometricAuth"
         const val BIOMETRIC_ENROLL_REQUEST_CODE = 10080
         const val BIOMETRIC_SETTINGS_REQUEST_CODE = 10081
+    }
+
+    private fun createBiometricAuthError(code: Int?, message: String?): AuthError {
+        val authError = AuthError(
+            message = message ?: "Unknown error",
+            code = code.toString()
+        )
+        return authError
     }
 
     /**
@@ -159,17 +170,20 @@ class BiometricAuth(private val sessionService: SessionService) {
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
         executor: Executor,
-        onAuthenticationError: (errorCode: Int, errString: CharSequence) -> Unit,
-        onAuthenticationFailed: () -> Unit,
-        onAuthenticationSucceeded: (result: BiometricPrompt.AuthenticationResult) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
+        // Register callbacks
+        val callbacks = AuthCallbacks().apply { authCallbacks() }
+
         val cipher = keyGen.getCipher()
         val secretKey = keyGen.getSecretKey()
 
         val sessionEntity = getSessionEntity()
         if (sessionEntity == null) {
             CDCDebuggable.log(LOG_TAG, "Biometric OptOut: No session to unlock, invalidating biometric state")
-            onAuthenticationFailed()
+
+            callbacks.onError?.invoke(createBiometricAuthError(null, "Session Unavailable"))
+
             //TODO: Invalidate biometric state to prevent further biometric usage.
             sessionService.invalidateSession()
             return
@@ -191,11 +205,15 @@ class BiometricAuth(private val sessionService: SessionService) {
                         LOG_TAG,
                         "Biometric OptOut: onAuthenticationError: code: $errorCode, message: $errString"
                     )
+
+                    callbacks.onError?.invoke(createBiometricAuthError(errorCode, errString.toString()))
                 }
 
                 override fun onAuthenticationFailed() {
                     onAuthenticationFailed()
                     CDCDebuggable.log(LOG_TAG, "Biometric OptOut: onAuthenticationFailed")
+
+                    callbacks.onError?.invoke(createBiometricAuthError(null, "Authentication failed"))
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -210,7 +228,7 @@ class BiometricAuth(private val sessionService: SessionService) {
                             optOut = optOut
                         )
                     }
-                    onAuthenticationSucceeded(result)
+                    callbacks.onSuccess?.invoke(AuthSuccess("{}", emptyMap()))
                 }
             }
         )
@@ -226,10 +244,11 @@ class BiometricAuth(private val sessionService: SessionService) {
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
         executor: Executor,
-        onAuthenticationError: (errorCode: Int, errString: CharSequence) -> Unit,
-        onAuthenticationFailed: () -> Unit,
-        onAuthenticationSucceeded: (result: BiometricPrompt.AuthenticationResult) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
+        // Register callbacks
+        val callbacks = AuthCallbacks().apply { authCallbacks() }
+
         val cipher = keyGen.getCipher()
         val secretKey = keyGen.getSecretKey()
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
@@ -244,11 +263,13 @@ class BiometricAuth(private val sessionService: SessionService) {
                         LOG_TAG,
                         "Biometric OptIn: onAuthenticationError: code: $errorCode, message: $errString"
                     )
+                    callbacks.onError?.invoke(createBiometricAuthError(errorCode, errString.toString()))
                 }
 
                 override fun onAuthenticationFailed() {
                     onAuthenticationFailed()
                     CDCDebuggable.log(LOG_TAG, "Biometric OptIn: onAuthenticationFailed")
+                    callbacks.onError?.invoke(createBiometricAuthError(null, "Authentication failed"))
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -262,7 +283,7 @@ class BiometricAuth(private val sessionService: SessionService) {
                     }
                     // Encrypt session with biometric key.
                     biometricSecure(cryptoObjectCipher!!)
-                    onAuthenticationSucceeded(result)
+                    callbacks.onSuccess?.invoke(AuthSuccess("{}", emptyMap()))
                 }
             }
         )
@@ -280,18 +301,14 @@ class BiometricAuth(private val sessionService: SessionService) {
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
         executor: Executor,
-        onAuthenticationError: (errorCode: Int, errString: CharSequence) -> Unit,
-        onAuthenticationFailed: () -> Unit,
-        onAuthenticationSucceeded: (result: BiometricPrompt.AuthenticationResult) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         unlockBiometrics(
             optOut = true,
             activity = activity,
             promptInfo = promptInfo,
             executor = executor,
-            onAuthenticationError = onAuthenticationError,
-            onAuthenticationFailed = onAuthenticationFailed,
-            onAuthenticationSucceeded = onAuthenticationSucceeded
+            authCallbacks = authCallbacks
         )
     }
 
@@ -314,18 +331,14 @@ class BiometricAuth(private val sessionService: SessionService) {
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
         executor: Executor,
-        onAuthenticationError: (errorCode: Int, errString: CharSequence) -> Unit,
-        onAuthenticationFailed: () -> Unit,
-        onAuthenticationSucceeded: (result: BiometricPrompt.AuthenticationResult) -> Unit
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         unlockBiometrics(
             optOut = false,
             activity = activity,
             promptInfo = promptInfo,
             executor = executor,
-            onAuthenticationError = onAuthenticationError,
-            onAuthenticationFailed = onAuthenticationFailed,
-            onAuthenticationSucceeded = onAuthenticationSucceeded
+            authCallbacks = authCallbacks
         )
     }
 

@@ -22,7 +22,6 @@ interface IAuthPasskeys {
 
     suspend fun revoke(
         id: String,
-        authenticationProvider: IPasskeysAuthenticationProvider,
         authCallbacks: AuthCallbacks.() -> Unit
     )
 }
@@ -61,11 +60,10 @@ internal class AuthPasskeys(
 
     override suspend fun revoke(
         id: String,
-        authenticationProvider: IPasskeysAuthenticationProvider,
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
         val callbacks = AuthCallbacks().apply(authCallbacks)
-        AuthPasskeysFlow(coreClient, sessionService, authenticationProvider).revoke(
+        AuthPasskeysFlow(coreClient, sessionService, null).revoke(
             id = id,
             authCallbacks = callbacks
         )

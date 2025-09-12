@@ -9,7 +9,6 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.events.EventScope
 import com.sap.cdc.android.sdk.events.EventSubscription
@@ -17,6 +16,7 @@ import com.sap.cdc.android.sdk.events.SessionEvent
 import com.sap.cdc.android.sdk.events.emitSessionExpired
 import com.sap.cdc.android.sdk.events.subscribeToSessionEventsManual
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import java.util.concurrent.TimeUnit
@@ -66,10 +66,12 @@ internal class SessionSecure(
                     CDCDebuggable.log(LOG_TAG, "Session expired event received from bus.")
                     clearSession(true)
                 }
+
                 is SessionEvent.VerifySession -> {
                     CDCDebuggable.log(LOG_TAG, "Verify session event received from bus.")
                     // Handle session verification
                 }
+
                 is SessionEvent.SessionRefreshed -> {
                     CDCDebuggable.log(LOG_TAG, "Session refreshed event received from bus.")
                     // Handle session refresh
@@ -91,28 +93,39 @@ internal class SessionSecure(
             val json = esp.getString(CDC_SESSIONS, null)
             if (json != null) {
                 val sessionMap = Json.decodeFromString<Map<String, String>>(json)
-                // Get session entity from session map.
-                this.sessionEntity = sessionMap[siteConfig.apiKey]?.let {
-                    Json.decodeFromString(it)
-                }
-                CDCDebuggable.log(LOG_TAG, "Session loaded to memory. $sessionEntity")
+                if (sessionMap.contains(siteConfig.apiKey)) {
+                    // Get session entity from session map.
+                    this.sessionEntity = sessionMap[siteConfig.apiKey]?.let {
+                        Json.decodeFromString(it)
+                    }
+                    CDCDebuggable.log(LOG_TAG, "Session loaded to memory. $sessionEntity")
 
-                // Enqueue session expiration worker if the session has expiration time.
-                if (sessionEntity != null) {
-                    val session = Json.decodeFromString<Session>(this.sessionEntity?.session!!)
-                    // Check for session expiration.
-                    if (session.expiration != null && session.expiration!! > 0) {
-                        CDCDebuggable.log(
-                            LOG_TAG,
-                            "Session has expiration (${session.expiration}) time. Enqueue worker."
-                        )
-                        cancelRunningSessionExpirationWorker()
-                        val expirationTime = getExpirationTime()
-                        CDCDebuggable.log(LOG_TAG, "Expiration time to enqueue: $expirationTime")
-                        if (expirationTime != null && expirationTime > 0) {
-                            // Setting expiration time to the worker. The worker takes delay only
-                            // so we are subtracting current time from expiration time.l
-                            enqueueSessionExpirationWorker(expirationTime - System.currentTimeMillis())
+                    // Enqueue session expiration worker if the session has expiration time.
+                    if (sessionEntity != null) {
+                        if (getSessionSecureLevel() == SessionSecureLevel.BIOMETRIC) {
+                            // Session is biometric locked. it cannot be decoded and expiration worker cannot be set.
+                            CDCDebuggable.log(
+                                LOG_TAG,
+                                "Session is biometric locked."
+                            )
+                            return
+                        }
+
+                        val session = Json.decodeFromString<Session>(this.sessionEntity?.session!!)
+                        // Check for session expiration.
+                        if (session.expiration != null && session.expiration!! > 0) {
+                            CDCDebuggable.log(
+                                LOG_TAG,
+                                "Session has expiration (${session.expiration}) time. Enqueue worker."
+                            )
+                            cancelRunningSessionExpirationWorker()
+                            val expirationTime = getExpirationTime()
+                            CDCDebuggable.log(LOG_TAG, "Expiration time to enqueue: $expirationTime")
+                            if (expirationTime != null && expirationTime > 0) {
+                                // Setting expiration time to the worker. The worker takes delay only
+                                // so we are subtracting current time from expiration time.l
+                                enqueueSessionExpirationWorker(expirationTime - System.currentTimeMillis())
+                            }
                         }
                     }
                 }
@@ -227,6 +240,7 @@ internal class SessionSecure(
             LOG_TAG,
             "Unlocking biometric session in memory with decrypted session: $decryptedSession."
         )
+
         this.sessionEntity?.session = decryptedSession
     }
 
@@ -249,10 +263,15 @@ internal class SessionSecure(
         if (this.sessionEntity == null) {
             return null
         }
-        if (this.sessionEntity?.secureLevel?.encryptionType == SessionSecureLevel.BIOMETRIC) {
+        try {
+            return Json.decodeFromString(this.sessionEntity?.session!!)
+        } catch (ex: Exception) {
+            CDCDebuggable.log(
+                LOG_TAG,
+                "Failed to decode session. Session might be biometric locked. $ex"
+            )
             return null
         }
-        return Json.decodeFromString(this.sessionEntity?.session!!)
     }
 
     /**

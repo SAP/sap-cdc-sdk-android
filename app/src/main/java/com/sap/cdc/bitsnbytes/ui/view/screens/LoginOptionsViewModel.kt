@@ -9,8 +9,8 @@ import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.provider.passkey.PasskeyCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
@@ -27,7 +27,7 @@ interface ILoginOptionsViewModel {
 
     fun isPasswordlessLoginActive(): Boolean
 
-    fun togglePasswordlessLogin()
+    fun isPasswordlessKeyActive(): Boolean
 
     fun isPushAuthenticationActive(): Boolean
 
@@ -64,7 +64,8 @@ interface ILoginOptionsViewModel {
     fun biometricUnlock(
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
-        executor: Executor
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         // Stub.
     }
@@ -88,12 +89,24 @@ interface ILoginOptionsViewModel {
         // Stub.
     }
 
-    fun clearPasskey(
+    fun revokePasskey(
         activity: ComponentActivity,
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         // Stub.
     }
+
+    fun getPasskeys(
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        // Stub.
+    }
+
+    fun loadPasskeys() {
+        // Stub.
+    }
+
+    val isLoadingPasskeys: Boolean get() = false
 
 }
 
@@ -102,8 +115,8 @@ class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
 
     override fun isBiometricActive(): Boolean = true
     override fun isBiometricLocked(): Boolean = false
+    override fun isPasswordlessKeyActive(): Boolean = false
     override fun isPasswordlessLoginActive(): Boolean = false
-    override fun togglePasswordlessLogin() {}
     override fun isPushAuthenticationActive(): Boolean = false
     override fun togglePushAuthentication() {}
     override fun isPushTwoFactorAuthActive(): Boolean = false
@@ -117,20 +130,13 @@ class LoginOptionsViewModel(
 ) : BaseViewModel(context),
     ILoginOptionsViewModel {
 
-
-    /**
-     * Create instance of the biometric auth (no need to singleton it).
-     */
-    private var biometricAuth = BiometricAuth(authenticationFlowDelegate.authenticationService.sessionService)
+    //region BIOMETRIC
 
     private var biometricLock by mutableStateOf(false)
 
     private var biometricActive by mutableStateOf(
-        authenticationFlowDelegate.authenticationService.session()
-            .sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
+        authenticationFlowDelegate.sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
     )
-
-    //region BIOMETRIC
 
     /**
      * Check if biometric session encryption is active.
@@ -152,19 +158,11 @@ class LoginOptionsViewModel(
         executor: Executor,
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        biometricAuth.optInForBiometricSessionAuthentication(
+        authenticationFlowDelegate.biometricOptIn(
             activity = activity,
             promptInfo = promptInfo,
             executor = executor,
-            onAuthenticationError = { _, _ ->
-            },
-            onAuthenticationFailed = {
-
-            },
-            onAuthenticationSucceeded = {
-                biometricActive =
-                    authenticationFlowDelegate.sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
-            }
+            authCallbacks = authCallbacks
         )
     }
 
@@ -177,45 +175,32 @@ class LoginOptionsViewModel(
         executor: Executor,
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        biometricAuth.optOutFromBiometricSessionAuthentication(
+        authenticationFlowDelegate.biometricOptOut(
             activity = activity,
             promptInfo = promptInfo,
             executor = executor,
-            onAuthenticationError = { _, _ ->
-
-            },
-            onAuthenticationFailed = {
-
-            },
-            onAuthenticationSucceeded = {
-                biometricActive =
-                    authenticationFlowDelegate.sessionSecurityLevel() == SessionSecureLevel.BIOMETRIC
-            }
-        )
+            authCallbacks)
     }
 
     /**
      * Lock the session - remove from memory only.
      */
     override fun biometricLock() {
-        biometricAuth.lockBiometricSession()
+        authenticationFlowDelegate.biometricLock()
         biometricLock = true
     }
 
     override fun biometricUnlock(
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
-        executor: Executor
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        biometricAuth.unlockSessionWithBiometricAuthentication(
+        authenticationFlowDelegate.biometricUnlock(
             activity = activity,
             promptInfo = promptInfo,
             executor = executor,
-            onAuthenticationError = { _, _ -> },
-            onAuthenticationFailed = {},
-            onAuthenticationSucceeded = {
-                biometricLock = false
-            }
+            authCallbacks = authCallbacks
         )
     }
 
@@ -261,6 +246,47 @@ class LoginOptionsViewModel(
 
     private var passkeysAuthenticationProvider: IPasskeysAuthenticationProvider? = null
 
+    // PasskeyCredentials state management
+    private var _passkeyCredentials by mutableStateOf<PasskeyCredentials?>(null)
+    val passkeyCredentials: PasskeyCredentials? get() = _passkeyCredentials
+
+    // Loading state for passkeys
+    private var _isLoadingPasskeys by mutableStateOf(false)
+    override val isLoadingPasskeys: Boolean get() = _isLoadingPasskeys
+
+
+    override fun isPasswordlessKeyActive(): Boolean = _passkeyCredentials?.credentials?.isNotEmpty() == true
+
+    /**
+     * Load passkeys using the doOnSuccess pattern.
+     * This method is called from the Composable when the screen is displayed.
+     */
+    override fun loadPasskeys() {
+        _isLoadingPasskeys = true
+        viewModelScope.launch {
+            authenticationFlowDelegate.getPasskeys {
+                doOnSuccess { authSuccess ->
+                    try {
+                        // Parse and update the passkey credentials state
+                        val credentials = json.decodeFromString<PasskeyCredentials>(authSuccess.jsonData)
+                        _passkeyCredentials = credentials
+                    } catch (e: Exception) {
+                        // Handle parsing errors silently - don't break the callback chain
+                        // Could add logging here if needed
+                    } finally {
+                        _isLoadingPasskeys = false
+                    }
+                }
+
+                doOnError { authError ->
+                    // Handle error silently for loading
+                    // Could add logging here if needed
+                    _isLoadingPasskeys = false
+                }
+            }
+        }
+    }
+
     override fun createPasskey(
         activity: ComponentActivity,
         authCallbacks: AuthCallbacks.() -> Unit,
@@ -271,12 +297,18 @@ class LoginOptionsViewModel(
         viewModelScope.launch {
             authenticationFlowDelegate.passkeyRegister(
                 passkeysAuthenticationProvider!!,
-                authCallbacks
-            )
+            ) {
+                authCallbacks()
+
+                doOnSuccess {
+                    // Refresh the passkeys list after successful creation
+                    loadPasskeys()
+                }
+            }
         }
     }
 
-    override fun clearPasskey(
+    override fun revokePasskey(
         activity: ComponentActivity,
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
@@ -285,30 +317,24 @@ class LoginOptionsViewModel(
         }
     }
 
+    override fun getPasskeys(
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        viewModelScope.launch {
+            authenticationFlowDelegate.getPasskeys(authCallbacks)
+        }
+    }
+
     //endregion
 
     //region AUTHENTICATION OPTIONS STATE MANAGEMENT
 
     /**
-     * Check if passwordless login is active
+     * Check if passwordless login is active based on available passkeys
      */
     override fun isPasswordlessLoginActive(): Boolean {
-        return authenticationFlowDelegate.isAuthOptionActive(
-            AuthenticationFlowDelegate.AuthOption.PASSWORDLESS_LOGIN
-        )
-    }
-
-    /**
-     * Toggle passwordless login state
-     */
-    override fun togglePasswordlessLogin() {
-        val currentState = authenticationFlowDelegate.isAuthOptionActive(
-            AuthenticationFlowDelegate.AuthOption.PASSWORDLESS_LOGIN
-        )
-        authenticationFlowDelegate.setAuthOptionState(
-            AuthenticationFlowDelegate.AuthOption.PASSWORDLESS_LOGIN,
-            !currentState
-        )
+        // Check if user has any passkeys available
+        return _passkeyCredentials?.credentials?.isNotEmpty() == true
     }
 
     /**
@@ -359,13 +385,12 @@ class LoginOptionsViewModel(
      * Toggle biometric authentication state
      */
     override fun toggleBiometricAuthentication() {
-        val currentState = authenticationFlowDelegate.isAuthOptionActive(
-            AuthenticationFlowDelegate.AuthOption.BIOMETRIC_AUTHENTICATION
-        )
-        authenticationFlowDelegate.setAuthOptionState(
-            AuthenticationFlowDelegate.AuthOption.BIOMETRIC_AUTHENTICATION,
-            !currentState
-        )
+        val currentState = isBiometricActive()
+        biometricActive = !currentState
+        if (!biometricActive) {
+            // If disabling biometric, also clear any lock state
+            biometricLock = false
+        }
     }
 
     //endregion

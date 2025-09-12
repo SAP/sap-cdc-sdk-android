@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.ui.view.screens.AboutMeViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.AuthMethodsViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.BiometricLockedViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.ConfigurationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.CustomIDSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.EmailRegistrationViewModel
@@ -162,6 +163,13 @@ class CustomViewModelFactory(
                     "AuthenticationFlowDelegate is required for PhoneVerificationViewModel"
                 }
                 TOTPVerificationViewModel(context, authenticationFlowDelegate) as T
+            }
+
+            modelClass.isAssignableFrom(BiometricLockedViewModel::class.java) -> {
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for BiometricLockedViewModel"
+                }
+                BiometricLockedViewModel(context, authenticationFlowDelegate) as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class")

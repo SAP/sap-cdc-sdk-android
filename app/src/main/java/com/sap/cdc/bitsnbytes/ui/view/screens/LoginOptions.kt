@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -74,6 +75,11 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     else rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
     val isGranted = notificationPermission?.status?.isGranted
 
+    // Load passkeys when the view is first loaded
+    LaunchedEffect(Unit) {
+        viewModel.loadPasskeys()
+    }
+    
     // UI elements.
 
     if (showBanner) {
@@ -93,33 +99,42 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
         // Option cards
         OptionCard(
             title = "Passwordless Login",
-            status = if (viewModel.isPasswordlessLoginActive()) "Activated" else "Deactivated",
-            actionLabel = if (viewModel.isPasswordlessLoginActive()) "Deactivate" else "Activate",
+            status = when {
+                viewModel.isLoadingPasskeys -> "Loading..."
+                viewModel.isPasswordlessLoginActive() -> "Activated"
+                else -> "Deactivated"
+            },
+            actionLabel = when {
+                viewModel.isLoadingPasskeys -> "Loading..."
+                viewModel.isPasswordlessLoginActive() -> "Deactivate"
+                else -> "Activate"
+            },
             onClick = {
-                if (viewModel.isPasswordlessLoginActive()) {
-                    loading = true
-                    // Should start revoke flow
-                } else {
-                    loading = true
-                    viewModel.createPasskey(
-                        activity = context as ComponentActivity
-                    ) {
-                        onSuccess = {
-                            viewModel.togglePasswordlessLogin()
-                            loading = false
-                            bannerText = "Passkey added"
-                            showBanner = true
-                        }
+                if (!viewModel.isLoadingPasskeys) {
+                    if (viewModel.isPasswordlessLoginActive()) {
+                        // Should start revoke flow
+                        //TODO: Transition to a new view displaying the credentials list.
+                    } else {
+                        loading = true
+                        viewModel.createPasskey(
+                            activity = context as ComponentActivity
+                        ) {
+                            onSuccess = {
+                                loading = false
+                                bannerText = "Passkey added"
+                                showBanner = true
+                            }
 
-                        onError = { error ->
-                            loading = false
-                            optionsError = error.message
+                            onError = { error ->
+                                loading = false
+                                optionsError = error.message
+                            }
                         }
                     }
                 }
             },
-
-            inverse = !viewModel.isPasswordlessLoginActive()
+            inverse = !viewModel.isPasswordlessLoginActive(),
+            isEnabled = !viewModel.isLoadingPasskeys
         )
         SmallVerticalSpacer()
         OptionCard(
@@ -170,7 +185,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = if (viewModel.isBiometricActive()) "Activated" else "Deactivated",
             actionLabel = if (viewModel.isBiometricActive()) "Deactivate" else "Activate",
             onClick = {
-                if (viewModel.isBiometricActive()) {
+                if (!viewModel.isBiometricActive()) {
                     viewModel.biometricOptIn(
                         activity = context as FragmentActivity,
                         promptInfo = BiometricPrompt.PromptInfo.Builder()
@@ -213,30 +228,45 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 24.dp),
+                .padding(end = 24.dp)
+                .alpha(if (viewModel.isBiometricActive()) 1f else 0.5f),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Lock biometrics:")
             LargeHorizontalSpacer()
-            Switch(checked = viewModel.isBiometricLocked(), onCheckedChange = { checked ->
-                when (checked) {
-                    true -> viewModel.biometricLock()
-                    false -> {
-                        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                            .setAllowedAuthenticators(BIOMETRIC_STRONG)
-                            .setTitle("Biometric Authentication")
-                            .setSubtitle("Authenticate using your biometric credential")
-                            .setNegativeButtonText("Use another method").build()
+            Switch(
+                checked = viewModel.isBiometricLocked(),
+                enabled = viewModel.isBiometricActive(),
+                onCheckedChange = { checked ->
+                    if (viewModel.isBiometricActive()) {
+                        when (checked) {
+                            true -> viewModel.biometricLock()
+                            false -> {
+                                val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                                    .setAllowedAuthenticators(BIOMETRIC_STRONG)
+                                    .setTitle("Biometric Authentication")
+                                    .setSubtitle("Authenticate using your biometric credential")
+                                    .setNegativeButtonText("Use another method").build()
 
-                        viewModel.biometricUnlock(
-                            activity = context as FragmentActivity,
-                            promptInfo = promptInfo,
-                            executor = executor
-                        )
+                                viewModel.biometricUnlock(
+                                    activity = context as FragmentActivity,
+                                    promptInfo = promptInfo,
+                                    executor = executor
+                                ) {
+                                    onSuccess = {
+                                        // Successfully unlocked, now disable the lock
+
+                                    }
+                                    onError = { error ->
+                                        optionsError = error.message
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-            })
+            )
         }
 
         LargeVerticalSpacer()
@@ -281,7 +311,12 @@ fun LoginOptionsViewPreview() {
 
 @Composable
 private fun OptionCard(
-    title: String, status: String, actionLabel: String, inverse: Boolean, onClick: () -> Unit
+    title: String, 
+    status: String, 
+    actionLabel: String, 
+    inverse: Boolean, 
+    onClick: () -> Unit,
+    isEnabled: Boolean = true
 ) {
     Card(
         //elevation = 4.dp,
@@ -308,15 +343,23 @@ private fun OptionCard(
             if (inverse) {
                 ActionOutlineInverseButton(
                     text = actionLabel,
-                    onClick = onClick,
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp, minWidth = 120.dp),
+                    onClick = if (isEnabled) onClick else {
+                        ->
+                    },
+                    modifier = Modifier
+                        .defaultMinSize(minHeight = 48.dp, minWidth = 120.dp)
+                        .alpha(if (isEnabled) 1f else 0.5f),
                     fillMaxWidth = false
                 )
             } else {
                 ActionOutlineButton(
                     text = actionLabel,
-                    onClick = onClick,
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp, minWidth = 120.dp),
+                    onClick = if (isEnabled) onClick else {
+                        ->
+                    },
+                    modifier = Modifier
+                        .defaultMinSize(minHeight = 48.dp, minWidth = 120.dp)
+                        .alpha(if (isEnabled) 1f else 0.5f),
                     fillMaxWidth = false
                 )
             }
