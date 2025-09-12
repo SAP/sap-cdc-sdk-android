@@ -1,5 +1,6 @@
 package com.sap.cdc.bitsnbytes.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -144,9 +145,10 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             EmailRegisterView(viewModel)
         }
 
-        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{RegistrationContext}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("RegistrationContext")
-            val registrationContext = Json.decodeFromString<RegistrationContext>(resolvableJson!!)
+        composable("${ProfileScreenRoute.ResolvePendingRegistration.route}/{registrationContext}") { backStackEntry ->
+            val encodedJson = backStackEntry.arguments?.getString("registrationContext")
+            val decodedJson = Uri.decode(encodedJson!!)
+            val registrationContext = Json.decodeFromString<RegistrationContext>(decodedJson)
             // Screen-scoped for temporary resolution flows
             val viewModel: PendingRegistrationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
@@ -155,11 +157,12 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable("${ProfileScreenRoute.ResolveLinkAccount.route}/{linkingContext}") { backStackEntry ->
-            val resolvableJson = backStackEntry.arguments?.getString("linkingContext")
-            val linkingContext = Json.decodeFromString<LinkingContext>(resolvableJson!!)
+            val encodedJson = backStackEntry.arguments?.getString("linkingContext")
+            val decodedJson = Uri.decode(encodedJson!!)
+            val linkingContext = Json.decodeFromString<LinkingContext>(decodedJson)
             // Screen-scoped for temporary resolution flows
             val viewModel: LinkAccountViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                factory = CustomViewModelFactory(context)
+                factory = CustomViewModelFactory(context, authDelegate)
             )
             LinkAccountView(viewModel, linkingContext)
         }
@@ -211,11 +214,12 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable("${ProfileScreenRoute.OTPVerify.route}/{otpContext}/{type}/{inputField}") { backStackEntry ->
-            val otpContextJson = backStackEntry.arguments?.getString("otpContext")
+            val encodedOtpContextJson = backStackEntry.arguments?.getString("otpContext")
+            val decodedOtpContextJson = Uri.decode(encodedOtpContextJson!!)
             val input = backStackEntry.arguments?.getString("inputField")
             val type = backStackEntry.arguments?.getString("type")
             val otpType = OTPType.getByValue(type!!.toInt())
-            val otpContext: OTPContext = Json.decodeFromString<OTPContext>(otpContextJson!!)
+            val otpContext: OTPContext = Json.decodeFromString<OTPContext>(decodedOtpContextJson)
             val viewModel: OtpVerifyViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -235,8 +239,9 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable("${ProfileScreenRoute.AuthMethods.route}/{twoFactorContext}") { backStackEntry ->
-            val twoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
-            val resolvable = Json.decodeFromString<TwoFactorContext>(twoFactorJson!!)
+            val encodedTwoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
+            val decodedTwoFactorJson = Uri.decode(encodedTwoFactorJson!!)
+            val resolvable = Json.decodeFromString<TwoFactorContext>(decodedTwoFactorJson)
             val viewModel: AuthMethodsViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context)
             )
@@ -244,8 +249,9 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable("${ProfileScreenRoute.PhoneSelection.route}/{TwoFactorContext}") { backStackEntry ->
-            val twoFactorJson = backStackEntry.arguments?.getString("TwoFactorContext")
-            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(twoFactorJson!!)
+            val encodedTwoFactorJson = backStackEntry.arguments?.getString("TwoFactorContext")
+            val decodedTwoFactorJson = Uri.decode(encodedTwoFactorJson!!)
+            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(decodedTwoFactorJson)
             val viewModel: PhoneSelectionViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -253,8 +259,9 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable("${ProfileScreenRoute.PhoneVerification.route}/{twoFactorContext}") { backStackEntry ->
-            val twoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
-            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(twoFactorJson!!)
+            val encodedTwoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
+            val decodedTwoFactorJson = Uri.decode(encodedTwoFactorJson!!)
+            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(decodedTwoFactorJson)
             val viewModel: PhoneVerificationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )
@@ -262,8 +269,9 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
         }
 
         composable("${ProfileScreenRoute.TOTPVerification.route}/{twoFactorContext}") { backStackEntry ->
-            val twoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
-            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(twoFactorJson!!)
+            val encodedTwoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
+            val decodedTwoFactorJson = Uri.decode(encodedTwoFactorJson!!)
+            val twoFactorContext = Json.decodeFromString<TwoFactorContext>(decodedTwoFactorJson)
             val viewModel: TOTPVerificationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                 factory = CustomViewModelFactory(context, authDelegate)
             )

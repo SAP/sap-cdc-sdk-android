@@ -39,12 +39,15 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.RegistrationContext
 import com.sap.cdc.bitsnbytes.extensions.parseRequiredMissingFieldsForRegistration
+import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
+import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
+import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -165,10 +168,29 @@ fun PendingRegistrationView(
                             loading = false
                             registerError = error.message
                         }
+
+                        onLinkingRequired = { linkingContext ->
+                            loading = false
+                            NavigationCoordinator.INSTANCE
+                                .navigate(
+                                    "${ProfileScreenRoute.ResolveLinkAccount.route}/${
+                                        linkingContext.toJson()
+                                    }"
+                                )
+                        }
                     }
                 }) {
                 Text("Resolve")
             }
+        }
+
+        LargeVerticalSpacer()
+
+        // Error message
+        if (registerError.isNotEmpty()) {
+            SimpleErrorMessages(
+                text = registerError
+            )
         }
     }
 

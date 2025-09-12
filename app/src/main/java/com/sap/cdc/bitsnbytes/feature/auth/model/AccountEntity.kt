@@ -16,7 +16,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AccountEntity(
     @SerialName("UID") val uid: String,
-    val profile: ProfileEntity
+    val profile: ProfileEntity,
+    var customIdentifiers: CustomIdentifiers? = null,
 )
 
 /**
@@ -28,4 +29,12 @@ data class ProfileEntity(
     val firstName: String? = null,
     val lastName: String? = null,
     val nickname: String? = null,
+)
+
+/**
+ * Custom instance of the CDC SDK custom identifiers schema.
+ */
+@Serializable
+data class CustomIdentifiers(
+    val alias: String? = null,
 )

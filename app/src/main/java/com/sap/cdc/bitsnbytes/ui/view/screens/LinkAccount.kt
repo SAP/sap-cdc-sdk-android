@@ -42,6 +42,8 @@ import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
+import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
+import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.ViewDynamicSocialSelection
 
 /**
@@ -258,6 +260,15 @@ fun LinkAccountView(
         Text("Sign into a different account", fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.size(24.dp))
         Text("Create a new one", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+
+        MediumVerticalSpacer()
+
+        // Error message
+        if (linkError.isNotEmpty()) {
+            SimpleErrorMessages(
+                text = linkError
+            )
+        }
 
     }
 

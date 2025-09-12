@@ -13,6 +13,7 @@ import com.sap.cdc.android.sdk.feature.tfa.TFAProvidersEntity
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.decodeFromJsonElement
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -188,8 +189,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             var linkEntities: LinkEntities? = null
             val authResult = getConflictingAccountsSync(mutableMapOf("regToken" to (regToken ?: "")))
             if (authResult is AuthResult.Success) {
-                val conflictingJson = authResult.authSuccess.userData["conflictingAccounts"] as String
-                linkEntities = json.decodeFromString<LinkEntities>(conflictingJson)
+                val conflictingJson = authResult.authSuccess.userData["conflictingAccount"] as JsonObject
+                linkEntities = json.decodeFromJsonElement(conflictingJson)
             }
 
             val linkingContext = LinkingContext(
@@ -282,15 +283,17 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * Only returns Success or Error - no resolvable interruptions.
      */
     protected suspend fun connectAccountSync(provider: String, authToken: String): AuthResult {
-        val json = JsonObject(
+        val providerSessions = JsonObject(
             mapOf(
-                "provider" to JsonPrimitive(provider),
-                "authToken" to JsonPrimitive(authToken),
+                provider to JsonObject(
+                    mapOf(
+                        "authToken" to JsonPrimitive(authToken)
+                    )
+                )
             )
         )
-        val providerSession = json.toString()
         val parameters =
-            mutableMapOf("providerSession" to providerSession, "loginMode" to "connect")
+            mutableMapOf("providerSessions" to providerSessions.toString(), "loginMode" to "connect")
 
         val response = AuthenticationApi(coreClient, sessionService).send(
             EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,

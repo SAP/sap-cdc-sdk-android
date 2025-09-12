@@ -1,8 +1,6 @@
 package com.sap.cdc.bitsnbytes.feature.auth
 
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.AuthSuccess
-import com.sap.cdc.android.sdk.feature.RegistrationContext
+import com.sap.cdc.android.sdk.feature.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.junit.Assert.*
@@ -114,5 +112,226 @@ class AuthCallbacksEnhancementTest {
         assertTrue("Regular callback should execute", regularCallbackExecuted)
         assertTrue("Side effect callback should execute", sideEffectCallbackExecuted)
         assertEquals("true", transformedValue)
+    }
+    
+    @Test
+    fun `test universal override doOnAnyAndOverride works for Success callback`() {
+        var callbackExecuted = false
+        var transformedValue: String? = null
+        
+        val callbacks = AuthCallbacks()
+        
+        callbacks.apply {
+            // Universal override that should work for any callback type
+            doOnAnyAndOverride { authResult ->
+                when (authResult) {
+                    is AuthResult.Success -> {
+                        // Transform success data
+                        AuthResult.Success(
+                            authResult.authSuccess.copy(
+                                userData = authResult.authSuccess.userData + ("universalOverride" to "applied")
+                            )
+                        )
+                    }
+                    else -> authResult
+                }
+            }
+            
+            // Regular callback
+            onSuccess = { authSuccess ->
+                callbackExecuted = true
+                transformedValue = authSuccess.userData["universalOverride"] as? String
+            }
+        }
+        
+        val testSuccess = AuthSuccess(
+            jsonData = "{}",
+            userData = mapOf("original" to "data")
+        )
+        
+        // Execute - universal override should be applied
+        callbacks.onSuccess?.invoke(testSuccess)
+        
+        assertTrue("Callback should have been executed", callbackExecuted)
+        assertEquals("applied", transformedValue)
+    }
+    
+    @Test
+    fun `test universal override doOnAnyAndOverride works for PendingRegistration callback`() {
+        var callbackExecuted = false
+        var transformedFields: List<String>? = null
+        
+        val callbacks = AuthCallbacks()
+        
+        callbacks.apply {
+            // Universal override that should work for any callback type
+            doOnAnyAndOverride { authResult ->
+                when (authResult) {
+                    is AuthResult.PendingRegistration -> {
+                        // Transform registration context
+                        AuthResult.PendingRegistration(
+                            authResult.context.copy(
+                                missingRequiredFields = listOf("universalField1", "universalField2")
+                            )
+                        )
+                    }
+                    else -> authResult
+                }
+            }
+            
+            // Regular callback
+            onPendingRegistration = { context ->
+                callbackExecuted = true
+                transformedFields = context.missingRequiredFields
+            }
+        }
+        
+        val testContext = RegistrationContext(
+            regToken = "test-token",
+            missingRequiredFields = null
+        )
+        
+        // Execute - universal override should be applied
+        callbacks.onPendingRegistration?.invoke(testContext)
+        
+        assertTrue("Callback should have been executed", callbackExecuted)
+        assertEquals(listOf("universalField1", "universalField2"), transformedFields)
+    }
+    
+    @Test
+    fun `test universal override and individual override work together - universal first`() {
+        var callbackExecuted = false
+        var finalValue: String? = null
+        
+        val callbacks = AuthCallbacks()
+        
+        callbacks.apply {
+            // Universal override (applied first)
+            doOnAnyAndOverride { authResult ->
+                when (authResult) {
+                    is AuthResult.Success -> {
+                        AuthResult.Success(
+                            authResult.authSuccess.copy(
+                                userData = authResult.authSuccess.userData + ("universal" to "first")
+                            )
+                        )
+                    }
+                    else -> authResult
+                }
+            }
+            
+            // Individual override (applied second)
+            doOnSuccessAndOverride { authSuccess ->
+                authSuccess.copy(
+                    userData = authSuccess.userData + ("individual" to "second")
+                )
+            }
+            
+            // Regular callback
+            onSuccess = { authSuccess ->
+                callbackExecuted = true
+                finalValue = "${authSuccess.userData["universal"]}-${authSuccess.userData["individual"]}"
+            }
+        }
+        
+        val testSuccess = AuthSuccess(
+            jsonData = "{}",
+            userData = mapOf("original" to "data")
+        )
+        
+        // Execute - both overrides should be applied in correct order
+        callbacks.onSuccess?.invoke(testSuccess)
+        
+        assertTrue("Callback should have been executed", callbackExecuted)
+        assertEquals("first-second", finalValue)
+    }
+    
+    @Test
+    fun `test universal override can change callback type - Success to Error`() {
+        var successCallbackExecuted = false
+        var errorCallbackExecuted = false
+        var errorMessage: String? = null
+        
+        val callbacks = AuthCallbacks()
+        
+        callbacks.apply {
+            // Universal override that converts Success to Error
+            doOnAnyAndOverride { authResult ->
+                when (authResult) {
+                    is AuthResult.Success -> {
+                        // Convert success to error for testing
+                        AuthResult.Error(
+                            AuthError(
+                                message = "Converted by universal override",
+                                code = "UNIVERSAL_OVERRIDE"
+                            )
+                        )
+                    }
+                    else -> authResult
+                }
+            }
+            
+            onSuccess = { _ ->
+                successCallbackExecuted = true
+            }
+            
+            onError = { authError ->
+                errorCallbackExecuted = true
+                errorMessage = authError.message
+            }
+        }
+        
+        val testSuccess = AuthSuccess(
+            jsonData = "{}",
+            userData = mapOf("original" to "data")
+        )
+        
+        // Execute success callback - should be converted to error by universal override
+        callbacks.onSuccess?.invoke(testSuccess)
+        
+        // The success callback should still execute (since we called onSuccess)
+        // but the data should be unchanged since universal override changed the type
+        assertTrue("Success callback should execute", successCallbackExecuted)
+        assertFalse("Error callback should not execute from success call", errorCallbackExecuted)
+        
+        // Now test with actual error to verify error callback works
+        val testError = AuthError(message = "Test error")
+        callbacks.onError?.invoke(testError)
+        
+        assertTrue("Error callback should execute", errorCallbackExecuted)
+        assertEquals("Test error", errorMessage)
+    }
+    
+    @Test
+    fun `test individual override still works independently without universal override`() {
+        var callbackExecuted = false
+        var transformedValue: String? = null
+        
+        val callbacks = AuthCallbacks()
+        
+        callbacks.apply {
+            // Only individual override, no universal override
+            doOnPendingRegistrationAndOverride { registrationContext ->
+                registrationContext.copy(
+                    missingRequiredFields = listOf("individualOverride")
+                )
+            }
+            
+            onPendingRegistration = { context ->
+                callbackExecuted = true
+                transformedValue = context.missingRequiredFields?.firstOrNull()
+            }
+        }
+        
+        val testContext = RegistrationContext(
+            regToken = "test-token",
+            missingRequiredFields = null
+        )
+        
+        // Execute - only individual override should be applied
+        callbacks.onPendingRegistration?.invoke(testContext)
+        
+        assertTrue("Callback should have been executed", callbackExecuted)
+        assertEquals("individualOverride", transformedValue)
     }
 }

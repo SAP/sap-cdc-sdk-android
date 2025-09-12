@@ -10,9 +10,9 @@ import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIF
 import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.AuthResult
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.android.sdk.feature.CustomIdCredentials
+import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
@@ -33,6 +33,14 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
 
         // Direct callback handling - no IAuthResponse creation
         handleLoginResponse(login, callbacks)
+    }
+
+    suspend fun login(
+        parameters: MutableMap<String, String>,
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        login(parameters, callbacks)
     }
 
     suspend fun login(
@@ -141,9 +149,7 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         linkingContext: LinkingContext,
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
-        parameters["loginMode"] = "link"
-
-        val callbacks = AuthCallbacks().apply {
+        login(parameters) {
             doOnAnyAndOverride { authResult ->
                 when (authResult) {
                     is AuthResult.Success -> {
@@ -154,9 +160,9 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
                     else -> authResult
                 }
             }
-        }.apply(authCallbacks)
 
-        login(parameters, callbacks)
+            authCallbacks()
+        }
     }
 
 

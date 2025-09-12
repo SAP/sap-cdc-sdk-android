@@ -9,6 +9,11 @@ import kotlinx.serialization.Serializable
 sealed class AuthResult {
     data class Success(val authSuccess: AuthSuccess) : AuthResult()
     data class Error(val authError: AuthError) : AuthResult()
+    data class PendingRegistration(val context: RegistrationContext) : AuthResult()
+    data class LinkingRequired(val context: LinkingContext) : AuthResult()
+    data class TwoFactorRequired(val context: TwoFactorContext) : AuthResult()
+    data class OTPRequired(val context: OTPContext) : AuthResult()
+    object CaptchaRequired : AuthResult()
 }
 
 data class AuthSuccess(
@@ -130,10 +135,10 @@ data class AuthCallbacks(
         }
 
     var onPendingRegistration: ((RegistrationContext) -> Unit)?
-        get() = if (_onPendingRegistration.isEmpty() && _onPendingRegistrationOverrides.isEmpty()) {
+        get() = if (_onPendingRegistration.isEmpty() && _onPendingRegistrationOverrides.isEmpty() && !hasUniversalOverride()) {
             null
         } else { context ->
-            if (_onPendingRegistrationOverrides.isNotEmpty()) {
+            if (_onPendingRegistrationOverrides.isNotEmpty() || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnPendingRegistration(context)
@@ -148,10 +153,10 @@ data class AuthCallbacks(
         }
 
     var onLinkingRequired: ((LinkingContext) -> Unit)?
-        get() = if (_onLinkingRequired.isEmpty() && _onLinkingRequiredOverrides.isEmpty()) {
+        get() = if (_onLinkingRequired.isEmpty() && _onLinkingRequiredOverrides.isEmpty() && !hasUniversalOverride()) {
             null
         } else { context ->
-            if (_onLinkingRequiredOverrides.isNotEmpty()) {
+            if (_onLinkingRequiredOverrides.isNotEmpty() || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnLinkingRequired(context)
@@ -166,10 +171,10 @@ data class AuthCallbacks(
         }
 
     var onTwoFactorRequired: ((TwoFactorContext) -> Unit)?
-        get() = if (_onTwoFactorRequired.isEmpty() && _onTwoFactorRequiredOverrides.isEmpty()) {
+        get() = if (_onTwoFactorRequired.isEmpty() && _onTwoFactorRequiredOverrides.isEmpty() && !hasUniversalOverride()) {
             null
         } else { context ->
-            if (_onTwoFactorRequiredOverrides.isNotEmpty()) {
+            if (_onTwoFactorRequiredOverrides.isNotEmpty() || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnTwoFactorRequired(context)
@@ -184,10 +189,10 @@ data class AuthCallbacks(
         }
 
     var onOTPRequired: ((OTPContext) -> Unit)?
-        get() = if (_onOTPRequired.isEmpty() && _onOTPRequiredOverrides.isEmpty()) {
+        get() = if (_onOTPRequired.isEmpty() && _onOTPRequiredOverrides.isEmpty() && !hasUniversalOverride()) {
             null
         } else { context ->
-            if (_onOTPRequiredOverrides.isNotEmpty()) {
+            if (_onOTPRequiredOverrides.isNotEmpty() || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnOTPRequired(context)
@@ -202,11 +207,11 @@ data class AuthCallbacks(
         }
 
     var onCaptchaRequired: (() -> Unit)?
-        get() = if (_onCaptchaRequired.isEmpty() && _onCaptchaRequiredOverrides.isEmpty()) {
+        get() = if (_onCaptchaRequired.isEmpty() && _onCaptchaRequiredOverrides.isEmpty() && !hasUniversalOverride()) {
             null
         } else {
             {
-                if (_onCaptchaRequiredOverrides.isNotEmpty()) {
+                if (_onCaptchaRequiredOverrides.isNotEmpty() || hasUniversalOverride()) {
                     // Auto-bridge to async execution
                     kotlinx.coroutines.runBlocking {
                         executeOnCaptchaRequired()
@@ -378,7 +383,16 @@ data class AuthCallbacks(
     suspend fun executeOnSuccess(authSuccess: AuthSuccess): AuthSuccess {
         var currentValue = authSuccess
 
-        // Apply all override transformers first
+        // Apply universal override first if present
+        if (hasUniversalOverride()) {
+            val universalResult = executeUniversalOverride(AuthResult.Success(currentValue))
+            currentValue = when (universalResult) {
+                is AuthResult.Success -> universalResult.authSuccess
+                else -> currentValue // Keep original if universal override changed the type
+            }
+        }
+
+        // Apply individual override transformers
         for (transformer in _onSuccessOverrides) {
             currentValue = transformer(currentValue)
         }
@@ -392,7 +406,16 @@ data class AuthCallbacks(
     suspend fun executeOnError(authError: AuthError): AuthError {
         var currentValue = authError
 
-        // Apply all override transformers first
+        // Apply universal override first if present
+        if (hasUniversalOverride()) {
+            val universalResult = executeUniversalOverride(AuthResult.Error(currentValue))
+            currentValue = when (universalResult) {
+                is AuthResult.Error -> universalResult.authError
+                else -> currentValue // Keep original if universal override changed the type
+            }
+        }
+
+        // Apply individual override transformers
         for (transformer in _onErrorOverrides) {
             currentValue = transformer(currentValue)
         }
@@ -406,7 +429,16 @@ data class AuthCallbacks(
     suspend fun executeOnPendingRegistration(context: RegistrationContext): RegistrationContext {
         var currentValue = context
 
-        // Apply all override transformers first
+        // Apply universal override first if present
+        if (hasUniversalOverride()) {
+            val universalResult = executeUniversalOverride(AuthResult.PendingRegistration(currentValue))
+            currentValue = when (universalResult) {
+                is AuthResult.PendingRegistration -> universalResult.context
+                else -> currentValue // Keep original if universal override changed the type
+            }
+        }
+
+        // Apply individual override transformers
         for (transformer in _onPendingRegistrationOverrides) {
             currentValue = transformer(currentValue)
         }
@@ -420,7 +452,16 @@ data class AuthCallbacks(
     suspend fun executeOnLinkingRequired(context: LinkingContext): LinkingContext {
         var currentValue = context
 
-        // Apply all override transformers first
+        // Apply universal override first if present
+        if (hasUniversalOverride()) {
+            val universalResult = executeUniversalOverride(AuthResult.LinkingRequired(currentValue))
+            currentValue = when (universalResult) {
+                is AuthResult.LinkingRequired -> universalResult.context
+                else -> currentValue // Keep original if universal override changed the type
+            }
+        }
+
+        // Apply individual override transformers
         for (transformer in _onLinkingRequiredOverrides) {
             currentValue = transformer(currentValue)
         }
@@ -434,7 +475,16 @@ data class AuthCallbacks(
     suspend fun executeOnTwoFactorRequired(context: TwoFactorContext): TwoFactorContext {
         var currentValue = context
 
-        // Apply all override transformers first
+        // Apply universal override first if present
+        if (hasUniversalOverride()) {
+            val universalResult = executeUniversalOverride(AuthResult.TwoFactorRequired(currentValue))
+            currentValue = when (universalResult) {
+                is AuthResult.TwoFactorRequired -> universalResult.context
+                else -> currentValue // Keep original if universal override changed the type
+            }
+        }
+
+        // Apply individual override transformers
         for (transformer in _onTwoFactorRequiredOverrides) {
             currentValue = transformer(currentValue)
         }
@@ -448,7 +498,16 @@ data class AuthCallbacks(
     suspend fun executeOnOTPRequired(context: OTPContext): OTPContext {
         var currentValue = context
 
-        // Apply all override transformers first
+        // Apply universal override first if present
+        if (hasUniversalOverride()) {
+            val universalResult = executeUniversalOverride(AuthResult.OTPRequired(currentValue))
+            currentValue = when (universalResult) {
+                is AuthResult.OTPRequired -> universalResult.context
+                else -> currentValue // Keep original if universal override changed the type
+            }
+        }
+
+        // Apply individual override transformers
         for (transformer in _onOTPRequiredOverrides) {
             currentValue = transformer(currentValue)
         }
@@ -462,7 +521,13 @@ data class AuthCallbacks(
     suspend fun executeOnCaptchaRequired() {
         var currentValue = Unit
 
-        // Apply all override transformers first
+        // Apply universal override first if present
+        if (hasUniversalOverride()) {
+            executeUniversalOverride(AuthResult.CaptchaRequired)
+            // Note: CaptchaRequired doesn't have data to transform, so we just execute it
+        }
+
+        // Apply individual override transformers
         for (transformer in _onCaptchaRequiredOverrides) {
             currentValue = transformer(currentValue)
         }

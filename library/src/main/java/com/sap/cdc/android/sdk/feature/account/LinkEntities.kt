@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LinkEntities(
     val loginProviders: List<String>,
-    var loginID: String? = null
+    var loginID: String? = null,
+    var phones: List<String>? = null
 )

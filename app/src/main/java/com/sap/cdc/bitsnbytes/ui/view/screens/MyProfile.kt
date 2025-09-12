@@ -111,13 +111,13 @@ private object ProfileConstants {
 fun MyProfileView(viewModel: IMyProfileViewModel) {
     // Observe account state from AuthenticationFlowDelegate
     val accountInfo by viewModel.flowDelegate?.userAccount?.collectAsState() ?: remember { mutableStateOf(null) }
-    
+
     var loading by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
-    
+
     // Derived state for better performance
     val fullName by remember {
-        derivedStateOf { 
+        derivedStateOf {
             val firstName = accountInfo?.profile?.firstName ?: ""
             val lastName = accountInfo?.profile?.lastName ?: ""
             "$firstName $lastName".trim()
@@ -129,8 +129,14 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
         if (accountInfo == null) {
             loading = true
             viewModel.getAccountInfo(mutableMapOf()) {
-                onSuccess = { loading = false }
-                onError = { loading = false }
+                onSuccess = {
+                    loading = false
+                    isRefreshing = false
+                }
+                onError = {
+                    loading = false
+                    isRefreshing = false
+                }
             }
         }
     }

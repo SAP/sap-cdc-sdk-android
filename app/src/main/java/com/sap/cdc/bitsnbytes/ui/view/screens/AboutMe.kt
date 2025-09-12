@@ -68,7 +68,11 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
         )
     }
 
-    var alias by remember { mutableStateOf("") }
+    var alias by remember {
+        mutableStateOf(
+            accountInfo?.customIdentifiers?.alias ?: ""
+        )
+    }
 
     if (showBanner) {
         SuccessBanner(
