@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,18 +32,12 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
 
 
-/**
- * Created by Cline on 12/09/2025
- * Copyright: SAP LTD.
- *
- * Biometric locked session screen.
- */
-
 @Composable
 fun BiometricLockedView(viewModel: IBiometricLockedViewModel) {
     val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }
     var unlockError by remember { mutableStateOf("") }
+
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

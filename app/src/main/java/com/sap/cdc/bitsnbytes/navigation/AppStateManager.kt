@@ -92,6 +92,18 @@ class AppStateManager : ViewModel() {
         _canNavigateBack.value = currentNavController?.previousBackStackEntry != null
     }
     
+    /**
+     * Check if the current NavController is valid and has a navigation graph set.
+     * This prevents crashes when trying to navigate before the graph is initialized.
+     */
+    fun hasValidNavController(): Boolean {
+        return try {
+            currentNavController?.graph != null
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
     // GENERAL STATE METHODS
     fun setLoading(loading: Boolean) {
         _isLoading.value = loading

@@ -97,7 +97,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             profileNavController, startDestination =
                 when (authDelegate.hasValidSession()) {
                     true -> {
-                        if (authDelegate.isBiometricLocked()) {
+                        if (authDelegate.isBiometricActive()) {
                             ProfileScreenRoute.BiometricLocked.route
                         } else {
                             ProfileScreenRoute.MyProfile.route

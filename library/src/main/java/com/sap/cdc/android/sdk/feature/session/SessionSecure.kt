@@ -83,8 +83,9 @@ internal class SessionSecure(
     /**
      * Load session from encrypted shared preferences file.
      */
-    private fun loadToMem() {
+    private fun sessionFromEncryptedPrefs(): SessionEntity? {
         // Get reference to encrypted shared preferences.
+        var sessionEntity: SessionEntity? = null
         val esp = siteConfig.applicationContext.getEncryptedPreferences(
             CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
         )
@@ -95,39 +96,47 @@ internal class SessionSecure(
                 val sessionMap = Json.decodeFromString<Map<String, String>>(json)
                 if (sessionMap.contains(siteConfig.apiKey)) {
                     // Get session entity from session map.
-                    this.sessionEntity = sessionMap[siteConfig.apiKey]?.let {
+                    sessionEntity = sessionMap[siteConfig.apiKey]?.let {
                         Json.decodeFromString(it)
                     }
                     CDCDebuggable.log(LOG_TAG, "Session loaded to memory. $sessionEntity")
+                }
+            }
+        }
+        return sessionEntity
+    }
 
-                    // Enqueue session expiration worker if the session has expiration time.
-                    if (sessionEntity != null) {
-                        if (getSessionSecureLevel() == SessionSecureLevel.BIOMETRIC) {
-                            // Session is biometric locked. it cannot be decoded and expiration worker cannot be set.
-                            CDCDebuggable.log(
-                                LOG_TAG,
-                                "Session is biometric locked."
-                            )
-                            return
-                        }
+    /**
+     * Parse session from encrypted shared preferences and load to memory.
+     * If session has expiration time - enqueue session expiration worker.
+     */
+    private fun loadToMem() {
+        this.sessionEntity = sessionFromEncryptedPrefs()
+        // Enqueue session expiration worker if the session has expiration time.
+        if (sessionEntity != null) {
+            if (getSessionSecureLevel() == SessionSecureLevel.BIOMETRIC) {
+                // Session is biometric locked. it cannot be decoded and expiration worker cannot be set.
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "Session is biometric locked."
+                )
+                return
+            }
 
-                        val session = Json.decodeFromString<Session>(this.sessionEntity?.session!!)
-                        // Check for session expiration.
-                        if (session.expiration != null && session.expiration!! > 0) {
-                            CDCDebuggable.log(
-                                LOG_TAG,
-                                "Session has expiration (${session.expiration}) time. Enqueue worker."
-                            )
-                            cancelRunningSessionExpirationWorker()
-                            val expirationTime = getExpirationTime()
-                            CDCDebuggable.log(LOG_TAG, "Expiration time to enqueue: $expirationTime")
-                            if (expirationTime != null && expirationTime > 0) {
-                                // Setting expiration time to the worker. The worker takes delay only
-                                // so we are subtracting current time from expiration time.l
-                                enqueueSessionExpirationWorker(expirationTime - System.currentTimeMillis())
-                            }
-                        }
-                    }
+            val session = Json.decodeFromString<Session>(this.sessionEntity?.session!!)
+            // Check for session expiration.
+            if (session.expiration != null && session.expiration!! > 0) {
+                CDCDebuggable.log(
+                    LOG_TAG,
+                    "Session has expiration (${session.expiration}) time. Enqueue worker."
+                )
+                cancelRunningSessionExpirationWorker()
+                val expirationTime = getExpirationTime()
+                CDCDebuggable.log(LOG_TAG, "Expiration time to enqueue: $expirationTime")
+                if (expirationTime != null && expirationTime > 0) {
+                    // Setting expiration time to the worker. The worker takes delay only
+                    // so we are subtracting current time from expiration time.l
+                    enqueueSessionExpirationWorker(expirationTime - System.currentTimeMillis())
                 }
             }
         }
@@ -337,25 +346,16 @@ internal class SessionSecure(
      */
     fun biometricLocked(): Boolean {
         CDCDebuggable.log(LOG_TAG, "Checking if session is biometric locked")
-        if (!availableSession()) {
+        if (availableSession()) {
             CDCDebuggable.log(LOG_TAG, "Session is not available. not locked")
             return false
         }
-        if (sessionEntity?.secureLevel?.encryptionType == SessionSecureLevel.STANDARD) {
-            CDCDebuggable.log(LOG_TAG, "Session is not biometric locked. standard secure level")
-            return false
-        }
-        try {
-            // Only default secure level can be decoded using JSON because it is not encrypted.
-            Json.decodeFromString<Session>(sessionEntity?.session!!)
-            CDCDebuggable.log(
-                LOG_TAG,
-                "Session is not biometric locked. Default session decoded successfully"
-            )
-            return false
-        } catch (e: Exception) {
+        val sessionEntity = sessionFromEncryptedPrefs()
+        if (sessionEntity != null && sessionEntity.secureLevel.encryptionType == SessionSecureLevel.BIOMETRIC) {
+            CDCDebuggable.log(LOG_TAG, "Session is biometric locked.")
             return true
         }
+        return false
     }
 
     /**

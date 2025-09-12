@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -45,7 +43,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
-import com.sap.cdc.bitsnbytes.ui.view.composables.LargeHorizontalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
@@ -223,51 +220,6 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             },
             inverse = !viewModel.isBiometricActive()
         )
-
-        // Biometrics lock toggle
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 24.dp)
-                .alpha(if (viewModel.isBiometricActive()) 1f else 0.5f),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "Lock biometrics:")
-            LargeHorizontalSpacer()
-            Switch(
-                checked = viewModel.isBiometricLocked(),
-                enabled = viewModel.isBiometricActive(),
-                onCheckedChange = { checked ->
-                    if (viewModel.isBiometricActive()) {
-                        when (checked) {
-                            true -> viewModel.biometricLock()
-                            false -> {
-                                val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                                    .setAllowedAuthenticators(BIOMETRIC_STRONG)
-                                    .setTitle("Biometric Authentication")
-                                    .setSubtitle("Authenticate using your biometric credential")
-                                    .setNegativeButtonText("Use another method").build()
-
-                                viewModel.biometricUnlock(
-                                    activity = context as FragmentActivity,
-                                    promptInfo = promptInfo,
-                                    executor = executor
-                                ) {
-                                    onSuccess = {
-                                        // Successfully unlocked, now disable the lock
-
-                                    }
-                                    onError = { error ->
-                                        optionsError = error.message
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            )
-        }
 
         LargeVerticalSpacer()
 

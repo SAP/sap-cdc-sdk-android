@@ -200,19 +200,15 @@ class BiometricAuth(private val sessionService: SessionService) {
             object : BiometricPrompt.AuthenticationCallback() {
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    onAuthenticationError(errorCode, errString)
                     CDCDebuggable.log(
                         LOG_TAG,
                         "Biometric OptOut: onAuthenticationError: code: $errorCode, message: $errString"
                     )
-
                     callbacks.onError?.invoke(createBiometricAuthError(errorCode, errString.toString()))
                 }
 
                 override fun onAuthenticationFailed() {
-                    onAuthenticationFailed()
                     CDCDebuggable.log(LOG_TAG, "Biometric OptOut: onAuthenticationFailed")
-
                     callbacks.onError?.invoke(createBiometricAuthError(null, "Authentication failed"))
                 }
 
@@ -258,7 +254,6 @@ class BiometricAuth(private val sessionService: SessionService) {
             object : BiometricPrompt.AuthenticationCallback() {
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    onAuthenticationError(errorCode, errString)
                     CDCDebuggable.log(
                         LOG_TAG,
                         "Biometric OptIn: onAuthenticationError: code: $errorCode, message: $errString"
@@ -267,7 +262,6 @@ class BiometricAuth(private val sessionService: SessionService) {
                 }
 
                 override fun onAuthenticationFailed() {
-                    onAuthenticationFailed()
                     CDCDebuggable.log(LOG_TAG, "Biometric OptIn: onAuthenticationFailed")
                     callbacks.onError?.invoke(createBiometricAuthError(null, "Authentication failed"))
                 }

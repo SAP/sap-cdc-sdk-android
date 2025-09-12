@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
+import com.sap.cdc.bitsnbytes.feature.auth.BiometricLifecycleManager
 
 // CompositionLocal for providing AuthenticationFlowDelegate across the composition tree
 val LocalAuthenticationDelegate = compositionLocalOf<AuthenticationFlowDelegate?> { null }
@@ -121,6 +122,7 @@ object ViewModelScopeProvider {
      * Provides the AuthenticationFlowDelegate to the composition tree.
      * This should be called at the top level (e.g., in ProfileNavHost) to provide
      * the delegate to all child composables.
+     * Also initializes BiometricLifecycleManager for automatic session locking.
      */
     @Composable
     fun ProvideAuthenticationDelegate(
@@ -129,6 +131,13 @@ object ViewModelScopeProvider {
     ) {
         val authDelegate = remember {
             AuthenticationFlowDelegate(context)
+        }
+        
+        // Initialize BiometricLifecycleManager with the shared AuthenticationFlowDelegate
+        val biometricLifecycleManager = remember {
+            BiometricLifecycleManager(authDelegate).also { manager ->
+                manager.initialize()
+            }
         }
         
         CompositionLocalProvider(

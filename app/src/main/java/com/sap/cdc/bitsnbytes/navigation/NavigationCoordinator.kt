@@ -82,4 +82,18 @@ class NavigationCoordinator private constructor() {
     fun navigateUp() {
         appStateManager?.navigateUp()
     }
+
+    /**
+     * Check if navigation is available and safe to use.
+     * This prevents crashes when the app starts from a killed state and navigation hasn't been initialized yet.
+     * 
+     * @return true if both AppStateManager exists AND NavController has a navigation graph set
+     */
+    fun isNavigationAvailable(): Boolean {
+        return try {
+            appStateManager?.hasValidNavController() ?: false
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
