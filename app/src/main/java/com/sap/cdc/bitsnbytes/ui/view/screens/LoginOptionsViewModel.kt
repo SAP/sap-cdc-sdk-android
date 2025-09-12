@@ -42,7 +42,8 @@ interface ILoginOptionsViewModel {
     fun biometricOptIn(
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
-        executor: Executor
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         // Stub/.
     }
@@ -50,7 +51,8 @@ interface ILoginOptionsViewModel {
     fun biometricOptOut(
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
-        executor: Executor
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         // Stub.
     }
@@ -147,14 +149,14 @@ class LoginOptionsViewModel(
     override fun biometricOptIn(
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
-        executor: Executor
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         biometricAuth.optInForBiometricSessionAuthentication(
             activity = activity,
             promptInfo = promptInfo,
             executor = executor,
             onAuthenticationError = { _, _ ->
-
             },
             onAuthenticationFailed = {
 
@@ -172,7 +174,8 @@ class LoginOptionsViewModel(
     override fun biometricOptOut(
         activity: FragmentActivity,
         promptInfo: BiometricPrompt.PromptInfo,
-        executor: Executor
+        executor: Executor,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
         biometricAuth.optOutFromBiometricSessionAuthentication(
             activity = activity,

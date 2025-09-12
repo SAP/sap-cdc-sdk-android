@@ -4,8 +4,12 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
+import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +49,8 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
+import com.sap.cdc.bitsnbytes.ui.view.composables.SuccessBanner
+import kotlinx.coroutines.delay
 
 
 /**
@@ -59,6 +66,8 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     var loading by remember { mutableStateOf(false) }
     val executor = remember { ContextCompat.getMainExecutor(context) }
     var optionsError: String? by remember { mutableStateOf("") }
+    var showBanner by remember { mutableStateOf(false) }
+    var bannerText by remember { mutableStateOf("") }
 
     val view = LocalView.current
     val notificationPermission = if (view.isInEditMode) null
@@ -66,6 +75,13 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     val isGranted = notificationPermission?.status?.isGranted
 
     // UI elements.
+
+    if (showBanner) {
+        SuccessBanner(
+            message = bannerText,
+            onDismiss = { showBanner = false }
+        )
+    }
 
     LoadingStateColumn(
         loading = loading,
@@ -80,17 +96,50 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = if (viewModel.isPasswordlessLoginActive()) "Activated" else "Deactivated",
             actionLabel = if (viewModel.isPasswordlessLoginActive()) "Deactivate" else "Activate",
             onClick = {
-                viewModel.togglePasswordlessLogin()
+                if (viewModel.isPasswordlessLoginActive()) {
+                    loading = true
+                    // Should start revoke flow
+                } else {
+                    loading = true
+                    viewModel.createPasskey(
+                        activity = context as ComponentActivity
+                    ) {
+                        onSuccess = {
+                            viewModel.togglePasswordlessLogin()
+                            loading = false
+                            bannerText = "Passkey added"
+                            showBanner = true
+                        }
+
+                        onError = { error ->
+                            loading = false
+                            optionsError = error.message
+                        }
+                    }
+                }
             },
+
             inverse = !viewModel.isPasswordlessLoginActive()
         )
         SmallVerticalSpacer()
         OptionCard(
             title = "Push Authentication",
-            status = if (viewModel.isPushAuthenticationActive()) "Activated" else "Deactivated",
+            status
+            = if (viewModel.isPushAuthenticationActive()) "Activated" else "Deactivated",
             actionLabel = if (viewModel.isPushAuthenticationActive()) "Deactivate" else "Activate",
             onClick = {
-                viewModel.togglePushAuthentication()
+                loading = false
+                viewModel.optOnForAuthenticationNotifications {
+                    onSuccess = {
+                        loading = false
+                        viewModel.togglePushAuthentication()
+                    }
+
+                    onError = { error ->
+                        loading = false
+                        optionsError = error.message
+                    }
+                }
             },
             inverse = !viewModel.isPushAuthenticationActive()
         )
@@ -100,18 +149,63 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = if (viewModel.isPushTwoFactorAuthActive()) "Activated" else "Deactivated",
             actionLabel = if (viewModel.isPushTwoFactorAuthActive()) "Deactivate" else "Activate",
             onClick = {
-                viewModel.togglePushTwoFactorAuth()
+                loading = true
+                viewModel.optInForTwoFactorNotifications {
+                    onSuccess = {
+                        loading = false
+                        viewModel.togglePushTwoFactorAuth()
+                    }
+
+                    onError = { error ->
+                        loading = false
+                        optionsError = error.message
+                    }
+                }
             },
             inverse = !viewModel.isPushTwoFactorAuthActive()
         )
         SmallVerticalSpacer()
         OptionCard(
-            title = "Biometrics", 
+            title = "Biometrics",
             status = if (viewModel.isBiometricActive()) "Activated" else "Deactivated",
             actionLabel = if (viewModel.isBiometricActive()) "Deactivate" else "Activate",
             onClick = {
-                viewModel.toggleBiometricAuthentication()
-            }, 
+                if (viewModel.isBiometricActive()) {
+                    viewModel.biometricOptIn(
+                        activity = context as FragmentActivity,
+                        promptInfo = BiometricPrompt.PromptInfo.Builder()
+                            .setAllowedAuthenticators(BIOMETRIC_STRONG)
+                            .setTitle("Opt in for biometric authentication")
+                            .setSubtitle("Authenticate using your biometric credential")
+                            .setNegativeButtonText("Use another method").build(),
+                        executor = executor,
+                    ) {
+                        onSuccess = {
+                            viewModel.toggleBiometricAuthentication()
+                        }
+                        onError = { error ->
+                            optionsError = error.message
+                        }
+                    }
+                } else  {
+                    viewModel.biometricOptOut(
+                        activity = context as FragmentActivity,
+                        promptInfo = BiometricPrompt.PromptInfo.Builder()
+                            .setAllowedAuthenticators(BIOMETRIC_STRONG)
+                            .setTitle("Opt out of biometric authentication")
+                            .setSubtitle("Authenticate using your biometric credential")
+                            .setNegativeButtonText("Use another method").build(),
+                        executor = executor,
+                    ) {
+                        onSuccess = {
+                            viewModel.toggleBiometricAuthentication()
+                        }
+                        onError = { error ->
+                            optionsError = error.message
+                        }
+                    }
+                }
+            },
             inverse = !viewModel.isBiometricActive()
         )
 
@@ -152,6 +246,27 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             SimpleErrorMessages(
                 text = optionsError!!
             )
+        }
+
+        LargeVerticalSpacer()
+
+        AnimatedVisibility(
+            visible = showBanner,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            SuccessBanner(
+                message = "Account updated successfully",
+                onDismiss = { showBanner = false }
+            )
+        }
+
+        // Auto-hide after 2 seconds
+        if (showBanner) {
+            LaunchedEffect(Unit) {
+                delay(2000)
+                showBanner = false
+            }
         }
     }
 }

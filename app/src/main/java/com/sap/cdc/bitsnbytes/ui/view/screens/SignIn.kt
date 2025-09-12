@@ -120,6 +120,7 @@ fun SignInView(viewModel: ISignInViewModel) {
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Passwordless",
             onClick = {
+                loading = true
                 viewModel.passkeyLogin(context as ComponentActivity) {
                     onSuccess = {
                         loading = false
