@@ -57,14 +57,14 @@ class AuthenticationService(
      * Device info is used for various purposes, such as TFA/Auth push registration & Passkey management
      */
     internal fun updateDeviceInfo(deviceInfo: DeviceInfo) {
-        val esp = siteConfig.applicationContext?.getEncryptedPreferences(
+        val esp = siteConfig.applicationContext.getEncryptedPreferences(
             CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
         )
         val json = Json {
             encodeDefaults = true
         }
         val deviceInfoJson = json.encodeToString(deviceInfo)
-        esp?.edit() { putString(CDC_DEVICE_INFO, deviceInfoJson) }
+        esp.edit() { putString(CDC_DEVICE_INFO, deviceInfoJson) }
     }
 
     /**

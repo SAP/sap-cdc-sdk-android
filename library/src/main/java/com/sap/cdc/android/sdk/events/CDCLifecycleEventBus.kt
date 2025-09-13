@@ -119,17 +119,25 @@ class CDCLifecycleEventBus : LifecycleAwareEventBus {
         scope: EventScope,
         dispatcher: CoroutineDispatcher
     ) {
-        val eventKey = EventKey(event::class, scope)
-        val channel = eventChannels[eventKey]
+        // Find all channels that should receive this event
+        // This includes exact class matches and parent class matches (for polymorphism)
+        val matchingChannels = eventChannels.filterKeys { eventKey ->
+            eventKey.scope == scope && (
+                eventKey.eventClass == event::class || 
+                eventKey.eventClass.java.isAssignableFrom(event::class.java)
+            )
+        }
         
-        if (channel != null) {
-            CDCDebuggable.log(LOG_TAG, "Emitting ${event::class.simpleName} event with scope $scope")
+        if (matchingChannels.isNotEmpty()) {
+            CDCDebuggable.log(LOG_TAG, "Emitting ${event::class.simpleName} event with scope $scope to ${matchingChannels.size} subscriber(s)")
             
             CoroutineScope(dispatcher).launch {
-                try {
-                    channel.trySend(event)
-                } catch (e: Exception) {
-                    CDCDebuggable.log(LOG_TAG, "Event emission error: ${e.message}")
+                matchingChannels.values.forEach { channel ->
+                    try {
+                        channel.trySend(event)
+                    } catch (e: Exception) {
+                        CDCDebuggable.log(LOG_TAG, "Event emission error: ${e.message}")
+                    }
                 }
             }
         } else {

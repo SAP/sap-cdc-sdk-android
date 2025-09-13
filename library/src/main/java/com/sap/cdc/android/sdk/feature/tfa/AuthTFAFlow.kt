@@ -47,6 +47,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         // Error case (init)
         if (initTFA.isError()) {
             authCallbacks.onError?.invoke(createAuthError(initTFA))
+            return
         }
 
         val assertion = initTFA.stringField("gigyaAssertion") ?: ""
@@ -90,6 +91,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         // Error case (verify)
         if (verify.isError()) {
             authCallbacks.onError?.invoke(createAuthError(verify))
+            return
         }
 
         if (!finalize) {
