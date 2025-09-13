@@ -136,20 +136,44 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
         SmallVerticalSpacer()
         OptionCard(
             title = "Push Authentication",
-            status
-            = if (viewModel.isPushAuthenticationActive()) "Activated" else "Deactivated",
+            status = if (viewModel.isPushAuthenticationActive()) "Activated" else "Deactivated",
             actionLabel = if (viewModel.isPushAuthenticationActive()) "Deactivate" else "Activate",
             onClick = {
-                loading = false
-                viewModel.optOnForAuthenticationNotifications {
-                    onSuccess = {
-                        loading = false
-                        viewModel.togglePushAuthentication()
-                    }
+                if (viewModel.isPushAuthenticationActive()) {
+                    // Deactivating - no permission check needed
+                    loading = true
+                    viewModel.optOnForAuthenticationNotifications {
+                        onSuccess = {
+                            loading = false
+                            viewModel.togglePushAuthentication()
+                        }
 
-                    onError = { error ->
-                        loading = false
-                        optionsError = error.message
+                        onError = { error ->
+                            loading = false
+                            optionsError = error.message
+                        }
+                    }
+                } else {
+                    // Activating - check permission first
+                    loading = true
+                    viewModel.requestPushAuthentication(
+                        isPermissionGranted = isGranted ?: false,
+                        onPermissionRequired = {
+                            loading = false
+                            // Request permission through Accompanist
+                            notificationPermission?.launchPermissionRequest()
+                        }
+                    ) {
+                        onSuccess = {
+                            loading = false
+                            bannerText = "Push Authentication enabled"
+                            showBanner = true
+                        }
+
+                        onError = { error ->
+                            loading = false
+                            optionsError = error.message
+                        }
                     }
                 }
             },
@@ -161,16 +185,41 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             status = if (viewModel.isPushTwoFactorAuthActive()) "Activated" else "Deactivated",
             actionLabel = if (viewModel.isPushTwoFactorAuthActive()) "Deactivate" else "Activate",
             onClick = {
-                loading = true
-                viewModel.optInForTwoFactorNotifications {
-                    onSuccess = {
-                        loading = false
-                        viewModel.togglePushTwoFactorAuth()
-                    }
+                if (viewModel.isPushTwoFactorAuthActive()) {
+                    // Deactivating - no permission check needed
+                    loading = true
+                    viewModel.optInForTwoFactorNotifications {
+                        onSuccess = {
+                            loading = false
+                            viewModel.togglePushTwoFactorAuth()
+                        }
 
-                    onError = { error ->
-                        loading = false
-                        optionsError = error.message
+                        onError = { error ->
+                            loading = false
+                            optionsError = error.message
+                        }
+                    }
+                } else {
+                    // Activating - check permission first
+                    loading = true
+                    viewModel.requestPushTwoFactorAuth(
+                        isPermissionGranted = isGranted ?: false,
+                        onPermissionRequired = {
+                            loading = false
+                            // Request permission through Accompanist
+                            notificationPermission?.launchPermissionRequest()
+                        }
+                    ) {
+                        onSuccess = {
+                            loading = false
+                            bannerText = "Push 2-Factor Authentication enabled"
+                            showBanner = true
+                        }
+
+                        onError = { error ->
+                            loading = false
+                            optionsError = error.message
+                        }
                     }
                 }
             },

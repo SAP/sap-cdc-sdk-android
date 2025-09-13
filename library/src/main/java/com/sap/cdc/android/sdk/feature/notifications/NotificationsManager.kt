@@ -142,64 +142,61 @@ class CDCNotificationManager(
                 when (data.mode) {
                     "optin" -> {
                         scope.launch {
-//                            try {
-//                                CDCDebuggable.log(LOG_TAG, "Finalizing push TFA.")
-//                                val authResponse =
-//                                    authenticationService.tfa().finalizeOtpInForPushAuthentication(
-//                                        mutableMapOf(
-//                                            "verificationToken" to data.verificationToken,
-//                                            "gigyaAssertion" to data.gigyaAssertion
-//                                        )
-//                                    )
-//                                if (authResponse.cdcResponse().isError()) {
-//                                    CDCDebuggable.log(
-//                                        LOG_TAG,
-//                                        "Error finalizing push TFA: ${
-//                                            authResponse.cdcResponse().errorMessage()
-//                                        }"
-//                                    )
-//                                    job.cancel()
-//                                    return@launch
-//                                } else  {
-//                                //Send notification.
-//                                notify(notificationOptions.notificationVerified?.title!!, "")
-//                                    }
-//                            } finally {
-//                                CDCDebuggable.log(LOG_TAG, "Finalized push TFA. Canceling coroutine job")
-//                                // Cancel the scope once the coroutine completes
-//                                job.cancel()
-//                            }
+                            try {
+                                CDCDebuggable.log(LOG_TAG, "Finalizing push TFA.")
+                                authenticationService.authenticate().tfa().verifyNotification(
+                                    parameters = mutableMapOf(
+                                        "verificationToken" to data.verificationToken,
+                                        "gigyaAssertion" to data.gigyaAssertion,
+                                    ), finalize = true
+                                ) {
+                                    onSuccess = {
+                                        // Send notification.
+                                        notify(notificationOptions.notificationVerified?.title!!, "")
+                                    }
+                                    onError = { error ->
+                                        CDCDebuggable.log(
+                                            LOG_TAG,
+                                            "Error finalizing push TFA: ${error.message}"
+                                        )
+                                        job.cancel()
+                                    }
+                                }
+                            } finally {
+                                CDCDebuggable.log(LOG_TAG, "Finalized push TFA. Canceling coroutine job")
+                                // Cancel the scope once the coroutine completes
+                                job.cancel()
+                            }
                         }
                     }
 
                     "verify" -> {
                         scope.launch {
-//                            try {
-//                                CDCDebuggable.log(LOG_TAG, "Verifying push TFA.")
-//                                val authResponse = authenticationService.tfa().verifyPushTFA(
-//                                    mutableMapOf(
-//                                        "verificationToken" to data.verificationToken,
-//                                        "gigyaAssertion" to data.gigyaAssertion
-//                                    )
-//                                )
-//                                if (authResponse.cdcResponse().isError()) {
-//                                    CDCDebuggable.log(
-//                                        LOG_TAG,
-//                                        "Error verifying push TFA: ${
-//                                            authResponse.cdcResponse().errorMessage()
-//                                        }"
-//                                    )
-//                                    job.cancel()
-//                                    return@launch
-//                                } else {
-//                                    //Send notification.
-//                                    notify(notificationOptions.notificationVerified?.title!!, "")
-//                                }
-//                            } finally {
-//                                CDCDebuggable.log(LOG_TAG, "Verified push TFA. Canceling coroutine job")
-//                                // Cancel the scope once the coroutine completes
-//                                job.cancel()
-//                            }
+                            try {
+                                CDCDebuggable.log(LOG_TAG, "Verifying push TFA.")
+                                val authResponse = authenticationService.authenticate().tfa().verifyNotification(
+                                    mutableMapOf(
+                                        "verificationToken" to data.verificationToken,
+                                        "gigyaAssertion" to data.gigyaAssertion
+                                    )
+                                ) {
+                                    onSuccess = {
+                                        // Send notification.
+                                        notify(notificationOptions.notificationVerified?.title!!, "")
+                                    }
+                                    onError = { error ->
+                                        CDCDebuggable.log(
+                                            LOG_TAG,
+                                            "Error verifying push TFA: ${error.message}"
+                                        )
+                                        job.cancel()
+                                    }
+                                }
+                            } finally {
+                                CDCDebuggable.log(LOG_TAG, "Verified push TFA. Canceling coroutine job")
+                                // Cancel the scope once the coroutine completes
+                                job.cancel()
+                            }
                         }
                     }
                 }

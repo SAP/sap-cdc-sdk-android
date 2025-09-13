@@ -14,6 +14,7 @@ import com.sap.cdc.android.sdk.feature.provider.passkey.PasskeyCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
+import com.sap.cdc.bitsnbytes.feature.messaging.NotificationPermissionManager
 import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
@@ -38,6 +39,29 @@ interface ILoginOptionsViewModel {
     fun togglePushTwoFactorAuth()
 
     fun toggleBiometricAuthentication()
+
+    /**
+     * Check if notification permission is required and granted
+     */
+    fun isNotificationPermissionGranted(): Boolean
+
+    /**
+     * Request to enable push authentication with permission check
+     */
+    fun requestPushAuthentication(
+        isPermissionGranted: Boolean,
+        onPermissionRequired: () -> Unit,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
+
+    /**
+     * Request to enable push 2-factor authentication with permission check
+     */
+    fun requestPushTwoFactorAuth(
+        isPermissionGranted: Boolean,
+        onPermissionRequired: () -> Unit,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
 
     fun biometricOptIn(
         activity: FragmentActivity,
@@ -122,10 +146,21 @@ class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
     override fun isPushTwoFactorAuthActive(): Boolean = false
     override fun togglePushTwoFactorAuth() {}
     override fun toggleBiometricAuthentication() {}
+    override fun isNotificationPermissionGranted(): Boolean = true
+    override fun requestPushAuthentication(
+        isPermissionGranted: Boolean,
+        onPermissionRequired: () -> Unit,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {}
+    override fun requestPushTwoFactorAuth(
+        isPermissionGranted: Boolean,
+        onPermissionRequired: () -> Unit,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {}
 }
 
 class LoginOptionsViewModel(
-    context: Context,
+    private val context: Context,
     val authenticationFlowDelegate: AuthenticationFlowDelegate
 ) : BaseViewModel(context),
     ILoginOptionsViewModel {
@@ -390,6 +425,53 @@ class LoginOptionsViewModel(
         if (!biometricActive) {
             // If disabling biometric, also clear any lock state
             biometricLock = false
+        }
+    }
+
+    //endregion
+
+    //region NOTIFICATION PERMISSION MANAGEMENT
+
+    /**
+     * Check if notification permission is granted using the NotificationPermissionManager
+     */
+    override fun isNotificationPermissionGranted(): Boolean {
+        return NotificationPermissionManager.isNotificationPermissionGranted(context)
+    }
+
+    /**
+     * Request to enable push authentication with permission check
+     * This method follows the view/viewmodel separation pattern
+     */
+    override fun requestPushAuthentication(
+        isPermissionGranted: Boolean,
+        onPermissionRequired: () -> Unit,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        if (!isPermissionGranted && NotificationPermissionManager.isNotificationPermissionRequired()) {
+            // Permission is required but not granted, trigger permission request in view
+            onPermissionRequired()
+        } else {
+            // Permission is granted or not required, proceed with authentication opt-in
+            optOnForAuthenticationNotifications(authCallbacks)
+        }
+    }
+
+    /**
+     * Request to enable push 2-factor authentication with permission check
+     * This method follows the view/viewmodel separation pattern
+     */
+    override fun requestPushTwoFactorAuth(
+        isPermissionGranted: Boolean,
+        onPermissionRequired: () -> Unit,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        if (!isPermissionGranted && NotificationPermissionManager.isNotificationPermissionRequired()) {
+            // Permission is required but not granted, trigger permission request in view
+            onPermissionRequired()
+        } else {
+            // Permission is granted or not required, proceed with 2FA opt-in
+            optInForTwoFactorNotifications(authCallbacks)
         }
     }
 
