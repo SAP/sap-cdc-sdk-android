@@ -67,7 +67,7 @@ fun PendingRegistrationView(
     var loading by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     var registerError by remember { mutableStateOf("") }
-    val missingFields =
+    var missingFields =
         registrationContext.originatingError?.details
             ?.parseRequiredMissingFieldsForRegistration()
     val values = remember {
@@ -177,6 +177,14 @@ fun PendingRegistrationView(
                                         linkingContext.toJson()
                                     }"
                                 )
+                        }
+
+                        onPendingRegistration = { registrationContext ->
+                            loading = false
+                            missingFields =
+                                registrationContext.originatingError?.details
+                                    ?.parseRequiredMissingFieldsForRegistration()
+
                         }
                     }
                 }) {

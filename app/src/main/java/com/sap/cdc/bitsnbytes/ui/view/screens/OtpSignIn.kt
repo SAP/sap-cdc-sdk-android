@@ -4,11 +4,13 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -41,11 +43,13 @@ import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
+import com.sap.cdc.bitsnbytes.ui.view.composables.CountryCodeSelector
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
+import com.sap.cdc.bitsnbytes.ui.view.model.CountryData
 
 /**
  * Created by Tal Mirmelshtein on 25/11/2024
@@ -71,6 +75,10 @@ fun OtpSignInView(
 
     var inputField by remember {
         mutableStateOf("")
+    }
+    
+    var selectedCountry by remember {
+        mutableStateOf(CountryData.getDefaultCountry())
     }
 
     val focusManager = LocalFocusManager.current
@@ -135,31 +143,49 @@ fun OtpSignInView(
                         fontWeight = FontWeight.Light,
                     )
 
+                    Spacer(modifier = Modifier.size(8.dp))
 
-                    TextField(
-                        inputField,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .connectNode(handler = autoFillHandler)
-                            .defaultFocusChangeAutoFill(handler = autoFillHandler),
-                        placeholder = {
-                            Text(
-                                "Enter phone number",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Normal,
-                            )
-                        },
-                        textStyle = TextStyle(
-                            color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Normal
-                        ),
-                        onValueChange = {
-                            inputField = it
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        keyboardActions = KeyboardActions {
-                            focusManager.moveFocus(FocusDirection.Next)
-                        },
-                    )
+                    // Row containing country selector and phone number input
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Country code selector
+                        CountryCodeSelector(
+                            selectedCountry = selectedCountry,
+                            onCountrySelected = { country ->
+                                selectedCountry = country
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Phone number input field
+                        TextField(
+                            value = inputField,
+                            modifier = Modifier
+                                .weight(1f)
+                                .connectNode(handler = autoFillHandler)
+                                .defaultFocusChangeAutoFill(handler = autoFillHandler),
+                            placeholder = {
+                                Text(
+                                    "Enter phone number",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Normal,
+                                )
+                            },
+                            textStyle = TextStyle(
+                                color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Normal
+                            ),
+                            onValueChange = {
+                                inputField = it
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                            keyboardActions = KeyboardActions {
+                                focusManager.moveFocus(FocusDirection.Next)
+                            },
+                        )
+                    }
                 }
 
                 OTPType.Email -> {
@@ -211,9 +237,17 @@ fun OtpSignInView(
                 onClick = {
                     loading = true
                     signInError = ""
+                    
+                    // For phone numbers, combine country code with the number
+                    val finalInputField = if (otpType == OTPType.PHONE) {
+                        "${selectedCountry.dialCode}$inputField"
+                    } else {
+                        inputField
+                    }
+                    
                     viewModel.signIn(
                         otpType = otpType,
-                        inputField = inputField
+                        inputField = finalInputField
                     )
                     {
                         onSuccess = {
@@ -221,7 +255,7 @@ fun OtpSignInView(
                             NavigationCoordinator.INSTANCE.navigate(
                                 "${ProfileScreenRoute.OTPVerify.route}/${
                                     ""
-                                }/${otpType.value}/${inputField}"
+                                }/${otpType.value}/${finalInputField}"
                             )
                         }
 
@@ -230,7 +264,7 @@ fun OtpSignInView(
                             NavigationCoordinator.INSTANCE.navigate(
                                 "${ProfileScreenRoute.OTPVerify.route}/${
                                     otpContext.toJson()
-                                }/${otpType.value}/${inputField}"
+                                }/${otpType.value}/${finalInputField}"
                             )
                         }
                         onError = { error ->
