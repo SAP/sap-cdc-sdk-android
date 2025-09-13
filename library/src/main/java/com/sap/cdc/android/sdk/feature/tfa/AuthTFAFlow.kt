@@ -103,7 +103,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
 
         val providerAssertion = verify.stringField("providerAssertion") ?: ""
 
-        parameters.clear()
+        parameters.remove("verificationToken")
         parameters["providerAssertion"] = providerAssertion
         val finalize = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_FINALIZE,
