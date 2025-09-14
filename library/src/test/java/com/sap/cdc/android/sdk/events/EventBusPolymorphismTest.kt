@@ -1,7 +1,12 @@
 package com.sap.cdc.android.sdk.events
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -12,12 +17,15 @@ import kotlin.test.assertTrue
  * Test to verify that the event bus properly handles polymorphism.
  * This test ensures that subscribers to base event classes receive events from their subclasses.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class EventBusPolymorphismTest {
 
     private lateinit var eventBus: CDCLifecycleEventBus
+    private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
+        Dispatchers.setMain(testDispatcher)
         eventBus = CDCLifecycleEventBus()
         CDCEventBusProvider.reset()
         CDCEventBusProvider.initialize(eventBus)
@@ -26,10 +34,11 @@ class EventBusPolymorphismTest {
     @After
     fun tearDown() {
         CDCEventBusProvider.reset()
+        Dispatchers.resetMain()
     }
 
     @Test
-    fun `test MessageEvent subscriber receives TokenReceived events`() = runBlocking {
+    fun `test MessageEvent subscriber receives TokenReceived events`() = runTest {
         // Given
         var receivedEvent: MessageEvent? = null
         val subscription = eventBus.subscribeManual(
@@ -54,7 +63,7 @@ class EventBusPolymorphismTest {
     }
 
     @Test
-    fun `test MessageEvent subscriber receives RemoteMessageReceived events`() = runBlocking {
+    fun `test MessageEvent subscriber receives RemoteMessageReceived events`() = runTest {
         // Given
         var receivedEvent: MessageEvent? = null
         val subscription = eventBus.subscribeManual(
@@ -80,7 +89,7 @@ class EventBusPolymorphismTest {
     }
 
     @Test
-    fun `test specific subscriber still receives only specific events`() = runBlocking {
+    fun `test specific subscriber still receives only specific events`() = runTest {
         // Given
         var receivedTokenEvents = 0
         var receivedRemoteMessageEvents = 0
@@ -116,7 +125,7 @@ class EventBusPolymorphismTest {
     }
 
     @Test
-    fun `test extension function emitTokenReceived works with MessageEvent subscriber`() = runBlocking {
+    fun `test extension function emitTokenReceived works with MessageEvent subscriber`() = runTest {
         // Given
         var receivedEvent: MessageEvent? = null
         val subscription = eventBus.subscribeManual(

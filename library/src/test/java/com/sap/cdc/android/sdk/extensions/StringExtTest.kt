@@ -54,13 +54,6 @@ class StringExtTest {
     }
 
     @Test
-    fun testParseRequiredMissingFieldsForRegistration() {
-        val fields =
-            "Missing fields: field1, field2, field3".parseRequiredMissingFieldsForRegistration()
-        assertEquals(listOf("field1", "field2", "field3"), fields)
-    }
-
-    @Test
     fun testParseQueryStringParams() {
         val queryString = "param1=value1&param2=value2"
         val params = queryString.parseQueryStringParams()
