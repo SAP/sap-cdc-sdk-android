@@ -5,6 +5,7 @@ import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNT_AUTH_DEVICE_REGISTER
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNT_AUTH_PUSH_VERIFY
 import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
@@ -45,7 +46,7 @@ class AuthPushFlow(coreClient: CoreClient, sessionService: SessionService) :
     suspend fun verifyAuthPush(vToken: String, authCallbacks: AuthCallbacks) {
         CDCDebuggable.log(LOG_TAG, "verifyAuthPush: with vToken:$vToken")
         val verify = AuthenticationApi(coreClient, sessionService).send(
-            EP_ACCOUNT_AUTH_DEVICE_REGISTER,
+            EP_ACCOUNT_AUTH_PUSH_VERIFY,
             mutableMapOf("vToken" to vToken)
         )
         // Error case

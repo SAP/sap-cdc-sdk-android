@@ -1,9 +1,15 @@
 package com.sap.cdc.bitsnbytes.feature.auth
 
-import com.sap.cdc.android.sdk.feature.*
-import kotlinx.coroutines.runBlocking
+import com.sap.cdc.android.sdk.feature.AuthCallbacks
+import com.sap.cdc.android.sdk.feature.AuthError
+import com.sap.cdc.android.sdk.feature.AuthResult
+import com.sap.cdc.android.sdk.feature.AuthSuccess
+import com.sap.cdc.android.sdk.feature.RegistrationContext
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.Assert.*
 
 /**
  * Test to verify that the AuthCallbacks enhancement plan pattern works correctly.

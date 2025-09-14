@@ -23,7 +23,6 @@ import com.sap.cdc.bitsnbytes.navigation.AppStateManager
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.screens.HomeScaffoldView
-import com.sap.cdc.bitsnbytes.ui.activity.MainActivityViewModel
 import kotlinx.coroutines.launch
 
 /**

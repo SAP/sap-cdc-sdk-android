@@ -251,6 +251,29 @@ internal class SessionSecure(
         )
 
         this.sessionEntity?.session = decryptedSession
+
+        // Check if session has expired.
+        val sessionExpiration = getExpirationTime()
+
+        val currentTime = System.currentTimeMillis()
+        if (sessionExpiration != null && sessionExpiration > 0) {
+            if (sessionExpiration <= currentTime) {
+                CDCDebuggable.log(LOG_TAG, "Session has expired. Clearing session.")
+                emitSessionExpired(
+                    sessionId = "", // Session ID is not tracked in this implementation.
+                    scope = EventScope.GLOBAL
+                )
+            }
+            clearSession(true)
+            return
+        } else {
+            CDCDebuggable.log(
+                LOG_TAG,
+                "Session is valid. Enqueueing expiration worker."
+            )
+            // Enqueue session expiration worker.
+            enqueueSessionExpirationWorker(sessionExpiration!! - currentTime)
+        }
     }
 
     /**

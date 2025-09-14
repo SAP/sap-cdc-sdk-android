@@ -37,7 +37,9 @@ data class CDCNotificationAcknowledged(
 @Parcelize
 data class CDCNotificationActionData(
     val mode: String,
-    val gigyaAssertion: String,
-    val verificationToken: String,
+    val gigyaAssertion: String? = null,
+    val verificationToken: String? = null,
+    val vToken: String? = null,
     val notificationId: Int
 ) : Parcelable
+

@@ -3,11 +3,11 @@ package com.sap.cdc.android.sdk.feature.provider.sso
 import android.content.Intent
 import android.net.Uri
 import com.sap.cdc.android.sdk.feature.provider.web.WebLoginActivity
-import org.junit.Test
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Test
 
 /**
  * Unit tests for SSOLoginActivity.

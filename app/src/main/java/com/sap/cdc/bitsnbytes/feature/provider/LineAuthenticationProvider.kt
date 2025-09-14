@@ -15,9 +15,9 @@ import com.linecorp.linesdk.auth.LineLoginApi
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
 import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
+import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import com.sap.cdc.bitsnbytes.R
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

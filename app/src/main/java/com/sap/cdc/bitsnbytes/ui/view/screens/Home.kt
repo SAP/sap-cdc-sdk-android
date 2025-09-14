@@ -48,11 +48,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sap.cdc.bitsnbytes.R
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.AppStateManager
 import com.sap.cdc.bitsnbytes.navigation.MainScreenRoute
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.OptimizedProfileNavHost
-import com.sap.cdc.bitsnbytes.navigation.AppStateManager
-import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomBottomBar
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer

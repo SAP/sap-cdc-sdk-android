@@ -15,12 +15,11 @@ import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
+import com.sap.cdc.android.sdk.feature.provider.ProviderException
+import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import com.sap.cdc.android.sdk.feature.provider.SSOAuthenticationData
 import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
-import com.sap.cdc.android.sdk.feature.provider.sso.SSOLoginActivity
-import com.sap.cdc.android.sdk.feature.provider.ProviderException
-import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
 import org.json.JSONObject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException

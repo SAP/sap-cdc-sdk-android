@@ -9,9 +9,9 @@ import com.facebook.login.LoginResult
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
-import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
 import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
+import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.coroutines.resume
