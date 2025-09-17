@@ -100,7 +100,13 @@ interface ILoginOptionsViewModel {
         //Stub.
     }
 
-    fun optOnForAuthenticationNotifications(
+    fun optInForAuthenticationNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        // Stub.
+    }
+
+    fun optOutForAuthenticationNotifications(
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         // Stub.
@@ -147,6 +153,7 @@ class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
     override fun togglePushTwoFactorAuth() {}
     override fun toggleBiometricAuthentication() {}
     override fun isNotificationPermissionGranted(): Boolean = true
+
     override fun requestPushAuthentication(
         isPermissionGranted: Boolean,
         onPermissionRequired: () -> Unit,
@@ -261,11 +268,25 @@ class LoginOptionsViewModel(
 
     //region PUSH AUTH
 
-    override fun optOnForAuthenticationNotifications(
+    override fun optInForAuthenticationNotifications(
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         viewModelScope.launch {
-            authenticationFlowDelegate.optOnForAuthenticationNotifications {
+            authenticationFlowDelegate.optInForAuthenticationNotifications {
+                authCallbacks()
+
+                doOnSuccess {
+                    togglePushAuthentication()
+                }
+            }
+        }
+    }
+
+    override fun optOutForAuthenticationNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit,
+    ) {
+        viewModelScope.launch {
+            authenticationFlowDelegate.optOutForAuthenticationNotifications {
                 authCallbacks()
 
                 doOnSuccess {
@@ -453,7 +474,7 @@ class LoginOptionsViewModel(
             onPermissionRequired()
         } else {
             // Permission is granted or not required, proceed with authentication opt-in
-            optOnForAuthenticationNotifications(authCallbacks)
+            optInForAuthenticationNotifications(authCallbacks)
         }
     }
 

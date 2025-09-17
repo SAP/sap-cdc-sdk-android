@@ -10,6 +10,10 @@ interface IAuthPush {
         authCallbacks: AuthCallbacks.() -> Unit,
     )
 
+    suspend fun outOutForNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit,
+    )
+
     suspend fun verifyNotification(
         vToken: String,
         authCallbacks: AuthCallbacks.() -> Unit,
@@ -26,6 +30,13 @@ internal class AuthPush(
     ) {
         val callbacks = AuthCallbacks().apply(authCallbacks)
         AuthPushFlow(coreClient, sessionService).registerAuthDevice(callbacks)
+    }
+
+    override suspend fun outOutForNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        AuthPushFlow(coreClient, sessionService).unregisterDevice(callbacks)
     }
 
     override suspend fun verifyNotification(

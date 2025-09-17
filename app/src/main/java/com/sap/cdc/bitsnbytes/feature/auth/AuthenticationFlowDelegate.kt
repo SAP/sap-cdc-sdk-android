@@ -421,10 +421,16 @@ class AuthenticationFlowDelegate(context: Context) {
         authenticationService.authenticate().tfa().optInForNotifications(authCallbacks)
     }
 
-    suspend fun optOnForAuthenticationNotifications(
+    suspend fun optInForAuthenticationNotifications(
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
         authenticationService.authenticate().push().optInForNotifications(authCallbacks)
+    }
+
+    suspend fun optOutForAuthenticationNotifications(
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        authenticationService.authenticate().push().outOutForNotifications(authCallbacks)
     }
 
     suspend fun getRegisteredPhoneNumbers(

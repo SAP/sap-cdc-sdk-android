@@ -5,6 +5,7 @@ import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNT_AUTH_DEVICE_REGISTER
+import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNT_AUTH_DEVICE_UNREGISTER
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNT_AUTH_PUSH_VERIFY
 import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
@@ -40,6 +41,30 @@ class AuthPushFlow(coreClient: CoreClient, sessionService: SessionService) :
         }
         // Success case
         val authSuccess = createAuthSuccess(registerDevice)
+        authCallbacks.onSuccess?.invoke(authSuccess)
+    }
+
+    suspend fun unregisterDevice(authCallbacks: AuthCallbacks) {
+        // Obtain device info from secure storage.
+        val esp = coreClient.siteConfig.applicationContext.getEncryptedPreferences(
+            CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+        )
+        val deviceInfo = esp.getString(CDC_DEVICE_INFO, "") ?: ""
+
+        CDCDebuggable.log(LOG_TAG, "unregisterDevice: with deviceInfo:$deviceInfo")
+        val unregisterDevice = AuthenticationApi(coreClient, sessionService).send(
+            EP_ACCOUNT_AUTH_DEVICE_UNREGISTER,
+            mutableMapOf("deviceInfo" to deviceInfo)
+        )
+
+        // Error case
+        if (unregisterDevice.isError()) {
+            val authError = createAuthError(unregisterDevice)
+            authCallbacks.onError?.invoke(authError)
+            return
+        }
+        // Success case
+        val authSuccess = createAuthSuccess(unregisterDevice)
         authCallbacks.onSuccess?.invoke(authSuccess)
     }
 

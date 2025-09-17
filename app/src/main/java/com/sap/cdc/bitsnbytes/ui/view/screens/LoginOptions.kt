@@ -94,6 +94,8 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             .fillMaxHeight(),
     ) {
         // Option cards
+
+        // Passkeys authentication
         OptionCard(
             title = "Passkeys Authentication",
             status = when {
@@ -134,6 +136,8 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             isEnabled = !viewModel.isLoadingPasskeys
         )
         SmallVerticalSpacer()
+
+        // Push authentication
         OptionCard(
             title = "Push Authentication",
             status = if (viewModel.isPushAuthenticationActive()) "Activated" else "Deactivated",
@@ -142,7 +146,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                 if (viewModel.isPushAuthenticationActive()) {
                     // Deactivating - no permission check needed
                     loading = true
-                    viewModel.optOnForAuthenticationNotifications {
+                    viewModel.optOutForAuthenticationNotifications {
                         onSuccess = {
                             loading = false
                             viewModel.togglePushAuthentication()
@@ -168,6 +172,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                             loading = false
                             bannerText = "Push Authentication enabled"
                             showBanner = true
+                            viewModel.togglePushAuthentication()
                         }
 
                         onError = { error ->
@@ -180,25 +185,15 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             inverse = !viewModel.isPushAuthenticationActive()
         )
         SmallVerticalSpacer()
+
+        // Push 2FA
         OptionCard(
             title = "Push 2-Factor Authentication",
             status = if (viewModel.isPushTwoFactorAuthActive()) "Activated" else "Deactivated",
-            actionLabel = if (viewModel.isPushTwoFactorAuthActive()) "Deactivate" else "Activate",
+            actionLabel = if (viewModel.isPushTwoFactorAuthActive()) "Active" else "Activate",
             onClick = {
                 if (viewModel.isPushTwoFactorAuthActive()) {
-                    // Deactivating - no permission check needed
-                    loading = true
-                    viewModel.optInForTwoFactorNotifications {
-                        onSuccess = {
-                            loading = false
-                            viewModel.togglePushTwoFactorAuth()
-                        }
-
-                        onError = { error ->
-                            loading = false
-                            optionsError = error.message
-                        }
-                    }
+                    // No deactivation is available for push 2FA - button is disabled
                 } else {
                     // Activating - check permission first
                     loading = true
@@ -223,9 +218,12 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                     }
                 }
             },
-            inverse = !viewModel.isPushTwoFactorAuthActive()
+            inverse = !viewModel.isPushTwoFactorAuthActive(),
+            isEnabled = !viewModel.isPushTwoFactorAuthActive() // Disable when active
         )
         SmallVerticalSpacer()
+
+        // Biometric session lock
         OptionCard(
             title = "Biometric Session lock",
             status = if (viewModel.isBiometricActive()) "Activated" else "Deactivated",

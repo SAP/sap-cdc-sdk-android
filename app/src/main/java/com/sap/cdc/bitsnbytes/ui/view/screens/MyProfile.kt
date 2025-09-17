@@ -124,25 +124,22 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
         }
     }
 
-    // Load account info on composition (only if not already loaded)
-    LaunchedEffect(Unit) {
+    // Load account info after the view is fully rendered to avoid navigation cancellation
+    LaunchedEffect(viewModel) {
         if (accountInfo == null) {
+            // Add a small delay to ensure navigation has completed and view is fully rendered
+            kotlinx.coroutines.delay(100) // 100ms delay to allow navigation to settle
+            
             loading = true
-            try {
-                viewModel.getAccountInfo(mutableMapOf()) {
-                    onSuccess = {
-                        loading = false
-                        isRefreshing = false
-                    }
-                    onError = {
-                        loading = false
-                        isRefreshing = false
-                    }
+            viewModel.getAccountInfo(mutableMapOf()) {
+                onSuccess = {
+                    loading = false
+                    isRefreshing = false
                 }
-            } catch (e: Exception) {
-                // Ensure loading is always dismissed even if getAccountInfo throws
-                loading = false
-                isRefreshing = false
+                onError = { error ->
+                    loading = false
+                    isRefreshing = false
+                }
             }
         } else {
             // Account info already available, no need to load
