@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,7 +30,9 @@ import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.LOG
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebViewClient
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
+import java.util.UUID
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -44,10 +48,18 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 @Composable
 fun ScreenSetView(
     viewModel: ScreenSetViewModel,
-    screenSet: String, startScreen: String) {
+    screenSet: String, startScreen: String
+) {
     val context = LocalContext.current
 
     var screenSetError by remember { mutableStateOf("") }
+
+    // Use a unique key that changes each time we enter the composable
+    // This forces AndroidView to recreate the WebView completely
+    val webViewKey = remember { UUID.randomUUID().toString() }
+
+    // Track if the WebView has been initialized to prevent multiple loads
+    var isInitialized by remember { mutableStateOf(false) }
 
     // Declare webBridgeJSWebChromeClient as a mutable variable
     var webBridgeJSWebChromeClient: WebBridgeJSWebChromeClient? by remember { mutableStateOf(null) }
@@ -67,104 +79,76 @@ fun ScreenSetView(
     }
 
     // Create screen set request parameters.
-    val params = mutableMapOf<String, Any>(
-        "screenSet" to screenSet,
-        "startScreen" to startScreen
-    )
+    val params = remember(screenSet, startScreen) {
+        mutableMapOf<String, Any>(
+            "screenSet" to screenSet,
+            "startScreen" to startScreen
+        )
+    }
 
     // Build Uri.
-    val screenSetUrl = ScreenSetUrlBuilder.Builder()
-//        .apiKey(viewModel.identityService.getConfig().apiKey)
-//        .domain(viewModel.identityService.getConfig().domain)
-        .params(params)
-        .build()
+    val screenSetUrl = remember(
+        screenSet,
+        startScreen,
+        viewModel.flowDelegate.siteConfig.apiKey,
+        viewModel.flowDelegate.siteConfig.domain
+    ) {
+        ScreenSetUrlBuilder.Builder()
+            .apiKey(viewModel.flowDelegate.siteConfig.apiKey)
+            .domain(viewModel.flowDelegate.siteConfig.domain)
+            .params(params)
+            .build()
+    }
 
     // Set native social provider authenticators.
-    val webBridgeJS: WebBridgeJS = viewModel.newWebBridgeJS()
+    val webBridgeJS: WebBridgeJS = remember { viewModel.newWebBridgeJS() }
 
     // Add specific web bridge configurations.
-    webBridgeJS.addConfig(
-        WebBridgeJSConfig.Builder().obfuscate(true).build()
-    )
+    LaunchedEffect(webBridgeJS) {
+        webBridgeJS.addConfig(
+            WebBridgeJSConfig.Builder().obfuscate(true).build()
+        )
+    }
 
     Box {
         AndroidView(
-            modifier = Modifier
-                .fillMaxSize(),
-            factory = { it ->
-                WebView(it).apply {
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+                Log.d("ScreenSetView", "factory - creating new WebView with key: $webViewKey")
+                WebView(context).apply {
                     settings.javaScriptEnabled = true
-                    settings.setSupportZoom(true)
+                    settings.domStorageEnabled = true
+                    settings.cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
+                    settings.allowFileAccess = true
+
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
 
                     webViewClient = WebBridgeJSWebViewClient(webBridgeJS) { browserUri ->
-                        //TODO: Check for legacy action. is it required??
                         val intent = Intent(Intent.ACTION_VIEW, browserUri)
                         context.startActivity(intent)
                     }
 
-                    // Add only hen file access is required.
-                    settings.allowFileAccess = true
                     webChromeClient = webBridgeJSWebChromeClient
+
+                    // Initialize the WebView immediately
+                    initializeWebView(this, webBridgeJS, viewModel, screenSetUrl) { error ->
+                        screenSetError = error
+                    }
                 }
             },
             update = { webView ->
-                Log.d("ScreenSetView", "update")
+                Log.d("ScreenSetView", "update - webViewKey: $webViewKey")
 
-                // Attach the web bridge to the web view element.
-                webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)
-
-                // Set external authenticators. SDK will no longer use reflection to
-                // retrieve external providers.
-//                webBridgeJS.setNativeSocialProviders(
-//                    viewModel.identityService.getAuthenticatorMap()
-//                )
-
-                // Register for JS events.
-                webBridgeJS.registerForEvents { webBridgeJSEvent ->
-                    val eventName = webBridgeJSEvent.name()
-                    // Log event.
-                    Log.d("ScreenSetView", "event: $eventName")
-                    when (eventName) {
-                        CANCELED -> {
-                            screenSetError = "Operation canceled"
-                        }
-
-                        HIDE -> {
-                            // Destroy the WebView instance.
-                            webView.post { webView.destroy() }
-                            NavigationCoordinator.INSTANCE.navigateUp()
-                        }
-
-                        LOGIN -> {
-                            Log.d("ScreenSetView", "Login event received")
-                            // Login flow Success.
-//                            webView.post {
-//                                NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-//                                    toRoute = ProfileScreenRoute.MyProfile.route,
-//                                    rootRoute = ProfileScreenRoute.Welcome.route
-//                                )
-//                            }
-                        }
-
-                        LOGOUT -> {
-                            // Navigate back to close the screen set view.
-                            NavigationCoordinator.INSTANCE.navigateUp()
-                        }
-
-
+                // Only initialize once per WebView instance
+                if (!isInitialized) {
+                    initializeWebView(webView, webBridgeJS, viewModel, screenSetUrl) { error ->
+                        screenSetError = error
                     }
+                    isInitialized = true
                 }
-
-                // Load URL.
-                webBridgeJS.load(webView, screenSetUrl)
-            },
-            onRelease = {  webView ->
-                Log.d("ScreenSetView", "onRelease")
-                webBridgeJS.detachBridgeFrom(webView)
             }
         )
 
@@ -172,5 +156,78 @@ fun ScreenSetView(
         if (screenSetError.isNotEmpty()) {
             SimpleErrorMessages(screenSetError)
         }
+    }
+
+    // Cleanup when the composable is disposed
+    DisposableEffect(webViewKey) {
+        onDispose {
+            Log.d("ScreenSetView", "DisposableEffect - cleaning up for key: $webViewKey")
+            // Cleanup is handled by the WebBridgeJS itself when the WebView is destroyed
+        }
+    }
+}
+
+private fun initializeWebView(
+    webView: WebView,
+    webBridgeJS: WebBridgeJS,
+    viewModel: ScreenSetViewModel,
+    screenSetUrl: String,
+    onError: (String) -> Unit
+) {
+    try {
+        Log.d("ScreenSetView", "initializeWebView - starting initialization")
+
+        // Attach the web bridge to the web view element.
+        webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)
+
+        // Register for JS events.
+        webBridgeJS.registerForEvents { webBridgeJSEvent ->
+            val eventName = webBridgeJSEvent.name()
+            Log.d("ScreenSetView", "event: $eventName")
+
+            when (eventName) {
+                CANCELED -> {
+                    webView.post {
+                        onError("Operation canceled")
+                        NavigationCoordinator.INSTANCE.navigateUp()
+                    }
+                }
+
+                HIDE -> {
+                    webView.post {
+                        Log.d("ScreenSetView", "HIDE event - navigating back")
+                        NavigationCoordinator.INSTANCE.navigateUp()
+                    }
+
+                }
+
+                LOGIN -> {
+                    webView.post {
+                        Log.d("ScreenSetView", "Login event received")
+                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                            toRoute = ProfileScreenRoute.MyProfile.route,
+                            rootRoute = ProfileScreenRoute.Welcome.route
+                        )
+                    }
+
+                }
+
+                LOGOUT -> {
+                    webView.post {
+                        Log.d("ScreenSetView", "LOGOUT event - navigating back")
+                        NavigationCoordinator.INSTANCE.navigateUp()
+                    }
+                }
+            }
+        }
+
+        // Load the screen set URL
+        webBridgeJS.load(webView, screenSetUrl)
+
+        Log.d("ScreenSetView", "initializeWebView - initialization completed")
+
+    } catch (e: Exception) {
+        Log.e("ScreenSetView", "Error during WebView initialization", e)
+        onError("Failed to initialize WebView: ${e.message}")
     }
 }

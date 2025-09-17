@@ -36,8 +36,26 @@ class WebBridgeJSEvent(
         fun errorEvent(error: CDCError?): WebBridgeJSEvent = WebBridgeJSEvent(
             mapOf("eventName" to ERROR, "error" to error)
         )
+
+        fun loginEvent(): WebBridgeJSEvent = WebBridgeJSEvent(
+            mapOf("eventName" to LOGIN)
+        )
+
+        fun logoutEvent(): WebBridgeJSEvent = WebBridgeJSEvent(
+            mapOf("eventName" to LOGOUT)
+        )
+
     }
 
     fun name(): String? = content!!["eventName"]?.toString()
 
 }
+
+/**
+ * Data class to hold JS evaluation request data.
+ */
+data class WebBridgeJSEvaluation(
+    val containerID: String,
+    val evaluationString: String,
+    val event: WebBridgeJSEvent?
+)

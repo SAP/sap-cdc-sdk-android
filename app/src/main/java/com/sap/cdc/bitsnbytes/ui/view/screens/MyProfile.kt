@@ -128,15 +128,21 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
     LaunchedEffect(Unit) {
         if (accountInfo == null) {
             loading = true
-            viewModel.getAccountInfo(mutableMapOf()) {
-                onSuccess = {
-                    loading = false
-                    isRefreshing = false
+            try {
+                viewModel.getAccountInfo(mutableMapOf()) {
+                    onSuccess = {
+                        loading = false
+                        isRefreshing = false
+                    }
+                    onError = {
+                        loading = false
+                        isRefreshing = false
+                    }
                 }
-                onError = {
-                    loading = false
-                    isRefreshing = false
-                }
+            } catch (e: Exception) {
+                // Ensure loading is always dismissed even if getAccountInfo throws
+                loading = false
+                isRefreshing = false
             }
         } else {
             // Account info already available, no need to load
@@ -156,15 +162,21 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
             isRefreshing = isRefreshing,
             onRefresh = {
                 isRefreshing = true
-                viewModel.getAccountInfo {
-                    onSuccess = {
-                        isRefreshing = false
-                        loading = false
+                try {
+                    viewModel.getAccountInfo {
+                        onSuccess = {
+                            isRefreshing = false
+                            loading = false
+                        }
+                        onError = {
+                            isRefreshing = false
+                            loading = false
+                        }
                     }
-                    onError = {
-                        isRefreshing = false
-                        loading = false
-                    }
+                } catch (e: Exception) {
+                    // Ensure refresh state is always dismissed even if getAccountInfo throws
+                    isRefreshing = false
+                    loading = false
                 }
             },
             modifier = Modifier.fillMaxSize()

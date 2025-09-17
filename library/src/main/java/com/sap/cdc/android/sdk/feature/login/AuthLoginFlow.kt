@@ -150,6 +150,8 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         login(parameters) {
+
+            // On any result, override success with connectAccountSync
             doOnAnyAndOverride { authResult ->
                 when (authResult) {
                     is AuthResult.Success -> {
@@ -161,6 +163,7 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
                 }
             }
 
+            // Apply user auth callbacks
             authCallbacks()
         }
     }

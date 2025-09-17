@@ -5,6 +5,7 @@ import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.extensions.capitalFirst
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
+import com.sap.cdc.android.sdk.feature.AuthEndpoints
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOUT
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_ADD_CONNECTION
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_LOGOUT
@@ -13,11 +14,11 @@ import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
 import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_GMID
+import com.sap.cdc.android.sdk.feature.ResolvableContext
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS.Companion.ACTION_SEND_OAUTH_REQUEST
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS.Companion.ACTION_SEND_REQUEST
-import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.LOGIN
 import com.sap.cdc.android.sdk.feature.session.Session
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
@@ -61,13 +62,19 @@ class WebBridgeJSApiService(
     /**
      * Forward result for JS evaluation.
      */
-    var evaluateResult: (response: (Pair<String, String>), event: WebBridgeJSEvent?) -> Unit? =
-        { _: Pair<String, String>, _: WebBridgeJSEvent? -> }
+    var evaluateJSResult: (WebBridgeJSEvaluation) -> Unit? =
+        { _: WebBridgeJSEvaluation -> }
 
     /**
      * Set native social provider map.
      */
     var nativeSocialProviders: MutableMap<String, IAuthenticationProvider> = mutableMapOf()
+
+    /**
+     * Interruption coordinator instance. Used to handle complex flows that require multiple steps.
+     */
+    var interruptionCoordinator: WebBridgeJSInterruptionCoordinator =
+        WebBridgeJSInterruptionCoordinator(authenticationService)
 
     /**
      * Bridge web request handler.
@@ -82,7 +89,7 @@ class WebBridgeJSApiService(
             EP_ACCOUNTS_LOGOUT, EP_SOCIALIZE_LOGOUT -> {
                 sendRequest(
                     api =
-                    EP_ACCOUNTS_LOGOUT,
+                        EP_ACCOUNTS_LOGOUT,
                     params = params,
                     containerId
                 ) {
@@ -103,9 +110,12 @@ class WebBridgeJSApiService(
                         LOG_TAG,
                         "Missing provider parameter in social remove connection attempt. Flow broken"
                     )
-                    evaluateResult(
-                        Pair(containerId, ""),
-                        WebBridgeJSEvent.canceledEvent()
+                    evaluateJSResult(
+                        WebBridgeJSEvaluation(
+                            containerID = containerId,
+                            evaluationString = "",
+                            event = WebBridgeJSEvent.canceledEvent()
+                        )
                     )
                 }
                 sendRequest(
@@ -157,9 +167,16 @@ class WebBridgeJSApiService(
                     LOG_TAG,
                     "sendRequest: $api - request error: ${response.errorCode()} - ${response.errorDetails()}"
                 )
-                evaluateResult(
-                    Pair(containerId, response.jsonResponse ?: ""),
-                    WebBridgeJSEvent.errorEvent(response.serializeTo<CDCError>())
+
+                // Evaluate interruption if required.
+                interruptionCoordinator.evaluateError(response.errorCode()!!)
+
+                evaluateJSResult(
+                    WebBridgeJSEvaluation(
+                        containerID = containerId,
+                        evaluationString = response.jsonResponse ?: "",
+                        event = WebBridgeJSEvent.errorEvent(response.serializeTo<CDCError>())
+                    )
                 )
                 coroutineContext.cancel()
             }
@@ -173,19 +190,31 @@ class WebBridgeJSApiService(
                         LOG_TAG,
                         "sendRequest: $api - request error: failed to serialize session Info"
                     )
-                    evaluateResult(
-                        Pair(containerId, response.jsonResponse ?: ""),
-                        WebBridgeJSEvent.canceledEvent()
+                    evaluateJSResult(
+                        WebBridgeJSEvaluation(
+                            containerID = containerId,
+                            evaluationString = response.jsonResponse ?: "",
+                            event = WebBridgeJSEvent.canceledEvent()
+                        )
                     )
                     this.coroutineContext.cancel()
                 }
                 authenticationService.session().setSession(sessionInfo!!)
-                evaluateResult(
-                    Pair(containerId, response.jsonResponse ?: ""),
-                    WebBridgeJSEvent(
-                        mapOf(
-                            "eventName" to LOGIN, "data" to response.asJson()
-                        )
+
+                // Evaluate interruption if required.
+                interruptionCoordinator.evaluateSuccess(
+                    api = api,
+                    params = params,
+                    containerId = containerId,
+                    evaluateJsResult = { evaluateJSResult(it) }
+                )
+
+                // Evaluate JS result with no event.
+                evaluateJSResult(
+                    WebBridgeJSEvaluation(
+                        containerID = containerId,
+                        evaluationString = response.jsonResponse ?: "",
+                        event = null
                     )
                 )
                 coroutineContext.cancel()
@@ -195,7 +224,13 @@ class WebBridgeJSApiService(
             completion()
 
             // Evaluate response.
-            evaluateResult(Pair(containerId, response.jsonResponse ?: ""), null)
+            evaluateJSResult(
+                WebBridgeJSEvaluation(
+                    containerID = containerId,
+                    evaluationString = response.jsonResponse ?: "",
+                    event = if (api == EP_ACCOUNTS_LOGOUT) WebBridgeJSEvent.logoutEvent() else null
+                )
+            )
         }
     }
 
@@ -211,9 +246,12 @@ class WebBridgeJSApiService(
         if (weakHostActivity.get() == null) {
             // Fail with error.
             CDCDebuggable.log(LOG_TAG, "Context host error. Flow broken")
-            evaluateResult(
-                Pair(containerId, ""),
-                WebBridgeJSEvent.canceledEvent()
+            evaluateJSResult(
+                WebBridgeJSEvaluation(
+                    containerID = containerId,
+                    evaluationString = "",
+                    event = WebBridgeJSEvent.canceledEvent()
+                )
             )
         }
         launchAsync { coroutineContext ->
@@ -221,9 +259,12 @@ class WebBridgeJSApiService(
             if (provider == null) {
                 // Fail with error.
                 CDCDebuggable.log(LOG_TAG, "Missing provider parameter in social login attempt. Flow broken")
-                evaluateResult(
-                    Pair(containerId, ""),
-                    WebBridgeJSEvent.canceledEvent()
+                evaluateJSResult(
+                    WebBridgeJSEvaluation(
+                        containerID = containerId,
+                        evaluationString = "",
+                        event = WebBridgeJSEvent.canceledEvent()
+                    )
                 )
                 coroutineContext.cancel()
             }
@@ -240,29 +281,61 @@ class WebBridgeJSApiService(
             }
 
             // Initiate provider login flow.
-//            val authResponse = authenticationService.authenticate().provider().signIn(
-//                weakHostActivity.get()!!, authProvider, params.toMutableMap()
-//            )
-//            if (authResponse.cdcResponse().isError()) {
-//                // Fail with error.
-//                CDCDebuggable.log(
-//                    LOG_TAG,
-//                    "sendRequest: $api - request error: ${
-//                        authResponse.cdcResponse().errorCode()
-//                    } - ${authResponse.cdcResponse().errorDetails()}"
-//                )
-//                evaluateResult(
-//                    Pair(containerId, authResponse.cdcResponse().jsonResponse ?: ""),
-//                    WebBridgeJSEvent.errorEvent(authResponse.cdcResponse().serializeTo<CDCError>())
-//                )
-//                coroutineContext.cancel()
-//            }
-//
-//            //Optional completion handler.
-//            completion()
-//
-//            // Evaluate response.
-//            evaluateResult(Pair(containerId, authResponse.cdcResponse().asJson() ?: ""), null)
+            authenticationService.authenticate().provider().signIn(
+                weakHostActivity.get()!!, authProvider, params.toMutableMap()
+            ) {
+                onError = { error ->
+                    // Fail with error.
+                    CDCDebuggable.log(
+                        LOG_TAG,
+                        "sendRequest: $api - request error: ${
+                            error.code
+                        } - ${error.message}"
+                    )
+
+                    // Evaluate interruption if required.
+                    interruptionCoordinator.evaluateError(error.code!!.toInt())
+
+
+                    evaluateJSResult(
+                        WebBridgeJSEvaluation(
+                            containerID = containerId,
+                            evaluationString = error.asJson!!,
+                            event = WebBridgeJSEvent.errorEvent(CDCError.fromJson(error.asJson))
+                        )
+                    )
+                    coroutineContext.cancel()
+                }
+
+                onSuccess = { authResponse ->
+                    //Optional completion handler.
+                    completion()
+
+
+                    // Specific evaluation is required by WebSDK for oAuthRequest.
+                    val evaluationString =
+                        "{\"errorCode\":" + authResponse.userData["errorCode"] + ",\"userInfo\":" + authResponse.jsonData + "}"
+
+                    // Evaluate interruption if required.
+                    launchAsync {
+                        interruptionCoordinator.evaluateSuccess(
+                            api = api,
+                            params = params,
+                            containerId = containerId,
+                            evaluateJsResult = { evaluateJSResult(it) }
+                        )
+                    }
+
+                    // Evaluate response.
+                    evaluateJSResult(
+                        WebBridgeJSEvaluation(
+                            containerID = containerId,
+                            evaluationString = evaluationString,
+                            event = null
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -326,4 +399,161 @@ class WebBridgeJSApiService(
     fun dispose() {
         weakHostActivity.clear()
     }
+}
+
+class WebBridgeJSInterruptionCoordinator(
+    val authenticationService: AuthenticationService
+) {
+
+    var activeInterruption: WebBridgeInterruption? = null
+        private set
+
+
+    suspend fun evaluateSuccess(
+        api: String,
+        params: Map<String, String>,
+        containerId: String,
+        evaluateJsResult: (WebBridgeJSEvaluation) -> Unit = { _ -> }
+    ) {
+        if (activeInterruption == null) {
+            evaluateJsResult(
+                WebBridgeJSEvaluation(
+                    containerID = containerId,
+                    evaluationString = "",
+                    event = WebBridgeJSEvent.loginEvent()
+                )
+            )
+            return
+        }
+        activeInterruption!!.resolve(
+            api = api,
+            params = params,
+            containerId = containerId,
+            evaluateJsResult = evaluateJsResult,
+            completion = {
+                activeInterruption = null
+            }
+        )
+    }
+
+    fun evaluateError(errorCode: Int) {
+        when (errorCode) {
+            ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
+                // Handle conflict error.
+                activeInterruption = WebBridgeJSLinkingInterruption(authenticationService, dispose = {
+                    dispose()
+                })
+            }
+        }
+    }
+
+    fun evaluateEvent(event: WebBridgeJSEvent): Boolean {
+        if (event.content?.get("eventName") == WebBridgeJSEvent.HIDE) {
+            if (activeInterruption == null) return false
+            return activeInterruption!!.isActive()
+        }
+        return false
+    }
+
+    fun dispose() {
+        activeInterruption = null
+    }
+
+}
+
+
+interface WebBridgeInterruption {
+
+    fun isActive(): Boolean
+
+    suspend fun resolve(
+        api: String,
+        params: Map<String, String>,
+        containerId: String,
+        evaluateJsResult: (WebBridgeJSEvaluation) -> Unit = { _ -> },
+        completion: () -> Unit,
+    )
+
+}
+
+class WebBridgeJSLinkingInterruption(
+    val authenticationService: AuthenticationService,
+    val dispose: () -> Unit) : WebBridgeInterruption {
+
+    private var _active = false
+
+    override fun isActive(): Boolean = _active
+    override suspend fun resolve(
+        api: String,
+        params: Map<String, String>,
+        containerId: String,
+        evaluateJsResult: (WebBridgeJSEvaluation) -> Unit,
+        completion: () -> Unit,
+    ) {
+        if (api == AuthEndpoints.EP_ACCOUNTS_FINALIZE_REGISTRATION) {
+            notifyAccount(
+                api = api,
+                params = params,
+                containerId = containerId,
+                evaluateJsResult = evaluateJsResult,
+                completion = completion
+            )
+            return
+        }
+        if (params["loginMode"] == "connect") {
+            notifyAccount(
+                api = api,
+                params = params,
+                containerId = containerId,
+                evaluateJsResult = evaluateJsResult,
+                completion = completion
+            )
+        }
+    }
+
+    private suspend fun notifyAccount(
+        api: String,
+        params: Map<String, String>,
+        containerId: String,
+        evaluateJsResult: (WebBridgeJSEvaluation) -> Unit,
+        completion: () -> Unit,
+    ) {
+        val response = AuthenticationApi(
+            authenticationService.coreClient,
+            authenticationService.sessionService
+        ).send(
+            api = api,
+            parameters = params.toMutableMap(),
+            method = HttpMethod.Post.value
+        )
+        if (response.isError()) {
+            CDCDebuggable.log(
+                WebBridgeJSApiService.LOG_TAG,
+                "notifyAccount: $api - request error: ${response.errorCode()} - ${response.errorDetails()}"
+            )
+            evaluateJsResult(
+                WebBridgeJSEvaluation(
+                    containerID = containerId,
+                    evaluationString = response.jsonResponse ?: "",
+                    event = WebBridgeJSEvent.errorEvent(CDCError.fromJson(json = response.jsonResponse!!))
+                )
+            )
+            completion()
+            _active = false
+            dispose()
+            return
+        }
+        evaluateJsResult(
+            WebBridgeJSEvaluation(
+                containerID = containerId,
+                evaluationString = response.jsonResponse ?: "",
+                event = WebBridgeJSEvent.loginEvent()
+            )
+        )
+        _active = false
+        dispose()
+        completion()
+    }
+
+
 }

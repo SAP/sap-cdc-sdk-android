@@ -105,14 +105,15 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             ),
             JS_NAME
         )
-        bridgedApiService.evaluateResult = { response, event ->
-            val containerID = response.first
-            val evaluationString = response.second
+        bridgedApiService.evaluateJSResult = { evaluateJS ->
+            CDCDebuggable.log(LOG_TAG, "evaluateJS: $evaluateJS")
+            val containerID = evaluateJS.containerID
+            val evaluationString = evaluateJS.evaluationString
             if (evaluationString.isNotEmpty()) {
                 evaluateJS(containerID, evaluationString)
             }
-            if (event != null) {
-                streamEvent(event)
+            if (evaluateJS.event != null) {
+                streamEvent(evaluateJS.event)
             }
         }
     }
@@ -209,7 +210,15 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
                 CDCDebuggable.log(LOG_TAG, "$action: ${params.toString()}")
                 val containerId = params["sourceContainerID"]
                 if (containerId != null) {
+                    val event = WebBridgeJSEvent(params)
                     // Stream plugin events.
+                    if (params["eventName"] == WebBridgeJSEvent.HIDE) {
+                        if (bridgedApiService.interruptionCoordinator.evaluateEvent(event)) {
+                            // If the event was handled by the interruption coordinator,
+                            // do not forward it to the webSDK.
+                            return true
+                        }
+                    }
                     streamEvent(WebBridgeJSEvent(params))
                 }
             }
@@ -272,5 +281,6 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
                 queryStringParams
             )
     }
-
 }
+
+

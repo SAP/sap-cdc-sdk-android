@@ -67,7 +67,7 @@ import kotlinx.serialization.json.Json
  * - Maintains existing functionality while fixing state issues
  */
 @Composable
-fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
+fun ProfileNavHost(appStateManager: AppStateManager) {
     val profileNavController = rememberNavController()
 
     // Update the app state manager to use our profile navigation controller
@@ -193,7 +193,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
             // Continue with existing screens using optimized scoping...
             composable(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route) {
                 val viewModel: ScreenSetViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                    factory = CustomViewModelFactory(context)
+                    factory = CustomViewModelFactory(context, authDelegate)
                 )
                 ScreenSetView(
                     viewModel,
@@ -204,7 +204,7 @@ fun OptimizedProfileNavHost(appStateManager: AppStateManager) {
 
             composable(ScreenSetsRoute.ScreenSetRegistrationLoginRegister.route) {
                 val viewModel: ScreenSetViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                    factory = CustomViewModelFactory(context)
+                    factory = CustomViewModelFactory(context, authDelegate)
                 )
                 ScreenSetView(
                     viewModel,

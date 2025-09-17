@@ -180,6 +180,7 @@ class AuthenticationFlowDelegate(context: Context) {
     }
 
     //region LOGIN / LOGOUT / REGISTER METHODS
+
     suspend fun login(credentials: Credentials, authCallbacks: AuthCallbacks.() -> Unit) {
         authenticationService.authenticate().login()
             .credentials(credentials = credentials) {
@@ -197,6 +198,7 @@ class AuthenticationFlowDelegate(context: Context) {
                         // Could add logging here if needed
                     }
                 }
+
             }
     }
 

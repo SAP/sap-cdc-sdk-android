@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,12 +51,12 @@ import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.AppStateManager
 import com.sap.cdc.bitsnbytes.navigation.MainScreenRoute
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.navigation.OptimizedProfileNavHost
+import com.sap.cdc.bitsnbytes.navigation.ProfileNavHost
+import com.sap.cdc.bitsnbytes.navigation.SettingsNavHost
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomBottomBar
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory.CustomViewModelFactory
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -263,13 +262,11 @@ fun HomeScaffoldView(appStateManager: AppStateManager = viewModel()) {
                 }
                 composable(MainScreenRoute.Profile.route) {
                     // Use the existing OptimizedProfileNavHost with enhanced integration
-                    OptimizedProfileNavHost(appStateManager)
+                    ProfileNavHost(appStateManager)
                 }
                 composable(MainScreenRoute.Configuration.route) {
-                    val viewModel: ConfigurationViewModel = viewModel(
-                        factory = CustomViewModelFactory(LocalContext.current)
-                    )
-                    ConfigurationView(viewModel)
+                    // Use the new SettingsNavHost which includes ConfigurationView and its viewmodel
+                    SettingsNavHost(appStateManager)
                 }
             }
         }
