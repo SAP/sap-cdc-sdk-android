@@ -63,10 +63,10 @@ fun CustomIDSignInView(viewModel: ICustomIDSignInViewModel) {
     ) {
 
         LargeVerticalSpacer()
-        Text("Sign In with Custom Identifier", style = AppTheme.typography.titleLarge)
+        Text("Sign In with National ID", style = AppTheme.typography.titleLarge)
         SmallVerticalSpacer()
         Text(
-            "Please enter your identifier credentials",
+            "Please enter your custom credentials",
             style = AppTheme.typography.body
         )
         MediumVerticalSpacer()
@@ -81,7 +81,7 @@ fun CustomIDSignInView(viewModel: ICustomIDSignInViewModel) {
             // Identifier input.
             OutlineTitleAndEditTextField(
                 modifier = Modifier,
-                titleText = "Identifier: *",
+                titleText = "National ID: *",
                 inputText = identifier,
                 placeholderText = "Identifier placeholder",
                 onValueChange = {

@@ -6,7 +6,7 @@ import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.CustomIdCredentials
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.ui.view.screens.ICustomIDSignInViewModel.Companion.CUSTOM_ID_PREFIX
-import com.sap.cdc.bitsnbytes.ui.view.screens.ICustomIDSignInViewModel.Companion.IDENTIFIER_TYPE_ALIAS
+import com.sap.cdc.bitsnbytes.ui.view.screens.ICustomIDSignInViewModel.Companion.IDENTIFIER_TYPE_NATIONAL_ID
 import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
 import kotlinx.coroutines.launch
 
@@ -14,7 +14,7 @@ interface ICustomIDSignInViewModel {
 
     companion object {
         const val CUSTOM_ID_PREFIX = "gigya.com/identifiers/customIdentifiers/"
-        const val IDENTIFIER_TYPE_ALIAS = "alias"
+        const val IDENTIFIER_TYPE_NATIONAL_ID = "nationalId"
     }
 
     fun login(
@@ -42,7 +42,7 @@ class CustomIDSignInViewModel(
         viewModelScope.launch {
             val credentials = CustomIdCredentials(
                 identifier = identifier,
-                identifierType = CUSTOM_ID_PREFIX + IDENTIFIER_TYPE_ALIAS,
+                identifierType = CUSTOM_ID_PREFIX + IDENTIFIER_TYPE_NATIONAL_ID,
                 password = password
             )
             flowDelegate.loginWithCustomId(

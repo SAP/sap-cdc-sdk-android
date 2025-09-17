@@ -43,7 +43,7 @@ class AboutMeViewModel(context: Context, override val flowDelegate: Authenticati
         if (alias != null) {
             val customIdentifierObject =
                 json.encodeToJsonElement(
-                    mutableMapOf("alias" to alias)
+                    mutableMapOf("nationalId" to alias)
                 )
             parameters["customIdentifiers"] = customIdentifierObject.toString()
         }

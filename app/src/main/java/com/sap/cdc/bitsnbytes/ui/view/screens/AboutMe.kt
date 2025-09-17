@@ -159,7 +159,7 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Alias",
+                    text = "National ID",
                     style = AppTheme.typography.body,
                     color = Color.Gray,
                     fontSize = 14.sp

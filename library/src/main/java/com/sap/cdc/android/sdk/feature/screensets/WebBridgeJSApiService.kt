@@ -401,6 +401,9 @@ class WebBridgeJSApiService(
     }
 }
 
+/**
+ * Coordinator to handle interruption complex flows.
+ */
 class WebBridgeJSInterruptionCoordinator(
     val authenticationService: AuthenticationService
 ) {
@@ -462,6 +465,9 @@ class WebBridgeJSInterruptionCoordinator(
 }
 
 
+/**
+ * Coordinator to handle link account interruption complex flow.
+ */
 interface WebBridgeInterruption {
 
     fun isActive(): Boolean
@@ -478,7 +484,8 @@ interface WebBridgeInterruption {
 
 class WebBridgeJSLinkingInterruption(
     val authenticationService: AuthenticationService,
-    val dispose: () -> Unit) : WebBridgeInterruption {
+    val dispose: () -> Unit
+) : WebBridgeInterruption {
 
     private var _active = false
 

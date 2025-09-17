@@ -95,7 +95,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     ) {
         // Option cards
         OptionCard(
-            title = "Passwordless Login",
+            title = "Passkeys Authentication",
             status = when {
                 viewModel.isLoadingPasskeys -> "Loading..."
                 viewModel.isPasswordlessLoginActive() -> "Activated"
@@ -227,7 +227,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
         )
         SmallVerticalSpacer()
         OptionCard(
-            title = "Biometrics",
+            title = "Biometric Session lock",
             status = if (viewModel.isBiometricActive()) "Activated" else "Deactivated",
             actionLabel = if (viewModel.isBiometricActive()) "Deactivate" else "Activate",
             onClick = {
