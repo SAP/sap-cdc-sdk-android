@@ -16,6 +16,7 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.LoginOptionsViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.MyProfileViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.PasskeysCredentialsViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PendingRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneSelectionViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneVerificationViewModel
@@ -170,6 +171,13 @@ class CustomViewModelFactory(
                     "AuthenticationFlowDelegate is required for BiometricLockedViewModel"
                 }
                 BiometricLockedViewModel(context, authenticationFlowDelegate) as T
+            }
+
+            modelClass.isAssignableFrom(PasskeysCredentialsViewModel::class.java) -> {
+                requireNotNull(authenticationFlowDelegate) {
+                    "AuthenticationFlowDelegate is required for GetCredfeentialsViewModel"
+                }
+                PasskeysCredentialsViewModel(context, authenticationFlowDelegate) as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class")

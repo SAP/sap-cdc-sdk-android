@@ -119,19 +119,6 @@ interface ILoginOptionsViewModel {
         // Stub.
     }
 
-    fun revokePasskey(
-        activity: ComponentActivity,
-        authCallbacks: AuthCallbacks.() -> Unit,
-    ) {
-        // Stub.
-    }
-
-    fun getPasskeys(
-        authCallbacks: AuthCallbacks.() -> Unit,
-    ) {
-        // Stub.
-    }
-
     fun loadPasskeys() {
         // Stub.
     }
@@ -361,23 +348,6 @@ class LoginOptionsViewModel(
                     loadPasskeys()
                 }
             }
-        }
-    }
-
-    override fun revokePasskey(
-        activity: ComponentActivity,
-        authCallbacks: AuthCallbacks.() -> Unit,
-    ) {
-        if (passkeysAuthenticationProvider == null) {
-            passkeysAuthenticationProvider = PasskeysAuthenticationProvider(WeakReference(activity))
-        }
-    }
-
-    override fun getPasskeys(
-        authCallbacks: AuthCallbacks.() -> Unit,
-    ) {
-        viewModelScope.launch {
-            authenticationFlowDelegate.getPasskeys(authCallbacks)
         }
     }
 

@@ -18,19 +18,19 @@ data class GetCredentialResultEntity(
 @Serializable
 data class PasskeyCredential(
     @SerialName("Id") val id: String,
-    @SerialName("DeviceName") val deviceName: String,
-    @SerialName("RegistrationDate") val registrationDate: String,
-    @SerialName("IpAddress") val ipAddress: String,
-    @SerialName("City") val city: String,
-    @SerialName("State") val state: String,
-    @SerialName("Country") val country: String,
-    @SerialName("Platform") val platform: String,
-    @SerialName("Browser") val browser: String,
-    @SerialName("IsMobile") val isMobile: Boolean,
-    @SerialName("LastLogin") val lastLogin: String
+    @SerialName("DeviceName") val deviceName: String? = null,
+    @SerialName("RegistrationDate") val registrationDate: String? = null,
+    @SerialName("IpAddress") val ipAddress: String? = null,
+    @SerialName("City") val city: String? = null,
+    @SerialName("State") val state: String? = null,
+    @SerialName("Country") val country: String? = null,
+    @SerialName("Platform") val platform: String? = null,
+    @SerialName("Browser") val browser: String? = null,
+    @SerialName("IsMobile") val isMobile: Boolean? = null,
+    @SerialName("LastLogin") val lastLogin: String? = null
 )
 
 @Serializable
 data class PasskeyCredentials(
-    @SerialName("credentials") val credentials: List<PasskeyCredential>
+    @SerialName("credentials") val credentials: List<PasskeyCredential> = listOf()
 )

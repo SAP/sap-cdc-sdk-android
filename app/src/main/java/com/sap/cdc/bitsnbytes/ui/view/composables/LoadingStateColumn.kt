@@ -15,7 +15,8 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun LoadingStateColumn(
     loading: Boolean,
-    modifier: Modifier? = Modifier,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.White,
     content: @Composable () -> Unit
 ) {
     Box(
@@ -25,7 +26,7 @@ fun LoadingStateColumn(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier!!
-                .background(Color.White)
+                .background(backgroundColor)
                 .fillMaxWidth()
                 .fillMaxHeight()
         ) {

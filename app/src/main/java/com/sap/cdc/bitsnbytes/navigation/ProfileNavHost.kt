@@ -37,6 +37,8 @@ import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInView
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpSignInViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyView
 import com.sap.cdc.bitsnbytes.ui.view.screens.OtpVerifyViewModel
+import com.sap.cdc.bitsnbytes.ui.view.screens.PasskeysCredentialsView
+import com.sap.cdc.bitsnbytes.ui.view.screens.PasskeysCredentialsViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PendingRegistrationView
 import com.sap.cdc.bitsnbytes.ui.view.screens.PendingRegistrationViewModel
 import com.sap.cdc.bitsnbytes.ui.view.screens.PhoneSelectionView
@@ -292,6 +294,13 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
                     factory = CustomViewModelFactory(context, authDelegate)
                 )
                 BiometricLockedView(viewModel)
+            }
+
+            composable(ProfileScreenRoute.PasskeysCredentials.route) {
+                val viewModel: PasskeysCredentialsViewModel = ViewModelScopeProvider.activityScopedViewModel(
+                    factory = CustomViewModelFactory(context, authDelegate)
+                )
+                PasskeysCredentialsView(viewModel)
             }
         }
     }

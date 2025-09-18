@@ -44,6 +44,7 @@ sealed class ProfileScreenRoute(
     data object PhoneVerification : ProfileScreenRoute("PhoneVerification")
     data object TOTPVerification : ProfileScreenRoute("TOTPVerification")
     data object BiometricLocked : ProfileScreenRoute("BiometricLocked")
+    data object PasskeysCredentials : ProfileScreenRoute("PasskeysCredentials")
 }
 
 sealed class ScreenSetsRoute(

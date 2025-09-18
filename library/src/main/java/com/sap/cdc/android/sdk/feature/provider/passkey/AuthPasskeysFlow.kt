@@ -1,7 +1,6 @@
 package com.sap.cdc.android.sdk.feature.provider.passkey
 
 import android.annotation.SuppressLint
-import android.util.Base64
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
@@ -278,7 +277,7 @@ class AuthPasskeysFlow(
                 AuthenticationApi(coreClient, sessionService).send(
                     EP_PASSKEYS_DELETE,
                     mutableMapOf(
-                        "credentialId" to Base64.encodeToString(id.toByteArray(), Base64.NO_WRAP).trim()
+                        "credentialId" to id
                     )
                 )
             // error case (removeCredentials)
