@@ -17,6 +17,7 @@ class AuthEndpoints {
         const val EP_ACCOUNTS_GET_ACCOUNT_INFO = "accounts.getAccountInfo"
         const val EP_ACCOUNTS_SET_ACCOUNT_INFO = "accounts.setAccountInfo"
         const val EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS = "accounts.getConflictingAccount"
+        const val EP_ACCOUNTS_VERIFY_LOGIN = "accounts.verifyLogin"
 
         const val EP_ACCOUNTS_ID_TOKEN_EXCHANGE = "accounts.identity.token.exchange"
         const val EP_ACCOUNTS_ID_CREATE_TOKEN = "accounts.identifiers.createToken"

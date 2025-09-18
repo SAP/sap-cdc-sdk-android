@@ -13,6 +13,8 @@ import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.feature.session.AuthSession
 import com.sap.cdc.android.sdk.feature.session.IAuthSession
 import com.sap.cdc.android.sdk.feature.session.SessionService
+import com.sap.cdc.android.sdk.feature.session.validation.SessionValidationConfig
+import com.sap.cdc.android.sdk.feature.session.validation.SessionValidationService
 import kotlinx.serialization.json.Json
 
 /**
@@ -24,7 +26,8 @@ class AuthenticationService(
 ) {
     val coreClient: CoreClient = CoreClient(siteConfig)
     val sessionService: SessionService = SessionService(siteConfig)
-    private lateinit var notificationManager: CDCNotificationManager
+    private lateinit var _notificationManager: CDCNotificationManager
+    private var _sessionValidationService: SessionValidationService? = null
 
     init {
         // Initialize the lifecycle-aware event bus when the SDK is first created
@@ -74,11 +77,41 @@ class AuthenticationService(
         fcmTokenRequest: IFCMTokenRequest,
         notificationOptions: CDCNotificationOptions? = CDCNotificationOptions()
     ) = apply {
-        notificationManager = CDCNotificationManager(
+        _notificationManager = CDCNotificationManager(
             authenticationService = this,
             notificationOptions = notificationOptions!!
         )
         fcmTokenRequest.requestFCMToken()
     }
+
+    /**
+     * Registers for periodic session validation in the background.
+     * Uses WorkManager to ensure validation continues even if the app is killed.
+     * 
+     * @param config Configuration for session validation intervals and settings
+     */
+    fun registerForSessionValidation(
+        config: SessionValidationConfig = SessionValidationConfig()
+    ) = apply {
+        _sessionValidationService = SessionValidationService(
+            siteConfig = siteConfig
+        ).apply {
+            configure(config)
+        }
+        
+        // Connect the session service to trigger validation on new sessions
+        sessionService.setValidationTrigger { 
+            _sessionValidationService?.onNewSession() 
+        }
+    }
+
+    /**
+     * Session validation service instance.
+     * Controls periodic session validation in the background.
+     * Returns null if session validation has not been registered.
+     * 
+     * @return SessionValidationService instance or null if not registered
+     */
+    fun validationService(): SessionValidationService? = _sessionValidationService
 
 }

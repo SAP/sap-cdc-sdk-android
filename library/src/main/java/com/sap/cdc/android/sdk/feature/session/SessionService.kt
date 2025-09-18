@@ -26,12 +26,17 @@ class SessionService(
         SessionSecure(
             siteConfig
         )
+    
+    private var validationTrigger: (() -> Unit)? = null
 
     fun availableSession(): Boolean = sessionSecure.availableSession()
 
     fun getSession(): Session? = sessionSecure.getSession()
 
-    fun setSession(session: Session) = sessionSecure.setSession(session)
+    fun setSession(session: Session) = sessionSecure.setSession(session).also {
+        // Trigger validation when a new session is set
+        validationTrigger?.invoke()
+    }
 
     fun invalidateSession() = sessionSecure.clearSession(invalidate = true)
 
@@ -65,6 +70,14 @@ class SessionService(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
         return esp.getString(CDC_GMID, "") ?: ""
+    }
+
+    /**
+     * Sets a callback to be triggered when a new session is established.
+     * Used internally by AuthenticationService to enable session validation.
+     */
+    internal fun setValidationTrigger(trigger: () -> Unit) {
+        validationTrigger = trigger
     }
 
 }

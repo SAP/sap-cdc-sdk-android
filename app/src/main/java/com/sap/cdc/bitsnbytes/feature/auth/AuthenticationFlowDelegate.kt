@@ -27,6 +27,7 @@ import com.sap.cdc.android.sdk.feature.provider.web.WebAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.feature.session.Session
 import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
+import com.sap.cdc.android.sdk.feature.session.validation.SessionValidationConfig
 import com.sap.cdc.android.sdk.feature.tfa.TFAPhoneMethod
 import com.sap.cdc.bitsnbytes.feature.auth.model.AccountEntity
 import com.sap.cdc.bitsnbytes.feature.provider.FacebookAuthenticationProvider
@@ -69,21 +70,26 @@ class AuthenticationFlowDelegate(context: Context) {
     /**
      * Initialize authentication service.
      */
-    var authenticationService = AuthenticationService(siteConfig).registerForPushAuthentication(
-        object : IFCMTokenRequest {
-            override fun requestFCMToken() {
-                FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-                    if (!task.isSuccessful) {
-                        return@OnCompleteListener
-                    }
+    var authenticationService = AuthenticationService(siteConfig)
+        .registerForPushAuthentication(
+            object : IFCMTokenRequest {
+                override fun requestFCMToken() {
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                        if (!task.isSuccessful) {
+                            return@OnCompleteListener
+                        }
 
-                    // Get new FCM registration token
-                    val token = task.result
-                    emitTokenReceived(token)
-                })
-            }
-        }
-    )
+                        // Get new FCM registration token
+                        val token = task.result
+                        emitTokenReceived(token)
+                    })
+                }
+            })
+        .registerForSessionValidation(
+            config = SessionValidationConfig(
+                intervalMinutes = 20L, // This config us allowed only no debug builds for testing purposes
+            )
+        )
 
     /**
      * Re-init the session service with new site configuration.
@@ -267,6 +273,7 @@ class AuthenticationFlowDelegate(context: Context) {
 
     suspend fun logOut(authCallbacks: AuthCallbacks.() -> Unit) {
         authenticationService.authenticate().logout {
+
             // Register original callbacks first
             authCallbacks()
 
