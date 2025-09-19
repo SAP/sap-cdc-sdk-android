@@ -63,6 +63,4 @@ google-services.json
 /docs/
 /plans/
 
-# Internal script management files
-/scripts/release/.
 
