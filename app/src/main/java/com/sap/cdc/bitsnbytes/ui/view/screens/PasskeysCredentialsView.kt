@@ -12,8 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,12 +84,21 @@ fun PasskeysCredentialsView(viewModel: IPasskeysCredentialsViewModel) {
                     .padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "You have no passkeys registered",
-                    style = AppTheme.typography.body,
-                    textAlign = TextAlign.Center,
-                    color = Color.Black.copy(alpha = 0.6f)
-                )
+                Column {
+                    Text(
+                        text = "You have no passkeys registered",
+                        style = AppTheme.typography.body,
+                        textAlign = TextAlign.Center,
+                        color = Color.Black.copy(alpha = 0.6f)
+                    )
+                    LargeVerticalSpacer()
+                    Text(
+                        text = "Register a passkey to enhance your account security.",
+                        style = AppTheme.typography.body,
+                        textAlign = TextAlign.Center,
+                        color = Color.Black.copy(alpha = 0.6f)
+                    )
+                }
             }
         } else if (credentials != null && credentials.isNotEmpty()) {
             // Display the list of passkeys
@@ -130,6 +144,9 @@ fun PasskeysCredentialsView(viewModel: IPasskeysCredentialsViewModel) {
             )
             SmallVerticalSpacer()
         }
+
+        // Bottom informational banner
+        PasskeyInfoBanner()
     }
 }
 
@@ -175,7 +192,7 @@ private fun PasskeyCredentialCard(
                 SmallVerticalSpacer()
 
                 // Show credential ID (truncated for display)
-                if (!credential.id.isNullOrBlank()) {
+                if (credential.id.isNotBlank()) {
                     Text(
                         text = "ID: ${credential.id.take(16)}...",
                         style = AppTheme.typography.labelSmall,
@@ -192,6 +209,43 @@ private fun PasskeyCredentialCard(
                 fillMaxWidth = false
             )
         }
+    }
+}
+
+@Composable
+private fun PasskeyInfoBanner() {
+    Surface(
+        color = Color(0xFFF5F5F5),
+        modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                tint = Color(0xFF666666),
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(
+                text = "Note: Revoking a passkey removes it from this account but does not delete it from your device. You may need to manually remove it from your device's passkey manager.",
+                color = Color(0xFF333333),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Preview(name = "Passkey Info Banner")
+@Composable
+fun PasskeyInfoBannerPreview() {
+    AppTheme {
+        PasskeyInfoBanner()
     }
 }
 
