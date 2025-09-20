@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.feature.session.validation
 
 import android.content.Context
 import androidx.work.CoroutineWorker
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
@@ -18,8 +19,16 @@ import java.util.Date
  * WorkManager worker that performs periodic session validation.
  * This worker is scheduled by SessionValidationService to run at configured intervals.
  * 
- * The worker retrieves the current session and validates it against the CDC API.
- * Results are emitted as events through the CDCLifecycleEventBus.
+ * The worker first checks if there is an active session available. If no session exists,
+ * the worker cancels itself to prevent unnecessary background processing.
+ * 
+ * When a session is available, the worker validates it against the CDC API and emits
+ * results as events through the CDCLifecycleEventBus.
+ * 
+ * Session-Based Control:
+ * - Automatically stops validation when no active sessions exist
+ * - Stops on authentication errors (SecurityException, IllegalStateException)
+ * - Retries on network errors (IOException, SocketTimeoutException, UnknownHostException)
  * 
  * Created by Mirmelshtein on 18/09/2024
  * Copyright: SAP LTD.
@@ -61,6 +70,14 @@ class SessionValidationWorker(
             // Initialize services
             val coreClient = CoreClient(siteConfig)
             val sessionService = SessionService(siteConfig)
+            
+            // Primary check: Is there an active session?
+            if (!sessionService.availableSession()) {
+                CDCDebuggable.log(LOG_TAG, "No active session - stopping validation worker")
+                cancelRecurringWork()
+                return Result.failure()
+            }
+
             val authenticationApi = AuthenticationApi(coreClient, sessionService)
             val eventBus = CDCEventBusProvider.getEventBus()
 
@@ -74,12 +91,18 @@ class SessionValidationWorker(
         } catch (e: Exception) {
             CDCDebuggable.log(LOG_TAG, "SessionValidationWorker failed: ${e.message}")
             
-            // For network errors or other recoverable failures, we can retry
+            // Don't stop on network errors, but stop on auth errors
             when (e) {
+                is SecurityException,
+                is IllegalStateException -> {
+                    CDCDebuggable.log(LOG_TAG, "Authentication error - stopping validation worker")
+                    cancelRecurringWork()
+                    Result.failure()
+                }
                 is UnknownHostException,
                 is SocketTimeoutException,
                 is IOException -> {
-                    CDCDebuggable.log(LOG_TAG, "Recoverable error, will retry")
+                    CDCDebuggable.log(LOG_TAG, "Recoverable network error, will retry")
                     Result.retry()
                 }
                 else -> {
@@ -88,5 +111,14 @@ class SessionValidationWorker(
                 }
             }
         }
+    }
+
+    /**
+     * Helper method to cancel the recurring session validation work.
+     * This ensures the validation worker stops when sessions are no longer available.
+     */
+    private fun cancelRecurringWork() {
+        WorkManager.getInstance(applicationContext)
+            .cancelUniqueWork(SessionValidationService.WORK_NAME)
     }
 }
