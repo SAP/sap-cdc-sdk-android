@@ -23,12 +23,9 @@ import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.feature.screensets.ScreenSetUrlBuilder
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSConfig
-import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.CANCELED
-import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.HIDE
-import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.LOGIN
-import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSEvent.Companion.LOGOUT
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebViewClient
+import com.sap.cdc.android.sdk.feature.screensets.onScreenSetEvents
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
@@ -60,6 +57,9 @@ fun ScreenSetView(
 
     // Track if the WebView has been initialized to prevent multiple loads
     var isInitialized by remember { mutableStateOf(false) }
+
+    // Store WebView reference for proper cleanup
+    var webViewRef by remember { mutableStateOf<WebView?>(null) }
 
     // Declare webBridgeJSWebChromeClient as a mutable variable
     var webBridgeJSWebChromeClient: WebBridgeJSWebChromeClient? by remember { mutableStateOf(null) }
@@ -133,6 +133,9 @@ fun ScreenSetView(
 
                     webChromeClient = webBridgeJSWebChromeClient
 
+                    // Store WebView reference for cleanup
+                    webViewRef = this
+
                     // Initialize the WebView immediately
                     initializeWebView(this, webBridgeJS, viewModel, screenSetUrl) { error ->
                         screenSetError = error
@@ -161,8 +164,16 @@ fun ScreenSetView(
     // Cleanup when the composable is disposed
     DisposableEffect(webViewKey) {
         onDispose {
-            Log.d("ScreenSetView", "DisposableEffect - cleaning up for key: $webViewKey")
-            // Cleanup is handled by the WebBridgeJS itself when the WebView is destroyed
+            Log.d("ScreenSetView", "Properly disposing WebBridgeJS and WebView for key: $webViewKey")
+            webViewRef?.let { webView ->
+                try {
+                    webBridgeJS.detachBridgeFrom(webView)
+                    Log.d("ScreenSetView", "Successfully detached WebBridgeJS from WebView")
+                } catch (e: Exception) {
+                    Log.e("ScreenSetView", "Error during WebBridgeJS cleanup", e)
+                }
+            }
+            webViewRef = null
         }
     }
 }
@@ -180,43 +191,38 @@ private fun initializeWebView(
         // Attach the web bridge to the web view element.
         webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)
 
-        // Register for JS events.
-        webBridgeJS.registerForEvents { webBridgeJSEvent ->
-            val eventName = webBridgeJSEvent.name()
-            Log.d("ScreenSetView", "event: $eventName")
-
-            when (eventName) {
-                CANCELED -> {
-                    webView.post {
-                        onError("Operation canceled")
-                        NavigationCoordinator.INSTANCE.navigateUp()
-                    }
+        webBridgeJS.onScreenSetEvents {
+            onLoad = {
+                Log.d("ScreenSetView", "Screen set loaded: ${it.screenSetId}")
+            }
+            onHide = {
+                webView.post {
+                    Log.d("ScreenSetView", "HIDE event - navigating back")
+                    NavigationCoordinator.INSTANCE.navigateUp()
                 }
-
-                HIDE -> {
-                    webView.post {
-                        Log.d("ScreenSetView", "HIDE event - navigating back")
-                        NavigationCoordinator.INSTANCE.navigateUp()
-                    }
-
+            }
+            onCanceled = {
+                Log.d("ScreenSetView", "Screen set canceled")
+                webView.post {
+                    onError("Operation canceled")
+                    NavigationCoordinator.INSTANCE.navigateUp()
                 }
+            }
 
-                LOGIN -> {
-                    webView.post {
-                        Log.d("ScreenSetView", "Login event received")
-                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                            toRoute = ProfileScreenRoute.MyProfile.route,
-                            rootRoute = ProfileScreenRoute.Welcome.route
-                        )
-                    }
-
+            onLogin = {
+                webView.post {
+                    Log.d("ScreenSetView", "Login event received")
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.MyProfile.route,
+                        rootRoute = ProfileScreenRoute.Welcome.route
+                    )
                 }
+            }
 
-                LOGOUT -> {
-                    webView.post {
-                        Log.d("ScreenSetView", "LOGOUT event - navigating back")
-                        NavigationCoordinator.INSTANCE.navigateUp()
-                    }
+            onLogout = {
+                webView.post {
+                    Log.d("ScreenSetView", "LOGOUT event - navigating back")
+                    NavigationCoordinator.INSTANCE.navigateUp()
                 }
             }
         }

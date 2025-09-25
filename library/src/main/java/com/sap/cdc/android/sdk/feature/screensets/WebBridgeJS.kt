@@ -6,6 +6,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
@@ -42,9 +43,11 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     }
 
     private var bridgedWebView: WebView? = null
-    private var bridgeEvents: ((WebBridgeJSEvent) -> Unit?)? = null
     private lateinit var bridgedApiService: WebBridgeJSApiService
     private var webBridgeJSConfig: WebBridgeJSConfig? = null
+
+    // New ScreenSetsCallbacks support
+    private var screenSetsCallbacks: ScreenSetsCallbacks? = null
 
     /**
      * Trigger URL load for given bridged web view.
@@ -68,16 +71,65 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     }
 
     /**
-     * Register bridge for event forwarding.
+     * Attach ScreenSetsCallbacks for event handling
      */
-    fun registerForEvents(events: (WebBridgeJSEvent) -> Unit) {
-        bridgeEvents = events
+    fun attachCallbacks(callbacks: ScreenSetsCallbacks) {
+        screenSetsCallbacks = callbacks
     }
 
     /**
-     * Stream events forward.
+     * Detach ScreenSetsCallbacks
      */
-    fun streamEvent(event: WebBridgeJSEvent) = bridgeEvents?.invoke(event)
+    fun detachCallbacks() {
+        screenSetsCallbacks = null
+    }
+
+    /**
+     * Enhanced streamEvent method with ScreenSetsCallbacks support
+     */
+    fun streamEvent(event: WebBridgeJSEvent) {
+        // New ScreenSetsCallbacks support
+        screenSetsCallbacks?.let { callbacks ->
+            val eventData = ScreenSetsEventData(
+                eventName = event.name() ?: "unknown",
+                content = event.content,
+                screenSetId = extractScreenSetId(event),
+                sourceContainerID = event.content?.get("sourceContainerID") as? String
+            )
+
+            // Route to appropriate callback based on event name
+            when (event.name()) {
+                WebBridgeJSEvent.BEFORE_SCREEN_LOAD -> callbacks.onBeforeScreenLoad?.invoke(eventData)
+                WebBridgeJSEvent.LOAD -> callbacks.onLoad?.invoke(eventData)
+                WebBridgeJSEvent.AFTER_SCREEN_LOAD -> callbacks.onAfterScreenLoad?.invoke(eventData)
+                WebBridgeJSEvent.HIDE -> callbacks.onHide?.invoke(eventData)
+                WebBridgeJSEvent.FIELD_CHANGED -> callbacks.onFieldChanged?.invoke(eventData)
+                WebBridgeJSEvent.BEFORE_VALIDATION -> callbacks.onBeforeValidation?.invoke(eventData)
+                WebBridgeJSEvent.AFTER_VALIDATION -> callbacks.onAfterValidation?.invoke(eventData)
+                WebBridgeJSEvent.BEFORE_SUBMIT -> callbacks.onBeforeSubmit?.invoke(eventData)
+                WebBridgeJSEvent.SUBMIT -> callbacks.onSubmit?.invoke(eventData)
+                WebBridgeJSEvent.AFTER_SUBMIT -> callbacks.onAfterSubmit?.invoke(eventData)
+                WebBridgeJSEvent.LOGIN_STARTED -> callbacks.onLoginStarted?.invoke(eventData)
+                WebBridgeJSEvent.LOGIN -> callbacks.onLogin?.invoke(eventData)
+                WebBridgeJSEvent.LOGOUT -> callbacks.onLogout?.invoke(eventData)
+                WebBridgeJSEvent.ADD_CONNECTION -> callbacks.onAddConnection?.invoke(eventData)
+                WebBridgeJSEvent.REMOVE_CONNECTION -> callbacks.onRemoveConnection?.invoke(eventData)
+                WebBridgeJSEvent.CANCELED -> callbacks.onCanceled?.invoke(eventData)
+                WebBridgeJSEvent.ERROR -> {
+                    val error = ScreenSetsError(
+                        message = extractErrorMessage(event),
+                        eventName = event.name(),
+                        cdcError = event.content?.get("error") as? CDCError,
+                        details = event.content
+                    )
+                    callbacks.onError?.invoke(error)
+                }
+            }
+
+            // Always invoke universal callback
+            callbacks.onAnyEvent?.invoke(eventData)
+        }
+    }
 
     /**
      * Set the native social providers.
@@ -123,6 +175,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
      */
     fun detachBridgeFrom(webView: WebView) {
         bridgedApiService.dispose()
+        detachCallbacks()
         webView.loadUrl("about:blank")
         webView.clearCache(true);
         webView.clearHistory();
@@ -227,6 +280,27 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     }
 
     /**
+     * Extract screen set ID from event content
+     */
+    private fun extractScreenSetId(event: WebBridgeJSEvent): String? {
+        return event.content?.get("screenSetId") as? String
+            ?: event.content?.get("screenSet") as? String
+    }
+
+    /**
+     * Extract error message from event content
+     */
+    private fun extractErrorMessage(event: WebBridgeJSEvent): String {
+        val error = event.content?.get("error")
+        return when (error) {
+            is com.sap.cdc.android.sdk.core.api.model.CDCError -> error.errorDescription ?: "Unknown error"
+            is String -> error
+            is Map<*, *> -> error["message"] as? String ?: "Unknown error"
+            else -> "Unknown error occurred"
+        }
+    }
+
+    /**
      * Traffic base64 encode.
      */
     private fun deobfuscate(base64String: String): String {
@@ -282,5 +356,3 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             )
     }
 }
-
-
