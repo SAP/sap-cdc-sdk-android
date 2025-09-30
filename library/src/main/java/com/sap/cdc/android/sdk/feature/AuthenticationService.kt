@@ -21,9 +21,10 @@ import kotlinx.serialization.json.Json
  */
 class AuthenticationService(
     val siteConfig: SiteConfig,
+    private val coreClient: CoreClient = CoreClient(siteConfig),
+    private val sessionService: SessionService = SessionService(siteConfig),
+    private val notificationManagerFactory: (AuthenticationService, CDCNotificationOptions) -> CDCNotificationManager = ::CDCNotificationManager
 ) {
-    val coreClient: CoreClient = CoreClient(siteConfig)
-    val sessionService: SessionService = SessionService(siteConfig)
     private lateinit var notificationManager: CDCNotificationManager
 
     init {
@@ -74,9 +75,9 @@ class AuthenticationService(
         fcmTokenRequest: IFCMTokenRequest,
         notificationOptions: CDCNotificationOptions? = CDCNotificationOptions()
     ) = apply {
-        notificationManager = CDCNotificationManager(
-            authenticationService = this,
-            notificationOptions = notificationOptions!!
+        notificationManager = notificationManagerFactory(
+            this,
+            notificationOptions!!
         )
         fcmTokenRequest.requestFCMToken()
     }
