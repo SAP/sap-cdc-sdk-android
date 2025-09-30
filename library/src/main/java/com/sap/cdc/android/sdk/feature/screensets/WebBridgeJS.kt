@@ -238,6 +238,14 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
                 false -> it.parseQueryStringParams()
             }
         } ?: mapOf()
+
+        val headers = data["headers"]?.let {
+            when (webBridgeJSConfig?.obfuscate ?: false) {
+                true -> deobfuscate(it).parseQueryStringParams()
+                false -> it.parseQueryStringParams()
+            }
+        } ?: mapOf()
+
         val callbackID = data["callbackID"]
 
         when (action) {
@@ -256,11 +264,11 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             ACTION_SEND_REQUEST, ACTION_SEND_OAUTH_REQUEST -> {
                 CDCDebuggable.log(LOG_TAG, "$action: ")
                 // Specific mapping is required to handle legacy & new apis.
-                bridgedApiService.onRequest(action, method, params, callbackID!!)
+                bridgedApiService.onRequest(action, method, params, headers, callbackID!!)
             }
 
             ACTION_ON_PLUGIN_EVENT -> {
-                CDCDebuggable.log(LOG_TAG, "$action: ${params.toString()}")
+                CDCDebuggable.log(LOG_TAG, "$action: $params")
                 val containerId = params["sourceContainerID"]
                 if (containerId != null) {
                     val event = WebBridgeJSEvent(params)

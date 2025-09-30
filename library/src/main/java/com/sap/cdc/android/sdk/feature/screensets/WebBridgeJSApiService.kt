@@ -83,6 +83,7 @@ class WebBridgeJSApiService(
         action: String,
         api: String,
         params: Map<String, String>,
+        headers: Map<String, String>,
         containerId: String
     ) {
         when (api) {
@@ -91,6 +92,7 @@ class WebBridgeJSApiService(
                     api =
                         EP_ACCOUNTS_LOGOUT,
                     params = params,
+                    headers = headers,
                     containerId
                 ) {
                     authenticationService.sessionService.invalidateSession()
@@ -100,7 +102,7 @@ class WebBridgeJSApiService(
             EP_SOCIALIZE_ADD_CONNECTION -> {
                 val parameters = params.toMutableMap()
                 parameters["loginMode"] = "connect"
-                sendOAuthRequest(api = api, params = params, containerId, {})
+                sendOAuthRequest(api = api, params = params, headers = headers, containerId, {})
             }
 
             EP_SOCIALIZE_REMOVE_CONNECTION -> {
@@ -121,6 +123,7 @@ class WebBridgeJSApiService(
                 sendRequest(
                     api = EP_SOCIALIZE_REMOVE_CONNECTION,
                     params = mutableMapOf("provider" to provider!!),
+                    headers = headers,
                     containerId
                 ) {
                     // Stub.
@@ -130,11 +133,11 @@ class WebBridgeJSApiService(
             else -> {
                 when (action) {
                     ACTION_SEND_REQUEST -> {
-                        sendRequest(api = api, params = params, containerId, {})
+                        sendRequest(api = api, params = params, headers = headers, containerId, {})
                     }
 
                     ACTION_SEND_OAUTH_REQUEST -> {
-                        sendOAuthRequest(api = api, params = params, containerId, {})
+                        sendOAuthRequest(api = api, params = params, headers = headers, containerId, {})
                     }
                 }
             }
@@ -148,6 +151,7 @@ class WebBridgeJSApiService(
     private fun sendRequest(
         api: String,
         params: Map<String, String>,
+        headers: Map<String, String>,
         containerId: String,
         completion: () -> Unit
     ) {
@@ -160,6 +164,7 @@ class WebBridgeJSApiService(
             ).send(
                 api = api,
                 parameters = params.toMutableMap(),
+                headers = headers.toMutableMap(),
                 method = HttpMethod.Post.value
             )
             if (response.isError()) {
@@ -240,9 +245,11 @@ class WebBridgeJSApiService(
     private fun sendOAuthRequest(
         api: String,
         params: Map<String, String>,
+        headers: Map<String, String>,
         containerId: String,
         completion: () -> Unit
     ) {
+        //TODO: Handle headers if required.
         if (weakHostActivity.get() == null) {
             // Fail with error.
             CDCDebuggable.log(LOG_TAG, "Context host error. Flow broken")
