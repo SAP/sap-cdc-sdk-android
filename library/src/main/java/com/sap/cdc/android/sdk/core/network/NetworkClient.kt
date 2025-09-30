@@ -20,59 +20,13 @@ import io.ktor.http.HttpHeaders
  * Copyright: SAP LTD.
  */
 class NetworkClient(
+    private val httpClientProvider: HttpClientProvider = KtorHttpClientProvider()
 ) {
     companion object {
         internal const val LOG_TAG = "NetworkClient"
-        private const val TIME_OUT = 30_000
     }
 
-    fun http() = HttpClient(Android) {
-
-        engine {
-            connectTimeout = TIME_OUT
-            socketTimeout = TIME_OUT
-        }
-
-        install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) {
-                    CDCDebuggable.log(LOG_TAG, message)
-                }
-
-            }
-            level = LogLevel.ALL
-        }
-
-//        HttpResponseValidator {
-//            validateResponse { response: HttpResponse ->
-//                if (!response.status.isSuccess()) {
-//                    val httpFailureReason = when (response.status) {
-//                        HttpStatusCode.Unauthorized -> HttpStatusCode.Unauthorized.description
-//                        HttpStatusCode.Forbidden -> HttpStatusCode.Forbidden.description
-//                        HttpStatusCode.RequestTimeout -> HttpStatusCode.RequestTimeout.description
-//                        in HttpStatusCode.InternalServerError..HttpStatusCode.GatewayTimeout -> "${response.status.value} Server Error"
-//                        else -> "Network error!"
-//                    }
-//
-//                    throw HttpExceptions(
-//                        response = response,
-//                        cachedResponseText = response.bodyAsText(),
-//                        failureReason = httpFailureReason,
-//                    )
-//                }
-//            }
-//        }
-
-        install(ResponseObserver) {
-            onResponse { response ->
-                CDCDebuggable.log(LOG_TAG, "HTTP Status: ${response.status.value}")
-            }
-        }
-
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded)
-        }
-    }
+    fun http(): HttpClient = httpClientProvider.createHttpClient()
 }
 
 class HttpExceptions(
@@ -82,4 +36,3 @@ class HttpExceptions(
 ) : ResponseException(response, cachedResponseText) {
     override val message: String = "Status: ${response.status}." + " Failure: $failureReason"
 }
-
