@@ -106,54 +106,126 @@ suspend fun login(email: String, password: String) {
 
 ## Advanced DSL Features
 
-### Side Effects with `doOn*` Methods
+### When to Register Callbacks
 
-Side effects execute **before** your main callbacks, perfect for logging, analytics, or state management:
+Callbacks must be registered **during the DSL block execution** before the authentication request is made. All callback registration (both side effects and main callbacks) happens within the trailing lambda:
 
 ```kotlin
 authenticationService.authenticate().login()
     .credentials(credentials) {
-        // Side effect - executes first
+        // ✅ CORRECT: All callbacks registered here during DSL execution
+        doOnSuccess { /* side effect */ }
+        onSuccess = { /* main callback */ }
+        doOnErrorAndOverride { /* transform */ }
+        onError = { /* main callback */ }
+    } // 🚀 Authentication request executes AFTER this block completes
+```
+
+**Important:** You cannot add callbacks after the DSL block has completed:
+
+```kotlin
+val loginCall = authenticationService.authenticate().login()
+    .credentials(credentials) { 
+        onSuccess = { /* registered */ }
+    }
+
+// ❌ WRONG: Cannot add callbacks after DSL execution
+// loginCall.onError = { /* this won't work */ }
+```
+
+### Side Effects vs. Overrides: Understanding the Difference
+
+The SDK provides two distinct callback mechanisms with different purposes and execution behaviors:
+
+#### Side Effects with `doOn*` Methods
+
+**Purpose:** Execute additional logic **alongside** your main callbacks without modifying the response data.
+
+**When to use:** Logging, analytics, state management, notifications - any action that should happen in addition to your main logic.
+
+**Execution order:** Side effects execute **before** main callbacks, but both receive the **same original data**.
+
+```kotlin
+authenticationService.authenticate().login()
+    .credentials(credentials) {
+        // Side effect - executes FIRST with original data
         doOnSuccess { authSuccess ->
-            // Log successful login
-            analytics.track("login_success")
-            // Update local state
-            updateUserSession(authSuccess)
+            analytics.track("login_success", authSuccess.userData)
+            updateLocalCache(authSuccess)
+            // This doesn't change what the main callback receives
         }
         
-        // Main callback - executes after side effect
+        // Main callback - executes SECOND with same original data
         onSuccess = { authSuccess ->
+            // Receives the same authSuccess as the side effect
             navigateToMainScreen()
         }
     }
 ```
 
-### Response Transformation with Override Methods
+#### Response Transformation with Override Methods
 
-Transform responses before they reach your callbacks using `doOn*AndOverride` methods:
+**Purpose:** **Transform or modify** the response data before it reaches your main callbacks.
+
+**When to use:** Data transformation, localization, enrichment, filtering - when you need to change what your main callbacks receive.
+
+**Execution order:** Overrides execute **first** and transform the data, then main callbacks receive the **transformed data**.
 
 ```kotlin
 authenticationService.authenticate().login()
     .credentials(credentials) {
-        // Transform the success response
+        // Override - executes FIRST and transforms the response
         doOnSuccessAndOverride { authSuccess ->
-            // Add custom data or modify response
+            // Transform the response
             authSuccess.copy(
-                userData = authSuccess.userData + ("loginTime" to System.currentTimeMillis())
+                userData = authSuccess.userData + mapOf(
+                    "loginTime" to System.currentTimeMillis(),
+                    "deviceInfo" to getDeviceInfo()
+                )
             )
         }
         
-        // Transform error responses
-        doOnErrorAndOverride { authError ->
-            // Localize error messages
-            authError.copy(
-                message = localizeErrorMessage(authError.message)
-            )
-        }
-        
+        // Main callback - receives the TRANSFORMED response
         onSuccess = { transformedSuccess ->
-            // Receives the transformed response
+            // This receives the enhanced data with loginTime and deviceInfo
             handleLogin(transformedSuccess)
+        }
+    }
+```
+
+### Execution Flow Comparison
+
+**With Side Effects:**
+```
+1. API Response arrives
+2. doOnSuccess executes (original data)
+3. onSuccess executes (same original data)
+```
+
+**With Overrides:**
+```
+1. API Response arrives
+2. doOnSuccessAndOverride executes and transforms data
+3. onSuccess executes (transformed data)
+```
+
+**Combined Usage:**
+```kotlin
+authenticationService.authenticate().login()
+    .credentials(credentials) {
+        // 1. Override transforms the data first
+        doOnSuccessAndOverride { authSuccess ->
+            authSuccess.copy(userData = authSuccess.userData + ("enhanced" to true))
+        }
+        
+        // 2. Side effect executes with transformed data
+        doOnSuccess { transformedSuccess ->
+            analytics.track("login", transformedSuccess.userData) // Has "enhanced" = true
+        }
+        
+        // 3. Main callback receives the same transformed data
+        onSuccess = { transformedSuccess ->
+            handleLogin(transformedSuccess) // Also has "enhanced" = true
         }
     }
 ```
@@ -193,23 +265,73 @@ authenticationService.authenticate().login()
 
 ### Context Update Callbacks
 
-Get enriched context data for multi-step flows:
+Context update callbacks are specifically designed to handle **interrupted authentication flows** that require additional steps to complete. These flows are "interrupted" because they cannot complete immediately and need user intervention or additional data.
+
+**Purpose:** Handle multi-step authentication scenarios where the SDK provides enriched context data to help you resolve the interruption and continue the flow.
+
+**Common interrupted flows:**
+- **Account Linking:** When a social login conflicts with an existing account
+- **Two-Factor Authentication:** When 2FA is required for login/registration
+- **Registration Missing Fields:** When required profile fields are missing during registration
+
+**How it works:**
+1. Initial authentication attempt fails with a specific interruption error
+2. SDK enriches the context with additional data needed for resolution
+3. Context update callback receives the enriched data
+4. You use this data to present appropriate UI and continue the flow
+5. Flow completion triggers normal success/error callbacks
 
 ```kotlin
 authenticationService.authenticate().login()
     .credentials(credentials) {
-        // Enriched context with additional SDK data
-        onTwoFactorContextUpdated = { enrichedContext ->
-            // Context contains emails, phone numbers, QR codes, etc.
-            updateTwoFactorUI(enrichedContext)
+        // Handle the interruption - basic context
+        onTwoFactorRequired = { context ->
+            // Initial interruption - minimal context data
+            navigateToTwoFactorScreen(context)
         }
         
-        // Standard callback still works
-        onTwoFactorRequired = { context ->
-            navigateToTwoFactorScreen(context)
+        // Handle enriched context - enhanced data for flow completion
+        onTwoFactorContextUpdated = { enrichedContext ->
+            // SDK-enriched context with additional data:
+            // - Available email addresses for 2FA
+            // - Phone numbers registered for SMS
+            // - QR codes for authenticator apps
+            // - Tokens needed for flow continuation
+            updateTwoFactorUI(enrichedContext)
+            
+            // Use enriched data to help user complete the flow
+            if (enrichedContext.emails?.isNotEmpty() == true) {
+                showEmailTwoFactorOption(enrichedContext.emails!!)
+            }
+            if (enrichedContext.phones?.isNotEmpty() == true) {
+                showSMSTwoFactorOption(enrichedContext.phones!!)
+            }
         }
     }
 ```
+
+**Example: Account Linking Flow**
+```kotlin
+authenticationService.authenticate().provider().signIn(activity, provider) {
+    onLinkingRequired = { context ->
+        // Basic linking context - account conflict detected
+        showAccountLinkingScreen(context)
+    }
+    
+    onLinkingContextUpdated = { enrichedContext ->
+        // Enriched context with detailed conflicting account info
+        // - Existing account details
+        // - Available linking options
+        // - Tokens for linking continuation
+        updateLinkingUI(enrichedContext.conflictingAccounts)
+        
+        // Present user with clear linking choices
+        showLinkingOptions(enrichedContext)
+    }
+}
+```
+
+These callbacks work **in addition to** standard callbacks, providing you with the detailed information needed to guide users through complex authentication scenarios seamlessly.
 
 ## Real-World Example: Complete Authentication Flow
 
