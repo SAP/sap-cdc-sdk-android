@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.core
 
 import android.content.Context
-import android.util.Log
+import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.api.Api
 import com.sap.cdc.android.sdk.extensions.requiredStringResourceFromKey
 import com.sap.cdc.android.sdk.extensions.stringResourceFromKey
@@ -16,7 +16,8 @@ class SiteConfig(
     val applicationContext: Context,
     val apiKey: String,
     val domain: String,
-    var cname: String? = null
+    var cname: String? = null,
+    private val timeProvider: () -> Long = { System.currentTimeMillis() }
 ) {
     // Failure to retrieve apiKey, domain will issue an IllegalArgumentException.
     constructor(context: Context) : this(
@@ -24,6 +25,20 @@ class SiteConfig(
         context.requiredStringResourceFromKey("com.sap.cxcdc.apikey"),
         context.requiredStringResourceFromKey("com.sap.cxcdc.domain"),
         context.stringResourceFromKey("com.sap.cxcdc.cname"),
+    )
+
+    /**
+     * Constructor that accepts a ResourceProvider for better testability.
+     * This allows injecting mock resource providers during testing.
+     */
+    constructor(
+        context: Context, 
+        resourceProvider: ResourceProvider
+    ) : this(
+        context,
+        resourceProvider.getRequiredString("com.sap.cxcdc.apikey"),
+        resourceProvider.getRequiredString("com.sap.cxcdc.domain"),
+        resourceProvider.getString("com.sap.cxcdc.cname")
     )
 
     private var serverOffset: Long = 0
@@ -34,8 +49,8 @@ class SiteConfig(
 
     fun getServerTimestamp(): String {
         val timestamp: String =
-            ((System.currentTimeMillis() / 1000) + serverOffset).toString()
-        Log.d(Api.LOG_TAG, "serverOffset - get: $timestamp")
+            ((timeProvider() / 1000) + serverOffset).toString()
+        CDCDebuggable.log(Api.LOG_TAG, "serverOffset - get: $timestamp")
         return timestamp
     }
 
@@ -45,8 +60,13 @@ class SiteConfig(
             CDC_SERVER_OFFSET_FORMAT,
             Locale.ENGLISH
         )
-        val serverDate = format.parse(date) ?: return
-        serverOffset = (serverDate.time - System.currentTimeMillis()) / 1000
-        Log.d(Api.LOG_TAG, "serverOffset - set: $serverOffset")
+        try {
+            val serverDate = format.parse(date) ?: return
+            serverOffset = (serverDate.time - timeProvider()) / 1000
+            CDCDebuggable.log(Api.LOG_TAG, "serverOffset - set: $serverOffset")
+        } catch (e: java.text.ParseException) {
+            // Invalid date format - ignore and keep current offset
+            CDCDebuggable.log(Api.LOG_TAG, "Invalid date format, keeping current serverOffset: $serverOffset")
+        }
     }
 }
