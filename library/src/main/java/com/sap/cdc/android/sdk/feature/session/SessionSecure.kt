@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
  */
 internal class SessionSecure(
     private val siteConfig: SiteConfig,
-) {
+) : SessionSecureProvider {
     companion object {
 
         const val LOG_TAG = "SessionSecure"
@@ -146,7 +146,7 @@ internal class SessionSecure(
      * Set session object.
      * Given session will replace current session. Both in memory and secured storage.
      */
-    fun setSession(
+    override fun setSession(
         session: Session,
     ) {
         CDCDebuggable.log(LOG_TAG, "Setting session in memory: $session")
@@ -218,7 +218,7 @@ internal class SessionSecure(
     /**
      * Set biometric secured session. Biometric session is double encrypted with AES256 GCM and biometric authentication.
      */
-    fun secureBiometricSession(
+    override fun secureBiometricSession(
         encryptedSession: String, //Encrypted session JSON (Base64 encoded).
         iv: String // Initialization vector for decrypting the session (Base64 encoded).
     ) {
@@ -242,7 +242,7 @@ internal class SessionSecure(
      * Given decrypted session will replace current session in memory only.
      *
      */
-    fun unlockBiometricSession(
+    override fun unlockBiometricSession(
         decryptedSession: String, // Decrypted session JSON.
     ) {
         CDCDebuggable.log(
@@ -279,7 +279,7 @@ internal class SessionSecure(
     /**
      * Check if session is available.
      */
-    fun availableSession(): Boolean {
+    override fun availableSession(): Boolean {
         return this.sessionEntity != null
     }
 
@@ -288,7 +288,7 @@ internal class SessionSecure(
      * If session is secured with biometric authentication, null will be returned (as it is not possible to decrypt it
      * without user biometric authentication).
      */
-    fun getSession(): Session? {
+    override fun getSession(): Session? {
         if (this.sessionEntity == null) {
             loadToMem()
         }
@@ -304,6 +304,27 @@ internal class SessionSecure(
             )
             return null
         }
+    }
+
+    /**
+     * Clear the current session without invalidation.
+     */
+    override fun clearSession() {
+        clearSession(invalidate = false)
+    }
+
+    /**
+     * Invalidate the current session (clear and cleanup).
+     */
+    override fun invalidateSession() {
+        clearSession(invalidate = true)
+    }
+
+    /**
+     * Get the current session security level.
+     */
+    override fun sessionSecureLevel(): SessionSecureLevel {
+        return getSessionSecureLevel()
     }
 
     /**
@@ -367,7 +388,7 @@ internal class SessionSecure(
      * Check if session is biometric locked.
      * Will try to decode session object, if failed - session is biometric locked.
      */
-    fun biometricLocked(): Boolean {
+    override fun biometricLocked(): Boolean {
         CDCDebuggable.log(LOG_TAG, "Checking if session is biometric locked")
         if (availableSession()) {
             CDCDebuggable.log(LOG_TAG, "Session is not available. not locked")

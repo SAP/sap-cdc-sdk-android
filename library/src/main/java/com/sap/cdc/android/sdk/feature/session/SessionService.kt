@@ -13,6 +13,7 @@ import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_GMID
  */
 class SessionService(
     var siteConfig: SiteConfig,
+    private var sessionSecure: SessionSecureProvider = SessionSecure(siteConfig)
 ) {
     companion object {
         const val LOG_TAG = "SessionService"
@@ -22,22 +23,17 @@ class SessionService(
         CDCDebuggable.log(LOG_TAG, "Initialized SessionService with siteConfig: $siteConfig")
     }
 
-    private var sessionSecure: SessionSecure =
-        SessionSecure(
-            siteConfig
-        )
-
     fun availableSession(): Boolean = sessionSecure.availableSession()
 
     fun getSession(): Session? = sessionSecure.getSession()
 
     fun setSession(session: Session) = sessionSecure.setSession(session)
 
-    fun invalidateSession() = sessionSecure.clearSession(invalidate = true)
+    fun invalidateSession() = sessionSecure.invalidateSession()
 
-    fun clearSession() = sessionSecure.clearSession(invalidate = false)
+    fun clearSession() = sessionSecure.clearSession()
 
-    fun sessionSecureLevel(): SessionSecureLevel = sessionSecure.getSessionSecureLevel()
+    fun sessionSecureLevel(): SessionSecureLevel = sessionSecure.sessionSecureLevel()
 
     fun secureBiometricSession(encryptedSession: String, iv: String) =
         sessionSecure.secureBiometricSession(encryptedSession, iv)
