@@ -21,9 +21,9 @@ import kotlinx.serialization.json.Json
  */
 class AuthenticationService(
     val siteConfig: SiteConfig,
-    private val coreClient: CoreClient = CoreClient(siteConfig),
-    private val sessionService: SessionService = SessionService(siteConfig),
-    private val notificationManagerFactory: (AuthenticationService, CDCNotificationOptions) -> CDCNotificationManager = ::CDCNotificationManager
+    val coreClient: CoreClient = CoreClient(siteConfig),
+    val sessionService: SessionService = SessionService(siteConfig),
+    val notificationManagerFactory: (AuthenticationService, CDCNotificationOptions) -> CDCNotificationManager = ::CDCNotificationManager
 ) {
     private lateinit var notificationManager: CDCNotificationManager
 

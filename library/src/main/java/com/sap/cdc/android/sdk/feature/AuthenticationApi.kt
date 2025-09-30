@@ -2,7 +2,9 @@ package com.sap.cdc.android.sdk.feature
 
 import androidx.core.content.edit
 import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.core.AndroidResourceProvider
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.core.ResourceProvider
 import com.sap.cdc.android.sdk.core.api.Api
 import com.sap.cdc.android.sdk.core.api.CDCRequest
 import com.sap.cdc.android.sdk.core.api.CDCResponse
@@ -24,7 +26,8 @@ import io.ktor.http.HttpMethod
  */
 class AuthenticationApi(
     private val coreClient: CoreClient,
-    private val sessionService: SessionService
+    private val sessionService: SessionService,
+    private val resourceProvider: ResourceProvider = AndroidResourceProvider(coreClient.siteConfig.applicationContext)
 ) : Api(coreClient) {
 
     companion object {
@@ -212,10 +215,9 @@ class AuthenticationApi(
             CDCDebuggable.log(LOG_TAG, "gmid: ${gmidEntity?.gmid}")
             // Save the GMID to secure preferences
             if (gmidEntity != null) {
-                val esp =
-                    coreClient.siteConfig.applicationContext.getEncryptedPreferences(
-                        AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
-                    )
+                val esp = resourceProvider.getEncryptedSharedPreferences(
+                    AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
+                )
                 esp.edit {
                     putString(AuthenticationService.Companion.CDC_GMID, gmidEntity.gmid)
                         .putLong(AuthenticationService.Companion.CDC_GMID_REFRESH_TS, gmidEntity.refreshTime!!)
@@ -247,7 +249,7 @@ class AuthenticationApi(
      */
     private fun isLocalGmidValid(): Boolean {
         CDCDebuggable.log(LOG_TAG, "Validating local GMID")
-        val prefs = coreClient.siteConfig.applicationContext.getEncryptedPreferences(
+        val prefs = resourceProvider.getEncryptedSharedPreferences(
             AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
         )
         val gmid = prefs.getString(AuthenticationService.Companion.CDC_GMID, null)
