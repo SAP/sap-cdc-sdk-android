@@ -29,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
@@ -41,9 +41,7 @@ import com.sap.cdc.android.sdk.feature.tfa.TFAProvidersEntity
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
-import com.sap.cdc.bitsnbytes.ui.utils.connectNode
-import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
+import com.sap.cdc.bitsnbytes.ui.utils.autofillSemantics
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
@@ -162,23 +160,11 @@ fun RegisterAuthenticatorAppWithQAView(
             MediumVerticalSpacer()
 
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                val autoFillHandler =
-                    autoFillRequestHandler(
-                        autofillTypes = listOf(
-                            AutofillType.SmsOtpCode,
-                            AutofillType.EmailAddress
-                        ),
-                        onFill = {
-                            otpValue = it
-                        }
-                    )
                 OtpTextField(
                     modifier = Modifier
-                        .connectNode(handler = autoFillHandler)
-                        .defaultFocusChangeAutoFill(handler = autoFillHandler),
+                        .autofillSemantics(ContentType.SmsOtpCode),
                     otpText = otpValue, onOtpTextChange = { value, _ ->
                         otpValue = value
-                        if (value.isEmpty()) autoFillHandler.requestVerifyManual()
                     })
             }
 
@@ -261,20 +247,11 @@ fun TOTPCodeVerificationView(
         MediumVerticalSpacer()
 
         Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            val autoFillHandler =
-                autoFillRequestHandler(
-                    autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
-                    onFill = {
-                        otpValue = it
-                    }
-                )
             OtpTextField(
                 modifier = Modifier
-                    .connectNode(handler = autoFillHandler)
-                    .defaultFocusChangeAutoFill(handler = autoFillHandler),
+                    .autofillSemantics(ContentType.SmsOtpCode),
                 otpText = otpValue, onOtpTextChange = { value, _ ->
                     otpValue = value
-                    if (value.isEmpty()) autoFillHandler.requestVerifyManual()
                 })
         }
 

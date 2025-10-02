@@ -27,7 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
@@ -40,9 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
-import com.sap.cdc.bitsnbytes.ui.utils.connectNode
-import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
+import com.sap.cdc.bitsnbytes.ui.utils.autofillSemantics
 import com.sap.cdc.bitsnbytes.ui.view.composables.CountryCodeSelector
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
@@ -119,16 +117,6 @@ fun OtpSignInView(
         )
         LargeVerticalSpacer()
 
-        val autoFillHandler =
-            autoFillRequestHandler(
-                autofillTypes = listOf(
-                    AutofillType.EmailAddress,
-                    AutofillType.PhoneNumber
-                ),
-                onFill = {
-                    inputField = it
-                }
-            )
 
         Column(
             modifier = Modifier
@@ -165,8 +153,7 @@ fun OtpSignInView(
                             value = inputField,
                             modifier = Modifier
                                 .weight(1f)
-                                .connectNode(handler = autoFillHandler)
-                                .defaultFocusChangeAutoFill(handler = autoFillHandler),
+                                .autofillSemantics(ContentType.PhoneNumber),
                             placeholder = {
                                 Text(
                                     "Enter phone number",
@@ -198,8 +185,7 @@ fun OtpSignInView(
                         inputField,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .connectNode(handler = autoFillHandler)
-                            .defaultFocusChangeAutoFill(handler = autoFillHandler),
+                            .autofillSemantics(ContentType.EmailAddress),
                         placeholder = {
                             Text(
                                 "Enter email address",

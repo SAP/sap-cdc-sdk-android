@@ -29,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
@@ -140,9 +140,9 @@ fun RegisterNewPhoneNumber(
 
     val autoFillHandler =
         autoFillRequestHandler(
-            autofillTypes = listOf(
-                AutofillType.EmailAddress,
-                AutofillType.PhoneNumber
+            contentTypes = listOf(
+                ContentType.EmailAddress,
+                ContentType.PhoneNumber
             ),
             onFill = {
                 inputField = it

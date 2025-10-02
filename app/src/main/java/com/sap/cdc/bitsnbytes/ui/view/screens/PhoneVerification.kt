@@ -27,7 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -108,7 +108,7 @@ fun PhoneVerificationView(
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 val autoFillHandler =
                     autoFillRequestHandler(
-                        autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
+                        contentTypes = listOf(ContentType.SmsOtpCode, ContentType.EmailAddress),
                         onFill = {
                             otpValue = it
                         }
