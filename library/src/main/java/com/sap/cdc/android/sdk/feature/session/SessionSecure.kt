@@ -76,6 +76,19 @@ internal class SessionSecure(
                     CDCDebuggable.log(LOG_TAG, "Session refreshed event received from bus.")
                     // Handle session refresh
                 }
+
+                is SessionEvent.ValidationStarted -> {
+                    CDCDebuggable.log(LOG_TAG, "Session invalidated event received from bus.")
+                }
+
+                is SessionEvent.ValidationSucceeded -> {
+                    CDCDebuggable.log(LOG_TAG, "Session validation succeeded event received from bus.")
+                }
+
+                is SessionEvent.ValidationFailed -> {
+                    CDCDebuggable.log(LOG_TAG, "Session validation failed event received from bus.")
+                    clearSession(true)
+                }
             }
         }
     }

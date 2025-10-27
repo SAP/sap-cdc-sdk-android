@@ -109,6 +109,9 @@ class MainActivity : FragmentActivity() {
                 is SessionEvent.SessionExpired -> handleSessionExpired()
                 is SessionEvent.VerifySession -> handleSessionVerification()
                 is SessionEvent.SessionRefreshed -> handleSessionRefreshed()
+                else -> {
+                   /* No action needed for other events */
+                }
             }
         }
     }

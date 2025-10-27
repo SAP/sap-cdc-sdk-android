@@ -13,7 +13,6 @@ import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_GMID
  */
 class SessionService(
     var siteConfig: SiteConfig,
-    private var sessionSecure: SessionSecureProvider = SessionSecure(siteConfig)
 ) {
     companion object {
         const val LOG_TAG = "SessionService"
@@ -23,17 +22,27 @@ class SessionService(
         CDCDebuggable.log(LOG_TAG, "Initialized SessionService with siteConfig: $siteConfig")
     }
 
+    private var sessionSecure: SessionSecure =
+        SessionSecure(
+            siteConfig
+        )
+    
+    private var validationTrigger: (() -> Unit)? = null
+
     fun availableSession(): Boolean = sessionSecure.availableSession()
 
     fun getSession(): Session? = sessionSecure.getSession()
 
-    fun setSession(session: Session) = sessionSecure.setSession(session)
+    fun setSession(session: Session) = sessionSecure.setSession(session).also {
+        // Trigger validation when a new session is set
+        validationTrigger?.invoke()
+    }
 
-    fun invalidateSession() = sessionSecure.invalidateSession()
+    fun invalidateSession() = sessionSecure.clearSession(invalidate = true)
 
-    fun clearSession() = sessionSecure.clearSession()
+    fun clearSession() = sessionSecure.clearSession(invalidate = false)
 
-    fun sessionSecureLevel(): SessionSecureLevel = sessionSecure.sessionSecureLevel()
+    fun sessionSecureLevel(): SessionSecureLevel = sessionSecure.getSessionSecureLevel()
 
     fun secureBiometricSession(encryptedSession: String, iv: String) =
         sessionSecure.secureBiometricSession(encryptedSession, iv)
@@ -61,6 +70,14 @@ class SessionService(
                 CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
             )
         return esp.getString(CDC_GMID, "") ?: ""
+    }
+
+    /**
+     * Sets a callback to be triggered when a new session is established.
+     * Used internally by AuthenticationService to enable session validation.
+     */
+    internal fun setValidationTrigger(trigger: () -> Unit) {
+        validationTrigger = trigger
     }
 
 }

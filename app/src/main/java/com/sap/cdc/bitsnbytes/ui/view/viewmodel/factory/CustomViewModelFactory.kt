@@ -142,7 +142,7 @@ class CustomViewModelFactory(
                 requireNotNull(authenticationFlowDelegate) {
                     "AuthenticationFlowDelegate is required for AuthMethodsViewModel"
                 }
-                AuthMethodsViewModel(context) as T
+                AuthMethodsViewModel(context, authenticationFlowDelegate) as T
             }
 
             modelClass.isAssignableFrom(PhoneSelectionViewModel::class.java) -> {

@@ -73,6 +73,50 @@ sealed class SessionEvent : CDCEvent {
         override val eventId: String = UUID.randomUUID().toString(),
         override val source: String = "SessionManager"
     ) : SessionEvent()
+    
+    /**
+     * Event emitted when session validation has started.
+     * @param sessionId The identifier of the session being validated
+     * @param timestamp When the event was created
+     * @param eventId Unique identifier for this event
+     * @param source The source component that started validation
+     */
+    data class ValidationStarted(
+        val sessionId: String,
+        override val timestamp: Long = System.currentTimeMillis(),
+        override val eventId: String = UUID.randomUUID().toString(),
+        override val source: String = "SessionValidationService"
+    ) : SessionEvent()
+    
+    /**
+     * Event emitted when session validation has succeeded.
+     * @param sessionId The identifier of the validated session
+     * @param timestamp When the event was created
+     * @param eventId Unique identifier for this event
+     * @param source The source component that performed validation
+     */
+    data class ValidationSucceeded(
+        val sessionId: String,
+        override val timestamp: Long = System.currentTimeMillis(),
+        override val eventId: String = UUID.randomUUID().toString(),
+        override val source: String = "SessionValidationService"
+    ) : SessionEvent()
+    
+    /**
+     * Event emitted when session validation has failed.
+     * @param sessionId The identifier of the session that failed validation
+     * @param reason The reason for validation failure
+     * @param timestamp When the event was created
+     * @param eventId Unique identifier for this event
+     * @param source The source component that performed validation
+     */
+    data class ValidationFailed(
+        val sessionId: String,
+        val reason: String,
+        override val timestamp: Long = System.currentTimeMillis(),
+        override val eventId: String = UUID.randomUUID().toString(),
+        override val source: String = "SessionValidationService"
+    ) : SessionEvent()
 }
 
 /**
