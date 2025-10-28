@@ -1,0 +1,278 @@
+name: Dependency Update Check
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the workflow on'
+        default: 'develop'
+        required: true
+  schedule:
+    # Run weekly on Mondays at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Make dependency check script executable
+      run: chmod +x scripts/dependency/check-updates.sh
+
+    - name: Run dependency check script
+      id: dependency_check
+      run: |
+        echo "Running dependency check..."
+        
+        # Capture both stdout and stderr, and the exit code
+        set +e
+        OUTPUT=$(scripts/dependency/check-updates.sh 2>&1)
+        EXIT_CODE=$?
+        set -e
+        
+        echo "DEPENDENCY_CHECK_OUTPUT<<EOF" >> $GITHUB_OUTPUT
+        echo "$OUTPUT" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+        echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
+        
+        # Check if updates were found by looking for specific patterns in output
+        if echo "$OUTPUT" | grep -q "📦 Dependency Updates Available\|🔧 Gradle Updates Available\|📦 Additional Updates Available"; then
+          echo "UPDATES_FOUND=true" >> $GITHUB_OUTPUT
+          echo "STATUS=updates_found" >> $GITHUB_OUTPUT
+        else
+          echo "UPDATES_FOUND=false" >> $GITHUB_OUTPUT
+          echo "STATUS=no_updates" >> $GITHUB_OUTPUT
+        fi
+        
+        # Extract just the update information for cleaner email
+        UPDATE_SUMMARY=$(echo "$OUTPUT" | sed -n '/📦\|🔧\|⚠️/p' | head -20)
+        echo "UPDATE_SUMMARY<<EOF" >> $GITHUB_OUTPUT
+        echo "$UPDATE_SUMMARY" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create dependency check report
+      run: |
+        mkdir -p reports
+        cat > reports/dependency-check-report.md << 'EOF'
+        # Dependency Check Report
+        
+        **Repository:** ${{ github.repository }}
+        **Branch:** ${{ github.ref_name }}
+        **Commit:** ${{ github.sha }}
+        **Workflow Run:** ${{ github.run_id }}
+        **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        
+        ## Results
+        
+        **Status:** ${{ steps.dependency_check.outputs.STATUS }}
+        **Updates Found:** ${{ steps.dependency_check.outputs.UPDATES_FOUND }}
+        
+        ## Detailed Output
+        
+        ```
+        ${{ steps.dependency_check.outputs.DEPENDENCY_CHECK_OUTPUT }}
+        ```
+        
+        ## Actions Required
+        
+        ${{ steps.dependency_check.outputs.UPDATES_FOUND == 'true' && '⚠️ **Action Required:** Dependencies updates are available. Please review and update as needed.' || '✅ **No Action Required:** All dependencies are up to date.' }}
+        
+        ---
+        
+        **How to Update Dependencies:**
+        1. Review the updates listed above
+        2. Update specific versions in `gradle/libs.versions.toml`
+        3. Test your application thoroughly after updates
+        4. Run `./gradlew build` to ensure everything compiles
+        
+        **Useful Resources:**
+        - [Android Jetpack releases](https://developer.android.com/jetpack/androidx/versions)
+        - [Kotlin releases](https://github.com/JetBrains/kotlin/releases)
+        - [Maven Central](https://search.maven.org/)
+        EOF
+
+    - name: Upload dependency check report
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-check-report
+        path: reports/dependency-check-report.md
+        retention-days: 30
+
+    - name: Create GitHub Issue for dependency updates
+      if: steps.dependency_check.outputs.UPDATES_FOUND == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = '🔔 Dependency Updates Available';
+          const updateSummary = `${{ steps.dependency_check.outputs.UPDATE_SUMMARY }}`;
+          const fullOutput = `${{ steps.dependency_check.outputs.DEPENDENCY_CHECK_OUTPUT }}`;
+          
+          // Check if an issue already exists
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: ['dependencies', 'automated'],
+            per_page: 1
+          });
+          
+          const body = \`## 🔔 Dependency Updates Available
+          
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Date:** \${new Date().toISOString()}
+          
+          ### 📦 Updates Summary
+          
+          \\\`\\\`\\\`
+          \${updateSummary}
+          \\\`\\\`\\\`
+          
+          ### 🔧 Next Steps
+          
+          1. Review the updates listed above
+          2. Update specific versions in gradle/libs.versions.toml
+          3. Test your application thoroughly after updates
+          4. Run ./gradlew build to ensure everything compiles
+          5. Close this issue once updates are applied
+          
+          ### 📚 Useful Resources
+          
+          - [Android Jetpack releases](https://developer.android.com/jetpack/androidx/versions)
+          - [Kotlin releases](https://github.com/JetBrains/kotlin/releases)
+          - [Maven Central](https://search.maven.org/)
+          
+          ### 📄 Full Dependency Check Output
+          
+          <details>
+          <summary>Click to expand full output</summary>
+          
+          \\\`\\\`\\\`
+          \${fullOutput}
+          \\\`\\\`\\\`
+          
+          </details>
+          
+          *This issue was automatically created by the dependency check workflow. It will be updated or closed when dependencies are updated or no longer need attention.*\`;
+
+          if (existingIssues.data.length > 0) {
+            // Update existing issue
+            const issueNumber = existingIssues.data[0].number;
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              title: title,
+              body: body
+            });
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `🔄 **Dependency check updated** - ${new Date().toISOString()}\n\nNew updates detected. Please review the updated issue description above.`
+            });
+            
+            console.log(`Updated existing issue #${issueNumber}`);
+          } else {
+            // Create new issue
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['dependencies', 'automated', 'enhancement']
+            });
+            
+            console.log(`Created new issue #${issue.data.number}`);
+          }
+
+    - name: Close dependency issues if no updates found
+      if: steps.dependency_check.outputs.UPDATES_FOUND == 'false'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // Find open dependency issues
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: ['dependencies', 'automated']
+          });
+          
+          // Close them with a comment
+          for (const issue of existingIssues.data) {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `✅ **All dependencies are now up to date!**\n\nLatest dependency check (${new Date().toISOString()}) found no available updates.\n\nClosing this issue automatically. A new issue will be created if updates become available in the future.`
+            });
+            
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              state: 'closed'
+            });
+            
+            console.log(`Closed issue #${issue.number} - no updates found`);
+          }
+
+    - name: Comment on PR with results (if PR)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const updatesFound = '${{ steps.dependency_check.outputs.UPDATES_FOUND }}';
+          const updateSummary = `${{ steps.dependency_check.outputs.UPDATE_SUMMARY }}`;
+          
+          let comment = '## 🔍 Dependency Check Results\n\n';
+          
+          if (updatesFound === 'true') {
+            comment += '⚠️ **Dependency updates are available:**\n\n';
+            comment += '```\n' + updateSummary + '\n```\n\n';
+            comment += '**Recommendation:** Consider updating dependencies before merging.\n\n';
+          } else {
+            comment += '✅ **All dependencies are up to date!**\n\n';
+          }
+          
+          comment += '📄 **Full Report:** Check the workflow artifacts for detailed information.\n';
+          comment += `🔗 **Workflow Run:** ${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
