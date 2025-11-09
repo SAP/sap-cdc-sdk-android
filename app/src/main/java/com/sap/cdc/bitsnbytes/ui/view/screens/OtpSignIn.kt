@@ -20,10 +20,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -37,9 +36,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.OtpSignInNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.utils.autofillSemantics
 import com.sap.cdc.bitsnbytes.ui.view.composables.CountryCodeSelector
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer
@@ -68,18 +67,21 @@ fun OtpSignInView(
     viewModel: IOtpSignInViewModel,
     otpType: OTPType,
 ) {
-    var loading by remember { mutableStateOf(false) }
-    var signInError by remember { mutableStateOf("") }
-
-    var inputField by remember {
-        mutableStateOf("")
-    }
-    
-    var selectedCountry by remember {
-        mutableStateOf(CountryData.getDefaultCountry())
-    }
-
+    val state by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
+
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is OtpSignInNavigationEvent.NavigateToOtpVerify -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.OTPVerify.route}/${event.otpContext}/${event.otpType}/${event.inputField}"
+                    )
+                }
+            }
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -89,7 +91,7 @@ fun OtpSignInView(
             .fillMaxHeight()
     ) {
         // UI elements.
-        IndeterminateLinearIndicator(loading)
+        IndeterminateLinearIndicator(state.isLoading)
 
         Spacer(modifier = Modifier.size(80.dp))
         Text(
@@ -140,9 +142,9 @@ fun OtpSignInView(
                     ) {
                         // Country code selector
                         CountryCodeSelector(
-                            selectedCountry = selectedCountry,
+                            selectedCountry = state.selectedCountry,
                             onCountrySelected = { country ->
-                                selectedCountry = country
+                                viewModel.updateSelectedCountry(country)
                             }
                         )
 
@@ -150,7 +152,7 @@ fun OtpSignInView(
 
                         // Phone number input field
                         TextField(
-                            value = inputField,
+                            value = state.inputField,
                             modifier = Modifier
                                 .weight(1f)
                                 .autofillSemantics(ContentType.PhoneNumber),
@@ -165,7 +167,7 @@ fun OtpSignInView(
                                 color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Normal
                             ),
                             onValueChange = {
-                                inputField = it
+                                viewModel.updateInputField(it)
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                             keyboardActions = KeyboardActions {
@@ -182,7 +184,7 @@ fun OtpSignInView(
                         fontWeight = FontWeight.Light,
                     )
                     TextField(
-                        inputField,
+                        state.inputField,
                         modifier = Modifier
                             .fillMaxWidth()
                             .autofillSemantics(ContentType.EmailAddress),
@@ -197,7 +199,7 @@ fun OtpSignInView(
                             color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Normal
                         ),
                         onValueChange = {
-                            inputField = it
+                            viewModel.updateInputField(it)
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         keyboardActions = KeyboardActions {
@@ -209,8 +211,10 @@ fun OtpSignInView(
 
             SmallVerticalSpacer()
 
-            if (signInError.isNotEmpty()) {
-                SimpleErrorMessages(signInError)
+            state.error?.let { error ->
+                if (error.isNotEmpty()) {
+                    SimpleErrorMessages(error)
+                }
             }
 
             CustomSizeVerticalSpacer(48.dp)
@@ -221,43 +225,7 @@ fun OtpSignInView(
                     .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
-                    loading = true
-                    signInError = ""
-                    
-                    // For phone numbers, combine country code with the number
-                    val finalInputField = if (otpType == OTPType.PHONE) {
-                        "${selectedCountry.dialCode}$inputField"
-                    } else {
-                        inputField
-                    }
-                    
-                    viewModel.signIn(
-                        otpType = otpType,
-                        inputField = finalInputField
-                    )
-                    {
-                        onSuccess = {
-                            loading = false
-                            NavigationCoordinator.INSTANCE.navigate(
-                                "${ProfileScreenRoute.OTPVerify.route}/${
-                                    ""
-                                }/${otpType.value}/${finalInputField}"
-                            )
-                        }
-
-                        onOTPRequired = { otpContext ->
-                            loading = false
-                            NavigationCoordinator.INSTANCE.navigate(
-                                "${ProfileScreenRoute.OTPVerify.route}/${
-                                    otpContext.toJson()
-                                }/${otpType.value}/${finalInputField}"
-                            )
-                        }
-                        onError = { error ->
-                            signInError = error.message
-                            loading = false
-                        }
-                    }
+                    viewModel.onSignIn(otpType)
                 }) {
                 Text("Send code")
             }

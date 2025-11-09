@@ -20,10 +20,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -37,6 +36,7 @@ import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.PhoneVerificationNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
@@ -49,11 +49,18 @@ fun PhoneVerificationView(
     viewModel: IPhoneVerificationViewModel,
     twoFactorContext: TwoFactorContext
 ) {
-    var loading by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
 
-    var verificationError by remember { mutableStateOf("") }
-
-    var codeSent by remember { mutableStateOf(false) }
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is PhoneVerificationNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                }
+            }
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -63,11 +70,7 @@ fun PhoneVerificationView(
             .fillMaxHeight()
     ) {
         // UI elements.
-        IndeterminateLinearIndicator(loading)
-
-        var otpValue by remember {
-            mutableStateOf("")
-        }
+        IndeterminateLinearIndicator(state.isLoading)
 
         Spacer(modifier = Modifier.size(80.dp))
         Text(
@@ -81,7 +84,7 @@ fun PhoneVerificationView(
         )
         Spacer(modifier = Modifier.size(32.dp))
 
-        if (codeSent) {
+        if (state.codeSent) {
             Spacer(modifier = Modifier.size(12.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -110,34 +113,36 @@ fun PhoneVerificationView(
                     autoFillRequestHandler(
                         contentTypes = listOf(ContentType.SmsOtpCode, ContentType.EmailAddress),
                         onFill = {
-                            otpValue = it
+                            viewModel.updateOtpValue(it)
                         }
                     )
                 OtpTextField(
                     modifier = Modifier
                         .connectNode(handler = autoFillHandler)
                         .defaultFocusChangeAutoFill(handler = autoFillHandler),
-                    otpText = otpValue, onOtpTextChange = { value, _ ->
-                        otpValue = value
+                    otpText = state.otpValue, onOtpTextChange = { value, _ ->
+                        viewModel.updateOtpValue(value)
                         if (value.isEmpty()) autoFillHandler.requestVerifyManual()
                     })
             }
 
             Spacer(modifier = Modifier.size(6.dp))
 
-            if (verificationError.isNotEmpty()) {
-                Spacer(modifier = Modifier.size(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Cancel, contentDescription = "", tint = Color.Red
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = verificationError,
-                        color = Color.Red,
-                    )
+            state.error?.let { error ->
+                if (error.isNotEmpty()) {
+                    Spacer(modifier = Modifier.size(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Filled.Cancel, contentDescription = "", tint = Color.Red
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = error,
+                            color = Color.Red,
+                        )
+                    }
                 }
             }
 
@@ -149,23 +154,7 @@ fun PhoneVerificationView(
                     .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
-                    loading = true
-                    viewModel.verifyCode(
-                        verificationCode = otpValue,
-                        rememberDevice = false,
-                        twoFactorContext = twoFactorContext,
-                    ) {
-                        onSuccess = {
-                            loading = false
-                            verificationError = ""
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        }
-
-                        onError = { error ->
-                            verificationError = error.message
-                            loading = false
-                        }
-                    }
+                    viewModel.onVerifyCode(twoFactorContext)
                 }) {
                 Text("Verify")
             }
@@ -175,18 +164,18 @@ fun PhoneVerificationView(
         Spacer(modifier = Modifier.size(24.dp))
 
         Text(
-            when (codeSent) {
+            when (state.codeSent) {
                 true -> "Sent code again"
                 false -> "Didn't get code"
             },
-            color = when (codeSent) {
+            color = when (state.codeSent) {
                 true -> Color.LightGray
                 false -> Color.Black
             },
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .clickable(enabled = !codeSent) {
-                    codeSent = true
+                .clickable(enabled = !state.codeSent) {
+                    viewModel.onCodeSent()
                 }
                 .padding(start = 16.dp, end = 16.dp),
         )

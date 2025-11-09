@@ -21,10 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,17 +45,10 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
 @Composable
 fun PasskeysCredentialsView(viewModel: IPasskeysCredentialsViewModel) {
     val context = LocalContext.current
-
-    var loading by remember { mutableStateOf(false) }
-    var error: String? by remember { mutableStateOf(null) }
-
-    // Clear any existing error when viewModel error changes
-    if (viewModel.error != null && error != viewModel.error) {
-        error = viewModel.error
-    }
+    val state by viewModel.state.collectAsState()
 
     LoadingStateColumn(
-        loading = loading || viewModel.isLoadingPasskeys,
+        loading = state.isLoading || state.isLoadingPasskeys,
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(),
@@ -74,9 +65,9 @@ fun PasskeysCredentialsView(viewModel: IPasskeysCredentialsViewModel) {
         LargeVerticalSpacer()
 
         // Check if we have passkeys or if the list is empty
-        val credentials = viewModel.passkeyCredentials?.credentials
+        val credentials = state.passkeyCredentials?.credentials
 
-        if (!viewModel.isLoadingPasskeys && (credentials == null || credentials.isEmpty())) {
+        if (!state.isLoadingPasskeys && (credentials == null || credentials.isEmpty())) {
             // Empty state - no passkeys registered
             Box(
                 modifier = Modifier
@@ -112,22 +103,7 @@ fun PasskeysCredentialsView(viewModel: IPasskeysCredentialsViewModel) {
                     PasskeyCredentialCard(
                         credential = credential,
                         onRevoke = { keyId ->
-                            loading = true
-                            error = null
-                            viewModel.revokePasskey(
-                                keyId = keyId,
-                                activity = context as ComponentActivity
-                            ) {
-                                onSuccess = {
-                                    loading = false
-                                    // Success handled by ViewModel refreshing the list
-                                }
-
-                                onError = { authError ->
-                                    loading = false
-                                    error = authError.message
-                                }
-                            }
+                            viewModel.onRevokePasskey(keyId, context as ComponentActivity)
                         }
                     )
                 }
@@ -137,12 +113,11 @@ fun PasskeysCredentialsView(viewModel: IPasskeysCredentialsViewModel) {
         LargeVerticalSpacer()
 
         // Error message display
-        val displayError = error ?: viewModel.error
-        if (!displayError.isNullOrEmpty()) {
-            SimpleErrorMessages(
-                text = displayError
-            )
-            SmallVerticalSpacer()
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+                SmallVerticalSpacer()
+            }
         }
 
         // Bottom informational banner

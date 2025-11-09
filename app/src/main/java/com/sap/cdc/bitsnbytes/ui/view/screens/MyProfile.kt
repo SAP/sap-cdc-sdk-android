@@ -32,7 +32,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +48,7 @@ import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.MyProfileNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomColoredSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
@@ -111,9 +111,22 @@ private object ProfileConstants {
 fun MyProfileView(viewModel: IMyProfileViewModel) {
     // Observe account state from AuthenticationFlowDelegate
     val accountInfo by viewModel.flowDelegate?.userAccount?.collectAsState() ?: remember { mutableStateOf(null) }
+    val state by viewModel.state.collectAsState()
 
-    var loading by remember { mutableStateOf(false) }
-    var isRefreshing by remember { mutableStateOf(false) }
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is MyProfileNavigationEvent.NavigateToWelcome -> {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.Welcome.route) {
+                        // Clear the entire profile navigation stack
+                        popUpTo(ProfileScreenRoute.Welcome.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+    }
 
     // Derived state for better performance
     val fullName by remember {
@@ -130,50 +143,34 @@ fun MyProfileView(viewModel: IMyProfileViewModel) {
             // Add a small delay to ensure navigation has completed and view is fully rendered
             kotlinx.coroutines.delay(100) // 100ms delay to allow navigation to settle
             
-            loading = true
             viewModel.getAccountInfo(mutableMapOf()) {
                 onSuccess = {
-                    loading = false
-                    isRefreshing = false
+                    // State is updated in ViewModel
                 }
                 onError = { error ->
-                    loading = false
-                    isRefreshing = false
+                    // State is updated in ViewModel
                 }
             }
-        } else {
-            // Account info already available, no need to load
-            loading = false
-            isRefreshing = false
         }
     }
 
     LoadingStateColumn(
-        loading = loading,
+        loading = state.isLoading,
         modifier = Modifier
             .background(AppTheme.colorScheme.background)
             .fillMaxWidth()
             .fillMaxHeight(),
     ) {
         PullToRefreshBox(
-            isRefreshing = isRefreshing,
+            isRefreshing = state.isRefreshing,
             onRefresh = {
-                isRefreshing = true
-                try {
-                    viewModel.getAccountInfo {
-                        onSuccess = {
-                            isRefreshing = false
-                            loading = false
-                        }
-                        onError = {
-                            isRefreshing = false
-                            loading = false
-                        }
+                viewModel.getAccountInfo {
+                    onSuccess = {
+                        // State is updated in ViewModel
                     }
-                } catch (e: Exception) {
-                    // Ensure refresh state is always dismissed even if getAccountInfo throws
-                    isRefreshing = false
-                    loading = false
+                    onError = {
+                        // State is updated in ViewModel
+                    }
                 }
             },
             modifier = Modifier.fillMaxSize()
@@ -339,24 +336,7 @@ private fun ProfileMenuSection(viewModel: IMyProfileViewModel) {
 }
 
 private fun handleLogout(viewModel: IMyProfileViewModel) {
-    viewModel.logOut {
-        onSuccess = {
-            // Navigate to Welcome screen and clear the profile navigation stack
-            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.Welcome.route) {
-                // Clear the entire profile navigation stack
-                popUpTo(ProfileScreenRoute.Welcome.route) { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-        onError = { error ->
-            // Even on error, navigate to Welcome screen and clear the profile navigation stack
-            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.Welcome.route) {
-                // Clear the entire profile navigation stack
-                popUpTo(ProfileScreenRoute.Welcome.route) { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-    }
+    viewModel.onLogout()
 }
 
 // Constants for SelectionRow

@@ -23,9 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -42,9 +39,9 @@ import androidx.compose.ui.unit.sp
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.android.sdk.feature.tfa.TFAPhoneEntity
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
-import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.PhoneSelectionNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
@@ -60,11 +57,23 @@ fun PhoneSelectionView(
     viewModel: IPhoneSelectionViewModel,
     twoFactorContext: TwoFactorContext
 ) {
-    var loading by remember { mutableStateOf(false) }
-    var verificationError by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsState()
 
     LaunchedEffect(twoFactorContext) {
         viewModel.updateTwoFactorContext(twoFactorContext)
+    }
+
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is PhoneSelectionNavigationEvent.NavigateToPhoneVerification -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.PhoneVerification.route}/${event.twoFactorContext}"
+                    )
+                }
+            }
+        }
     }
 
     Column(
@@ -98,26 +107,18 @@ fun PhoneSelectionView(
         // or to register a new one if none available.
         if (viewModel.twoFactorContext.collectAsState().value?.tfaProviders?.activeProviders?.isEmpty() == true) {
             // Need to register a new phone number
-            RegisterNewPhoneNumber(
-                viewModel = viewModel,
-                onLoadChanged = { loading = it },
-                onVerificationErrorChanged = { verificationError = it }
-            )
+            RegisterNewPhoneNumber(viewModel = viewModel)
         } else {
             // Show available phone numbers
-            RegisteredPhoneNumbers(
-                viewModel = viewModel,
-                onLoadChanged = { loading = it },
-                onVerificationErrorChanged = { verificationError = it }
-            )
+            RegisteredPhoneNumbers(viewModel = viewModel)
         }
 
         LargeVerticalSpacer()
 
-        if (verificationError.isNotEmpty()) {
-            SimpleErrorMessages(
-                text = verificationError
-            )
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+            }
         }
     }
 }
@@ -125,14 +126,9 @@ fun PhoneSelectionView(
 
 @Composable
 fun RegisterNewPhoneNumber(
-    viewModel: IPhoneSelectionViewModel,
-    onLoadChanged: (Boolean) -> Unit,
-    onVerificationErrorChanged: (String) -> Unit,
+    viewModel: IPhoneSelectionViewModel
 ) {
-    var inputField by remember {
-        mutableStateOf("")
-    }
-
+    val state by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
 
     Text("Please enter your phone number")
@@ -145,7 +141,7 @@ fun RegisterNewPhoneNumber(
                 ContentType.PhoneNumber
             ),
             onFill = {
-                inputField = it
+                viewModel.updateInputField(it)
             }
         )
 
@@ -157,7 +153,7 @@ fun RegisterNewPhoneNumber(
     SmallVerticalSpacer()
 
     TextField(
-        inputField,
+        state.inputField,
         modifier = Modifier
             .fillMaxWidth()
             .connectNode(handler = autoFillHandler)
@@ -173,7 +169,7 @@ fun RegisterNewPhoneNumber(
             color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Normal
         ),
         onValueChange = {
-            inputField = it
+            viewModel.updateInputField(it)
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
         keyboardActions = KeyboardActions {
@@ -189,33 +185,7 @@ fun RegisterNewPhoneNumber(
             .padding(start = 12.dp, end = 12.dp),
         shape = RoundedCornerShape(6.dp),
         onClick = {
-            onLoadChanged(true)
-            onVerificationErrorChanged("")
-            viewModel.registerPhoneNumber(
-                inputField
-            )
-            {
-                onSuccess = {
-                    onLoadChanged(false)
-                }
-
-                onTwoFactorContextUpdated = { updatedContext ->
-                    onLoadChanged(false)
-                    NavigationCoordinator.INSTANCE
-                        .navigate(
-                            "${ProfileScreenRoute.PhoneVerification.route}/${
-                                updatedContext.toJson()
-                            }"
-                        )
-                }
-
-                onError = { error ->
-                    onLoadChanged(false)
-                    onVerificationErrorChanged(
-                        error.message
-                    )
-                }
-            }
+            viewModel.onRegisterPhoneNumber()
         }) {
         Text("Send code")
     }
@@ -223,49 +193,23 @@ fun RegisterNewPhoneNumber(
 
 @Composable
 fun RegisteredPhoneNumbers(
-    viewModel: IPhoneSelectionViewModel,
-    onLoadChanged: (Boolean) -> Unit,
-    onVerificationErrorChanged: (String) -> Unit,
+    viewModel: IPhoneSelectionViewModel
 ) {
-    // Show registered phone numbers
     val phoneList by viewModel.phoneList.collectAsState()
+    
+    LaunchedEffect(Unit) {
+        viewModel.loadRegisteredPhoneNumbers()
+    }
+    
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        items(
-            phoneList
-        ) { tfaPhoneEntity ->
+        items(phoneList) { tfaPhoneEntity ->
             ActionOutlineButton(
                 modifier = Modifier,
                 text = tfaPhoneEntity.obfuscated ?: ""
             ) {
-                onLoadChanged(true)
-                viewModel.sendCode(
-                    tfaPhoneEntity.id ?: "",
-                    "en"
-                ) {
-
-                    onSuccess = {
-                        onLoadChanged(false)
-                    }
-
-                    onTwoFactorContextUpdated = { updatedContext ->
-                        onLoadChanged(false)
-                        NavigationCoordinator.INSTANCE
-                            .navigate(
-                                "${ProfileScreenRoute.PhoneVerification.route}/${
-                                    updatedContext.toJson()
-                                }"
-                            )
-                    }
-
-                    onError = { error ->
-                        onLoadChanged(false)
-                        onVerificationErrorChanged(
-                            error.message
-                        )
-                    }
-                }
+                viewModel.onSendCode(tfaPhoneEntity.id ?: "")
             }
         }
     }
@@ -276,21 +220,6 @@ fun RegisteredPhoneNumbers(
         "Back to Login Screen"
     ) {
         //TODO: Navigate to login screen
-    }
-
-    onLoadChanged(true)
-    viewModel.getRegisteredPhoneNumbers() {
-        onSuccess = {
-            onLoadChanged(false)
-            onVerificationErrorChanged("")
-        }
-
-        onError = { error ->
-            onLoadChanged(false)
-            onVerificationErrorChanged(
-                error.message
-            )
-        }
     }
 }
 

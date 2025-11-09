@@ -9,10 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +22,7 @@ import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.BiometricLockedNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.view.composables.IconAndTextOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
@@ -34,9 +34,21 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
 @Composable
 fun BiometricLockedView(viewModel: IBiometricLockedViewModel) {
     val context = LocalContext.current
-    var loading by remember { mutableStateOf(false) }
-    var unlockError by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsState()
 
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is BiometricLockedNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.MyProfile.route,
+                        rootRoute = ProfileScreenRoute.BiometricLocked.route
+                    )
+                }
+            }
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -58,40 +70,23 @@ fun BiometricLockedView(viewModel: IBiometricLockedViewModel) {
         IconAndTextOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Unlock",
-            onClick = {
-                loading = true
-                unlockError = ""
-                viewModel.unlockWithBiometrics(context as ComponentActivity) {
-                    onSuccess = {
-                        loading = false
-                        // Navigate to MyProfile and remove BiometricLocked from backstack
-                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                            toRoute = ProfileScreenRoute.MyProfile.route,
-                            rootRoute = ProfileScreenRoute.BiometricLocked.route
-                        )
-                    }
-                    onError = { error ->
-                        loading = false
-                        unlockError = error.message
-                    }
-                }
-            },
+            onClick = { viewModel.onUnlockClick(context as ComponentActivity) },
             iconResourceId = R.drawable.ic_faceid,
         )
 
         MediumVerticalSpacer()
 
         // Error message
-        if (unlockError.isNotEmpty()) {
-            SimpleErrorMessages(
-                text = unlockError
-            )
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+            }
         }
     }
 
     // Loading indicator on top of all views.
     Box(Modifier.fillMaxWidth()) {
-        IndeterminateLinearIndicator(loading)
+        IndeterminateLinearIndicator(state.isLoading)
     }
 }
 

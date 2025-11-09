@@ -50,35 +50,14 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun AboutMeView(viewModel: IAboutMeViewModel) {
-    var loading by remember { mutableStateOf(false) }
-    var setError by remember { mutableStateOf("") }
-    var showBanner by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
 
-    val accountInfo by viewModel.flowDelegate?.userAccount?.collectAsState() ?: remember { mutableStateOf(null) }
-
-    var name by remember {
-        mutableStateOf(
-            "${accountInfo?.profile?.firstName ?: ""} ${accountInfo?.profile?.lastName ?: ""}".trim()
-        )
-    }
-
-    var nickname by remember {
-        mutableStateOf(
-            accountInfo?.profile?.nickname ?: ""
-        )
-    }
-
-    var alias by remember {
-        mutableStateOf(
-            accountInfo?.customIdentifiers?.alias ?: ""
-        )
-    }
-
-    if (showBanner) {
-        SuccessBanner(
-            message = "Account updated successfully",
-            onDismiss = { showBanner = false }
-        )
+    // Auto-hide success banner after 2 seconds
+    LaunchedEffect(state.showSuccessBanner) {
+        if (state.showSuccessBanner) {
+            delay(2000)
+            viewModel.onDismissBanner()
+        }
     }
 
     LoadingStateColumn(
@@ -86,7 +65,7 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
             .background(Color(0xFFF5F5F5))
             .fillMaxWidth()
             .fillMaxHeight(),
-        loading = loading
+        loading = state.isLoading
     ) {
         // About me section header with gray background
         Box(
@@ -125,8 +104,8 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 BasicTextField(
-                    value = name,
-                    onValueChange = { name = it },
+                    value = state.name,
+                    onValueChange = { viewModel.onNameChanged(it) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = AppTheme.typography.labelNormal.copy(
                         color = Color.Black,
@@ -168,8 +147,8 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 BasicTextField(
-                    value = alias,
-                    onValueChange = { alias = it },
+                    value = state.alias,
+                    onValueChange = { viewModel.onAliasChanged(it) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = AppTheme.typography.labelNormal.copy(
                         color = Color.Black,
@@ -211,7 +190,7 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = accountInfo?.profile?.email ?: "",
+                    text = state.email,
                     style = AppTheme.typography.labelNormal,
                     color = Color.Black,
                     fontSize = 16.sp,
@@ -248,7 +227,7 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = nickname,
+                    text = state.nickname,
                     style = AppTheme.typography.labelNormal,
                     color = Color.Black,
                     fontSize = 16.sp,
@@ -259,51 +238,30 @@ fun AboutMeView(viewModel: IAboutMeViewModel) {
 
 
         // Error message
-        if (setError.isNotEmpty()) {
-            SimpleErrorMessages(setError)
-            Spacer(modifier = Modifier.height(16.dp))
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(error)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
 
         // Save Changes button
         ActionOutlineInverseButton(
             modifier = Modifier.padding(horizontal = 24.dp),
             text = "Save Changes",
-            onClick = {
-                loading = true
-                viewModel.setAccountInfo(
-                    newName = name,
-                    alias = alias,
-                    authCallbacks = {
-                        onSuccess = {
-                            loading = false
-                            showBanner = true
-                        }
-                        onError = { error ->
-                            loading = false
-                            setError = error.message
-                        }
-                    }
-                )
-            }
+            onClick = { viewModel.onSaveChanges() }
         )
 
+        // Success banner
         AnimatedVisibility(
-            visible = showBanner,
+            visible = state.showSuccessBanner,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
             SuccessBanner(
                 message = "Account updated successfully",
-                onDismiss = { showBanner = false }
+                onDismiss = { viewModel.onDismissBanner() }
             )
-        }
-
-        // Auto-hide after 2 seconds
-        if (showBanner) {
-            LaunchedEffect(Unit) {
-                delay(2000)
-                showBanner = false
-            }
         }
     }
 }

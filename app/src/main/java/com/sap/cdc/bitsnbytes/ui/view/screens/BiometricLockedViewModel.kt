@@ -6,18 +6,24 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
+import com.sap.cdc.bitsnbytes.ui.state.BiometricLockedNavigationEvent
+import com.sap.cdc.bitsnbytes.ui.state.BiometricLockedState
 import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 interface IBiometricLockedViewModel {
-    fun unlockWithBiometrics(
-        activity: ComponentActivity,
-        authCallbacks: com.sap.cdc.android.sdk.feature.AuthCallbacks.() -> Unit
-    ) {
-        // Stub.
-    }
+    val state: StateFlow<BiometricLockedState>
+    val navigationEvents: SharedFlow<BiometricLockedNavigationEvent>
+    
+    fun onUnlockClick(activity: ComponentActivity)
 }
 
 class BiometricLockedViewModel(
@@ -25,10 +31,18 @@ class BiometricLockedViewModel(
     private val flowDelegate: AuthenticationFlowDelegate
 ) : BaseViewModel(context), IBiometricLockedViewModel {
 
-    override fun unlockWithBiometrics(
-        activity: ComponentActivity,
-        authCallbacks: AuthCallbacks.() -> Unit
-    ) {
+    private val _state = MutableStateFlow(BiometricLockedState())
+    override val state: StateFlow<BiometricLockedState> = _state.asStateFlow()
+
+    private val _navigationEvents = MutableSharedFlow<BiometricLockedNavigationEvent>(
+        replay = 1,
+        extraBufferCapacity = 0
+    )
+    override val navigationEvents: SharedFlow<BiometricLockedNavigationEvent> = _navigationEvents.asSharedFlow()
+
+    override fun onUnlockClick(activity: ComponentActivity) {
+        _state.update { it.copy(isLoading = true, error = null) }
+
         viewModelScope.launch {
             val executor = ContextCompat.getMainExecutor(activity)
 
@@ -41,13 +55,24 @@ class BiometricLockedViewModel(
             flowDelegate.biometricUnlock(
                 activity = activity as FragmentActivity,
                 promptInfo = promptInfo,
-                executor = executor,
-                authCallbacks = authCallbacks
-            )
+                executor = executor
+            ) {
+                onSuccess = {
+                    _state.update { it.copy(isLoading = false, error = null) }
+                    _navigationEvents.tryEmit(BiometricLockedNavigationEvent.NavigateToMyProfile)
+                }
+                onError = { error ->
+                    _state.update { it.copy(isLoading = false, error = error.message) }
+                }
+            }
         }
     }
 }
 
 // Mock preview class for the BiometricLockedViewModel
-class BiometricLockedViewModelPreview : IBiometricLockedViewModel
-
+class BiometricLockedViewModelPreview : IBiometricLockedViewModel {
+    override val state: StateFlow<BiometricLockedState> = MutableStateFlow(BiometricLockedState()).asStateFlow()
+    override val navigationEvents: SharedFlow<BiometricLockedNavigationEvent> = MutableSharedFlow<BiometricLockedNavigationEvent>().asSharedFlow()
+    
+    override fun onUnlockClick(activity: ComponentActivity) {}
+}
