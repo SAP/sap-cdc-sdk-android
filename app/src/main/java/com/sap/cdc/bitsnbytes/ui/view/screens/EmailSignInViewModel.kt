@@ -78,7 +78,7 @@ class EmailSignInViewModel(
             flowDelegate.getSaptchaToken {
                 onSuccess = { authSuccess ->
                     _state.update { it.copy(isLoading = false, captchaRequired = false) }
-                    val token = authSuccess.userData["saptchaToken"] as? String
+                    val token = authSuccess.data["saptchaToken"] as? String
                     // Token retrieved but not stored in state - could be added if needed
                 }
                 onError = { error ->

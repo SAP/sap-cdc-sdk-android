@@ -18,7 +18,7 @@ sealed class AuthResult {
 
 data class AuthSuccess(
     val jsonData: String,
-    val userData: Map<String, Any>
+    val data: Map<String, Any>
 )
 
 @Serializable

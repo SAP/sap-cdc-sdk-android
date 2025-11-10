@@ -91,7 +91,7 @@ class AuthCallbacksEnhancementTest {
             // Override transformer
             doOnSuccessAndOverride { authSuccess ->
                 authSuccess.copy(
-                    userData = authSuccess.userData + ("transformed" to "true")
+                    data = authSuccess.data + ("transformed" to "true")
                 )
             }
             
@@ -103,13 +103,13 @@ class AuthCallbacksEnhancementTest {
             // Regular callback
             onSuccess = { authSuccess ->
                 regularCallbackExecuted = true
-                transformedValue = authSuccess.userData["transformed"] as? String
+                transformedValue = authSuccess.data["transformed"] as? String
             }
         }
         
         val testSuccess = AuthSuccess(
             jsonData = "{}",
-            userData = mapOf("original" to "data")
+            data = mapOf("original" to "data")
         )
         
         // Execute - should handle async transformation automatically
@@ -135,7 +135,7 @@ class AuthCallbacksEnhancementTest {
                         // Transform success data
                         AuthResult.Success(
                             authResult.authSuccess.copy(
-                                userData = authResult.authSuccess.userData + ("universalOverride" to "applied")
+                                data = authResult.authSuccess.data + ("universalOverride" to "applied")
                             )
                         )
                     }
@@ -146,13 +146,13 @@ class AuthCallbacksEnhancementTest {
             // Regular callback
             onSuccess = { authSuccess ->
                 callbackExecuted = true
-                transformedValue = authSuccess.userData["universalOverride"] as? String
+                transformedValue = authSuccess.data["universalOverride"] as? String
             }
         }
         
         val testSuccess = AuthSuccess(
             jsonData = "{}",
-            userData = mapOf("original" to "data")
+            data = mapOf("original" to "data")
         )
         
         // Execute - universal override should be applied
@@ -218,7 +218,7 @@ class AuthCallbacksEnhancementTest {
                     is AuthResult.Success -> {
                         AuthResult.Success(
                             authResult.authSuccess.copy(
-                                userData = authResult.authSuccess.userData + ("universal" to "first")
+                                data = authResult.authSuccess.data + ("universal" to "first")
                             )
                         )
                     }
@@ -229,20 +229,20 @@ class AuthCallbacksEnhancementTest {
             // Individual override (applied second)
             doOnSuccessAndOverride { authSuccess ->
                 authSuccess.copy(
-                    userData = authSuccess.userData + ("individual" to "second")
+                    data = authSuccess.data + ("individual" to "second")
                 )
             }
             
             // Regular callback
             onSuccess = { authSuccess ->
                 callbackExecuted = true
-                finalValue = "${authSuccess.userData["universal"]}-${authSuccess.userData["individual"]}"
+                finalValue = "${authSuccess.data["universal"]}-${authSuccess.data["individual"]}"
             }
         }
         
         val testSuccess = AuthSuccess(
             jsonData = "{}",
-            userData = mapOf("original" to "data")
+            data = mapOf("original" to "data")
         )
         
         // Execute - both overrides should be applied in correct order
@@ -289,7 +289,7 @@ class AuthCallbacksEnhancementTest {
         
         val testSuccess = AuthSuccess(
             jsonData = "{}",
-            userData = mapOf("original" to "data")
+            data = mapOf("original" to "data")
         )
         
         // Execute success callback - should be converted to error by universal override

@@ -314,7 +314,7 @@ class WebBridgeJSApiService(
 
                     // Specific evaluation is required by WebSDK for oAuthRequest.
                     val evaluationString =
-                        "{\"errorCode\":" + authResponse.userData["errorCode"] + ",\"userInfo\":" + authResponse.jsonData + "}"
+                        "{\"errorCode\":" + authResponse.data["errorCode"] + ",\"userInfo\":" + authResponse.jsonData + "}"
 
                     // Evaluate interruption if required.
                     launchAsync {
