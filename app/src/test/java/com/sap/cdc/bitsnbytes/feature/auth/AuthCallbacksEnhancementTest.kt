@@ -5,10 +5,7 @@ import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthResult
 import com.sap.cdc.android.sdk.feature.AuthSuccess
 import com.sap.cdc.android.sdk.feature.RegistrationContext
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 
 /**
@@ -253,7 +250,7 @@ class AuthCallbacksEnhancementTest {
     }
     
     @Test
-    fun `test universal override can change callback type - Success to Error`() {
+    fun `test universal override routes Success to Error callbacks only`() {
         var successCallbackExecuted = false
         var errorCallbackExecuted = false
         var errorMessage: String? = null
@@ -292,20 +289,13 @@ class AuthCallbacksEnhancementTest {
             data = mapOf("original" to "data")
         )
         
-        // Execute success callback - should be converted to error by universal override
+        // Execute success callback - should be ROUTED to error callback
         callbacks.onSuccess?.invoke(testSuccess)
         
-        // The success callback should still execute (since we called onSuccess)
-        // but the data should be unchanged since universal override changed the type
-        assertTrue("Success callback should execute", successCallbackExecuted)
-        assertFalse("Error callback should not execute from success call", errorCallbackExecuted)
-        
-        // Now test with actual error to verify error callback works
-        val testError = AuthError(message = "Test error")
-        callbacks.onError?.invoke(testError)
-        
-        assertTrue("Error callback should execute", errorCallbackExecuted)
-        assertEquals("Test error", errorMessage)
+        // With the router fix, only error callback should execute
+        assertFalse("Success callback should NOT execute", successCallbackExecuted)
+        assertTrue("Error callback SHOULD execute", errorCallbackExecuted)
+        assertEquals("Converted by universal override", errorMessage)
     }
     
     @Test
@@ -339,5 +329,85 @@ class AuthCallbacksEnhancementTest {
         
         assertTrue("Callback should have been executed", callbackExecuted)
         assertEquals("individualOverride", transformedValue)
+    }
+    
+    @Test
+    fun `test linkToProvider pattern - connectAccountSync error routes to onError only`() {
+        var successExecuted = false
+        var errorExecuted = false
+        var errorMsg: String? = null
+        
+        val callbacks = AuthCallbacks().apply {
+            doOnAnyAndOverride { authResult ->
+                when (authResult) {
+                    is AuthResult.Success -> {
+                        // Simulate connectAccountSync returning error
+                        AuthResult.Error(
+                            AuthError(
+                                message = "Connection failed",
+                                code = "CONNECT_ERROR"
+                            )
+                        )
+                    }
+                    else -> authResult
+                }
+            }
+        }.apply {
+            onSuccess = {
+                successExecuted = true
+            }
+            onError = { error ->
+                errorExecuted = true
+                errorMsg = error.message
+            }
+        }
+        
+        // Simulate signIn returning success
+        callbacks.onSuccess?.invoke(AuthSuccess("{}", emptyMap()))
+        
+        // Verify only error callback executed
+        assertFalse("Success callback should NOT execute", successExecuted)
+        assertTrue("Error callback SHOULD execute", errorExecuted)
+        assertEquals("Connection failed", errorMsg)
+    }
+    
+    @Test
+    fun `test linkToProvider pattern - connectAccountSync success executes onSuccess`() {
+        var successExecuted = false
+        var errorExecuted = false
+        var successData: Map<String, Any>? = null
+        
+        val callbacks = AuthCallbacks().apply {
+            doOnAnyAndOverride { authResult ->
+                when (authResult) {
+                    is AuthResult.Success -> {
+                        // Simulate connectAccountSync returning success with enriched data
+                        AuthResult.Success(
+                            authResult.authSuccess.copy(
+                                data = authResult.authSuccess.data + ("connected" to true)
+                            )
+                        )
+                    }
+                    else -> authResult
+                }
+            }
+        }.apply {
+            onSuccess = { authSuccess ->
+                successExecuted = true
+                successData = authSuccess.data
+            }
+            onError = {
+                errorExecuted = true
+            }
+        }
+        
+        // Simulate signIn returning success
+        callbacks.onSuccess?.invoke(AuthSuccess("{}", mapOf("account" to "linked")))
+        
+        // Verify only success callback executed with enriched data
+        assertTrue("Success callback SHOULD execute", successExecuted)
+        assertFalse("Error callback should NOT execute", errorExecuted)
+        assertEquals(true, successData?.get("connected"))
+        assertEquals("linked", successData?.get("account"))
     }
 }
