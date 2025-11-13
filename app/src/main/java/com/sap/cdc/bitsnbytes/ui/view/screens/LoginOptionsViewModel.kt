@@ -15,12 +15,23 @@ import com.sap.cdc.android.sdk.feature.session.SessionSecureLevel
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.feature.messaging.NotificationPermissionManager
 import com.sap.cdc.bitsnbytes.feature.provider.PasskeysAuthenticationProvider
+import com.sap.cdc.bitsnbytes.ui.state.LoginOptionsState
 import com.sap.cdc.bitsnbytes.ui.view.viewmodel.BaseViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 
 interface ILoginOptionsViewModel {
+    val state: StateFlow<LoginOptionsState>
+
+    fun showBanner(message: String) {}
+    fun hideBanner() {}
+    fun setLoading(isLoading: Boolean) {}
+    fun setError(error: String?) {}
 
     fun isBiometricActive(): Boolean
 
@@ -129,7 +140,13 @@ interface ILoginOptionsViewModel {
 
 // Mocked preview class for LoginOptionsViewModel
 class LoginOptionsViewModelPreview : ILoginOptionsViewModel {
-
+    override val state: StateFlow<LoginOptionsState> = MutableStateFlow(LoginOptionsState()).asStateFlow()
+    
+    override fun showBanner(message: String) {}
+    override fun hideBanner() {}
+    override fun setLoading(isLoading: Boolean) {}
+    override fun setError(error: String?) {}
+    
     override fun isBiometricActive(): Boolean = true
     override fun isBiometricLocked(): Boolean = false
     override fun isPasswordlessKeyActive(): Boolean = false
@@ -158,6 +175,25 @@ class LoginOptionsViewModel(
     val authenticationFlowDelegate: AuthenticationFlowDelegate
 ) : BaseViewModel(context),
     ILoginOptionsViewModel {
+
+    private val _state = MutableStateFlow(LoginOptionsState())
+    override val state: StateFlow<LoginOptionsState> = _state.asStateFlow()
+
+    override fun showBanner(message: String) {
+        _state.update { it.copy(showBanner = true, bannerText = message) }
+    }
+
+    override fun hideBanner() {
+        _state.update { it.copy(showBanner = false) }
+    }
+
+    override fun setLoading(isLoading: Boolean) {
+        _state.update { it.copy(isLoading = isLoading) }
+    }
+
+    override fun setError(error: String?) {
+        _state.update { it.copy(error = error) }
+    }
 
     //region BIOMETRIC
 

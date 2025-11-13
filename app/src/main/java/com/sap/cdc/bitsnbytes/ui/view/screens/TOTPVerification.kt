@@ -23,13 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
@@ -41,9 +38,8 @@ import com.sap.cdc.android.sdk.feature.tfa.TFAProvidersEntity
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
-import com.sap.cdc.bitsnbytes.ui.utils.connectNode
-import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
+import com.sap.cdc.bitsnbytes.ui.state.TOTPVerificationNavigationEvent
+import com.sap.cdc.bitsnbytes.ui.utils.autofillSemantics
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
@@ -54,57 +50,38 @@ fun TOTPVerificationView(
     viewModel: ITOTPVerificationViewModel,
     twoFactorContext: TwoFactorContext
 ) {
-    var loading by remember { mutableStateOf(false) }
-    var verificationError by remember { mutableStateOf("") }
-
     LaunchedEffect(twoFactorContext) {
         viewModel.updateTwoFactorContext(twoFactorContext)
     }
 
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is TOTPVerificationNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                }
+            }
+        }
+    }
+
     if (viewModel.twoFactorContext.collectAsState().value?.tfaProviders?.activeProviders?.isEmpty() == true) {
-        // Need to register a new authenticator app
-        RegisterAuthenticatorAppWithQAView(
-            viewModel = viewModel,
-            onLoadChanged = { loading = it },
-            onVerificationErrorChanged = { verificationError = it }
-        )
+        RegisterAuthenticatorAppWithQAView(viewModel = viewModel)
     } else {
-        // Show verification view only.
-        TOTPCodeVerificationView(
-            viewModel = viewModel,
-            onLoadChanged = { loading = it },
-            onVerificationErrorChanged = { verificationError = it }
-        )
+        TOTPCodeVerificationView(viewModel = viewModel)
     }
 }
 
 @Composable
 fun RegisterAuthenticatorAppWithQAView(
-    viewModel: ITOTPVerificationViewModel,
-    onLoadChanged: (Boolean) -> Unit,
-    onVerificationErrorChanged: (String) -> Unit,
+    viewModel: ITOTPVerificationViewModel
 ) {
-    var bitmap = viewModel.qACode.collectAsState().value
-
+    val state by viewModel.state.collectAsState()
+    val bitmap = viewModel.qACode.collectAsState().value
     val scrollState = rememberScrollState()
 
-    var otpValue by remember {
-        mutableStateOf("")
-    }
-
     LaunchedEffect(Unit) {
-        onLoadChanged(true)
-        viewModel.registerNewAuthenticatorApp() {
-            onSuccess = {
-                onLoadChanged(false)
-                onVerificationErrorChanged("")
-            }
-
-            onError = { error ->
-                onLoadChanged(false)
-                onVerificationErrorChanged(error.message)
-            }
-        }
+        viewModel.onRegisterNewAuthenticatorApp()
     }
 
 
@@ -162,23 +139,11 @@ fun RegisterAuthenticatorAppWithQAView(
             MediumVerticalSpacer()
 
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                val autoFillHandler =
-                    autoFillRequestHandler(
-                        autofillTypes = listOf(
-                            AutofillType.SmsOtpCode,
-                            AutofillType.EmailAddress
-                        ),
-                        onFill = {
-                            otpValue = it
-                        }
-                    )
                 OtpTextField(
                     modifier = Modifier
-                        .connectNode(handler = autoFillHandler)
-                        .defaultFocusChangeAutoFill(handler = autoFillHandler),
-                    otpText = otpValue, onOtpTextChange = { value, _ ->
-                        otpValue = value
-                        if (value.isEmpty()) autoFillHandler.requestVerifyManual()
+                        .autofillSemantics(ContentType.SmsOtpCode),
+                    otpText = state.otpValue, onOtpTextChange = { value, _ ->
+                        viewModel.updateOtpValue(value)
                     })
             }
 
@@ -190,23 +155,7 @@ fun RegisterAuthenticatorAppWithQAView(
                     .padding(start = 44.dp, end = 44.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
-                    onLoadChanged(true)
-                    viewModel.verifyCode(
-                        verificationCode = otpValue,
-                        rememberDevice = false,
-                    ) {
-                        onSuccess = {
-                            onLoadChanged(false)
-                            onVerificationErrorChanged("")
-                            // Navigate to the next screen.
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        }
-
-                        onError = { error ->
-                            onLoadChanged(false)
-                            onVerificationErrorChanged(error.message)
-                        }
-                    }
+                    viewModel.onVerifyCode()
                 }) {
                 Text("Finish")
             }
@@ -230,13 +179,9 @@ fun BitmapImageView(bitmap: Bitmap?) {
 
 @Composable
 fun TOTPCodeVerificationView(
-    viewModel: ITOTPVerificationViewModel,
-    onLoadChanged: (Boolean) -> Unit,
-    onVerificationErrorChanged: (String) -> Unit,
+    viewModel: ITOTPVerificationViewModel
 ) {
-    var otpValue by remember {
-        mutableStateOf("")
-    }
+    val state by viewModel.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -261,20 +206,11 @@ fun TOTPCodeVerificationView(
         MediumVerticalSpacer()
 
         Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            val autoFillHandler =
-                autoFillRequestHandler(
-                    autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
-                    onFill = {
-                        otpValue = it
-                    }
-                )
             OtpTextField(
                 modifier = Modifier
-                    .connectNode(handler = autoFillHandler)
-                    .defaultFocusChangeAutoFill(handler = autoFillHandler),
-                otpText = otpValue, onOtpTextChange = { value, _ ->
-                    otpValue = value
-                    if (value.isEmpty()) autoFillHandler.requestVerifyManual()
+                    .autofillSemantics(ContentType.SmsOtpCode),
+                otpText = state.otpValue, onOtpTextChange = { value, _ ->
+                    viewModel.updateOtpValue(value)
                 })
         }
 
@@ -286,23 +222,7 @@ fun TOTPCodeVerificationView(
                 .padding(start = 44.dp, end = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
-                onLoadChanged(true)
-                viewModel.verifyCode(
-                    verificationCode = otpValue,
-                    rememberDevice = false,
-                ) {
-                    onSuccess = {
-                        onLoadChanged(false)
-                        onVerificationErrorChanged("")
-                        // Navigate to the next screen.
-                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                    }
-
-                    onError = { error ->
-                        onLoadChanged(false)
-                        onVerificationErrorChanged(error.message)
-                    }
-                }
+                viewModel.onVerifyCode()
             }) {
             Text("Verify")
         }

@@ -24,10 +24,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -62,12 +61,8 @@ import kotlinx.coroutines.delay
 @Composable
 fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     val context = LocalContext.current
-
-    var loading by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
     val executor = remember { ContextCompat.getMainExecutor(context) }
-    var optionsError: String? by remember { mutableStateOf("") }
-    var showBanner by remember { mutableStateOf(false) }
-    var bannerText by remember { mutableStateOf("") }
 
     val view = LocalView.current
     val notificationPermission = if (view.isInEditMode) null
@@ -81,15 +76,15 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
     
     // UI elements.
 
-    if (showBanner) {
+    if (state.showBanner) {
         SuccessBanner(
-            message = bannerText,
-            onDismiss = { showBanner = false }
+            message = state.bannerText,
+            onDismiss = { viewModel.hideBanner() }
         )
     }
 
     LoadingStateColumn(
-        loading = loading,
+        loading = state.isLoading,
         modifier = Modifier
             .background(Color.White)
             .fillMaxWidth()
@@ -116,19 +111,18 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                         // Navigate to PasskeysCredentials view to show credentials list
                         NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.PasskeysCredentials.route)
                     } else {
-                        loading = true
+                        viewModel.setLoading(true)
                         viewModel.createPasskey(
                             activity = context as ComponentActivity
                         ) {
                             onSuccess = {
-                                loading = false
-                                bannerText = "Passkey added"
-                                showBanner = true
+                                viewModel.setLoading(false)
+                                viewModel.showBanner("Passkey added")
                             }
 
                             onError = { error ->
-                                loading = false
-                                optionsError = error.message
+                                viewModel.setLoading(false)
+                                viewModel.setError(error.message)
                             }
                         }
                     }
@@ -147,39 +141,38 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
             onClick = {
                 if (viewModel.isPushAuthenticationActive()) {
                     // Deactivating - no permission check needed
-                    loading = true
+                    viewModel.setLoading(true)
                     viewModel.optOutForAuthenticationNotifications {
                         onSuccess = {
-                            loading = false
+                            viewModel.setLoading(false)
                             viewModel.togglePushAuthentication()
                         }
 
                         onError = { error ->
-                            loading = false
-                            optionsError = error.message
+                            viewModel.setLoading(false)
+                            viewModel.setError(error.message)
                         }
                     }
                 } else {
                     // Activating - check permission first
-                    loading = true
+                    viewModel.setLoading(true)
                     viewModel.requestPushAuthentication(
                         isPermissionGranted = isGranted ?: false,
                         onPermissionRequired = {
-                            loading = false
+                            viewModel.setLoading(false)
                             // Request permission through Accompanist
                             notificationPermission?.launchPermissionRequest()
                         }
                     ) {
                         onSuccess = {
-                            loading = false
-                            bannerText = "Push Authentication enabled"
-                            showBanner = true
+                            viewModel.setLoading(false)
+                            viewModel.showBanner("Push Authentication enabled")
                             viewModel.togglePushAuthentication()
                         }
 
                         onError = { error ->
-                            loading = false
-                            optionsError = error.message
+                            viewModel.setLoading(false)
+                            viewModel.setError(error.message)
                         }
                     }
                 }
@@ -198,24 +191,23 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                     // No deactivation is available for push 2FA - button is disabled
                 } else {
                     // Activating - check permission first
-                    loading = true
+                    viewModel.setLoading(true)
                     viewModel.requestPushTwoFactorAuth(
                         isPermissionGranted = isGranted ?: false,
                         onPermissionRequired = {
-                            loading = false
+                            viewModel.setLoading(false)
                             // Request permission through Accompanist
                             notificationPermission?.launchPermissionRequest()
                         }
                     ) {
                         onSuccess = {
-                            loading = false
-                            bannerText = "Push 2-Factor Authentication enabled"
-                            showBanner = true
+                            viewModel.setLoading(false)
+                            viewModel.showBanner("Push 2-Factor Authentication enabled")
                         }
 
                         onError = { error ->
-                            loading = false
-                            optionsError = error.message
+                            viewModel.setLoading(false)
+                            viewModel.setError(error.message)
                         }
                     }
                 }
@@ -245,7 +237,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                             viewModel.toggleBiometricAuthentication()
                         }
                         onError = { error ->
-                            optionsError = error.message
+                            viewModel.setError(error.message)
                         }
                     }
                 } else  {
@@ -262,7 +254,7 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
                             viewModel.toggleBiometricAuthentication()
                         }
                         onError = { error ->
-                            optionsError = error.message
+                            viewModel.setError(error.message)
                         }
                     }
                 }
@@ -273,30 +265,30 @@ fun LoginOptionsView(viewModel: ILoginOptionsViewModel) {
         LargeVerticalSpacer()
 
         // Error message
-        if (optionsError?.isNotEmpty() ?: false) {
-            SimpleErrorMessages(
-                text = optionsError!!
-            )
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+            }
         }
 
         LargeVerticalSpacer()
 
         AnimatedVisibility(
-            visible = showBanner,
+            visible = state.showBanner,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
             SuccessBanner(
                 message = "Account updated successfully",
-                onDismiss = { showBanner = false }
+                onDismiss = { viewModel.hideBanner() }
             )
         }
 
         // Auto-hide after 2 seconds
-        if (showBanner) {
+        if (state.showBanner) {
             LaunchedEffect(Unit) {
                 delay(2000)
-                showBanner = false
+                viewModel.hideBanner()
             }
         }
     }

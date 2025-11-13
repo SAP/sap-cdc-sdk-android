@@ -189,7 +189,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             var linkEntities: LinkEntities? = null
             val authResult = getConflictingAccountsSync(mutableMapOf("regToken" to (regToken ?: "")))
             if (authResult is AuthResult.Success) {
-                val conflictingJson = authResult.authSuccess.userData["conflictingAccount"] as JsonObject
+                val conflictingJson = authResult.authSuccess.data["conflictingAccount"] as JsonObject
                 linkEntities = json.decodeFromJsonElement(conflictingJson)
             }
 

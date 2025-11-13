@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +26,7 @@ import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.AuthMethodsNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.view.composables.IconAndTextOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallActionTextButton
 
@@ -31,6 +35,27 @@ fun AuthMethodsView(
     viewModel: IAuthMethodsViewModel,
     twoFactorContext: TwoFactorContext,
 ) {
+    val state by viewModel.state.collectAsState()
+
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is AuthMethodsNavigationEvent.NavigateToPhoneSelection -> {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.PhoneSelection.route)
+                }
+                is AuthMethodsNavigationEvent.NavigateToTOTPVerification -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.TOTPVerification.route}/${event.context}"
+                    )
+                }
+                is AuthMethodsNavigationEvent.NavigateToLogin -> {
+                    // TODO: Navigate to login screen
+                }
+            }
+        }
+    }
+
     //TODO: Dynamically show the auth methods based on the resolvable context available/unavailable providers
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -63,9 +88,7 @@ fun AuthMethodsView(
         IconAndTextOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Send Code to Email",
-            onClick = {
-                //TODO: SEND CODE TO EMAIL
-            },
+            onClick = { viewModel.onSendCodeToEmail() },
             iconResourceId = R.drawable.ic_email,
         )
         Spacer(modifier = Modifier.size(10.dp))
@@ -74,34 +97,24 @@ fun AuthMethodsView(
         IconAndTextOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Send Code to Phone",
-            onClick = {
-                NavigationCoordinator.INSTANCE
-                    .navigate(ProfileScreenRoute.PhoneSelection.route)
-            },
+            onClick = { viewModel.onSendCodeToPhone() },
             iconResourceId = R.drawable.ic_device,
-
-            )
+        )
         Spacer(modifier = Modifier.size(10.dp))
 
         // Use a TOTP App button
         IconAndTextOutlineButton(
             modifier = Modifier.size(width = 240.dp, height = 44.dp),
             text = "Use a TOTP App",
-            onClick = {
-                NavigationCoordinator.INSTANCE
-                    .navigate("${ProfileScreenRoute.TOTPVerification.route}/" +
-                            twoFactorContext.toJson()
-                    )
-            },
+            onClick = { viewModel.onUseTOTPApp() },
             iconResourceId = R.drawable.ic_lock,
-
-            )
+        )
         Spacer(modifier = Modifier.size(10.dp))
 
         SmallActionTextButton(
             "Back to Login Screen"
         ) {
-            //TODO: Navigate to login screen
+            viewModel.onBackToLogin()
         }
     }
 }

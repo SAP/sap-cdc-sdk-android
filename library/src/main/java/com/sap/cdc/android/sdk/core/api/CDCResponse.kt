@@ -83,10 +83,10 @@ class CDCResponse {
         )
     }
 
-    internal fun providerError() = apply {
+    internal fun providerError(message: String? = null) = apply {
         fromError(
             400122,
-            "Provider error",
+            message ?: "Provider error",
             "Provider configuration error"
         )
     }

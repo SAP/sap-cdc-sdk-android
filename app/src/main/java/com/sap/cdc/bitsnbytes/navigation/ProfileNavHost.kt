@@ -254,8 +254,9 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
                 val decodedTwoFactorJson = Uri.decode(encodedTwoFactorJson!!)
                 val resolvable = Json.decodeFromString<TwoFactorContext>(decodedTwoFactorJson)
                 val viewModel: AuthMethodsViewModel = ViewModelScopeProvider.screenScopedViewModel(
-                    factory = CustomViewModelFactory(context)
+                    factory = CustomViewModelFactory(context, authDelegate)
                 )
+                viewModel.initializeWithContext(decodedTwoFactorJson)
                 AuthMethodsView(viewModel, resolvable)
             }
 

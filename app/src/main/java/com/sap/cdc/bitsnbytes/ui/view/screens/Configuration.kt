@@ -21,6 +21,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -28,7 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,10 +58,7 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 @Composable
 fun ConfigurationView(viewModel : IConfigurationViewModel) {
     val context = LocalContext.current
-    val apiKey = remember { mutableStateOf(viewModel.currentApiKey()) }
-    val domain = remember { mutableStateOf(viewModel.currentApiDomain()) }
-    val cname = remember { mutableStateOf(viewModel.currentCname()) }
-    var checked by remember { mutableStateOf(viewModel.webViewUse()) }
+    val state by viewModel.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -77,14 +75,22 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
         ) {
-            ConfigurationCardEdit(title = "Api Key", valueState = apiKey)
+            ConfigurationCardEdit(
+                title = "Api Key",
+                value = state.apiKey,
+                onValueChange = { viewModel.onApiKeyChanged(it) }
+            )
             Spacer(
                 modifier = Modifier
                     .height(2.dp)
                     .fillMaxWidth()
                     .background(color = Color.LightGray)
             )
-            ConfigurationCardExposed(title = "Domain", valueState = domain)
+            ConfigurationCardExposed(
+                title = "Domain",
+                value = state.domain,
+                onValueChange = { viewModel.onDomainChanged(it) }
+            )
             Spacer(
                 modifier = Modifier
                     .height(2.dp)
@@ -92,7 +98,9 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
                     .background(color = Color.LightGray)
             )
             ConfigurationCardEdit(
-                title = "cname".uppercase(), valueState = cname
+                title = "cname".uppercase(),
+                value = state.cname,
+                onValueChange = { viewModel.onCnameChanged(it) }
             )
             CustomColoredSizeVerticalSpacer(
                 color = Color.LightGray,
@@ -106,12 +114,9 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
                 ) {
                     Text("Use Web View (default: native view)", style = AppTheme.typography.body)
                     Switch(
-                        checked = viewModel.webViewUse(),
-                        onCheckedChange = {
-                            checked = it
-                            viewModel.updateWebViewUse(checked)
-                        },
-                        thumbContent = if (checked) {
+                        checked = state.useWebView,
+                        onCheckedChange = { viewModel.onWebViewToggled(it) },
+                        thumbContent = if (state.useWebView) {
                             {
                                 Icon(
                                     imageVector = Icons.Filled.Check,
@@ -131,16 +136,7 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
         ActionOutlineInverseButton(
             modifier = Modifier.size(width = 260.dp, height = 48.dp),
             text = "Save Changes",
-            onClick = {
-                viewModel.updateWithNewConfig(
-                    SiteConfig(
-                        context,
-                        apiKey = apiKey.value,
-                        domain = domain.value,
-                        cname = cname.value
-                    )
-                )
-            }
+            onClick = { viewModel.onSaveChanges() }
         )
     }
 }
@@ -154,7 +150,7 @@ fun ConfigurationViewPreview() {
 }
 
 @Composable
-fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
+fun ConfigurationCardEdit(title: String, value: String, onValueChange: (String) -> Unit) {
     MediumVerticalSpacer()
     Column(
     ) {
@@ -162,11 +158,9 @@ fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
             title, style = AppTheme.typography.labelNormal,
             modifier = Modifier.padding(start = 16.dp),)
         TextField(
-            valueState.value,
+            value,
             textStyle = AppTheme.typography.body,
-            onValueChange = {
-                valueState.value = it
-            },
+            onValueChange = onValueChange,
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
@@ -180,7 +174,7 @@ fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
 }
 
 @Composable
-fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
+fun ConfigurationCardExposed(title: String, value: String, onValueChange: (String) -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
 
     Column {
@@ -194,7 +188,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
             onExpandedChange = { isExpanded = it })
         {
             TextField(
-                value = valueState.value,
+                value = value,
                 onValueChange = {},
                 readOnly = true,
                 textStyle = AppTheme.typography.body,
@@ -204,7 +198,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
                     unfocusedContainerColor = Color.White
                 ),
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
                     .fillMaxWidth()
             )
 
@@ -222,7 +216,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
                         Text(text = "us1.gigya.com")
                     },
                     onClick = {
-                        valueState.value = "us1.gigya.com"
+                        onValueChange("us1.gigya.com")
                         isExpanded = false
                     },
                 )
@@ -231,7 +225,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
                         Text(text = "eu1.gigya.com")
                     },
                     onClick = {
-                        valueState.value = "eu1.gigya.com"
+                        onValueChange("eu1.gigya.com")
                         isExpanded = false
                     },
                 )

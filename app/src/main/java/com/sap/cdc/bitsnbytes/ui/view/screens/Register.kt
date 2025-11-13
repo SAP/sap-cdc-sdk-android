@@ -11,10 +11,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,9 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
-import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.RegisterNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.view.composables.IconAndTextOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
@@ -37,8 +36,31 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.ViewDynamicSocialSelection
 @Composable
 fun RegisterView(viewModel: IRegisterViewModel) {
     val context = LocalContext.current
-    var loading by remember { mutableStateOf(false) }
-    var registerError by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsState()
+
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is RegisterNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.MyProfile.route,
+                        rootRoute = ProfileScreenRoute.Welcome.route
+                    )
+                }
+                is RegisterNavigationEvent.NavigateToPendingRegistration -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.ResolvePendingRegistration.route}/${event.registrationContext}"
+                    )
+                }
+                is RegisterNavigationEvent.NavigateToLinkAccount -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.ResolveLinkAccount.route}/${event.linkingContext}"
+                    )
+                }
+            }
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -60,43 +82,10 @@ fun RegisterView(viewModel: IRegisterViewModel) {
         ViewDynamicSocialSelection(
             listOf("facebook", "google", "apple", "line")
         ) { provider ->
-            viewModel.socialSignInWith(
+            viewModel.onSocialSignIn(
                 hostActivity = context as ComponentActivity,
                 provider = provider
-            ) {
-                onSuccess = {
-                    loading = false
-                    registerError = ""
-                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                        toRoute = ProfileScreenRoute.MyProfile.route,
-                        rootRoute = ProfileScreenRoute.Welcome.route
-                    )
-                }
-                onError = { error ->
-                    loading = false
-                    registerError = error.message
-                }
-
-                onPendingRegistration = { registrationContext ->
-                    loading = false
-                    NavigationCoordinator.INSTANCE
-                        .navigate(
-                            "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                registrationContext.toJson()
-                            }"
-                        )
-                }
-
-                onLinkingRequired = { linkingContext ->
-                    loading = false
-                    NavigationCoordinator.INSTANCE
-                        .navigate(
-                            "${ProfileScreenRoute.ResolveLinkAccount.route}/${
-                                linkingContext.toJson()
-                            }"
-                        )
-                }
-            }
+            )
         }
 
         // Divider
@@ -130,16 +119,16 @@ fun RegisterView(viewModel: IRegisterViewModel) {
         LargeVerticalSpacer()
 
         // Error message
-        if (registerError.isNotEmpty()) {
-            SimpleErrorMessages(
-                text = registerError
-            )
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+            }
         }
     }
 
     // Loading indicator on top of all views.
     Box(Modifier.fillMaxWidth()) {
-        IndeterminateLinearIndicator(loading)
+        IndeterminateLinearIndicator(state.isLoading)
     }
 }
 

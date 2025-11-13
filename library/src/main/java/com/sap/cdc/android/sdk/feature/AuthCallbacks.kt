@@ -18,7 +18,7 @@ sealed class AuthResult {
 
 data class AuthSuccess(
     val jsonData: String,
-    val userData: Map<String, Any>
+    val data: Map<String, Any>
 )
 
 @Serializable
@@ -379,18 +379,62 @@ data class AuthCallbacks(
 
     fun hasUniversalOverride(): Boolean = _universalOverride != null
 
-    // NEW: Suspend execution methods for async callback chains
-    suspend fun executeOnSuccess(authSuccess: AuthSuccess): AuthSuccess {
-        var currentValue = authSuccess
-
+    // NEW: Central callback router that applies universal override and routes to correct callback type.
+    // This ensures that when universal override changes the result type (e.g., Success → Error),
+    // only the appropriate callbacks execute.
+    private suspend fun executeCallback(authResult: AuthResult) {
         // Apply universal override first if present
-        if (hasUniversalOverride()) {
-            val universalResult = executeUniversalOverride(AuthResult.Success(currentValue))
-            currentValue = when (universalResult) {
-                is AuthResult.Success -> universalResult.authSuccess
-                else -> currentValue // Keep original if universal override changed the type
-            }
+        val finalResult = if (hasUniversalOverride()) {
+            executeUniversalOverride(authResult)
+        } else {
+            authResult
         }
+
+        // Route to correct handler based on FINAL result type
+        when (finalResult) {
+            is AuthResult.Success -> executeOnSuccessInternal(finalResult.authSuccess)
+            is AuthResult.Error -> executeOnErrorInternal(finalResult.authError)
+            is AuthResult.PendingRegistration -> executeOnPendingRegistrationInternal(finalResult.context)
+            is AuthResult.LinkingRequired -> executeOnLinkingRequiredInternal(finalResult.context)
+            is AuthResult.TwoFactorRequired -> executeOnTwoFactorRequiredInternal(finalResult.context)
+            is AuthResult.OTPRequired -> executeOnOTPRequiredInternal(finalResult.context)
+            is AuthResult.CaptchaRequired -> executeOnCaptchaRequiredInternal()
+        }
+    }
+
+    // NEW: Public execute methods that wrap inputs and route through central router
+    suspend fun executeOnSuccess(authSuccess: AuthSuccess) {
+        executeCallback(AuthResult.Success(authSuccess))
+    }
+
+    suspend fun executeOnError(authError: AuthError) {
+        executeCallback(AuthResult.Error(authError))
+    }
+
+    suspend fun executeOnPendingRegistration(context: RegistrationContext) {
+        executeCallback(AuthResult.PendingRegistration(context))
+    }
+
+    suspend fun executeOnLinkingRequired(context: LinkingContext) {
+        executeCallback(AuthResult.LinkingRequired(context))
+    }
+
+    suspend fun executeOnTwoFactorRequired(context: TwoFactorContext) {
+        executeCallback(AuthResult.TwoFactorRequired(context))
+    }
+
+    suspend fun executeOnOTPRequired(context: OTPContext) {
+        executeCallback(AuthResult.OTPRequired(context))
+    }
+
+    suspend fun executeOnCaptchaRequired() {
+        executeCallback(AuthResult.CaptchaRequired)
+    }
+
+    // Internal execution methods - apply individual overrides and execute callbacks
+    // (Universal override is already applied by the router before reaching here)
+    private suspend fun executeOnSuccessInternal(authSuccess: AuthSuccess) {
+        var currentValue = authSuccess
 
         // Apply individual override transformers
         for (transformer in _onSuccessOverrides) {
@@ -399,21 +443,10 @@ data class AuthCallbacks(
 
         // Execute all callbacks with the final transformed value
         _onSuccess.forEach { it(currentValue) }
-
-        return currentValue
     }
 
-    suspend fun executeOnError(authError: AuthError): AuthError {
+    private suspend fun executeOnErrorInternal(authError: AuthError) {
         var currentValue = authError
-
-        // Apply universal override first if present
-        if (hasUniversalOverride()) {
-            val universalResult = executeUniversalOverride(AuthResult.Error(currentValue))
-            currentValue = when (universalResult) {
-                is AuthResult.Error -> universalResult.authError
-                else -> currentValue // Keep original if universal override changed the type
-            }
-        }
 
         // Apply individual override transformers
         for (transformer in _onErrorOverrides) {
@@ -422,21 +455,10 @@ data class AuthCallbacks(
 
         // Execute all callbacks with the final transformed value
         _onError.forEach { it(currentValue) }
-
-        return currentValue
     }
 
-    suspend fun executeOnPendingRegistration(context: RegistrationContext): RegistrationContext {
+    private suspend fun executeOnPendingRegistrationInternal(context: RegistrationContext) {
         var currentValue = context
-
-        // Apply universal override first if present
-        if (hasUniversalOverride()) {
-            val universalResult = executeUniversalOverride(AuthResult.PendingRegistration(currentValue))
-            currentValue = when (universalResult) {
-                is AuthResult.PendingRegistration -> universalResult.context
-                else -> currentValue // Keep original if universal override changed the type
-            }
-        }
 
         // Apply individual override transformers
         for (transformer in _onPendingRegistrationOverrides) {
@@ -445,21 +467,10 @@ data class AuthCallbacks(
 
         // Execute all callbacks with the final transformed value
         _onPendingRegistration.forEach { it(currentValue) }
-
-        return currentValue
     }
 
-    suspend fun executeOnLinkingRequired(context: LinkingContext): LinkingContext {
+    private suspend fun executeOnLinkingRequiredInternal(context: LinkingContext) {
         var currentValue = context
-
-        // Apply universal override first if present
-        if (hasUniversalOverride()) {
-            val universalResult = executeUniversalOverride(AuthResult.LinkingRequired(currentValue))
-            currentValue = when (universalResult) {
-                is AuthResult.LinkingRequired -> universalResult.context
-                else -> currentValue // Keep original if universal override changed the type
-            }
-        }
 
         // Apply individual override transformers
         for (transformer in _onLinkingRequiredOverrides) {
@@ -468,21 +479,10 @@ data class AuthCallbacks(
 
         // Execute all callbacks with the final transformed value
         _onLinkingRequired.forEach { it(currentValue) }
-
-        return currentValue
     }
 
-    suspend fun executeOnTwoFactorRequired(context: TwoFactorContext): TwoFactorContext {
+    private suspend fun executeOnTwoFactorRequiredInternal(context: TwoFactorContext) {
         var currentValue = context
-
-        // Apply universal override first if present
-        if (hasUniversalOverride()) {
-            val universalResult = executeUniversalOverride(AuthResult.TwoFactorRequired(currentValue))
-            currentValue = when (universalResult) {
-                is AuthResult.TwoFactorRequired -> universalResult.context
-                else -> currentValue // Keep original if universal override changed the type
-            }
-        }
 
         // Apply individual override transformers
         for (transformer in _onTwoFactorRequiredOverrides) {
@@ -491,21 +491,10 @@ data class AuthCallbacks(
 
         // Execute all callbacks with the final transformed value
         _onTwoFactorRequired.forEach { it(currentValue) }
-
-        return currentValue
     }
 
-    suspend fun executeOnOTPRequired(context: OTPContext): OTPContext {
+    private suspend fun executeOnOTPRequiredInternal(context: OTPContext) {
         var currentValue = context
-
-        // Apply universal override first if present
-        if (hasUniversalOverride()) {
-            val universalResult = executeUniversalOverride(AuthResult.OTPRequired(currentValue))
-            currentValue = when (universalResult) {
-                is AuthResult.OTPRequired -> universalResult.context
-                else -> currentValue // Keep original if universal override changed the type
-            }
-        }
 
         // Apply individual override transformers
         for (transformer in _onOTPRequiredOverrides) {
@@ -514,18 +503,10 @@ data class AuthCallbacks(
 
         // Execute all callbacks with the final transformed value
         _onOTPRequired.forEach { it(currentValue) }
-
-        return currentValue
     }
 
-    suspend fun executeOnCaptchaRequired() {
+    private suspend fun executeOnCaptchaRequiredInternal() {
         var currentValue = Unit
-
-        // Apply universal override first if present
-        if (hasUniversalOverride()) {
-            executeUniversalOverride(AuthResult.CaptchaRequired)
-            // Note: CaptchaRequired doesn't have data to transform, so we just execute it
-        }
 
         // Apply individual override transformers
         for (transformer in _onCaptchaRequiredOverrides) {
