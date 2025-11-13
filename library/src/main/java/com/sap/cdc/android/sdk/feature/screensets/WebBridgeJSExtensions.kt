@@ -1,5 +1,9 @@
 package com.sap.cdc.android.sdk.feature.screensets
 
+import android.view.ViewGroup
+import android.webkit.WebView
+import com.sap.cdc.android.sdk.CDCDebuggable
+
 /**
  * Extension methods for WebBridgeJS to simplify ScreenSetsCallbacks usage
  */
@@ -26,5 +30,28 @@ fun WebBridgeJS.onScreenSetEvents(
         onSubmit?.let { this.onSubmit = it }
         onError?.let { this.onError = it }
         configure?.invoke(this)
+    }
+}
+
+/**
+ * Immediately dispose and cleanup the WebView from both the WebBridgeJS and the view hierarchy.
+ * This method ensures the WebView is completely removed before any navigation occurs.
+ * 
+ * Use this when you need to explicitly cleanup the WebView, such as before navigating away
+ * from a screen-set view in response to events like onLogin, onLogout, etc.
+ * 
+ * @param webView The WebView instance to dispose
+ */
+fun WebBridgeJS.disposeWebViewImmediately(webView: WebView) {
+    try {
+        // 1. Detach the WebBridgeJS (handles internal cleanup: about:blank, cache, history, timers)
+        this.detachBridgeFrom(webView)
+        
+        // 2. Forcibly remove from parent ViewGroup to ensure immediate UI removal
+        (webView.parent as? ViewGroup)?.removeView(webView)
+        
+        CDCDebuggable.log(WebBridgeJS.LOG_TAG, "WebView disposed immediately and removed from view hierarchy")
+    } catch (e: Exception) {
+        CDCDebuggable.log(WebBridgeJS.LOG_TAG, "Error during immediate WebView disposal: ${e.message}")
     }
 }

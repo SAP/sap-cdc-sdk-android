@@ -25,6 +25,7 @@ import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSConfig
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebChromeClient
 import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebViewClient
+import com.sap.cdc.android.sdk.feature.screensets.disposeWebViewImmediately
 import com.sap.cdc.android.sdk.feature.screensets.onScreenSetEvents
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
@@ -198,6 +199,8 @@ private fun initializeWebView(
             onHide = {
                 webView.post {
                     Log.d("ScreenSetView", "HIDE event - navigating back")
+                    // Dispose WebView immediately before navigation
+                    webBridgeJS.disposeWebViewImmediately(webView)
                     NavigationCoordinator.INSTANCE.navigateUp()
                 }
             }
@@ -205,6 +208,8 @@ private fun initializeWebView(
                 Log.d("ScreenSetView", "Screen set canceled")
                 webView.post {
                     onError("Operation canceled")
+                    // Dispose WebView immediately before navigation
+                    webBridgeJS.disposeWebViewImmediately(webView)
                     NavigationCoordinator.INSTANCE.navigateUp()
                 }
             }
@@ -212,6 +217,8 @@ private fun initializeWebView(
             onLogin = {
                 webView.post {
                     Log.d("ScreenSetView", "Login event received")
+                    // Dispose WebView immediately before navigation
+                    webBridgeJS.disposeWebViewImmediately(webView)
                     NavigationCoordinator.INSTANCE.popToRootAndNavigate(
                         toRoute = ProfileScreenRoute.MyProfile.route,
                         rootRoute = ProfileScreenRoute.Welcome.route
@@ -222,6 +229,8 @@ private fun initializeWebView(
             onLogout = {
                 webView.post {
                     Log.d("ScreenSetView", "LOGOUT event - navigating back")
+                    // Dispose WebView immediately before navigation
+                    webBridgeJS.disposeWebViewImmediately(webView)
                     NavigationCoordinator.INSTANCE.navigateUp()
                 }
             }
