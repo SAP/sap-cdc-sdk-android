@@ -4,7 +4,6 @@ import android.util.Log
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.utils.toEncodedQuery
 import com.sap.cdc.android.sdk.core.network.HttpExceptions
-import com.sap.cdc.android.sdk.core.network.RequestQueue
 import com.sap.cdc.android.sdk.extensions.isOnline
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -13,7 +12,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpMethod
-import kotlinx.coroutines.CompletableDeferred
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -25,32 +23,6 @@ open class Api(private val coreClient: CoreClient) {
         const val LOG_TAG = "Api"
 
         const val HEADER_DATE = "date"
-    }
-
-    // Use the com.sap.cdc.android.sdk.core.network.RequestQueue singleton directly.
-    private val requestQueue = RequestQueue
-
-    /**
-     * Block the request queue.
-     */
-    fun blockQueue() {
-        requestQueue.blockQueue = CompletableDeferred()
-    }
-
-    /**
-     * Unblock the request queue.
-     */
-    fun unblockQueue() {
-        if (!requestQueue.blockQueue.isCompleted) {
-            requestQueue.blockQueue.complete(Unit)
-        }
-    }
-
-    /**
-     * Update and resign requests in the queue.
-     */
-    fun updateAndResignRequests(signRequest: (CDCRequest) -> Unit) {
-        requestQueue.updateAndResignRequests(signRequest)
     }
 
     /**
@@ -68,34 +40,23 @@ open class Api(private val coreClient: CoreClient) {
             return CDCResponse().noNetwork()
         }
 
-        if (!requestQueue.blockQueue.isCompleted) {
-            requestQueue.blockQueue.await()
-        }
-
         return try {
-            val deferredResponse = CompletableDeferred<CDCResponse>()
-            requestQueue.addRequest(request) { req ->
-                val result: HttpResponse = coreClient.networkClient.http().get(req.api) {
-                    headers {
-                        req.headers.map { (k, v) ->
-                            headers.append(k, v)
-                        }
-                    }
-                    url {
-                        req.parameters.map { (k, v) ->
-                            parameters.append(k, v)
-                        }
+            val result: HttpResponse = coreClient.networkClient.http().get(request.api) {
+                headers {
+                    request.headers.forEach { (k, v) ->
+                        append(k, v)
                     }
                 }
-                val serverDate: String? = result.headers[HEADER_DATE]
-                // Set server offset.
-                coreClient.siteConfig.setServerOffset(serverDate)
-                val cdcResult = CDCResponse().fromJSON(result.body())
-                deferredResponse.complete(cdcResult)
-                // Forward response.
-                result
+                url {
+                    request.parameters.forEach { (k, v) ->
+                        parameters.append(k, v)
+                    }
+                }
             }
-            deferredResponse.await()
+            val serverDate: String? = result.headers[HEADER_DATE]
+            // Set server offset.
+            coreClient.siteConfig.setServerOffset(serverDate)
+            CDCResponse().fromJSON(result.body())
         } catch (e: HttpExceptions) {
             CDCResponse().fromHttpException(e)
         }
@@ -110,63 +71,19 @@ open class Api(private val coreClient: CoreClient) {
             return CDCResponse().noNetwork()
         }
 
-        if (!requestQueue.blockQueue.isCompleted) {
-            requestQueue.blockQueue.await()
-        }
         return try {
-            val deferredResponse = CompletableDeferred<CDCResponse>()
-            requestQueue.addRequest(request) { req ->
-                val result: HttpResponse = coreClient.networkClient.http().post(req.api) {
-                    headers {
-                        req.headers.map { (k, v) ->
-                            headers.append(k, v)
-                        }
+            val result: HttpResponse = coreClient.networkClient.http().post(request.api) {
+                headers {
+                    request.headers.forEach { (k, v) ->
+                        append(k, v)
                     }
-                    setBody(req.parameters.toEncodedQuery())
                 }
-                val serverDate: String? = result.headers[HEADER_DATE]
-                // Set server offset.
-                coreClient.siteConfig.setServerOffset(serverDate)
-                val cdcResult = CDCResponse().fromJSON(result.body())
-                deferredResponse.complete(cdcResult)
-                // Forward response.
-                result
+                setBody(request.parameters.toEncodedQuery())
             }
-            deferredResponse.await()
-        } catch (e: HttpExceptions) {
-            CDCResponse().fromHttpException(e)
-        }
-    }
-
-    /**
-     * Perform generic inject request.
-     * Injected requests excluded from the blocking state of the queue
-     */
-    open suspend fun injectRequest(request: CDCRequest): CDCResponse {
-        if (!networkAvailable()) {
-            // Propagate network error.
-            return CDCResponse().noNetwork()
-        }
-        return try {
-            val deferredResponse = CompletableDeferred<CDCResponse>()
-            requestQueue.injectRequest(request) { req ->
-                val result: HttpResponse = coreClient.networkClient.http().post(req.api) {
-                    headers {
-                        req.headers.map { (k, v) ->
-                            headers.append(k, v)
-                        }
-                    }
-                    setBody(req.parameters.toEncodedQuery())
-                }
-                val serverDate: String? = result.headers[HEADER_DATE]
-                // Set server offset.
-                coreClient.siteConfig.setServerOffset(serverDate)
-                val cdcResult = CDCResponse().fromJSON(result.body())
-                deferredResponse.complete(cdcResult)
-                // Forward response.
-                result
-            }
-            deferredResponse.await()
+            val serverDate: String? = result.headers[HEADER_DATE]
+            // Set server offset.
+            coreClient.siteConfig.setServerOffset(serverDate)
+            CDCResponse().fromJSON(result.body())
         } catch (e: HttpExceptions) {
             CDCResponse().fromHttpException(e)
         }
@@ -195,4 +112,3 @@ open class Api(private val coreClient: CoreClient) {
     }
 
 }
-

@@ -3,7 +3,6 @@ package com.sap.cdc.android.sdk.core
 import com.sap.cdc.android.sdk.core.network.HttpClientProvider
 import com.sap.cdc.android.sdk.core.network.KtorHttpClientProvider
 import com.sap.cdc.android.sdk.core.network.NetworkClient
-import com.sap.cdc.android.sdk.core.network.RequestQueue
 
 
 /**
@@ -15,9 +14,4 @@ class CoreClient(
     private val httpClientProvider: HttpClientProvider = KtorHttpClientProvider()
 ) {
     val networkClient: NetworkClient = NetworkClient(httpClientProvider)
-
-    init {
-        // Initialize the com.sap.cdc.android.sdk.core.network.RequestQueue with the network client
-        RequestQueue.initialize(networkClient.http())
-    }
 }

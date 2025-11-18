@@ -1,6 +1,5 @@
 package com.sap.cdc.android.sdk.feature
 
-import androidx.core.content.edit
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.AndroidResourceProvider
 import com.sap.cdc.android.sdk.core.CoreClient
@@ -10,10 +9,11 @@ import com.sap.cdc.android.sdk.core.api.CDCRequest
 import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.InvalidGMIDResponseEvaluator
 import com.sap.cdc.android.sdk.core.api.model.GMIDEntity
-import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.extensions.prepareApiUrl
 import com.sap.cdc.android.sdk.feature.session.SessionService
 import io.ktor.http.HttpMethod
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 
 /**
@@ -34,6 +34,9 @@ class AuthenticationApi(
         const val LOG_TAG = "AuthenticationApi"
         const val PARAM_GMID = "gmid"
         const val MAX_RETRY_COUNT = 2
+        
+        // Singleton mutex to synchronize GMID operations across all AuthenticationApi instances
+        private val gmidMutex = Mutex()
     }
 
     /**
@@ -67,43 +70,50 @@ class AuthenticationApi(
         headers: MutableMap<String, String>? = mutableMapOf()
     ): CDCResponse {
         return try {
-            if (!isLocalGmidValid()) {
-                CDCDebuggable.log(LOG_TAG, "Local GMID not available or invalid - requesting new GMID")
-                val ids = fetchIDs()
-                if (ids.isError()) CDCDebuggable.log(LOG_TAG, "getIDs error: ${ids.errorCode()}")
+            // Synchronize GMID validation and fetching across all coroutines
+            gmidMutex.withLock {
+                if (!isLocalGmidValid()) {
+                    CDCDebuggable.log(LOG_TAG, "Local GMID not available or invalid - requesting new GMID")
+                    val ids = fetchIDs()
+                    if (ids.isError()) {
+                        CDCDebuggable.log(LOG_TAG, "getIDs error: ${ids.errorCode()}")
+                        return ids
+                    }
+                }
             }
 
+            // At this point, GMID is guaranteed valid
             parameters!![PARAM_GMID] = sessionService.gmidLatest()
             val cdcRequest = buildCDCRequest(api, parameters, method, headers)
-            val response = send(request = cdcRequest, method)
+            var response = send(request = cdcRequest, method)
 
+            // Handle GMID invalidation with retry
             if (response.isError() && InvalidGMIDResponseEvaluator().evaluate(response)) {
-                CDCDebuggable.log(
-                    LOG_TAG,
-                    "Remote GMID evaluation failed - blocking queue to request new GMID"
-                )
-                blockQueue()
-
-                val ids = retryFetchIDs()
-                if (ids.isError()) {
-                    CDCDebuggable.log(LOG_TAG, "getIDs failed after $MAX_RETRY_COUNT retries")
-                    return response
+                CDCDebuggable.log(LOG_TAG, "Remote GMID evaluation failed - fetching new GMID")
+                
+                // Synchronize GMID refresh to avoid duplicate fetches
+                gmidMutex.withLock {
+                    // Double-check: another coroutine might have already refreshed
+                    val currentGmid = sessionService.gmidLatest()
+                    if (cdcRequest.parameters[PARAM_GMID] == currentGmid) {
+                        // Still stale, we need to refresh
+                        CDCDebuggable.log(LOG_TAG, "GMID still stale, fetching new one")
+                        val ids = retryFetchIDs()
+                        if (ids.isError()) {
+                            CDCDebuggable.log(LOG_TAG, "getIDs failed after $MAX_RETRY_COUNT retries")
+                            return response
+                        }
+                    } else {
+                        CDCDebuggable.log(LOG_TAG, "GMID already refreshed by another coroutine")
+                    }
                 }
-
-                CDCDebuggable.log(LOG_TAG, "Re-signing all requests in queue")
-                updateAndResignRequests { signRequestIfNeeded(it) }
-
-                CDCDebuggable.log(LOG_TAG, "Injecting original request")
-                // Make sure original request is going out with new GMID..
+                
+                // Retry with fresh GMID
                 cdcRequest.parameters[PARAM_GMID] = sessionService.gmidLatest()
-                // Re-Sign original request
                 signRequestIfNeeded(cdcRequest)
-
-                val newResponse = injectRequest(cdcRequest)
-
-                unblockQueue()
-                return newResponse
+                response = send(request = cdcRequest, method)
             }
+            
             response
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
             CDCDebuggable.log(LOG_TAG, "Request timed out: ${e.message}")
@@ -204,11 +214,11 @@ class AuthenticationApi(
     /**
      * Get IDs from the server.
      */
-    private suspend fun fetchIDs(inject: Boolean = false): CDCResponse {
+    private suspend fun fetchIDs(): CDCResponse {
         CDCDebuggable.log(LOG_TAG, "Fetching IDs")
         val cdcRequest =
             buildCDCRequest(AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS, mutableMapOf(), HttpMethod.Post.value)
-        val idsResponse = if (inject) injectRequest(cdcRequest) else send(cdcRequest)
+        val idsResponse = send(cdcRequest)
         if (!idsResponse.isError()) {
             // Deserialize the response to GMIDEntity
             val gmidEntity = idsResponse.serializeTo<GMIDEntity>()
@@ -218,10 +228,10 @@ class AuthenticationApi(
                 val esp = resourceProvider.getEncryptedSharedPreferences(
                     AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
                 )
-                esp.edit {
-                    putString(AuthenticationService.Companion.CDC_GMID, gmidEntity.gmid)
-                        .putLong(AuthenticationService.Companion.CDC_GMID_REFRESH_TS, gmidEntity.refreshTime!!)
-                }
+                val editor = esp.edit()
+                editor.putString(AuthenticationService.Companion.CDC_GMID, gmidEntity.gmid)
+                editor.putLong(AuthenticationService.Companion.CDC_GMID_REFRESH_TS, gmidEntity.refreshTime!!)
+                editor.apply()
             }
             CDCDebuggable.log(LOG_TAG, "gmidEntity: $gmidEntity")
         }
@@ -236,7 +246,7 @@ class AuthenticationApi(
         var retryCount = 0
         var ids: CDCResponse
         do {
-            ids = fetchIDs(inject = true)
+            ids = fetchIDs()
             if (!ids.isError()) break
             retryCount++
             CDCDebuggable.log(LOG_TAG, "Retrying getIDs... Attempt: $retryCount")

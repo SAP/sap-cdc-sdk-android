@@ -88,6 +88,7 @@ class AuthenticationFlowDelegate(context: Context) {
         .registerForSessionValidation(
             config = SessionValidationConfig(
                 intervalMinutes = 20L,
+                enabled = false, // Debug trigger to disable when needed
             )
         )
 

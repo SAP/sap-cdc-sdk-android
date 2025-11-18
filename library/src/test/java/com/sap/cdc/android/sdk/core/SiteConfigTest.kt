@@ -29,10 +29,9 @@ class SiteConfigTest {
     @Test
     fun testSiteConfigWithMockedResources() {
         // Arrange
-        testResourceProvider
-            .addResource("com.sap.cxcdc.apikey", "test-api-key-123")
-            .addResource("com.sap.cxcdc.domain", "test.gigya.com")
-            .addResource("com.sap.cxcdc.cname", "custom.domain.com")
+        testResourceProvider.setString("com.sap.cxcdc.apikey", "test-api-key-123")
+        testResourceProvider.setString("com.sap.cxcdc.domain", "test.gigya.com")
+        testResourceProvider.setString("com.sap.cxcdc.cname", "custom.domain.com")
 
         // Act
         val siteConfig = SiteConfig(mockContext, testResourceProvider)
@@ -47,9 +46,8 @@ class SiteConfigTest {
     @Test
     fun testSiteConfigWithMissingOptionalResource() {
         // Arrange - only required resources
-        testResourceProvider
-            .addResource("com.sap.cxcdc.apikey", "test-api-key")
-            .addResource("com.sap.cxcdc.domain", "test.domain.com")
+        testResourceProvider.setString("com.sap.cxcdc.apikey", "test-api-key")
+        testResourceProvider.setString("com.sap.cxcdc.domain", "test.domain.com")
         // Note: cname is optional and not provided
 
         // Act
@@ -64,8 +62,7 @@ class SiteConfigTest {
     @Test
     fun testSiteConfigWithMissingRequiredResource() {
         // Arrange - missing required resource
-        testResourceProvider
-            .addResource("com.sap.cxcdc.domain", "test.domain.com")
+        testResourceProvider.setString("com.sap.cxcdc.domain", "test.domain.com")
         // Note: apikey is required but not provided
 
         // Act & Assert
@@ -80,9 +77,8 @@ class SiteConfigTest {
         val fixedTime = 1609459200000L // 2021-01-01 00:00:00 UTC
         val timeProvider = { fixedTime }
         
-        testResourceProvider
-            .addResource("com.sap.cxcdc.apikey", "test-api")
-            .addResource("com.sap.cxcdc.domain", "test.domain.com")
+        testResourceProvider.setString("com.sap.cxcdc.apikey", "test-api")
+        testResourceProvider.setString("com.sap.cxcdc.domain", "test.domain.com")
 
         val siteConfig = SiteConfig(
             mockContext, 
@@ -105,9 +101,8 @@ class SiteConfigTest {
         val fixedTime = 1609459200000L // 2021-01-01 00:00:00 UTC
         val timeProvider = { fixedTime }
         
-        testResourceProvider
-            .addResource("com.sap.cxcdc.apikey", "test-api")
-            .addResource("com.sap.cxcdc.domain", "test.domain.com")
+        testResourceProvider.setString("com.sap.cxcdc.apikey", "test-api")
+        testResourceProvider.setString("com.sap.cxcdc.domain", "test.domain.com")
 
         val siteConfig = SiteConfig(
             mockContext, 
@@ -129,9 +124,8 @@ class SiteConfigTest {
     @Test
     fun testServerOffsetWithInvalidDate() {
         // Arrange
-        testResourceProvider
-            .addResource("com.sap.cxcdc.apikey", "test-api")
-            .addResource("com.sap.cxcdc.domain", "test.domain.com")
+        testResourceProvider.setString("com.sap.cxcdc.apikey", "test-api")
+        testResourceProvider.setString("com.sap.cxcdc.domain", "test.domain.com")
 
         // Create SiteConfig with testable constructor
         val siteConfig = SiteConfig(
