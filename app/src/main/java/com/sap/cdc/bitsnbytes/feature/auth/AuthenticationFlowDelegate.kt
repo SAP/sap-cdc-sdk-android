@@ -95,8 +95,13 @@ class AuthenticationFlowDelegate(context: Context) {
     /**
      * Re-init the session service with new site configuration.
      */
-    fun reinitializeSessionService(siteConfig: SiteConfig) =
+    fun reinitializeSessionService(siteConfig: SiteConfig) {
+        // Reset delegate state with new config
+        this.siteConfig = siteConfig
+        // Reset delegate user account value
+        this._userAccount.value = null
         authenticationService.session().resetWithConfig(siteConfig)
+    }
 
     /**
      * Get session security level (STANDARD/BIOMETRIC).

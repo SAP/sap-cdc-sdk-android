@@ -5,10 +5,12 @@ import com.sap.cdc.android.sdk.core.network.HttpExceptions
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 /**
  * Response wrapper for SAP CDC API operations.
@@ -89,6 +91,8 @@ class CDCResponse {
      * 
      * This method constructs an error response with the specified code, message, and description.
      * It's primarily used internally by the SDK to create standardized error responses.
+     * Uses kotlinx.serialization's buildJsonObject to properly handle special characters
+     * and prevent JSON parsing errors.
      * 
      * @param code The error code (0 indicates success, non-zero indicates failure)
      * @param message A short error message describing the error
@@ -96,13 +100,12 @@ class CDCResponse {
      * @return This CDCResponse instance for method chaining
      */
     fun fromError(code: Int, message: String, description: String) = apply {
-        fromJSON(
-            "{" +
-                    "  \"errorCode\":  \"$code\"," +
-                    "  \"errorMessage\": \"$message\"," +
-                    "  \"errorDetails\": \"$description\"" +
-                    "}"
-        )
+        val errorJson = buildJsonObject {
+            put("errorCode", code.toString())
+            put("errorMessage", message)
+            put("errorDetails", description)
+        }
+        fromJSON(errorJson.toString())
     }
 
 
