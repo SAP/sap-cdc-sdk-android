@@ -23,6 +23,7 @@ interface IConfigurationViewModel {
     fun onDomainChanged(domain: String)
     fun onCnameChanged(cname: String)
     fun onWebViewToggled(use: Boolean)
+    fun onDebugNavigationLoggingToggled(enabled: Boolean)
     fun onSaveChanges()
 }
 
@@ -33,7 +34,8 @@ class ConfigurationViewModelPreview : IConfigurationViewModel {
             apiKey = "3_test_api_key",
             domain = "us1.gigya.com",
             cname = "",
-            useWebView = false
+            useWebView = false,
+            debugNavigationLogging = false
         )
     ).asStateFlow()
     
@@ -41,6 +43,7 @@ class ConfigurationViewModelPreview : IConfigurationViewModel {
     override fun onDomainChanged(domain: String) {}
     override fun onCnameChanged(cname: String) {}
     override fun onWebViewToggled(use: Boolean) {}
+    override fun onDebugNavigationLoggingToggled(enabled: Boolean) {}
     override fun onSaveChanges() {}
 }
 
@@ -54,7 +57,8 @@ class ConfigurationViewModel(
             apiKey = flowDelegate.siteConfig.apiKey,
             domain = flowDelegate.siteConfig.domain,
             cname = flowDelegate.siteConfig.cname ?: "",
-            useWebView = ApplicationConfig.useWebViews
+            useWebView = ApplicationConfig.useWebViews,
+            debugNavigationLogging = ApplicationConfig.debugNavigationLogging
         )
     )
     override val state: StateFlow<ConfigurationState> = _state.asStateFlow()
@@ -74,6 +78,11 @@ class ConfigurationViewModel(
     override fun onWebViewToggled(use: Boolean) {
         _state.update { it.copy(useWebView = use) }
         ApplicationConfig.useWebViews(use)
+    }
+
+    override fun onDebugNavigationLoggingToggled(enabled: Boolean) {
+        _state.update { it.copy(debugNavigationLogging = enabled) }
+        ApplicationConfig.setDebugNavigationLogging(enabled)
     }
 
     override fun onSaveChanges() {

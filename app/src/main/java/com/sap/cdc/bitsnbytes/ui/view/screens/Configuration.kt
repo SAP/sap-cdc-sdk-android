@@ -108,15 +108,55 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
             )
             Box(modifier = Modifier.height(54.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Use Web View (default: native view)", style = AppTheme.typography.body)
+                    Text(
+                        text = "Use Web View (default: native view)",
+                        style = AppTheme.typography.body,
+                        modifier = Modifier.weight(1f)
+                    )
                     Switch(
                         checked = state.useWebView,
                         onCheckedChange = { viewModel.onWebViewToggled(it) },
                         thumbContent = if (state.useWebView) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        } else {
+                            null
+                        }
+                    )
+                }
+            }
+            CustomColoredSizeVerticalSpacer(
+                color = Color.LightGray,
+                size = 2.dp
+            )
+            Box(modifier = Modifier.height(54.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Debug Navigation Logging",
+                        style = AppTheme.typography.body,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = state.debugNavigationLogging,
+                        onCheckedChange = { viewModel.onDebugNavigationLoggingToggled(it) },
+                        thumbContent = if (state.debugNavigationLogging) {
                             {
                                 Icon(
                                     imageVector = Icons.Filled.Check,

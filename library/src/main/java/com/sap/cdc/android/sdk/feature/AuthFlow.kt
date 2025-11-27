@@ -223,7 +223,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     protected fun createAuthError(response: CDCResponse): AuthError {
         val error = response.toCDCError()
         val authError = AuthError(
-            message = error.errorDescription ?: "Unknown error",
+            message = error.errorMessage ?: "Unknown error",
             code = error.errorCode.toString(),
             details = error.errorDetails ?: "Unknown error",
             asJson = response.jsonResponse

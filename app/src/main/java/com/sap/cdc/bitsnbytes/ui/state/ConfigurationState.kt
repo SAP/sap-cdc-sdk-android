@@ -15,5 +15,6 @@ data class ConfigurationState(
     val apiKey: String = "",
     val domain: String = "",
     val cname: String = "",
-    val useWebView: Boolean = false
+    val useWebView: Boolean = false,
+    val debugNavigationLogging: Boolean = false
 )

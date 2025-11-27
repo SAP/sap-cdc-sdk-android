@@ -13,7 +13,7 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class CDCError(
     val errorCode: Int,
-    val errorDescription: String?,
+    val errorMessage: String? = null,
     var errorDetails: String? = null,
 ) {
 

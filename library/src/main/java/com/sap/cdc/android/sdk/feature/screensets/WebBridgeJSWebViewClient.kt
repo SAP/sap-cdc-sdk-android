@@ -1,5 +1,6 @@
 package com.sap.cdc.android.sdk.feature.screensets
 
+import android.graphics.Bitmap
 import android.net.Uri
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -15,8 +16,20 @@ import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJS.Companion.URI_REDI
  */
 class WebBridgeJSWebViewClient(
     private val webBridge: WebBridgeJS,
-    private val onBrowserIntent: (Uri?) -> Unit
+    private val onBrowserIntent: (Uri?) -> Unit,
+    private val onPageStarted: (() -> Unit)? = null,
+    private val onPageFinished: (() -> Unit)? = null
 ) : WebViewClient() {
+
+    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+        super.onPageStarted(view, url, favicon)
+        onPageStarted?.invoke()
+    }
+
+    override fun onPageFinished(view: WebView?, url: String?) {
+        super.onPageFinished(view, url)
+        onPageFinished?.invoke()
+    }
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         val uri = request!!.url

@@ -34,6 +34,14 @@ class AppStateManager : ViewModel() {
     // NAVIGATION CONTROLLER MANAGEMENT
     private var currentNavController: NavController? = null
     
+    // CURRENT ROUTE TRACKING
+    private val _currentRoute = MutableStateFlow<String?>(null)
+    val currentRoute: StateFlow<String?> = _currentRoute.asStateFlow()
+    
+    // Deduplication tracking
+    private var lastLoggedRoute: String? = null
+    private var destinationChangedListener: NavController.OnDestinationChangedListener? = null
+    
     // GENERAL APP STATE
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -56,12 +64,46 @@ class AppStateManager : ViewModel() {
     
     // NAVIGATION CONTROLLER METHODS
     fun setNavController(navController: NavController) {
+        // Remove old listener if exists (prevents duplicate listeners)
+        destinationChangedListener?.let { oldListener ->
+            currentNavController?.removeOnDestinationChangedListener(oldListener)
+        }
+        
         currentNavController = navController
-        // Update back navigation state when controller changes
+        
+        // Create and store new listener with deduplication
+        destinationChangedListener = NavController.OnDestinationChangedListener { controller, destination, _ ->
+            val newRoute = destination.route
+            _currentRoute.value = newRoute
+            updateBackNavigationState()
+            
+            // Only log if route actually changed (deduplication)
+            if (newRoute != lastLoggedRoute) {
+                lastLoggedRoute = newRoute
+                NavigationDebugLogger.logNavigation(
+                    source = "AppStateManager",
+                    action = "Destination Changed",
+                    navController = controller,
+                    details = "New destination: $newRoute"
+                )
+            }
+        }
+        
+        // Add the new listener
+        navController.addOnDestinationChangedListener(destinationChangedListener!!)
+        
+        // Initial state update
         updateBackNavigationState()
     }
     
     fun navigate(route: String) {
+        NavigationDebugLogger.logNavigation(
+            source = "AppStateManager",
+            action = "navigate()",
+            navController = currentNavController,
+            targetRoute = route
+        )
+        
         currentNavController?.navigate(route) {
             launchSingleTop = true
             restoreState = true
@@ -70,11 +112,26 @@ class AppStateManager : ViewModel() {
     }
     
     fun navigate(route: String, builder: NavOptionsBuilder.() -> Unit) {
+        NavigationDebugLogger.logNavigation(
+            source = "AppStateManager",
+            action = "navigate(with options)",
+            navController = currentNavController,
+            targetRoute = route
+        )
+        
         currentNavController?.navigate(route, navOptions(builder))
         updateBackNavigationState()
     }
     
     fun popToRootAndNavigate(toRoute: String, rootRoute: String) {
+        NavigationDebugLogger.logNavigation(
+            source = "AppStateManager",
+            action = "popToRootAndNavigate()",
+            navController = currentNavController,
+            targetRoute = toRoute,
+            details = "Popping to root: $rootRoute"
+        )
+        
         currentNavController?.popBackStack(
             route = rootRoute,
             inclusive = true
@@ -84,6 +141,12 @@ class AppStateManager : ViewModel() {
     }
     
     fun navigateUp() {
+        NavigationDebugLogger.logNavigation(
+            source = "AppStateManager",
+            action = "navigateUp()",
+            navController = currentNavController
+        )
+        
         currentNavController?.popBackStack()
         updateBackNavigationState()
     }
@@ -122,5 +185,15 @@ class AppStateManager : ViewModel() {
         _canNavigateBack.value = false
         _isLoading.value = false
         _errorMessage.value = null
+    }
+    
+    override fun onCleared() {
+        // Clean up listener when ViewModel is cleared to prevent memory leaks
+        destinationChangedListener?.let { listener ->
+            currentNavController?.removeOnDestinationChangedListener(listener)
+        }
+        destinationChangedListener = null
+        currentNavController = null
+        super.onCleared()
     }
 }

@@ -2,6 +2,7 @@ package com.sap.cdc.android.sdk.core.api
 
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.core.network.HttpExceptions
+import com.sap.cdc.android.sdk.extensions.printDebugStackTrace
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -83,7 +84,7 @@ class CDCResponse {
      * @see com.sap.cdc.android.sdk.core.api.model.CDCError
      */
     fun fromError(error: CDCError)  = apply {
-        fromError(error.errorCode, error.errorDescription ?: "", error.errorDetails ?: "")
+        fromError(error.errorCode, error.errorMessage ?: "", error.errorDetails ?: "")
     }
 
     /**
@@ -302,7 +303,7 @@ class CDCResponse {
             try {
                 return json.decodeFromString<T>(jsonResponse!!)
             } catch (ex: Exception) {
-                ex.printStackTrace()
+                ex.printDebugStackTrace("CDCResponse")
             }
         }
         return null
@@ -332,7 +333,7 @@ class CDCResponse {
             try {
                 return json.decodeFromString<T>(jsonObjectString)
             } catch (ex: Exception) {
-                ex.printStackTrace()
+                ex.printDebugStackTrace("CDCResponse")
             }
         }
         return null

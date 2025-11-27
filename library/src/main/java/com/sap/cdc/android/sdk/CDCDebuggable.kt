@@ -17,6 +17,14 @@ object CDCDebuggable {
         http = value
     }
 
+    /**
+     * Check if debug logging is currently enabled.
+     * Used by extension functions to conditionally print stack traces.
+     * 
+     * @return true if debug logging is enabled, false otherwise
+     */
+    fun isDebugEnabled(): Boolean = debug
+
     fun setWebViewDebuggable(value: Boolean) {
         WebView.setWebContentsDebuggingEnabled(value)
     }

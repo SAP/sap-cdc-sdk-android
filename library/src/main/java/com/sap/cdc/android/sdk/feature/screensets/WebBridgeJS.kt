@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Base64
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.api.model.CDCError
@@ -42,7 +43,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
 
     }
 
-    private var bridgedWebView: WebView? = null
+    private var bridgedWebView: WeakReference<WebView>? = null
     private lateinit var bridgedApiService: WebBridgeJSApiService
     private var webBridgeJSConfig: WebBridgeJSConfig? = null
 
@@ -146,12 +147,13 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
      * Attach JS bridge to given WebView widget.
      */
     fun attachBridgeTo(webView: WebView, viewModelScope: CoroutineScope? = null) {
-        bridgedWebView = webView
+        bridgedWebView = WeakReference(webView)
         bridgedApiService = WebBridgeJSApiService(
             weakHostActivity = WeakReference(webView.context as ComponentActivity?),
-            authenticationService = authenticationService
+            authenticationService = authenticationService,
+            viewModelScope = viewModelScope
         )
-        bridgedWebView!!.addJavascriptInterface(
+        webView.addJavascriptInterface(
             ScreenSetsJavaScriptInterface(
                 bridgedApiService.apiKey()
             ),
@@ -172,21 +174,56 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
 
     /**
      * Detach the JS bridge from given WebView widget.
+     * Enhanced cleanup to prevent memory leaks while avoiding global side effects.
+     * 
+     * IMPORTANT: This method removes operations that affect other WebViews:
+     * - pauseTimers() affects ALL WebViews globally
+     * - clearCache(true) clears entire app cache
+     * - removeAllViews() can break parent container
      */
     fun detachBridgeFrom(webView: WebView) {
-        bridgedApiService.dispose()
-        detachCallbacks()
-        webView.loadUrl("about:blank")
-        webView.clearCache(true);
-        webView.clearHistory();
-        webView.onPause();
-        webView.removeAllViews();
-        webView.pauseTimers();
-        webView.webChromeClient = null
+        try {
+            // 1. Remove JavaScript interface to prevent memory leaks
+            webView.removeJavascriptInterface(JS_NAME)
+            
+            // 2. Dispose API service
+            bridgedApiService.dispose()
+            
+            // 3. Detach callbacks
+            detachCallbacks()
+            
+            // 4. Stop any pending loads
+            webView.stopLoading()
+            
+            // 5. Clear clients FIRST (before other operations)
+            webView.webChromeClient = null
+            webView.webViewClient = WebViewClient()
+            
+            // 6. Load blank page (stops any active content)
+            webView.loadUrl("about:blank")
+            
+            // 7. Clear WebView-specific data (safe operations)
+            webView.clearHistory()
+            webView.clearFormData()
+            
+            // REMOVED: clearCache(true) - affects entire app
+            // REMOVED: removeAllViews() - can break parent container
+            // REMOVED: pauseTimers() - affects ALL WebViews globally
+            // REMOVED: onPause() - not necessary for disposal
+            
+            // 8. Clear weak reference
+            bridgedWebView?.clear()
+            bridgedWebView = null
+            
+            CDCDebuggable.log(LOG_TAG, "Bridge detached successfully (safe cleanup)")
+        } catch (e: Exception) {
+            CDCDebuggable.log(LOG_TAG, "Error during bridge detachment: ${e.message}")
+        }
     }
 
     /**
      * Pass response data back the webSDK using the WebView's JS evaluation.
+     * Uses WeakReference to prevent memory leaks.
      */
     private fun evaluateJS(id: String, evaluation: String) {
         val value = when (webBridgeJSConfig?.obfuscate ?: true) {
@@ -194,11 +231,11 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             false -> evaluation
         }
         val invocation = "javascript:$JS_EVALUATE['$id']($value);"
-        bridgedWebView?.post {
-            bridgedWebView?.evaluateJavascript(
+        bridgedWebView?.get()?.post {
+            bridgedWebView?.get()?.evaluateJavascript(
                 invocation
-            ) { value ->
-                CDCDebuggable.log(LOG_TAG, "evaluateJS: onReceiveValue: $value")
+            ) { result ->
+                CDCDebuggable.log(LOG_TAG, "evaluateJS: onReceiveValue: $result")
             }
         }
     }
@@ -299,9 +336,8 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
      * Extract error message from event content
      */
     private fun extractErrorMessage(event: WebBridgeJSEvent): String {
-        val error = event.content?.get("error")
-        return when (error) {
-            is com.sap.cdc.android.sdk.core.api.model.CDCError -> error.errorDescription ?: "Unknown error"
+        return when (val error = event.content?.get("error")) {
+            is CDCError -> error.errorMessage ?: "Unknown error"
             is String -> error
             is Map<*, *> -> error["message"] as? String ?: "Unknown error"
             else -> "Unknown error occurred"
