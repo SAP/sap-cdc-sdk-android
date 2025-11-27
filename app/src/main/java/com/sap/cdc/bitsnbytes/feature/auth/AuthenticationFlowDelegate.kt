@@ -132,7 +132,13 @@ class AuthenticationFlowDelegate(context: Context) {
 
         // Register application specific authentication providers.
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
-        registerAuthenticationProvider("google", GoogleAuthenticationProvider())
+        
+        // Register Google with both modern and legacy names (google + googleplus)
+        // This supports legacy server configurations that use "googleplus" without duplicating instances
+        registerAuthenticationProvider(
+            aliases = listOf("google", "googleplus"),
+            provider = GoogleAuthenticationProvider()
+        )
     }
 
     // Authentication state flows
@@ -593,7 +599,46 @@ class AuthenticationFlowDelegate(context: Context) {
     }
 
     /**
-     * Register new authentication provider.
+     * Register authentication provider with multiple aliases.
+     * 
+     * This method allows registering the same provider instance under multiple names,
+     * which is useful for supporting legacy provider names without duplicating instances.
+     * 
+     * ## Use Case: Legacy Provider Names
+     * 
+     * Some servers may use legacy provider names (e.g., "googleplus") while the client
+     * uses modern names (e.g., "google"). Rather than creating duplicate provider instances,
+     * this method allows mapping multiple names to a single provider.
+     * 
+     * ## Example
+     * 
+     * ```
+     * // Google provider can be accessed via "google" OR "googleplus"
+     * registerAuthenticationProvider(
+     *     aliases = listOf("google", "googleplus"),
+     *     provider = GoogleAuthenticationProvider()
+     * )
+     * 
+     * // Both work and return the same instance:
+     * getAuthenticationProvider("google")      // Same instance
+     * getAuthenticationProvider("googleplus")  // Same instance
+     * ```
+     * 
+     * @param aliases List of names (including primary and legacy names) that map to this provider
+     * @param provider The authentication provider instance to register
+     */
+    private fun registerAuthenticationProvider(aliases: List<String>, provider: IAuthenticationProvider) {
+        aliases.forEach { alias ->
+            authenticationProviderMap[alias] = provider
+        }
+    }
+
+    /**
+     * Register authentication provider with a single name.
+     * Convenience method for providers without legacy names.
+     * 
+     * @param name The provider name
+     * @param provider The authentication provider instance
      */
     private fun registerAuthenticationProvider(name: String, provider: IAuthenticationProvider) {
         authenticationProviderMap[name] = provider

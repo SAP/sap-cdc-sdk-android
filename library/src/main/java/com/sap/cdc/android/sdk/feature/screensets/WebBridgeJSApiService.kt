@@ -448,6 +448,7 @@ class WebBridgeJSInterruptionCoordinator(
 
     fun evaluateError(errorCode: Int) {
         when (errorCode) {
+            ResolvableContext.ERR_LOGIN_IDENTIFIER_EXISTS,
             ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
                 // Handle conflict error.
                 activeInterruption = WebBridgeJSLinkingInterruption(authenticationService, dispose = {
