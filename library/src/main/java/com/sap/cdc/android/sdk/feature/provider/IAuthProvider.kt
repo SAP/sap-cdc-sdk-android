@@ -41,9 +41,8 @@ internal class AuthProvider(
         parameters: MutableMap<String, String>?,
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        val callbacks = AuthCallbacks().apply(authCallbacks)
         AuthProviderFlow(coreClient, sessionService, authenticationProvider, WeakReference(hostActivity))
-            .signIn(parameters = parameters, callbacks = callbacks)
+            .signIn(parameters = parameters, authCallbacks = authCallbacks)
     }
 
     /**

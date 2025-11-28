@@ -33,8 +33,11 @@ class AuthProviderFlow(
 
     suspend fun signIn(
         parameters: MutableMap<String, String>?,
-        callbacks: AuthCallbacks,
+        authCallbacks: AuthCallbacks.() -> Unit,
     ) {
+        // Register callbacks.
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+
         CDCDebuggable.log(LOG_TAG, "signIn: with parameters:$parameters")
 
         if (provider == null) {
@@ -190,7 +193,8 @@ class AuthProviderFlow(
     ) {
         parameters["loginMode"] = "link"
         
-        val callbacks = AuthCallbacks().apply {
+        signIn(parameters) {
+            // Set up override transformation FIRST
             doOnAnyAndOverride { authResult ->
                 when (authResult) {
                     is AuthResult.Success -> {
@@ -214,9 +218,10 @@ class AuthProviderFlow(
                     else -> authResult // Pass through other results unchanged
                 }
             }
-        }.apply(authCallbacks)
-
-        signIn(parameters, callbacks)
+            
+            // Register user callbacks AFTER override
+            authCallbacks()
+        }
     }
 
 

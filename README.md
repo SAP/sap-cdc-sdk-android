@@ -106,31 +106,93 @@ suspend fun login(email: String, password: String) {
 
 ## Advanced DSL Features
 
-### When to Register Callbacks
+### Callback Registration Patterns
 
-Callbacks must be registered **during the DSL block execution** before the authentication request is made. All callback registration (both side effects and main callbacks) happens within the trailing lambda:
+There are two distinct patterns for registering callbacks, each with different registration order requirements:
+
+#### Pattern 1: Side Effect Pattern - Register User Callbacks FIRST
+
+When wrapping SDK calls to add side effects (e.g., state management, analytics), register the user's callbacks **FIRST**, then add your side effects:
 
 ```kotlin
-authenticationService.authenticate().login()
-    .credentials(credentials) {
-        // ✅ CORRECT: All callbacks registered here during DSL execution
-        doOnSuccess { /* side effect */ }
-        onSuccess = { /* main callback */ }
-        doOnErrorAndOverride { /* transform */ }
-        onError = { /* main callback */ }
-    } // 🚀 Authentication request executes AFTER this block completes
+// ✅ CORRECT: Side Effect Pattern
+suspend fun login(credentials: Credentials, authCallbacks: AuthCallbacks.() -> Unit) {
+    authenticationService.authenticate().login()
+        .credentials(credentials) {
+            // 1. Register user's callbacks FIRST
+            authCallbacks()
+            
+            // 2. Add your side effects AFTER
+            doOnSuccess { authSuccess ->
+                updateLocalState(authSuccess)
+                analytics.track("login_success")
+            }
+        }
+}
 ```
 
-**Important:** You cannot add callbacks after the DSL block has completed:
+**Why this order?** Your side effects execute before the user's callbacks, allowing you to prepare state or log events before their code runs.
+
+#### Pattern 2: Override Pattern - Register User Callbacks AFTER
+
+When transforming responses with overrides, set up the override **FIRST**, then register user callbacks **AFTER**:
 
 ```kotlin
-val loginCall = authenticationService.authenticate().login()
-    .credentials(credentials) { 
-        onSuccess = { /* registered */ }
+// ✅ CORRECT: Override Pattern
+suspend fun linkToProvider(
+    linkingContext: LinkingContext,
+    authCallbacks: AuthCallbacks.() -> Unit
+) {
+    signIn(parameters) {
+        // 1. Set up override transformation FIRST
+        doOnAnyAndOverride { authResult ->
+            when (authResult) {
+                is AuthResult.Success -> transformSuccess(authResult)
+                else -> authResult
+            }
+        }
+        
+        // 2. Register user callbacks AFTER override
+        authCallbacks()
+    }
+}
+```
+
+**Why this order?** The override transforms the data first, then the user's callbacks receive the transformed data.
+
+#### Pattern Comparison
+
+Both patterns use the **same DSL syntax** - only the **order differs**:
+
+```kotlin
+// Pattern 1: Side Effects (callbacks FIRST, side effects AFTER)
+credentials(credentials) {
+    authCallbacks()           // User callbacks FIRST
+    doOnSuccess { /* side */ } // Side effects AFTER
+}
+
+// Pattern 2: Overrides (override FIRST, callbacks AFTER)  
+signIn(parameters) {
+    doOnAnyAndOverride { /* transform */ }  // Override FIRST
+    authCallbacks()                         // User callbacks AFTER
+}
+```
+
+#### Common Mistakes
+
+```kotlin
+// ❌ WRONG: Side Effect Pattern with callbacks in wrong order
+authenticationService.authenticate().login()
+    .credentials(credentials) {
+        doOnSuccess { /* side effect */ }
+        authCallbacks()  // Side effects run before user code - incorrect
     }
 
-// ❌ WRONG: Cannot add callbacks after DSL execution
-// loginCall.onError = { /* this won't work */ }
+// ❌ WRONG: Override Pattern with callbacks in wrong order
+signIn(parameters) {
+    authCallbacks()  // User callbacks registered first
+    doOnAnyAndOverride { /* transform */ }  // Override after - won't transform
+}
 ```
 
 ### Side Effects vs. Overrides: Understanding the Difference
@@ -143,24 +205,34 @@ The SDK provides two distinct callback mechanisms with different purposes and ex
 
 **When to use:** Logging, analytics, state management, notifications - any action that should happen in addition to your main logic.
 
+**Registration order:** User callbacks FIRST with `authCallbacks()`, then side effects AFTER.
+
 **Execution order:** Side effects execute **before** main callbacks, but both receive the **same original data**.
 
 ```kotlin
-authenticationService.authenticate().login()
-    .credentials(credentials) {
-        // Side effect - executes FIRST with original data
-        doOnSuccess { authSuccess ->
-            analytics.track("login_success", authSuccess.userData)
-            updateLocalCache(authSuccess)
-            // This doesn't change what the main callback receives
+// Wrapped SDK call with side effects
+suspend fun login(credentials: Credentials, authCallbacks: AuthCallbacks.() -> Unit) {
+    authenticationService.authenticate().login()
+        .credentials(credentials) {
+            // 1. Register user's callbacks FIRST
+            authCallbacks()
+            
+            // 2. Add side effect AFTER registration
+            doOnSuccess { authSuccess ->
+                analytics.track("login_success", authSuccess.userData)
+                updateLocalCache(authSuccess)
+                // This doesn't change what the main callback receives
+            }
         }
-        
-        // Main callback - executes SECOND with same original data
-        onSuccess = { authSuccess ->
-            // Receives the same authSuccess as the side effect
-            navigateToMainScreen()
-        }
+}
+
+// Usage - user's callback receives original data
+login(credentials) {
+    onSuccess = { authSuccess ->
+        // Receives the same original authSuccess as the side effect
+        navigateToMainScreen()
     }
+}
 ```
 
 #### Response Transformation with Override Methods
@@ -169,12 +241,18 @@ authenticationService.authenticate().login()
 
 **When to use:** Data transformation, localization, enrichment, filtering - when you need to change what your main callbacks receive.
 
+**Registration order:** Override FIRST with `doOnSuccessAndOverride {}`, then user callbacks AFTER with `authCallbacks()`.
+
 **Execution order:** Overrides execute **first** and transform the data, then main callbacks receive the **transformed data**.
 
 ```kotlin
-authenticationService.authenticate().login()
-    .credentials(credentials) {
-        // Override - executes FIRST and transforms the response
+// Wrapped SDK call with override
+suspend fun linkToProvider(
+    linkingContext: LinkingContext,
+    authCallbacks: AuthCallbacks.() -> Unit
+) {
+    signIn(parameters) {
+        // 1. Set up override transformation FIRST
         doOnSuccessAndOverride { authSuccess ->
             // Transform the response
             authSuccess.copy(
@@ -185,12 +263,18 @@ authenticationService.authenticate().login()
             )
         }
         
-        // Main callback - receives the TRANSFORMED response
-        onSuccess = { transformedSuccess ->
-            // This receives the enhanced data with loginTime and deviceInfo
-            handleLogin(transformedSuccess)
-        }
+        // 2. Register user callbacks AFTER override
+        authCallbacks()
     }
+}
+
+// Usage - user's callback receives transformed data
+linkToProvider(linkingContext) {
+    onSuccess = { transformedSuccess ->
+        // This receives the enhanced data with loginTime and deviceInfo
+        handleLogin(transformedSuccess)
+    }
+}
 ```
 
 ### Execution Flow Comparison
@@ -232,36 +316,75 @@ authenticationService.authenticate().login()
 
 ### Universal Override for All Callback Types
 
-Handle any callback type with a single universal override:
+Handle any callback type with a single universal override that can **transform the result type**. Since this is an override, it must be registered **FIRST**, then user callbacks **AFTER**.
+
+**Key Feature:** The universal override can change the result type (e.g., Error → Success), and the SDK's internal callback router will invoke only the callbacks matching the **final transformed type**.
 
 ```kotlin
-authenticationService.authenticate().login()
-    .credentials(credentials) {
-        // Universal override for all callback types
-        doOnAnyAndOverride { authResult ->
-            when (authResult) {
-                is AuthResult.Success -> {
-                    analytics.track("auth_success")
-                    authResult
+// Wrapped SDK call with universal override for error recovery
+suspend fun loginWithErrorRecovery(
+    credentials: Credentials,
+    authCallbacks: AuthCallbacks.() -> Unit
+) {
+    authenticationService.authenticate().login()
+        .credentials(credentials) {
+            // 1. Universal override FIRST - can transform ANY result type to ANY other type
+            doOnAnyAndOverride { authResult ->
+                when (authResult) {
+                    is AuthResult.Error -> {
+                        // Example: Attempt recovery via alternative endpoint
+                        val recoveryAttempt = tryAlternativeAuthEndpoint(credentials)
+                        if (recoveryAttempt != null) {
+                            // Transform Error → Success
+                            // Only onSuccess callback will execute (not onError)
+                            AuthResult.Success(recoveryAttempt)
+                        } else {
+                            // Keep as Error
+                            // Only onError callback will execute
+                            authResult
+                        }
+                    }
+                    is AuthResult.Success -> {
+                        // Enrich success data
+                        val enriched = authResult.authSuccess.copy(
+                            userData = authResult.authSuccess.userData + 
+                                ("loginTime" to System.currentTimeMillis())
+                        )
+                        AuthResult.Success(enriched)
+                    }
+                    // Pass through other types unchanged
+                    else -> authResult
                 }
-                is AuthResult.Error -> {
-                    analytics.track("auth_error", authResult.authError.code)
-                    authResult
-                }
-                is AuthResult.TwoFactorRequired -> {
-                    analytics.track("auth_2fa_required")
-                    authResult
-                }
-                // Handle other types...
-                else -> authResult
             }
+            
+            // 2. User callbacks AFTER override
+            authCallbacks()
         }
-        
-        onSuccess = { /* handle success */ }
-        onError = { /* handle error */ }
-        onTwoFactorRequired = { /* handle 2FA */ }
+}
+
+// Usage - callbacks receive the TRANSFORMED result
+loginWithErrorRecovery(credentials) {
+    onSuccess = { authSuccess ->
+        // Executes if original succeeded OR if error was recovered
+        navigateToMainScreen()
     }
+    onError = { authError ->
+        // Only executes if recovery also failed
+        showError(authError.message)
+    }
+}
 ```
+
+**How the callback router works:**
+
+1. **Universal override executes first** and can transform the result type
+2. **SDK's internal router** evaluates the **final result type** after transformation
+3. **Only matching callbacks execute** based on the final type:
+   - If final result is `AuthResult.Success` → only `onSuccess` executes
+   - If final result is `AuthResult.Error` → only `onError` executes
+   - If final result is `AuthResult.TwoFactorRequired` → only `onTwoFactorRequired` executes
+
+This routing mechanism ensures type safety and prevents callbacks from executing for the wrong result type.
 
 ### Context Update Callbacks
 
@@ -387,44 +510,89 @@ Web Screen-Sets provide customizable web-based authentication UI that integrates
 ## Basic Usage
 
 ```kotlin
-// Create WebBridge instance
+// 1. Create WebBridge instance
 val webBridgeJS = WebBridgeJS(authenticationService)
 
-// Configure with obfuscation
+// 2. Configure with obfuscation (optional)
 webBridgeJS.addConfig(
     WebBridgeJSConfig.Builder()
         .obfuscate(true)
         .build()
 )
 
-// Attach to WebView
-webBridgeJS.attachBridgeTo(webView, lifecycleScope)
+// 3. Attach to WebView
+webBridgeJS.attachBridgeTo(webView)
 
-// Set native social providers (optional)
+// 4. Set native social providers (optional)
 webBridgeJS.setNativeSocialProviders(authenticationProviderMap)
 
-// Register for events
-webBridgeJS.registerForEvents { event ->
-    // Handle web screen-set events
-    when (event.type) {
-        "login" -> handleLoginEvent(event)
-        "register" -> handleRegisterEvent(event)
-        // Handle other events
+// 5. Register event callbacks using ScreenSetsCallbacks
+webBridgeJS.attachCallbacks(ScreenSetsCallbacks().apply {
+    onLoad = { event ->
+        // Handle screen-set load
+        println("ScreenSet loaded: ${event.screenSetId}")
     }
-}
+    
+    onLogin = { event ->
+        // Handle login success
+        navigateToMainScreen()
+    }
+    
+    onError = { error ->
+        // Handle errors
+        showError(error.message)
+    }
+    
+    onFieldChanged = { event ->
+        // Handle form field changes
+        validateField(event)
+    }
+})
 
-// Load screen-set
+// 6. Load screen-set
 webBridgeJS.load(webView, screenSetUrl)
 
-// Clean up when done
+// 7. Clean up when done
 webBridgeJS.detachBridgeFrom(webView)
+webBridgeJS.detachCallbacks()
 ```
+
+## Available Events
+
+The `ScreenSetsCallbacks` provides handlers for all screen-set lifecycle events:
+
+**Lifecycle Events:**
+- `onBeforeScreenLoad` - Before screen loads
+- `onLoad` - Screen loaded and ready
+- `onAfterScreenLoad` - After screen fully rendered
+- `onHide` - Screen hidden or dismissed
+
+**Form Events:**
+- `onFieldChanged` - Form field value changed
+- `onBeforeValidation` - Before form validation
+- `onAfterValidation` - After form validation
+- `onBeforeSubmit` - Before form submission
+- `onSubmit` - Form submitted
+- `onAfterSubmit` - After form submission
+
+**Authentication Events:**
+- `onLoginStarted` - Login process initiated
+- `onLogin` - Login successful
+- `onLogout` - User logged out
+- `onAddConnection` - Social account connected
+- `onRemoveConnection` - Social account disconnected
+- `onCanceled` - User canceled the flow
+
+**Error Handling:**
+- `onError` - Error occurred
+- `onAnyEvent` - Universal handler for all events
 
 **Benefits:**
 - **Flexibility:** Customize authentication UI using HTML, CSS, and JavaScript
 - **Consistency:** Maintain consistent branding across platforms
 - **Reduced Development:** Leverage existing web technologies
 - **Native Integration:** Seamless communication between web and native code
+- **Type-Safe Events:** Strongly-typed event handling with ScreenSetsCallbacks
 
 # Example Application
 
