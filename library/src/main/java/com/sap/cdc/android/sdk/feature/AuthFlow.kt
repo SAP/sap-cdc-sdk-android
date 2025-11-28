@@ -108,29 +108,25 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         regToken: String?,
         callbacks: AuthCallbacks
     ) {
+        // Get TFA providers
+        var tfaProviders: TFAProvidersEntity? = null
+        val authResult = getTwoFactorProvidersSync(mutableMapOf("regToken" to (regToken ?: "")))
+        if (authResult is AuthResult.Success) {
+            tfaProviders = json.decodeFromString<TFAProvidersEntity>(authResult.authSuccess.jsonData)
+        }
+
+        val tfaContext = TwoFactorContext(
+            initiator = initiator,
+            originatingError = createAuthError(response),
+            tfaProviders = tfaProviders,
+        )
+
+        // Try invoking the specific handler first
         if (callbacks.onTwoFactorRequired != null) {
-            // Get TFA providers
-
-            var tfaProviders: TFAProvidersEntity? = null
-            val authResult = getTwoFactorProvidersSync(mutableMapOf("regToken" to (regToken ?: "")))
-            if (authResult is AuthResult.Success) {
-                tfaProviders = json.decodeFromString<TFAProvidersEntity>(authResult.authSuccess.jsonData)
-            }
-
-            val tfaContext = TwoFactorContext(
-                initiator = initiator,
-                originatingError = createAuthError(response),
-                tfaProviders = tfaProviders,
-            )
-
             callbacks.onTwoFactorRequired?.invoke(tfaContext)
         } else {
-            // No TFA handler provided - treat as error
-            val authError = AuthError(
-                message = "Two-factor authentication required but no handler provided",
-                code = response.errorCode().toString()
-            )
-            callbacks.onError?.invoke(authError)
+            // If no specific handler, pass to onError so ScreenSets can handle it
+            tfaContext.originatingError?.let { callbacks.onError?.invoke(it) }
         }
     }
 
@@ -138,19 +134,17 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         response: CDCResponse,
         callbacks: AuthCallbacks
     ) {
+        val otpContext = OTPContext(
+            vToken = response.stringField("vToken"),
+            originatingError = createAuthError(response),
+        )
+        
+        // Try invoking the specific handler first
         if (callbacks.onOTPRequired != null) {
-            val otpContext = OTPContext(
-                vToken = response.stringField("vToken"),
-                originatingError = createAuthError(response),
-            )
             callbacks.onOTPRequired?.invoke(otpContext)
         } else {
-            // No OTP handler provided - treat as error
-            val authError = AuthError(
-                message = "OTP verification required but no handler provided",
-                code = "OTP_REQUIRED"
-            )
-            callbacks.onError?.invoke(authError)
+            // If no specific handler, pass to onError so ScreenSets can handle it
+            otpContext.originatingError?.let { callbacks.onError?.invoke(it) }
         }
     }
 
@@ -159,20 +153,17 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         regToken: String?,
         callbacks: AuthCallbacks
     ) {
-        if (callbacks.onPendingRegistration != null) {
-            val registrationContext = RegistrationContext(
-                regToken = regToken,
-                originatingError = createAuthError(response),
-            )
+        val registrationContext = RegistrationContext(
+            regToken = regToken,
+            originatingError = createAuthError(response),
+        )
 
+        // Try invoking the specific handler first
+        if (callbacks.onPendingRegistration != null) {
             callbacks.onPendingRegistration?.invoke(registrationContext)
         } else {
-            // No registration handler provided - treat as error
-            val authError = AuthError(
-                message = "Additional registration information required but no handler provided",
-                code = response.errorCode().toString()
-            )
-            callbacks.onError?.invoke(authError)
+            // If no specific handler, pass to onError so ScreenSets can handle it
+            registrationContext.originatingError?.let { callbacks.onError?.invoke(it) }
         }
     }
 
@@ -181,32 +172,30 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         regToken: String?,
         callbacks: AuthCallbacks
     ) {
+        val provider = response.stringField("provider")
+        val authToken = response.stringField("access_token")
+
+        // Get conflicting accounts
+        var linkEntities: LinkEntities? = null
+        val authResult = getConflictingAccountsSync(mutableMapOf("regToken" to (regToken ?: "")))
+        if (authResult is AuthResult.Success) {
+            val conflictingJson = authResult.authSuccess.data["conflictingAccount"] as JsonObject
+            linkEntities = json.decodeFromJsonElement(conflictingJson)
+        }
+
+        val linkingContext = LinkingContext(
+            provider = provider,
+            authToken = authToken,
+            conflictingAccounts = linkEntities,
+            originatingError = createAuthError(response),
+        )
+        
+        // Try invoking the specific handler first
         if (callbacks.onLinkingRequired != null) {
-            val provider = response.stringField("provider")
-            val authToken = response.stringField("access_token")
-
-            // Get conflicting accounts
-            var linkEntities: LinkEntities? = null
-            val authResult = getConflictingAccountsSync(mutableMapOf("regToken" to (regToken ?: "")))
-            if (authResult is AuthResult.Success) {
-                val conflictingJson = authResult.authSuccess.data["conflictingAccount"] as JsonObject
-                linkEntities = json.decodeFromJsonElement(conflictingJson)
-            }
-
-            val linkingContext = LinkingContext(
-                provider = provider,
-                authToken = authToken,
-                conflictingAccounts = linkEntities,
-                originatingError = createAuthError(response),
-            )
             callbacks.onLinkingRequired?.invoke(linkingContext)
         } else {
-            // No linking handler provided - treat as error
-            val authError = AuthError(
-                message = "Account linking required but no handler provided",
-                code = response.errorCode().toString()
-            )
-            callbacks.onError?.invoke(authError)
+            // If no specific handler, pass to onError so ScreenSets can handle it
+            linkingContext.originatingError?.let { callbacks.onError?.invoke(it) }
         }
     }
 

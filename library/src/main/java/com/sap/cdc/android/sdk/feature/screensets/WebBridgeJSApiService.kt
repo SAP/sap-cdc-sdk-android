@@ -23,6 +23,7 @@ import com.sap.cdc.android.sdk.feature.session.Session
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -39,13 +40,20 @@ import kotlin.coroutines.CoroutineContext
 
 class WebBridgeJSApiService(
     private val weakHostActivity: WeakReference<ComponentActivity>,
-    private val viewModelScope: CoroutineScope? = null,
     private val authenticationService: AuthenticationService
 ) {
 
     companion object {
         const val LOG_TAG = "WebBridgeJSApiService"
     }
+
+    /**
+     * Service-level coroutine scope independent of UI lifecycle.
+     * This ensures API requests complete even if the user navigates away,
+     * which is critical for operations like finalizeRegistration that represent
+     * backend state changes that should always finish.
+     */
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun apiKey(): String = authenticationService.siteConfig.apiKey
 
@@ -177,6 +185,7 @@ class WebBridgeJSApiService(
                 interruptionCoordinator.evaluateError(response.errorCode()!!)
 
                 evaluateJSResult(
+
                     WebBridgeJSEvaluation(
                         containerID = containerId,
                         evaluationString = response.jsonResponse ?: "",
@@ -184,6 +193,7 @@ class WebBridgeJSApiService(
                     )
                 )
                 coroutineContext.cancel()
+                return@launchAsync
             }
 
             // Check if response contains a session object.
@@ -202,9 +212,11 @@ class WebBridgeJSApiService(
                             event = WebBridgeJSEvent.canceledEvent()
                         )
                     )
-                    this.coroutineContext.cancel()
+                    coroutineContext.cancel()
+                    return@launchAsync
                 }
-                authenticationService.session().setSession(sessionInfo!!)
+
+                authenticationService.session().setSession(sessionInfo)
 
                 // Evaluate interruption if required.
                 interruptionCoordinator.evaluateSuccess(
@@ -223,6 +235,7 @@ class WebBridgeJSApiService(
                     )
                 )
                 coroutineContext.cancel()
+                return@launchAsync
             }
 
             //Optional completion handler.
@@ -274,11 +287,12 @@ class WebBridgeJSApiService(
                     )
                 )
                 coroutineContext.cancel()
+                return@launchAsync
             }
 
             // Vary selected authentication provider. If no native provider is available, the
             // service will create a new instance of the WebAuthenticationProvider.
-            var authProvider = getNativeProviderAuthenticator(provider!!)
+            var authProvider = getNativeProviderAuthenticator(provider)
             if (authProvider == null) {
                 authProvider = WebAuthenticationProvider(
                     socialProvider = provider,
@@ -302,7 +316,6 @@ class WebBridgeJSApiService(
 
                     // Evaluate interruption if required.
                     interruptionCoordinator.evaluateError(error.code!!.toInt())
-
 
                     evaluateJSResult(
                         WebBridgeJSEvaluation(
@@ -375,19 +388,14 @@ class WebBridgeJSApiService(
     }
 
     /**
-     * It is preferred to launch asynchronous code within a view model scope so that the coroutine lifecycle
-     * will be aligned with the view models. If a viewmodel scope was not registered with this instance of the
-     * web bridge then a new scope will be created for this block run.
+     * Launch asynchronous code within the service scope.
+     * This ensures API requests complete independently of UI lifecycle,
+     * which is critical for operations like finalizeRegistration that represent
+     * backend state changes that should always finish.
      */
     private fun launchAsync(asyncBlock: suspend CoroutineScope.(CoroutineContext) -> Unit) {
-        if (viewModelScope != null) {
-            viewModelScope.launch(Dispatchers.IO) {
-                asyncBlock(this.coroutineContext)
-            }
-        } else {
-            CoroutineScope(Dispatchers.IO).launch {
-                asyncBlock(this.coroutineContext)
-            }
+        serviceScope.launch {
+            asyncBlock(this.coroutineContext)
         }
     }
 
@@ -401,10 +409,13 @@ class WebBridgeJSApiService(
     }
 
     /**
-     * Dispose of service saved references
+     * Dispose of service saved references and cancel service scope.
+     * This should be called when the service is truly done (e.g., Activity destroyed),
+     * not just when navigating between screens.
      */
     fun dispose() {
         weakHostActivity.clear()
+        serviceScope.cancel()
     }
 }
 
@@ -448,7 +459,6 @@ class WebBridgeJSInterruptionCoordinator(
 
     fun evaluateError(errorCode: Int) {
         when (errorCode) {
-            ResolvableContext.ERR_LOGIN_IDENTIFIER_EXISTS,
             ResolvableContext.ERR_ENTITY_EXIST_CONFLICT -> {
                 // Handle conflict error.
                 activeInterruption = WebBridgeJSLinkingInterruption(authenticationService, dispose = {
@@ -498,6 +508,7 @@ class WebBridgeJSLinkingInterruption(
     private var _active = false
 
     override fun isActive(): Boolean = _active
+
     override suspend fun resolve(
         api: String,
         params: Map<String, String>,

@@ -146,12 +146,11 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
     /**
      * Attach JS bridge to given WebView widget.
      */
-    fun attachBridgeTo(webView: WebView, viewModelScope: CoroutineScope? = null) {
+    fun attachBridgeTo(webView: WebView) {
         bridgedWebView = WeakReference(webView)
         bridgedApiService = WebBridgeJSApiService(
             weakHostActivity = WeakReference(webView.context as ComponentActivity?),
-            authenticationService = authenticationService,
-            viewModelScope = viewModelScope
+            authenticationService = authenticationService
         )
         webView.addJavascriptInterface(
             ScreenSetsJavaScriptInterface(

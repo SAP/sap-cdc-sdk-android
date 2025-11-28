@@ -18,6 +18,11 @@ data class CDCError(
 ) {
 
     companion object {
+        
+        private val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
 
         fun contextError(): CDCError = CDCError(-1, "Application context error")
 
@@ -25,7 +30,6 @@ data class CDCError(
 
         fun providerError(): CDCError = CDCError(400122, "Provider configuration error")
 
-        fun fromJson(json: String): CDCError = Json.decodeFromString(json)
+        fun fromJson(json: String): CDCError = CDCError.json.decodeFromString(json)
     }
 }
-

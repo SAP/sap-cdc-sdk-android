@@ -306,7 +306,7 @@ class ScreenSetViewModel(
             }
 
             // Attach bridge to WebView with ViewModel scope
-            bridge.attachBridgeTo(webView, viewModelScope)
+            bridge.attachBridgeTo(webView)
 
             // Set native social providers
             bridge.setNativeSocialProviders(flowDelegate.getAuthenticatorMap())
