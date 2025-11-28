@@ -10,6 +10,8 @@ interface IAuthSession {
 
     fun clearSession()
 
+    fun invalidateSession()
+
     fun setSession(session: Session)
 
     fun resetWithConfig(siteConfig: SiteConfig)
@@ -24,7 +26,9 @@ internal class AuthSession(private val sessionService: SessionService) : IAuthSe
 
     override fun getSession(): Session? = sessionService.getSession()
 
-    override fun clearSession() = sessionService.invalidateSession()
+    override fun clearSession() = sessionService.clearSession()
+
+    override fun invalidateSession() = sessionService.invalidateSession()
 
     override fun setSession(session: Session) = sessionService.setSession(session)
 

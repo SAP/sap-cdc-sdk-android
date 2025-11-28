@@ -63,44 +63,78 @@ class AuthenticationFlowDelegate(context: Context) {
 
     // Direct CDC SDK access - eliminates repository passthrough boilerplate
     /**
-     * Initialize the site configuration class
+     * Site configuration - use reinitializeWithNewConfig() to update
      */
     var siteConfig = SiteConfig(context)
+        private set
 
     /**
-     * Initialize authentication service.
+     * Authentication service - use reinitializeWithNewConfig() to update
      */
-    var authenticationService = AuthenticationService(siteConfig)
-        .registerForPushAuthentication(
-            object : IFCMTokenRequest {
-                override fun requestFCMToken() {
-                    FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-                        if (!task.isSuccessful) {
-                            return@OnCompleteListener
-                        }
+    var authenticationService = createAuthenticationService(SiteConfig(context))
+        private set
 
-                        // Get new FCM registration token
-                        val token = task.result
-                        emitTokenReceived(token)
-                    })
-                }
-            })
-        .registerForSessionValidation(
-            config = SessionValidationConfig(
-                intervalMinutes = 20L,
-                enabled = false, // Debug trigger to disable when needed
+    /**
+     * Creates and configures a new AuthenticationService instance.
+     * Centralizes service initialization to avoid duplication.
+     * 
+     * @param config The SiteConfig to initialize the service with
+     * @return Configured AuthenticationService instance
+     */
+    private fun createAuthenticationService(config: SiteConfig): AuthenticationService {
+        return AuthenticationService(config)
+            .registerForPushAuthentication(
+                object : IFCMTokenRequest {
+                    override fun requestFCMToken() {
+                        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                            if (!task.isSuccessful) {
+                                return@OnCompleteListener
+                            }
+
+                            // Get new FCM registration token
+                            val token = task.result
+                            emitTokenReceived(token)
+                        })
+                    }
+                })
+            .registerForSessionValidation(
+                config = SessionValidationConfig(
+                    intervalMinutes = 20L,
+                    enabled = false, // Debug trigger to disable when needed
+                )
             )
-        )
+    }
 
     /**
-     * Re-init the session service with new site configuration.
+     * Re-initializes the entire authentication system with a new SiteConfig.
+     * 
+     * This method performs a complete reinitialization when configuration changes:
+     * 1. Clears existing authentication state and session data
+     * 2. Creates new AuthenticationService with fresh CoreClient and SessionService
+     * 3. Re-registers all authentication providers with new config
+     * 4. Resets biometric authentication (will reinitialize on next use)
+     * 
+     * **Important:** Sessions are API-key specific, so changing configuration
+     * requires clearing the old session and starting fresh.
+     * 
+     * @param newSiteConfig The new site configuration to use
      */
-    fun reinitializeSessionService(siteConfig: SiteConfig) {
-        // Reset delegate state with new config
-        this.siteConfig = siteConfig
-        // Reset delegate user account value
-        this._userAccount.value = null
-        authenticationService.session().resetWithConfig(siteConfig)
+    fun reinitializeWithNewConfig(newSiteConfig: SiteConfig) {
+        // 1. Clear existing state
+        clearAuthenticationState()
+        clearCDCSession()
+        clearAuthOptionsState()
+        
+        // 2. Update siteConfig reference
+        this.siteConfig = newSiteConfig
+        
+        // 3. Create NEW AuthenticationService (includes fresh CoreClient + SessionService)
+        authenticationService = createAuthenticationService(newSiteConfig)
+        
+        // 4. Re-register authentication providers
+        initializeProviders()
+        
+        // Note: biometricAuth is lazy - will reinitialize with new sessionService on next access
     }
 
     /**
@@ -116,21 +150,14 @@ class AuthenticationFlowDelegate(context: Context) {
     private var authenticationProviderMap: MutableMap<String, IAuthenticationProvider> =
         mutableMapOf()
 
-    init {
-        // Using session migrator to try and migrate an existing session in an application using old versions
-        // of the gigya-android-sdk library.
-        val sessionMigrator = SessionMigrator(context)
-        sessionMigrator.tryMigrateSession(
-            authenticationService,
-            success = {
-                Log.e(SessionMigrator.LOG_TAG, "Session migration success")
-
-            },
-            failure = {
-                Log.e(SessionMigrator.LOG_TAG, "Session migration failed")
-            })
-
-        // Register application specific authentication providers.
+    /**
+     * Initializes authentication providers.
+     * Centralizes provider registration to avoid duplication.
+     */
+    private fun initializeProviders() {
+        authenticationProviderMap.clear()
+        
+        // Register application specific authentication providers
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
         
         // Register Google with both modern and legacy names (google + googleplus)
@@ -139,6 +166,23 @@ class AuthenticationFlowDelegate(context: Context) {
             aliases = listOf("google", "googleplus"),
             provider = GoogleAuthenticationProvider()
         )
+    }
+
+    init {
+        // Using session migrator to try and migrate an existing session in an application using old versions
+        // of the gigya-android-sdk library.
+        val sessionMigrator = SessionMigrator(context)
+        sessionMigrator.tryMigrateSession(
+            authenticationService,
+            success = {
+                Log.e(SessionMigrator.LOG_TAG, "Session migration success")
+            },
+            failure = {
+                Log.e(SessionMigrator.LOG_TAG, "Session migration failed")
+            })
+
+        // Initialize authentication providers
+        initializeProviders()
     }
 
     // Authentication state flows

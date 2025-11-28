@@ -87,12 +87,12 @@ class ConfigurationViewModel(
 
     override fun onSaveChanges() {
         val currentState = _state.value
-        val siteConfig = SiteConfig(
+        val newSiteConfig = SiteConfig(
             context,
             apiKey = currentState.apiKey,
             domain = currentState.domain,
-            cname = currentState.cname
+            cname = currentState.cname.ifBlank { null }
         )
-        flowDelegate.reinitializeSessionService(siteConfig)
+        flowDelegate.reinitializeWithNewConfig(newSiteConfig)
     }
 }
