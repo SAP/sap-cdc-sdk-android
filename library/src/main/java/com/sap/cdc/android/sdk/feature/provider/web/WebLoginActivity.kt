@@ -19,10 +19,19 @@ import com.sap.cdc.android.sdk.R
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * WebView-based login activity for social authentication.
+ * 
+ * Displays a WebView for OAuth authentication with social providers that don't
+ * have native SDK support. Handles URL interception for OAuth callbacks and
+ * extracts authentication tokens from the redirect URI.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see WebAuthenticationProvider
  */
-
 class WebLoginActivity : ComponentActivity() {
 
     companion object {
@@ -64,10 +73,11 @@ class WebLoginActivity : ComponentActivity() {
         webView.loadUrl(uri!!)
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
     /**
-     * Setting up main WebView widget.
+     * Configures the WebView with JavaScript enabled and custom WebViewClient.
+     * Handles page load progress and URL interception for OAuth callbacks.
      */
+    @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebViewElement() {
         webView.settings.setSupportZoom(true)
         webView.settings.builtInZoomControls = true
@@ -103,7 +113,10 @@ class WebLoginActivity : ComponentActivity() {
     }
 
     /**
-     * Check login result on URL loading.
+     * Checks if the current URL is the OAuth redirect callback.
+     * Extracts authentication parameters from the URL fragment and returns them.
+     * @param uri The URI to check
+     * @return true if this is the callback URL, false otherwise
      */
     private fun loginResult(uri: Uri?): Boolean {
         if (uri == null) return false
@@ -137,7 +150,7 @@ class WebLoginActivity : ComponentActivity() {
     }
 
     /**
-     * Cancel flow on back press.
+     * Handles back button press by canceling the authentication flow.
      */
     override fun getOnBackInvokedDispatcher(): OnBackInvokedDispatcher {
         setResult(RESULT_CANCELED)

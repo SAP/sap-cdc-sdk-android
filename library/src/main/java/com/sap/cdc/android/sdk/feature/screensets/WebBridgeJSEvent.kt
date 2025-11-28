@@ -3,8 +3,20 @@ package com.sap.cdc.android.sdk.feature.screensets
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 
 /**
- * Created by Tal Mirmelshtein on 13/06/2024
+ * Event wrapper for JavaScript bridge communication.
+ * 
+ * Encapsulates events from web-based ScreenSets, providing type-safe access
+ * to event data and factory methods for common events.
+ * 
+ * @property content Map containing event data including eventName and payload
+ * 
+ * @author Tal Mirmelshtein
+ * @since 13/06/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see WebBridgeJS
+ * @see ScreenSetsEventData
  */
 class WebBridgeJSEvent(
     val content: Map<String, Any?>? = mapOf()
@@ -52,7 +64,14 @@ class WebBridgeJSEvent(
 }
 
 /**
- * Data class to hold JS evaluation request data.
+ * Container for JavaScript evaluation requests.
+ * 
+ * Holds data required to evaluate JavaScript in the WebView and
+ * optionally trigger follow-up events.
+ * 
+ * @property containerID The container ID where evaluation should occur
+ * @property evaluationString The JavaScript code to evaluate
+ * @property event Optional event to trigger after evaluation
  */
 data class WebBridgeJSEvaluation(
     val containerID: String,

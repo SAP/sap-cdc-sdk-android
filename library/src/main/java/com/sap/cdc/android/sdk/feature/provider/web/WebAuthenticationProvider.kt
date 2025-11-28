@@ -30,8 +30,22 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Web-based social authentication provider.
+ * 
+ * Implements social login using WebView for providers that don't have native SDK support.
+ * Handles OAuth 1.0a flow with the CDC socialize.login endpoint.
+ * 
+ * @property socialProvider Social provider identifier (e.g., "twitter", "linkedin")
+ * @property siteConfig CDC site configuration
+ * @property session Optional existing session for authenticated requests
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see IAuthenticationProvider
+ * @see WebLoginActivity
  */
 class WebAuthenticationProvider(
     private val socialProvider: String,
@@ -138,7 +152,10 @@ class WebAuthenticationProvider(
     }
 
     /**
-     * Generate authentication URI.
+     * Generates the OAuth authentication URI for social login.
+     * Includes GMID, nonce, and optional session signing for authenticated requests.
+     * @param hostActivity Host activity for package name in redirect URI
+     * @return Complete authentication URL
      */
     private fun generateUri(hostActivity: ComponentActivity): String {
         // Fetch gmid
@@ -180,7 +197,10 @@ class WebAuthenticationProvider(
     }
 
     /**
-     * Parse result session information.
+     * Parses session information from the authentication result.
+     * Extracts access token, secret, and expiration from intent extras.
+     * @param result Result intent containing session data
+     * @return Session object with credentials
      */
     private fun handleSessionInfo(result: Intent): Session {
         // Parse session information.
@@ -197,7 +217,10 @@ class WebAuthenticationProvider(
     }
 
     /**
-     * Parse error information. May result in a continuous flow to resolve the error.
+     * Parses error information from the authentication result.
+     * Extracts error code and message, optionally includes registration token.
+     * @param result Result intent containing error data
+     * @return CDCError with parsed error details
      */
     //TODO: Change flow to base response. Not handling CDCError as a object.
     private fun handleErrorInfo(result: Intent): CDCError {
