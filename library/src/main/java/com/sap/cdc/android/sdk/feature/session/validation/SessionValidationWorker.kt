@@ -17,21 +17,22 @@ import java.util.Date
 
 /**
  * WorkManager worker that performs periodic session validation.
- * This worker is scheduled by SessionValidationService to run at configured intervals.
  * 
- * The worker first checks if there is an active session available. If no session exists,
- * the worker cancels itself to prevent unnecessary background processing.
+ * Scheduled by SessionValidationService to run at configured intervals. The worker
+ * validates active sessions against the CDC API and emits events for the results.
  * 
- * When a session is available, the worker validates it against the CDC API and emits
- * results as events through the CDCLifecycleEventBus.
- * 
- * Session-Based Control:
- * - Automatically stops validation when no active sessions exist
+ * Features:
+ * - Automatically stops when no active session exists
  * - Stops on authentication errors (SecurityException, IllegalStateException)
  * - Retries on network errors (IOException, SocketTimeoutException, UnknownHostException)
  * 
- * Created by Mirmelshtein on 18/09/2024
+ * @author Tal Mirmelshtein
+ * @since 18/09/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see SessionValidationService
+ * @see SessionValidator
  */
 class SessionValidationWorker(
     context: Context,

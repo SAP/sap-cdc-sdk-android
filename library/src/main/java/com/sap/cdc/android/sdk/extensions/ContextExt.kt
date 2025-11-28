@@ -10,10 +10,18 @@ import com.sap.cdc.android.sdk.storage.AndroidKeystoreSecureStorage
 import com.sap.cdc.android.sdk.storage.SecureSharedPreferences
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Context extension functions for SAP CDC SDK.
+ * 
+ * Provides utility functions for secure storage, network connectivity checks,
+ * and resource loading. Updated to use modern Android Keystore-based encryption.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
  * 
- * Updated to use modern Android Keystore-based secure storage implementation.
+ * @see AndroidKeystoreSecureStorage
+ * @see SecureSharedPreferences
  */
 
 /**
@@ -61,6 +69,11 @@ fun Context.getSecureStorage(
     )
 }
 
+/**
+ * Checks if the device has an active network connection.
+ * Checks for cellular, WiFi, or ethernet connectivity.
+ * @return true if network is available, false otherwise
+ */
 fun Context.isOnline(): Boolean {
     val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
@@ -79,6 +92,13 @@ fun Context.isOnline(): Boolean {
     return false
 }
 
+/**
+ * Gets a required string resource by its key name.
+ * Throws an exception if the resource is not found.
+ * @param key The resource key name (e.g., "sap_cdc_api_key")
+ * @return The string resource value
+ * @throws IllegalArgumentException if resource not found
+ */
 @SuppressLint("DiscouragedApi") // Not possible to access host R file.
 fun Context.requiredStringResourceFromKey(key: String): String {
     val resource = resources.getIdentifier(key, "string", packageName)
@@ -90,6 +110,12 @@ fun Context.requiredStringResourceFromKey(key: String): String {
     return getString(resource)
 }
 
+/**
+ * Gets an optional string resource by its key name.
+ * Returns null if the resource is not found.
+ * @param key The resource key name
+ * @return The string resource value or null if not found
+ */
 @SuppressLint("DiscouragedApi") // Not possible to access host R file.
 fun Context.stringResourceFromKey(key: String): String? {
     val resource = resources.getIdentifier(key, "string", packageName)

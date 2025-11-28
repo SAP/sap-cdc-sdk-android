@@ -8,16 +8,27 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Biometric authentication key management for secure session storage.
+ * 
+ * Manages cryptographic keys stored in Android Keystore for biometric-protected
+ * session encryption. Keys are invalidated when new biometric credentials are enrolled.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
  */
-
 class BiometricKey {
 
     companion object {
         const val BIOMETRIC_KEY_NAME = "cdc_biometric_key"
     }
 
+    /**
+     * Generates a new AES secret key in Android Keystore.
+     * Key requires biometric authentication and is invalidated when biometrics change.
+     * @return Generated SecretKey
+     */
     private fun generateSecretKey(): SecretKey {
         val keyGenParameterSpec = KeyGenParameterSpec.Builder(
             BIOMETRIC_KEY_NAME,
@@ -39,12 +50,21 @@ class BiometricKey {
         return keyGenerator.generateKey()
     }
 
+    /**
+     * Removes the biometric secret key from Android Keystore.
+     * Called when biometric authentication is disabled or reset.
+     */
     fun removeSecretKey() {
         val keyStore = KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
         keyStore.deleteEntry(BIOMETRIC_KEY_NAME)
     }
 
+    /**
+     * Retrieves or generates the biometric secret key.
+     * If key doesn't exist, generates a new one.
+     * @return SecretKey for biometric encryption/decryption
+     */
     fun getSecretKey(): SecretKey {
         val keyStore = KeyStore.getInstance("AndroidKeyStore")
         // Before the keystore can be accessed, it must be loaded.
@@ -54,13 +74,17 @@ class BiometricKey {
         return secretKey
     }
 
+    /**
+     * Creates a Cipher instance for AES-GCM encryption.
+     * Used for encrypting/decrypting biometric-protected session data.
+     * @return Configured Cipher instance
+     */
     fun getCipher(): Cipher {
         return Cipher.getInstance(
             KeyProperties.KEY_ALGORITHM_AES + "/"
                     + KeyProperties.BLOCK_MODE_GCM + "/"
                     + KeyProperties.ENCRYPTION_PADDING_NONE
         )
-
     }
 
 }

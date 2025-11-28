@@ -1,7 +1,15 @@
 package com.sap.cdc.android.sdk.feature
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * SAP CDC API endpoint constants.
+ * 
+ * Centralized collection of all CDC REST API endpoint identifiers used throughout
+ * the SDK for authentication, account management, social login, OTP, OAuth, passkeys,
+ * two-factor authentication (TFA), and risk-based authentication.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
  */
 class AuthEndpoints {

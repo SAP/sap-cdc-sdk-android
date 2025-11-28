@@ -3,12 +3,17 @@ package com.sap.cdc.android.sdk.core
 import android.content.SharedPreferences
 
 /**
- * Created by Tal Mirmelshtein on 30/09/2024
- * Copyright: SAP LTD.
- *
  * Interface for providing string resources and SharedPreferences access to SDK components.
+ * 
  * This abstraction allows for easier testing by enabling mock implementations
  * that don't require Android Context dependencies.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 30/09/2024
+ * 
+ * Copyright: SAP LTD.
+ * 
+ * @see AndroidResourceProvider
  */
 interface ResourceProvider {
     /**

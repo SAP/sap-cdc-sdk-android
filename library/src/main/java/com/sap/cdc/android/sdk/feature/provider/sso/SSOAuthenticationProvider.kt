@@ -26,14 +26,22 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * Created by Tal Mirmelshtein on 13/12/2024
+ * SSO authentication provider using Custom Tabs and PKCE.
+ * 
+ * Implements single sign-on authentication flow using OAuth 2.0 with PKCE
+ * (Proof Key for Code Exchange) for enhanced security. Uses Chrome Custom Tabs
+ * for a seamless authentication experience.
+ * 
+ * @property siteConfig CDC site configuration
+ * @property params Optional authentication parameters
+ * 
+ * @author Tal Mirmelshtein
+ * @since 13/12/2024
+ * 
  * Copyright: SAP LTD.
- */
-
-/**
- * Single sign on authentication provider class.
- *
- * Initiate CLP SSO authentication flow.
+ * 
+ * @see IAuthenticationProvider
+ * @see PKCEUtil
  */
 class SSOAuthenticationProvider(
     private val siteConfig: SiteConfig,
@@ -174,6 +182,11 @@ class SSOAuthenticationProvider(
         launcher?.unregister()
     }
 
+    /**
+     * Extracts query parameters from URI into a map.
+     * @param uri The URI to parse
+     * @return HashMap of query parameter key-value pairs
+     */
     private fun getQueryKeyValueMap(uri: Uri): HashMap<String, Any> {
         val keyValueMap = HashMap<String, Any>()
         var key: String
@@ -191,7 +204,10 @@ class SSOAuthenticationProvider(
     }
 
     /**
-     * Parse error_uri from error response.
+     * Parses error URI from OAuth error response.
+     * Extracts error code and details from the error_uri parameter.
+     * @param uriString The error URI string
+     * @return JSON string containing error details
      */
     private fun parseErrorUri(uriString: String): String {
         val uri = Uri.parse(uriString)

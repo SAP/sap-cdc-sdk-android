@@ -12,23 +12,22 @@ import com.sap.cdc.android.sdk.core.SiteConfig
 import java.util.concurrent.TimeUnit
 
 /**
- * Main service for managing periodic session validation using WorkManager.
- *
- * This service provides comprehensive control over session validation:
- * - Enable/disable validation with configurable intervals
- * - Pause/resume validation temporarily
- * - Restart validation (useful after configuration changes)
- * - Update validation interval dynamically
- * - Check if validation is currently active
- *
- * The service uses WorkManager to ensure validation continues even when the app
- * is in the background or after the process is killed by the system.
- *
- * @param context Application context for WorkManager initialization
- * @param siteConfig CDC site configuration containing API key and domain
- *
- * Created by Mirmelshtein on 18/09/2024
+ * Service for managing periodic session validation using WorkManager.
+ * 
+ * Provides comprehensive control over session validation lifecycle including
+ * enable/disable, pause/resume, interval updates, and status checking.
+ * Uses WorkManager to ensure validation persists across app restarts.
+ * 
+ * @property siteConfig CDC site configuration containing API key and domain
+ * @property currentConfig Current validation configuration
+ * 
+ * @author Tal Mirmelshtein
+ * @since 18/09/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see SessionValidationConfig
+ * @see SessionValidationWorker
  */
 class SessionValidationService(
     private val siteConfig: SiteConfig,

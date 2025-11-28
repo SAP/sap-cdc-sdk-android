@@ -4,42 +4,71 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.feature.session.Session
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Authentication provider interfaces and types for SAP CDC.
+ * 
+ * Defines the contract for authentication providers including native social providers,
+ * web-based providers, and SSO flows.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
  */
 
 /**
  * Authentication provider type.
- * Native - used for native social provider authentication. Native providers are providers that required
- * their own SDK code base implementation for their oauth2 flows. Currently supporting Google, Facebook, WeChat, Line.
- * Web - Any other social provider that is not native implemented.
- * SSO - Single sign on authentication flow using a central login page.
- *
+ * 
+ * - NATIVE: Native social provider (Google, Facebook, WeChat, Line)
+ * - WEB: Web-based social providers
+ * - SSO: Single sign-on authentication flow
  */
 enum class ProviderType {
     NATIVE, WEB, SSO
 }
 
 /**
- * Authentication provider default interface.
+ * Authentication provider interface.
+ * 
+ * Defines the contract for all authentication providers in the SDK.
  */
 interface IAuthenticationProvider {
 
+    /**
+     * Gets the provider identifier.
+     * @return Provider name string
+     */
     fun getProvider(): String
 
+    /**
+     * Initiates sign-in flow for this provider.
+     * @param hostActivity Optional host activity for launching UI
+     * @return AuthenticatorProviderResult containing authentication data
+     */
     suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult
 
+    /**
+     * Signs out from this provider.
+     * @param hostActivity Optional host activity
+     */
     suspend fun signOut(hostActivity: ComponentActivity?)
 
+    /**
+     * Cleans up resources used by the provider.
+     */
     fun dispose()
 
 }
 
 /**
- * Result provided from provider authentication flow.
- * providerSessions - used for social provider authentication.
- * session - used for web based social provider authentication - sdk internal use.
- * ssoData - used for sso flow - sdk internal use.
+ * Result from provider authentication flow.
+ * 
+ * Contains authentication data specific to the provider type:
+ * - providerSessions: For social provider authentication
+ * - session: For web-based authentication (internal)
+ * - ssoData: For SSO flow (internal)
+ * 
+ * @property provider Provider identifier
+ * @property type Provider type
  */
 class AuthenticatorProviderResult(val provider: String, val type: ProviderType) {
 
@@ -79,6 +108,13 @@ class AuthenticatorProviderResult(val provider: String, val type: ProviderType) 
     }
 }
 
+/**
+ * SSO authentication data container.
+ * 
+ * @property code Authorization code from SSO flow
+ * @property redirectUri Redirect URI used in the flow
+ * @property verifier PKCE code verifier
+ */
 data class SSOAuthenticationData(
     val code: String? = null,
     var redirectUri: String? = null,

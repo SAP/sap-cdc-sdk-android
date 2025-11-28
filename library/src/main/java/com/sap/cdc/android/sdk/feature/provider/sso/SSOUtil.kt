@@ -6,12 +6,15 @@ import org.json.JSONObject
 import java.net.URLEncoder
 
 /**
- * Created by Tal Mirmelshtein on 13/12/2024
+ * SSO (Single Sign-On) utility for FIDM authentication flows.
+ * 
+ * Provides URL building and session parsing utilities for OAuth 2.0/OIDC
+ * authentication with SAP FIDM (Federated Identity Management).
+ * 
+ * @author Tal Mirmelshtein
+ * @since 13/12/2024
+ * 
  * Copyright: SAP LTD.
- */
-
-/**
- * Single sign on util class.
  */
 class SSOUtil {
 
@@ -27,7 +30,11 @@ class SSOUtil {
     }
 
     /**
-     * Build fidm base url.
+     * Builds the FIDM base URL for SSO operations.
+     * Supports both custom CNAME and standard domain configurations.
+     * @param siteConfig Site configuration
+     * @param path The endpoint path (authorize or token)
+     * @return Complete FIDM URL
      */
     fun getUrl(siteConfig: SiteConfig, path: String) =
         when (siteConfig.cname != null) {
@@ -36,8 +43,13 @@ class SSOUtil {
         }
 
     /**
-     * Get authorization URL.
-     * URL will be used in the Custom tab implementation to authenticate the user.
+     * Generates the OAuth 2.0 authorization URL with PKCE.
+     * Used in Custom Tab for user authentication.
+     * @param siteConfig Site configuration
+     * @param params Optional additional parameters
+     * @param redirectUri OAuth redirect URI
+     * @param challenge PKCE code challenge
+     * @return Complete authorization URL with query parameters
      */
     fun getAuthorizeUrl(
         siteConfig: SiteConfig,
@@ -74,7 +86,10 @@ class SSOUtil {
     }
 
     /**
-     * Parse the SessionInfo object from code exchange response.
+     * Parses SSO response into a Session object.
+     * Extracts access token, device secret, and expiration from the OAuth response.
+     * @param ssoResponseEntity The SSO OAuth response
+     * @return Session object with authentication credentials
      */
     fun parseSessionInfo(ssoResponseEntity: SSOResponseEntity): Session {
         return Session(

@@ -5,12 +5,16 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 
 /**
- * Created by Tal Mirmelshtein on 13/12/2024
+ * PKCE (Proof Key for Code Exchange) utility for OAuth 2.0.
+ * 
+ * Generates and manages PKCE code verifier and challenge pairs for
+ * secure OAuth 2.0 authorization flows, protecting against authorization
+ * code interception attacks.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 13/12/2024
+ * 
  * Copyright: SAP LTD.
- */
-
-/**
- * PKCE util class.
  */
 class PKCEUtil {
 
@@ -18,7 +22,8 @@ class PKCEUtil {
     internal var challenge: String? = null
 
     /**
-     * Generate a new challenge.
+     * Generates a new PKCE code verifier and challenge pair.
+     * Stores the verifier and challenge in instance properties.
      */
     fun newChallenge() {
         verifier = generateCodeVerifier()
@@ -26,7 +31,9 @@ class PKCEUtil {
     }
 
     /**
-     * Generate a new code verifier.
+     * Generates a cryptographically random code verifier.
+     * Creates a 32-byte random value and Base64-encodes it.
+     * @return Base64-encoded code verifier string
      */
     private fun generateCodeVerifier(): String {
         val sr = SecureRandom()
@@ -37,7 +44,9 @@ class PKCEUtil {
     }
 
     /**
-     * Generate a new code challenge.
+     * Generates a code challenge from the verifier using SHA-256.
+     * @param verifier The code verifier to hash
+     * @return Base64-encoded SHA-256 hash of the verifier
      */
     private fun generateCodeChallenge(verifier: String): String {
         val bytes: ByteArray = verifier.toByteArray(charset("UTF-8"))

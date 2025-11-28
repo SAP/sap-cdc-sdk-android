@@ -3,13 +3,20 @@ package com.sap.cdc.android.sdk.feature.session.validation
 import com.sap.cdc.android.sdk.BuildConfig
 
 /**
- * Configuration data class for session validation service.
- *
- * @param intervalMinutes The interval in minutes between validation checks (default: 15 minutes)
- * @param enabled Whether session validation is enabled (default: true)
- *
- * Created by Tal Mirmelshtein on 18/09/2024
+ * Configuration for periodic session validation.
+ * 
+ * Controls the behavior of the SessionValidationService, including validation
+ * frequency and enable/disable state. Enforces interval constraints in release builds.
+ * 
+ * @property intervalMinutes Validation interval in minutes (default: 15, range: 15-720)
+ * @property enabled Whether session validation is enabled (default: true)
+ * 
+ * @author Tal Mirmelshtein
+ * @since 18/09/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see SessionValidationService
  */
 data class SessionValidationConfig(
     val intervalMinutes: Long = 15L,

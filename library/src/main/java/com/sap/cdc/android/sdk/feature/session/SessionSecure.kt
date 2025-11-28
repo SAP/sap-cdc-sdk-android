@@ -22,8 +22,20 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.TimeUnit
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Secure session management with encryption and biometric support.
+ * 
+ * Handles secure storage and retrieval of user sessions using encrypted SharedPreferences.
+ * Supports both standard and biometric-secured sessions with automatic expiration handling.
+ * 
+ * @property siteConfig Site configuration containing API key and application context
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see SessionSecureProvider
+ * @see SessionEntity
  */
 internal class SessionSecure(
     private val siteConfig: SiteConfig,
@@ -47,12 +59,19 @@ internal class SessionSecure(
         loadToMem()
     }
 
-    // Clean up subscription when SessionSecure is no longer needed
+    /**
+     * Cleans up event subscriptions.
+     * Should be called when SessionSecure is no longer needed to prevent memory leaks.
+     */
     fun dispose() {
         eventSubscription?.unsubscribe()
         eventSubscription = null
     }
 
+    /**
+     * Subscribes to session events from the global event bus.
+     * Handles session expiration, validation, and refresh events.
+     */
     private fun subscribeToSessionEvents() {
         CDCDebuggable.log(LOG_TAG, "Subscribing to session events.")
 

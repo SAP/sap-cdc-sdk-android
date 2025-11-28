@@ -3,12 +3,15 @@ package com.sap.cdc.android.sdk.feature
 import kotlinx.serialization.Serializable
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Resolvable error context for interrupted authentication flows.
+ * 
+ * Defines error codes and descriptions for authentication flows that require
+ * additional user action (registration completion, 2FA, CAPTCHA, etc.).
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
- */
-
-/**
- * Helper class containing required resolvable data for authentication interrupted flows.
  */
 @Serializable
 class ResolvableContext(

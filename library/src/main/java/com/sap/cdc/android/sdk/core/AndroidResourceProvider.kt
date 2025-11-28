@@ -7,11 +7,19 @@ import com.sap.cdc.android.sdk.extensions.requiredStringResourceFromKey
 import com.sap.cdc.android.sdk.extensions.stringResourceFromKey
 
 /**
- * Created by Tal Mirmelshtein on 30/09/2024
+ * Android implementation of ResourceProvider.
+ * 
+ * Uses Android Context to access string resources and encrypted SharedPreferences,
+ * providing secure storage and resource loading capabilities for the SDK.
+ * 
+ * @property context Android application context for accessing resources
+ * 
+ * @author Tal Mirmelshtein
+ * @since 30/09/2024
+ * 
  * Copyright: SAP LTD.
- *
- * Android implementation of ResourceProvider that uses Android Context
- * to access string resources and SharedPreferences from the app.
+ * 
+ * @see ResourceProvider
  */
 class AndroidResourceProvider(private val context: Context) : ResourceProvider {
 

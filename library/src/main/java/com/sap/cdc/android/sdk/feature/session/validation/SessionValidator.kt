@@ -10,14 +10,22 @@ import kotlinx.coroutines.Dispatchers
 import java.util.Date
 
 /**
- * Core session validation logic that performs the actual validation against CDC API.
- *
- * @param authenticationApi The authentication API client for making network requests
- * @param sessionService The session service for retrieving and managing sessions
- * @param eventBus The event bus for emitting validation events
- *
- * Created by Mirmelshtein on 18/09/2024
+ * Core session validation logic that performs validation against CDC API.
+ * 
+ * Validates active sessions by checking their validity with the CDC backend.
+ * Emits events for validation lifecycle (started, succeeded, failed).
+ * 
+ * @property authenticationApi Authentication API client for network requests
+ * @property sessionService Session service for retrieving and managing sessions
+ * @property eventBus Event bus for emitting validation events
+ * 
+ * @author Tal Mirmelshtein
+ * @since 18/09/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see SessionEvent
+ * @see SessionService
  */
 class SessionValidator(
     private val authenticationApi: AuthenticationApi,

@@ -5,7 +5,15 @@ import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
 
 /**
- * Created by Tal Mirmelshtein on 20/06/2024
+ * Result handler activity for authentication provider flows.
+ * 
+ * Receives intent results from authentication providers (OAuth callbacks, etc.)
+ * and forwards them back to the calling activity. Used as an intermediary
+ * for handling deep links and authorization redirects.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 20/06/2024
+ * 
  * Copyright: SAP LTD.
  */
 class ResultLoginActivity : ComponentActivity() {
