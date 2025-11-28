@@ -19,6 +19,30 @@ import java.util.Locale
  * - Optional CNAME configuration for custom domain routing
  * - Server time offset calculation and management for timestamp synchronization
  * 
+ * ## Usage
+ * ```kotlin
+ * // Load from strings.xml resources
+ * val config = SiteConfig(context)
+ * 
+ * // Or provide explicit configuration
+ * val config = SiteConfig(
+ *     applicationContext = context,
+ *     apiKey = "your_api_key",
+ *     domain = "us1.gigya.com",
+ *     cname = "custom.domain.com" // Optional
+ * )
+ * 
+ * // Use with AuthenticationService
+ * val authService = AuthenticationService(config)
+ * ```
+ * 
+ * ## Configuration in strings.xml
+ * ```xml
+ * <string name="com.sap.cxcdc.apikey">YOUR_API_KEY</string>
+ * <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
+ * <string name="com.sap.cxcdc.cname">custom.domain.com</string> <!-- Optional -->
+ * ```
+ * 
  * @property applicationContext The Android application context used for resource access
  * @property apiKey The SAP CDC API key that identifies your CDC site
  * @property domain The CDC data center domain (e.g., "us1.gigya.com", "eu1.gigya.com")
@@ -29,6 +53,7 @@ import java.util.Locale
  * 
  * @constructor Creates a SiteConfig with explicit configuration parameters.
  * 
+ * @see AuthenticationService
  * @author Tal Mirmelshtein
  * @since 10/06/2024
  * 

@@ -4,10 +4,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
+ * Internal session storage entity with encryption metadata.
+ * 
+ * @property session Serialized session data (may be encrypted)
+ * @property secureLevel Encryption level and metadata
  */
-
 @Serializable
 data class SessionEntity(
     @SerialName("session") var session: String? = null,
@@ -18,7 +19,23 @@ data class SessionEntity(
 )
 
 /**
- * CDC Mobile session structure data class.
+ * CDC mobile session data.
+ * 
+ * Represents an authenticated user session containing credentials required
+ * for making authenticated API requests to CDC services.
+ * 
+ * ## Usage
+ * ```kotlin
+ * val session = authService.session().getSession()
+ * if (session != null) {
+ *     println("Token: ${session.token}")
+ *     println("Expires in: ${session.expiration} seconds")
+ * }
+ * ```
+ * 
+ * @property token Session token for authentication
+ * @property secret Session secret for request signing
+ * @property expiration Time until session expires in seconds (0 = no expiration)
  */
 @Serializable
 data class Session(
@@ -28,7 +45,10 @@ data class Session(
 )
 
 /**
- * CDC mobile session secure level data class.
+ * Session encryption level configuration.
+ * 
+ * @property encryptionType The type of encryption applied to the session
+ * @property iv Initialization vector for biometric encryption (null for standard encryption)
  */
 @Serializable
 data class SecureLevel(
@@ -37,12 +57,24 @@ data class SecureLevel(
 )
 
 /**
- * Available encryption types.
- * STANDARD - session will be encrypted in AES256 GCM mode.
- * BIOMETRIC - session will be encrypted using biometric authentication.
+ * Session encryption types.
+ * 
+ * Defines the available security levels for session storage:
+ * - **STANDARD**: Session encrypted with AES256 GCM
+ * - **BIOMETRIC**: Session encrypted with biometric authentication (requires device unlock)
+ * 
+ * ## Usage
+ * ```kotlin
+ * val currentLevel = authService.session().sessionSecurityLevel()
+ * when (currentLevel) {
+ *     SessionSecureLevel.STANDARD -> // Standard encryption
+ *     SessionSecureLevel.BIOMETRIC -> // Biometric protected
+ * }
+ * ```
  */
 enum class SessionSecureLevel(val value: Int) {
-    STANDARD(0), BIOMETRIC(1);
+    STANDARD(0), 
+    BIOMETRIC(1);
 
     companion object {
         fun getByValue(value: Int) = entries.firstOrNull { it.value == value }

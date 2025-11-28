@@ -18,8 +18,29 @@ import com.sap.cdc.android.sdk.feature.session.validation.SessionValidationServi
 import kotlinx.serialization.json.Json
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
+ * Main entry point for SAP Customer Data Cloud SDK operations.
+ * Provides access to authentication, account management, and session handling.
+ * 
+ * ## Usage
+ * ```kotlin
+ * val siteConfig = SiteConfig(context)
+ * val authService = AuthenticationService(siteConfig)
+ * 
+ * // Authentication operations
+ * authService.authenticate().login().credentials(credentials) { /* callbacks */ }
+ * 
+ * // Account operations
+ * authService.account().get() { /* callbacks */ }
+ * 
+ * // Session operations
+ * authService.session().getSession()
+ * ```
+ * 
+ * @param siteConfig Configuration object containing API key, domain, and application context
+ * @see SiteConfig
+ * @see IAuthApis
+ * @see IAuthAccount
+ * @see IAuthSession
  */
 class AuthenticationService(
     val siteConfig: SiteConfig,
@@ -45,12 +66,51 @@ class AuthenticationService(
         const val CDC_DEVICE_INFO = "cdc_device_info"
     }
 
+    /**
+     * Access authentication operations.
+     * 
+     * ## Usage
+     * ```kotlin
+     * authService.authenticate().login().credentials(creds) { /* callbacks */ }
+     * authService.authenticate().register().credentials(creds) { /* callbacks */ }
+     * authService.authenticate().provider().signIn(activity, provider) { /* callbacks */ }
+     * ```
+     * 
+     * @return Authentication flow interface for login, register, social, OTP, TFA, etc.
+     * @see IAuthApis
+     */
     fun authenticate(): IAuthApis =
         AuthApis(coreClient, sessionService)
 
+    /**
+     * Access account management operations.
+     * 
+     * ## Usage
+     * ```kotlin
+     * authService.account().get() { /* callbacks */ }
+     * authService.account().set(params) { /* callbacks */ }
+     * authService.account().link().toSocial(activity, provider, context) { /* callbacks */ }
+     * ```
+     * 
+     * @return Account operations interface for getting/setting profile data and linking accounts
+     * @see IAuthAccount
+     */
     fun account(): IAuthAccount =
         AuthAccount(coreClient, sessionService)
 
+    /**
+     * Access session management operations.
+     * 
+     * ## Usage
+     * ```kotlin
+     * val session = authService.session().getSession()
+     * val isValid = authService.session().availableSession()
+     * authService.session().clearSession()
+     * ```
+     * 
+     * @return Session interface for session retrieval, validation, and management
+     * @see IAuthSession
+     */
     fun session(): IAuthSession = AuthSession(
         sessionService
     )

@@ -5,10 +5,47 @@ import androidx.annotation.StringRes
 import com.sap.cdc.bitsnbytes.R
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
+ * Type-safe navigation route definitions for the application.
+ * 
+ * Provides sealed classes for compile-time checked navigation routes, preventing
+ * typos and making route refactoring safer.
+ * 
+ * ## Usage
+ * ```kotlin
+ * // Navigate to a main screen
+ * navCoordinator.navigate(MainScreenRoute.Home.route)
+ * 
+ * // Navigate to authentication flow
+ * navCoordinator.navigate(ProfileScreenRoute.SignIn.route)
+ * 
+ * // Navigate to ScreenSet
+ * navCoordinator.navigate(ScreenSetsRoute.ScreenSetRegistrationLoginLogin.route)
+ * ```
+ * 
+ * ## Bottom Navigation
+ * ```kotlin
+ * BottomNavigationBar(
+ *     items = listOf(
+ *         MainScreenRoute.Home,
+ *         MainScreenRoute.Search,
+ *         MainScreenRoute.Cart
+ *     ),
+ *     onItemClick = { route -> 
+ *         navCoordinator.navigate(route.route)
+ *     }
+ * )
+ * ```
+ * 
+ * @see NavigationCoordinator
  */
 
+/**
+ * Main application screen routes for bottom navigation.
+ * 
+ * @property route Navigation route string
+ * @property resourceId String resource ID for the screen title
+ * @property iconID Drawable resource ID for the navigation icon
+ */
 sealed class MainScreenRoute(
     val route: String,
     @param:StringRes val resourceId: Int,
@@ -22,6 +59,14 @@ sealed class MainScreenRoute(
     data object Configuration : MainScreenRoute("App Configuration", R.string.app_configuration, -1)
 }
 
+/**
+ * Profile and authentication screen routes.
+ * 
+ * Contains all routes for the authentication flow including sign-in,
+ * registration, profile management, and multi-factor authentication.
+ * 
+ * @property route Navigation route string
+ */
 sealed class ProfileScreenRoute(
     val route: String,
 ) {
@@ -47,6 +92,13 @@ sealed class ProfileScreenRoute(
     data object PasskeysCredentials : ProfileScreenRoute("PasskeysCredentials")
 }
 
+/**
+ * Web-based ScreenSet routes.
+ * 
+ * Routes for CDC ScreenSets rendered in WebView for authentication UI.
+ * 
+ * @property route Navigation route string
+ */
 sealed class ScreenSetsRoute(
     val route: String
 ) {

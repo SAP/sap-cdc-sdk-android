@@ -17,12 +17,38 @@ import kotlinx.coroutines.sync.withLock
 
 
 /**
- * Created by Tal Mirmelshtein on 18/06/2024
- * Copyright: SAP LTD.
- */
-
-/**
- * Base class for authentication APIs.
+ * Internal API client for authenticated CDC requests.
+ * 
+ * Handles CDC API communication with automatic GMID management, request signing,
+ * and retry logic for invalidated identifiers.
+ * 
+ * ## Key Features
+ * - Automatic GMID (Gigya Mobile ID) validation and renewal
+ * - Request signing for authenticated sessions
+ * - Retry logic on GMID invalidation
+ * - Thread-safe GMID operations with mutex synchronization
+ * - Comprehensive exception handling with typed error responses
+ * 
+ * ## Usage
+ * This is an internal class used by authentication flows. Developers typically don't
+ * interact with this class directly, but rather through higher-level APIs like
+ * `AuthenticationService.authenticate()` or `AuthenticationService.account()`.
+ * 
+ * ```kotlin
+ * // Internal usage example
+ * val authApi = AuthenticationApi(coreClient, sessionService)
+ * val response = authApi.send(
+ *     api = "accounts.getAccountInfo",
+ *     parameters = mutableMapOf("include" to "profile,data")
+ * )
+ * ```
+ * 
+ * @param coreClient Core API client for network operations
+ * @param sessionService Service for managing user sessions
+ * @param resourceProvider Provider for accessing encrypted storage (defaults to Android resources)
+ * @see AuthenticationService
+ * @see CDCRequest
+ * @see CDCResponse
  */
 class AuthenticationApi(
     private val coreClient: CoreClient,

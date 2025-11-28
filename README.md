@@ -76,7 +76,7 @@ val authenticationService = AuthenticationService(siteConfig)
 
 # Kotlin DSL AuthCallbacks
 
-The SDK's most powerful feature is the Kotlin DSL `AuthCallbacks` system, which provides advanced callback chaining, transformation, and side-effect capabilities.
+The SDK provides a powerful Kotlin DSL for authentication callbacks with support for response transformation, side-effects, and multiple event handlers.
 
 ## Basic Callback Usage
 
@@ -425,6 +425,23 @@ webBridgeJS.detachBridgeFrom(webView)
 - **Consistency:** Maintain consistent branding across platforms
 - **Reduced Development:** Leverage existing web technologies
 - **Native Integration:** Seamless communication between web and native code
+
+# Example Application
+
+This repository includes a comprehensive example application demonstrating SDK integration with Jetpack Compose, MVVM architecture, and modern Android development practices.
+
+**See the [Example App Documentation](app/README.md) for:**
+- Complete architecture overview and patterns
+- Delegate-based state management approach
+- WebView integration in Compose
+- Real-world implementation examples
+- Step-by-step usage guides
+
+## Navigation
+
+- 📱 [Example Application README](app/README.md) - Architecture, patterns, and implementation guide
+- 🔧 [Library Source Code](library/src) - SDK implementation details
+- 💬 [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to this project
 
 # Support, Feedback, Contributing
 

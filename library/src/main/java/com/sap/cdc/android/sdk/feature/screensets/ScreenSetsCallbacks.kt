@@ -1,8 +1,58 @@
 package com.sap.cdc.android.sdk.feature.screensets
 
 /**
- * Simplified callback system for ScreenSets events.
- * Focuses on core functionality with doOn chaining methods for multiple callbacks.
+ * Callback system for handling ScreenSets events.
+ * 
+ * Provides event handlers for web-based authentication UI lifecycle, form interactions,
+ * and authentication events. Supports multiple callbacks per event type through chaining.
+ * 
+ * ## Usage
+ * ```kotlin
+ * val callbacks = ScreenSetsCallbacks().apply {
+ *     onLoad = { event -> 
+ *         println("ScreenSet loaded: ${event.screenSetId}")
+ *     }
+ *     
+ *     onLogin = { event -> 
+ *         navigateToMainScreen()
+ *     }
+ *     
+ *     onError = { error -> 
+ *         showError(error.message)
+ *     }
+ * }
+ * 
+ * webBridge.attachCallbacks(callbacks)
+ * ```
+ * 
+ * ## Multiple Callbacks
+ * ```kotlin
+ * callbacks.apply {
+ *     // Primary callback
+ *     onLogin = { event -> navigateToMainScreen() }
+ *     
+ *     // Add side-effect callback
+ *     doOnLogin { event -> analytics.track("login") }
+ * }
+ * ```
+ * 
+ * ## Event Filtering
+ * ```kotlin
+ * callbacks.apply {
+ *     // Filter by specific events
+ *     filterByEventName("login", "logout")
+ *     
+ *     // Filter by screenset
+ *     filterByScreenSetId("Default-RegistrationLogin")
+ *     
+ *     // Custom filter
+ *     filterEvents { event -> event.screenSetId != null }
+ * }
+ * ```
+ * 
+ * @see WebBridgeJS
+ * @see ScreenSetsEventData
+ * @see ScreenSetsError
  */
 data class ScreenSetsCallbacks(
     // Callback lists for each event type

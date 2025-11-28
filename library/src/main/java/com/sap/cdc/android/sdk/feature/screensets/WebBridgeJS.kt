@@ -17,8 +17,41 @@ import kotlinx.serialization.json.buildJsonArray
 import java.lang.ref.WeakReference
 
 /**
- * Created by Tal Mirmelshtein on 13/06/2024
- * Copyright: SAP LTD.
+ * JavaScript bridge for integrating CDC Web ScreenSets with native Android WebView.
+ * 
+ * Provides bidirectional communication between web-based authentication UI (ScreenSets)
+ * and native Android SDK, enabling hybrid authentication flows.
+ * 
+ * ## Usage
+ * ```kotlin
+ * val webBridge = WebBridgeJS(authenticationService)
+ * 
+ * // Configure (optional)
+ * webBridge.addConfig(WebBridgeJSConfig.Builder().obfuscate(true).build())
+ * 
+ * // Attach to WebView
+ * webBridge.attachBridgeTo(webView)
+ * 
+ * // Set native social providers (optional)
+ * webBridge.setNativeSocialProviders(providerMap)
+ * 
+ * // Register for events
+ * webBridge.attachCallbacks(ScreenSetsCallbacks().apply {
+ *     onLoad = { data -> /* handle load */ }
+ *     onLogin = { data -> /* handle login */ }
+ *     onError = { error -> /* handle error */ }
+ * })
+ * 
+ * // Load ScreenSet
+ * webBridge.load(webView, screenSetUrl)
+ * 
+ * // Clean up when done
+ * webBridge.detachBridgeFrom(webView)
+ * ```
+ * 
+ * @param authenticationService The authentication service instance for SDK operations
+ * @see ScreenSetsCallbacks
+ * @see WebBridgeJSConfig
  */
 class WebBridgeJS(private val authenticationService: AuthenticationService) {
 

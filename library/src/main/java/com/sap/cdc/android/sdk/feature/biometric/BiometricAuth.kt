@@ -29,10 +29,48 @@ import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
+ * Biometric authentication manager for secure session encryption.
+ * 
+ * Provides biometric-protected session storage using device biometric capabilities
+ * (fingerprint, face recognition, etc.). Sessions are double-encrypted: standard AES256 GCM
+ * plus biometric authentication layer.
+ * 
+ * ## Usage
+ * ```kotlin
+ * val biometricAuth = BiometricAuth(sessionService)
+ * 
+ * // Check device capability
+ * val canUse = biometricAuth.canAuthenticate(activity)
+ * 
+ * // Opt in for biometric protection
+ * biometricAuth.optInForBiometricSessionAuthentication(
+ *     activity = activity,
+ *     promptInfo = BiometricPrompt.PromptInfo.Builder()
+ *         .setTitle("Enable Biometric Login")
+ *         .setNegativeButtonText("Cancel")
+ *         .build(),
+ *     executor = ContextCompat.getMainExecutor(context)
+ * ) {
+ *     onSuccess = { /* biometric enabled */ }
+ *     onError = { error -> /* handle error */ }
+ * }
+ * 
+ * // Lock session (removes from memory)
+ * biometricAuth.lockBiometricSession()
+ * 
+ * // Unlock with biometric
+ * biometricAuth.unlockSessionWithBiometricAuthentication(
+ *     activity, promptInfo, executor
+ * ) {
+ *     onSuccess = { /* session unlocked */ }
+ *     onError = { /* handle error */ }
+ * }
+ * ```
+ * 
+ * @param sessionService Session service for managing session state
+ * @see BiometricPrompt
+ * @see BiometricManager
  */
-
 class BiometricAuth(private val sessionService: SessionService) {
 
     private var keyGen: BiometricKey = BiometricKey()

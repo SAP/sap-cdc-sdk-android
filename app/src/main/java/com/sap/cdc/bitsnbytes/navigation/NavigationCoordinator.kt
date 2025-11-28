@@ -7,17 +7,47 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Navigation coordinator singleton instance. Used to control and coordinate the navigation flow
- * of multiple navigation controllers.
+ * Centralized navigation coordinator for the application.
  * 
- * This coordinator acts as a mediator that delegates state management to AppStateManager
- * while providing a clean navigation API for the rest of the application.
+ * Provides a singleton interface for managing navigation operations across the app.
+ * Acts as a facade that delegates state management to [AppStateManager] while providing
+ * a clean, consistent navigation API.
  * 
- * Responsibilities:
- * - Coordinate navigation operations across the app
- * - Delegate state management to AppStateManager
- * - Provide a consistent navigation API
- * - Handle navigation controller lifecycle
+ * ## Usage
+ * ```kotlin
+ * // In your ViewModel or Composable
+ * val navCoordinator = NavigationCoordinator.INSTANCE
+ * 
+ * // Navigate to a route
+ * navCoordinator.navigate(Routes.Profile.route)
+ * 
+ * // Navigate with options
+ * navCoordinator.navigate(Routes.Home.route) {
+ *     popUpTo(Routes.Auth.route) { inclusive = true }
+ *     launchSingleTop = true
+ * }
+ * 
+ * // Navigate up
+ * navCoordinator.navigateUp()
+ * 
+ * // Check navigation availability (prevents crashes)
+ * if (navCoordinator.isNavigationAvailable()) {
+ *     navCoordinator.navigate(Routes.Settings.route)
+ * }
+ * ```
+ * 
+ * ## Setup
+ * ```kotlin
+ * // In your main activity's onCreate
+ * val appStateManager = AppStateManager()
+ * NavigationCoordinator.INSTANCE.setAppStateManager(appStateManager)
+ * 
+ * // After NavHost is composed
+ * NavigationCoordinator.INSTANCE.setNavController(navController)
+ * ```
+ * 
+ * @see AppStateManager
+ * @see Routes
  */
 class NavigationCoordinator private constructor() {
 

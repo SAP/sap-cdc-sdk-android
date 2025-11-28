@@ -16,10 +16,44 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
+ * Base class for authentication flow implementations.
+ * 
+ * Provides core functionality for handling authentication responses, session management,
+ * and resolvable interruptions (2FA, linking, pending registration, OTP).
+ * 
+ * ## Key Responsibilities
+ * - Session management when authentication succeeds
+ * - Handling authentication interruptions (2FA, account linking, OTP)
+ * - Creating standardized AuthResult objects from API responses
+ * - Coordinating context updates for multi-step flows
+ * 
+ * ## Usage
+ * This is a base class used internally by authentication flows. Developers typically
+ * interact with higher-level interfaces like `IAuthApis` rather than this class directly.
+ * 
+ * ```kotlin
+ * // Example of a flow that extends AuthFlow
+ * class AuthLoginFlow : AuthFlow {
+ *     suspend fun execute(credentials: Credentials, callbacks: AuthCallbacks) {
+ *         val response = sendLoginRequest(credentials)
+ *         
+ *         if (isResolvableContext(response)) {
+ *             handleResolvableInterruption(response, callbacks)
+ *         } else if (response.isError()) {
+ *             callbacks.onError?.invoke(createAuthError(response))
+ *         } else {
+ *             secureNewSession(response)
+ *             callbacks.onSuccess?.invoke(createAuthSuccess(response))
+ *         }
+ *     }
+ * }
+ * ```
+ * 
+ * @param coreClient Core API client for making CDC requests
+ * @param sessionService Service for managing user sessions
+ * @see IAuthApis
+ * @see AuthCallbacks
  */
-
 open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionService) {
 
     companion object {
@@ -40,8 +74,13 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     }
 
     /**
-     * When an authentication response contains a session object (specified by the "sessionInfo" key),
-     * Secure the new session. This will actually change the login state of the host app if needed.
+     * Extracts and secures a new session from the authentication response.
+     * 
+     * When a CDC API response contains session information (under the "sessionInfo" key),
+     * this method extracts the session and stores it securely via the SessionService.
+     * This changes the login state of the application.
+     * 
+     * @param response The CDC response that may contain session information
      */
     fun secureNewSession(response: CDCResponse) {
         if (response.containsKey("sessionInfo")) {
@@ -52,6 +91,18 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         }
     }
 
+    /**
+     * Handles resolvable authentication interruptions.
+     * 
+     * Routes the response to the appropriate handler based on the error code:
+     * - Two-factor authentication required (verification or registration)
+     * - OTP (One-Time Password) required
+     * - Pending registration completion
+     * - Account linking required
+     * 
+     * @param response The CDC response containing the interruption
+     * @param callbacks Authentication callbacks to invoke for interruption handling
+     */
     protected suspend fun handleResolvableInterruption(
         response: CDCResponse,
         callbacks: AuthCallbacks
@@ -102,6 +153,18 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         }
     }
 
+    /**
+     * Handles two-factor authentication requirements.
+     * 
+     * Fetches available TFA providers and creates a TwoFactorContext to provide
+     * to the application. If a specific TFA handler is registered, it will be invoked;
+     * otherwise, the error is passed to the generic error handler.
+     * 
+     * @param initiator Whether this is for verification or initial registration
+     * @param response The CDC response containing the TFA requirement
+     * @param regToken Registration token for the current session
+     * @param callbacks Authentication callbacks to invoke
+     */
     protected suspend fun handleTwoFactorRequired(
         initiator: TwoFactorInitiator,
         response: CDCResponse,
@@ -130,6 +193,16 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         }
     }
 
+    /**
+     * Handles OTP (One-Time Password) requirements.
+     * 
+     * Creates an OTPContext with the verification token and invokes the appropriate
+     * callback handler. If no specific OTP handler is registered, the error is passed
+     * to the generic error handler.
+     * 
+     * @param response The CDC response containing the OTP requirement
+     * @param callbacks Authentication callbacks to invoke
+     */
     protected fun handleOTPRequired(
         response: CDCResponse,
         callbacks: AuthCallbacks
@@ -148,6 +221,17 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         }
     }
 
+    /**
+     * Handles pending registration completion requirements.
+     * 
+     * Creates a RegistrationContext with the registration token and invokes the
+     * appropriate callback handler. If no specific handler is registered, the error
+     * is passed to the generic error handler.
+     * 
+     * @param response The CDC response containing the pending registration requirement
+     * @param regToken Registration token for completing the registration
+     * @param callbacks Authentication callbacks to invoke
+     */
     protected fun handlePendingRegistration(
         response: CDCResponse,
         regToken: String?,
@@ -167,6 +251,17 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         }
     }
 
+    /**
+     * Handles account linking requirements.
+     * 
+     * Fetches conflicting account information and creates a LinkingContext with
+     * the social provider details. If a specific linking handler is registered, it will
+     * be invoked; otherwise, the error is passed to the generic error handler.
+     * 
+     * @param response The CDC response containing the linking requirement
+     * @param regToken Registration token for the linking process
+     * @param callbacks Authentication callbacks to invoke
+     */
     protected suspend fun handleLinkingRequired(
         response: CDCResponse,
         regToken: String?,
@@ -199,16 +294,43 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
         }
     }
 
+    /**
+     * Determines if a CDC response contains a resolvable authentication interruption.
+     * 
+     * Checks if the response error code represents a resolvable context (2FA, linking,
+     * pending registration) or contains an OTP verification token.
+     * 
+     * @param response The CDC response to evaluate
+     * @return true if the response contains a resolvable interruption, false otherwise
+     */
     protected fun isResolvableContext(response: CDCResponse): Boolean {
         return ResolvableContext.Companion.resolvables.containsKey(response.errorCode()) ||
                 response.containsKey("vToken")
     }
 
+    /**
+     * Creates an AuthSuccess object from a CDC response.
+     * 
+     * Extracts user data from the response and packages it into an AuthSuccess
+     * result for delivery to application callbacks.
+     * 
+     * @param response The successful CDC response
+     * @return AuthSuccess containing the response data
+     */
     protected fun createAuthSuccess(response: CDCResponse): AuthSuccess {
         val userData = response.jsonObject?.toMap() ?: emptyMap()
         return AuthSuccess(response.jsonResponse ?: "{}", userData)
     }
 
+    /**
+     * Creates an AuthError object from a CDC response.
+     * 
+     * Converts a CDC error response into an AuthError with standardized error
+     * information including code, message, and details.
+     * 
+     * @param response The error CDC response
+     * @return AuthError containing the error information
+     */
     protected fun createAuthError(response: CDCResponse): AuthError {
         val error = response.toCDCError()
         val authError = AuthError(
