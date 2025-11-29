@@ -503,6 +503,160 @@ This powerful DSL system allows you to:
 - **Handle complex flows** with enriched context data
 - **Maintain clean separation** between business logic and UI logic
 
+# Social Provider Authentication
+
+The SDK provides a flexible system for integrating social login providers (Google, Facebook, WeChat, Line, etc.) through the `IAuthenticationProvider` interface. The SDK is **intentionally decoupled** from third-party social SDKs, allowing you to use any version of social provider SDKs without compatibility issues.
+
+## Architecture Overview
+
+**Key Principle:** The SDK doesn't include social provider SDKs (Facebook SDK, Google Sign-In, etc.). Instead, you implement the authentication logic in your app and provide the results to the SDK through a standardized interface.
+
+```
+Your App → Social Provider SDK → IAuthenticationProvider → CDC SDK → CDC Server
+```
+
+## IAuthenticationProvider Interface
+
+Implement this interface to integrate any social provider that requires a native SDK:
+
+```kotlin
+interface IAuthenticationProvider {
+    fun getProvider(): String  // Provider identifier (e.g., "facebook", "google")
+    suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult
+    suspend fun signOut(hostActivity: ComponentActivity?)
+    fun dispose()  // Clean up resources
+}
+```
+
+## AuthenticatorProviderResult
+
+This is the key object that bridges your provider implementation with the CDC SDK. It contains the authentication token in a JSON format that the CDC server validates.
+
+```kotlin
+AuthenticatorProviderResult(
+    provider = "facebook",           // Provider identifier
+    type = ProviderType.NATIVE,      // Provider type
+    providerSessions = providerSessionJSON  // JSON with auth token(s)
+)
+```
+
+### Provider Session Format
+
+The `providerSessions` parameter is a JSON string containing authentication tokens. **The exact structure varies by provider** (Facebook uses `authToken`, Google uses `idToken`, etc.).
+
+**Important:** Each social provider has its own specific JSON structure required by CDC servers. Refer to the example implementations in the app module for the exact format:
+
+- **Facebook:** `app/.../provider/FacebookAuthenticationProvider.kt`
+- **Google:** `app/.../provider/GoogleAuthenticationProvider.kt`
+- **WeChat, Line:** Similar pattern with provider-specific token fields
+
+## Provider Types
+
+### 1. NATIVE Providers
+Social providers using their official native SDKs (Facebook, Google, WeChat, Line).
+
+**When to use:** When you want the best user experience with native UI and full SDK features.
+
+**Implementation required:**
+- Implement `IAuthenticationProvider` interface
+- Use the provider's native SDK for authentication
+- Generate correct `providerSessions` JSON
+- Return `AuthenticatorProviderResult` with `ProviderType.NATIVE`
+
+**Example providers in app module:**
+- `FacebookAuthenticationProvider.kt` - Facebook Login SDK
+- `GoogleAuthenticationProvider.kt` - Credential Manager API
+
+### 2. WEB Providers
+Social providers without native SDKs, handled through OAuth in WebView.
+
+**When to use:** For providers like LinkedIn, Twitter, or any OAuth provider without a native Android SDK.
+
+**Implementation:** Use the built-in `WebAuthenticationProvider` - **no custom implementation needed**.
+
+```kotlin
+// For providers without native SDKs (e.g., LinkedIn)
+val linkedInProvider = WebAuthenticationProvider(
+    "linkedin",
+    siteConfig,
+    currentSession
+)
+
+// Register and use like any other provider
+authenticationProviderMap["linkedin"] = linkedInProvider
+```
+
+The SDK automatically handles the OAuth flow in a WebView and extracts the session.
+
+## Using Social Login
+
+Once you have implemented your authentication providers, use them through the SDK's provider API:
+
+```kotlin
+// Create your provider instance (native or web)
+val facebookProvider = FacebookAuthenticationProvider()  // Your implementation
+// OR
+val linkedInProvider = WebAuthenticationProvider("linkedin", siteConfig, session)
+
+// Execute social login
+authenticationService.authenticate().provider().signIn(
+    hostActivity = activity,
+    authenticationProvider = facebookProvider
+) {
+    onSuccess = { authSuccess ->
+        navigateToMainScreen()
+    }
+    onError = { authError ->
+        showError(authError.message)
+    }
+    onLinkingRequired = { context ->
+        // Account conflict - user needs to link accounts
+        showAccountLinkingScreen(context)
+    }
+}
+```
+
+### Provider Management
+
+How you manage and register providers depends on your app's architecture. The example app demonstrates one approach using a provider registry pattern in `AuthenticationFlowDelegate.kt`, but you can organize this however fits your architecture best.
+
+## Complete Implementation Examples
+
+The example app includes complete, working implementations for reference:
+
+### Files to Reference:
+- **Native Providers:**
+  - `app/src/main/java/com/sap/cdc/bitsnbytes/feature/provider/FacebookAuthenticationProvider.kt`
+  - `app/src/main/java/com/sap/cdc/bitsnbytes/feature/provider/GoogleAuthenticationProvider.kt`
+  
+- **Provider Registration & Usage:**
+  - `app/src/main/java/com/sap/cdc/bitsnbytes/feature/auth/AuthenticationFlowDelegate.kt`
+
+These files show:
+- How to integrate native SDKs (Facebook SDK, Google Credential Manager)
+- How to construct correct `providerSessions` JSON for each provider
+- How to handle errors with `ProviderException`
+- How to register and use providers in authentication flows
+
+## Benefits of This Architecture
+
+✅ **SDK Independence** - Use any version of social provider SDKs
+✅ **Flexibility** - Add custom providers or use web-based providers easily
+✅ **Maintainability** - Update social SDKs without SDK updates
+✅ **Consistency** - Standardized interface for all providers
+✅ **Testing** - Easy to mock providers for testing
+✅ **Future-Proof** - New social providers can be added anytime
+
+## Important Notes
+
+⚠️ **Provider Session JSON:** Each provider requires a specific JSON structure. Always refer to the example implementations for the exact format.
+
+⚠️ **Provider Names:** Use the exact provider name expected by CDC servers (e.g., "facebook", "google", not "Facebook" or "GOOGLE").
+
+⚠️ **Dependencies:** Add social provider SDKs to your **app's** `build.gradle.kts`, not the CDC SDK. The SDK remains decoupled.
+
+⚠️ **WebAuthenticationProvider:** For providers without native SDKs (LinkedIn, Twitter, etc.), use the built-in `WebAuthenticationProvider` - no custom implementation needed.
+
 # Web Screen-Sets
 
 Web Screen-Sets provide customizable web-based authentication UI that integrates seamlessly with your Android app through the `WebBridgeJS` component.
