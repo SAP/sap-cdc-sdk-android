@@ -10,9 +10,6 @@ import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.core.api.utils.AndroidBase64Encoder
-import com.sap.cdc.android.sdk.core.api.utils.Signing
-import com.sap.cdc.android.sdk.core.api.utils.SigningSpec
 import com.sap.cdc.android.sdk.core.api.utils.toEncodedQuery
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthEndpoints
@@ -23,7 +20,6 @@ import com.sap.cdc.android.sdk.feature.provider.ProviderException
 import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import com.sap.cdc.android.sdk.feature.session.Session
-import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -31,26 +27,24 @@ import kotlin.coroutines.suspendCoroutine
 
 /**
  * Web-based social authentication provider.
- * 
+ *
  * Implements social login using WebView for providers that don't have native SDK support.
  * Handles OAuth 1.0a flow with the CDC socialize.login endpoint.
- * 
+ *
  * @property socialProvider Social provider identifier (e.g., "twitter", "linkedin")
  * @property siteConfig CDC site configuration
- * @property session Optional existing session for authenticated requests
- * 
+ *
  * @author Tal Mirmelshtein
  * @since 10/06/2024
- * 
+ *
  * Copyright: SAP LTD.
- * 
+ *
  * @see IAuthenticationProvider
  * @see WebLoginActivity
  */
 class WebAuthenticationProvider(
     private val socialProvider: String,
     private val siteConfig: SiteConfig,
-    private val session: Session?,
 ) :
     IAuthenticationProvider {
 
@@ -175,20 +169,6 @@ class WebAuthenticationProvider(
             "x_provider" to getProvider(),
             "nonce" to generateNonce()
         )
-
-        // Check session state to apply authentication parameters.
-        if (session != null) {
-            uriParameters["oauth_token"] = session.token
-            uriParameters["timestamp"] = siteConfig.getServerTimestamp()
-            Signing(base64Encoder = AndroidBase64Encoder()).newSignature(
-                SigningSpec(
-                    session.secret,
-                    AuthEndpoints.Companion.EP_SOCIALIZE_LOGIN,
-                    HttpMethod.Companion.Get.value,
-                    uriParameters
-                )
-            )
-        }
 
         return String.format(
             "%s://%s.%s/%s?%s", "https", "socialize", siteConfig.domain,

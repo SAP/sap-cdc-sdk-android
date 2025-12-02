@@ -297,7 +297,6 @@ class WebBridgeJSApiService(
                 authProvider = WebAuthenticationProvider(
                     socialProvider = provider,
                     siteConfig = authenticationService.siteConfig,
-                    session = authenticationService.session().getSession()
                 )
             }
 

@@ -166,6 +166,11 @@ class AuthenticationFlowDelegate(context: Context) {
             aliases = listOf("google", "googleplus"),
             provider = GoogleAuthenticationProvider()
         )
+
+        registerAuthenticationProvider("linkedIn", WebAuthenticationProvider(
+            "linked",
+            siteConfig = authenticationService.siteConfig,
+        ))
     }
 
     init {
@@ -636,7 +641,6 @@ class AuthenticationFlowDelegate(context: Context) {
             return WebAuthenticationProvider(
                 name,
                 siteConfig,
-                authenticationService.session().getSession()
             )
         }
         return authenticationProviderMap[name]
