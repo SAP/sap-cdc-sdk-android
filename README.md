@@ -97,7 +97,7 @@ suspend fun login(email: String, password: String) {
             }
             
             onTwoFactorRequired = { context ->
-                // Handle 2FA requirement
+                // Handle TFA requirement
                 navigateToTwoFactorScreen(context)
             }
         }
@@ -394,7 +394,7 @@ Context update callbacks are specifically designed to handle **interrupted authe
 
 **Common interrupted flows:**
 - **Account Linking:** When a social login conflicts with an existing account
-- **Two-Factor Authentication:** When 2FA is required for login/registration
+- **Two-Factor Authentication:** When TFA is required for login/registration
 - **Registration Missing Fields:** When required profile fields are missing during registration
 
 **How it works:**
@@ -416,7 +416,7 @@ authenticationService.authenticate().login()
         // Handle enriched context - enhanced data for flow completion
         onTwoFactorContextUpdated = { enrichedContext ->
             // SDK-enriched context with additional data:
-            // - Available email addresses for 2FA
+            // - Available email addresses for TFA
             // - Phone numbers registered for SMS
             // - QR codes for authenticator apps
             // - Tokens needed for flow continuation
@@ -502,6 +502,222 @@ This powerful DSL system allows you to:
 - **Add side effects** for analytics, logging, and state management  
 - **Handle complex flows** with enriched context data
 - **Maintain clean separation** between business logic and UI logic
+
+# Session Event Bus
+
+The SDK provides a lifecycle-aware event bus for session and messaging events. This allows your app to react to session changes (expiration, refresh, verification) and push notifications across your entire application in a decoupled, type-safe manner.
+
+## Event Types
+
+### Session Events
+
+**Core Session Events (Always Available):**
+- `SessionEvent.SessionExpired` - Session has expired
+- `SessionEvent.SessionRefreshed` - Session was successfully refreshed  
+- `SessionEvent.VerifySession` - Session verification requested
+
+**Session Validation Events (Opt-In):**
+
+These events only fire if you enable session validation when initializing the AuthenticationService:
+
+```kotlin
+val authenticationService = AuthenticationService(siteConfig)
+    .registerForSessionValidation(
+        config = SessionValidationConfig(
+            intervalMinutes = 20L,  // Check session every 20 minutes
+            enabled = true          // Enable validation
+        )
+    )
+```
+
+**Validation Events:**
+- `SessionEvent.ValidationStarted` - Session validation has started
+- `SessionEvent.ValidationSucceeded` - Session validation succeeded
+- `SessionEvent.ValidationFailed` - Session validation failed (includes reason)
+
+⚠️ **Note:** Session validation adds periodic background checks to ensure session validity. Only enable if your app requires this level of session monitoring.
+
+### Message Events  
+
+Push notification and Firebase messaging events:
+- `MessageEvent.TokenReceived` - FCM token received
+- `MessageEvent.RemoteMessageReceived` - Push notification received
+- `MessageEvent.NotificationActionReceived` - Notification action triggered
+
+## Usage
+
+### Lifecycle-Aware Subscription (Activities/Fragments)
+
+For UI components that implement `LifecycleOwner` (Activities, Fragments), use lifecycle-aware subscriptions that automatically clean up:
+
+```kotlin
+class MainActivity : FragmentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Initialize event bus (only needed once in your app)
+        if (!CDCEventBusProvider.isInitialized()) {
+            CDCEventBusProvider.initialize()
+        }
+        
+        // Subscribe with automatic lifecycle management
+        subscribeToSessionEvents { event ->
+            when (event) {
+                is SessionEvent.SessionExpired -> {
+                    // Handle session expiration
+                    navigateToLogin()
+                }
+                is SessionEvent.SessionRefreshed -> {
+                    // Handle session refresh
+                    updateSessionUI()
+                }
+                is SessionEvent.ValidationFailed -> {
+                    // Handle validation failure
+                    showSessionWarning(event.reason)
+                }
+                else -> { /* Handle other events */ }
+            }
+        }
+    }
+    
+    // No cleanup needed - automatically unsubscribes when lifecycle ends
+}
+```
+
+### Manual Subscription (ViewModels/Services)
+
+For components without lifecycle support (ViewModels, Services), use manual subscriptions with explicit cleanup:
+
+```kotlin
+class MainActivityViewModel(
+    private val authenticationFlowDelegate: AuthenticationFlowDelegate
+) : ViewModel() {
+    
+    private var sessionEventSubscription: EventSubscription? = null
+    
+    init {
+        // Initialize event bus
+        if (!CDCEventBusProvider.isInitialized()) {
+            CDCEventBusProvider.initialize()
+        }
+        
+        // Manual subscription requires explicit cleanup
+        sessionEventSubscription = subscribeToSessionEventsManual { event ->
+            when (event) {
+                is SessionEvent.SessionExpired -> handleSessionExpired()
+                is SessionEvent.SessionRefreshed -> handleSessionRefreshed()
+                is SessionEvent.ValidationSucceeded -> handleValidationSucceeded()
+                else -> { /* Handle other events */ }
+            }
+        }
+    }
+    
+    private fun handleSessionExpired() {
+        authenticationFlowDelegate.handleSessionExpired()
+        // Navigate to login screen
+    }
+    
+    override fun onCleared() {
+        // Important: Unsubscribe to prevent memory leaks
+        sessionEventSubscription?.unsubscribe()
+        sessionEventSubscription = null
+        super.onCleared()
+    }
+}
+```
+
+## Event Scopes
+
+Events can be scoped for targeted distribution:
+
+- `EventScope.GLOBAL` - All subscribers receive the event (default)
+- `EventScope.SCOPED` - Only subscribers in a specific scope receive the event
+
+```kotlin
+// Emit to all subscribers (default)
+emitSessionExpired(sessionId)
+
+// Emit to specific scope
+emitSessionExpired(sessionId, scope = EventScope.SCOPED)
+```
+
+## Benefits
+
+✅ **Decoupled Architecture** - Components don't need direct references to each other  
+✅ **Lifecycle-Aware** - Automatic cleanup prevents memory leaks in Activities/Fragments  
+✅ **Type-Safe** - Compile-time event type checking with sealed classes  
+✅ **Flexible** - Works with Activities, Fragments, ViewModels, and Services  
+✅ **Testable** - Easy to mock and test event handling  
+✅ **Thread-Safe** - Events dispatched on appropriate coroutine dispatchers
+
+## Common Use Cases
+
+### 1. Global Session Expiration Handling
+
+Handle session expiration across your entire app from a single ViewModel:
+
+```kotlin
+class MainActivityViewModel : ViewModel() {
+    init {
+        subscribeToSessionEventsManual { event ->
+            if (event is SessionEvent.SessionExpired) {
+                // Clear app state
+                clearUserData()
+                // Navigate to login
+                navigateToLogin()
+            }
+        }
+    }
+}
+```
+
+### 2. Push Notification Handling
+
+React to push notifications throughout your app:
+
+```kotlin
+subscribeToMessageEvents { event ->
+    when (event) {
+        is MessageEvent.RemoteMessageReceived -> {
+            // Show in-app notification
+            showInAppNotification(event.data)
+        }
+        is MessageEvent.NotificationActionReceived -> {
+            // Handle notification action
+            handleNotificationAction(event.action, event.data)
+        }
+        else -> { /* Handle other events */ }
+    }
+}
+```
+
+### 3. Session Monitoring
+
+Monitor session health with validation events:
+
+```kotlin
+subscribeToSessionEvents { event ->
+    when (event) {
+        is SessionEvent.ValidationStarted -> showLoadingIndicator()
+        is SessionEvent.ValidationSucceeded -> hideLoadingIndicator()
+        is SessionEvent.ValidationFailed -> {
+            hideLoadingIndicator()
+            showSessionWarning("Session validation failed: ${event.reason}")
+        }
+        else -> { /* Handle other events */ }
+    }
+}
+```
+
+## Important Notes
+
+⚠️ **Initialization:** Call `CDCEventBusProvider.initialize()` once in your app (e.g., in MainActivity or Application class)
+
+⚠️ **Manual Subscriptions:** Always call `unsubscribe()` on manual subscriptions to prevent memory leaks
+
+⚠️ **Thread Safety:** Event handlers run on background threads (IO dispatcher) for manual subscriptions. Use appropriate dispatchers for UI updates.
+
+⚠️ **Validation Events:** Only subscribe to validation events if you've enabled session validation via `registerForSessionValidation()`
 
 # Social Provider Authentication
 
