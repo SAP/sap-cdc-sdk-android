@@ -90,10 +90,8 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
 
     val context = LocalContext.current.applicationContext
 
-    // ✅ Provide the shared AuthenticationFlowDelegate to the entire composition tree
-    ViewModelScopeProvider.ProvideAuthenticationDelegate(context) {
-        // Get the delegate to determine start destination
-        val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
+    // Get the single activity-scoped delegate (provided by MainActivity)
+    val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
 
         NavHost(
             profileNavController, startDestination =
@@ -304,5 +302,4 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
                 PasskeysCredentialsView(viewModel)
             }
         }
-    }
 }

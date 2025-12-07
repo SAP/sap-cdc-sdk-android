@@ -35,28 +35,25 @@ fun SettingsNavHost(appStateManager: AppStateManager) {
 
     val context = LocalContext.current.applicationContext
 
-    // Provide the shared AuthenticationFlowDelegate to the entire composition tree
-    ViewModelScopeProvider.ProvideAuthenticationDelegate(context) {
-        // Get the delegate to pass to ViewModels that need it
-        val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
+    // Get the single activity-scoped delegate (provided by MainActivity)
+    val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
 
-        NavHost(
-            settingsNavController, 
-            startDestination = SettingsScreenRoute.Configuration.route
-        ) {
-            composable(SettingsScreenRoute.Configuration.route) {
-                val viewModel: ConfigurationViewModel = ViewModelScopeProvider.activityScopedViewModel(
-                    factory = CustomViewModelFactory(context, authDelegate)
-                )
-                ConfigurationView(viewModel)
-            }
-            
-            // Additional settings screens can be added here in the future
-            // For example:
-            // composable(SettingsScreenRoute.Privacy.route) { ... }
-            // composable(SettingsScreenRoute.Security.route) { ... }
-            // composable(SettingsScreenRoute.Notifications.route) { ... }
+    NavHost(
+        settingsNavController, 
+        startDestination = SettingsScreenRoute.Configuration.route
+    ) {
+        composable(SettingsScreenRoute.Configuration.route) {
+            val viewModel: ConfigurationViewModel = ViewModelScopeProvider.activityScopedViewModel(
+                factory = CustomViewModelFactory(context, authDelegate)
+            )
+            ConfigurationView(viewModel)
         }
+        
+        // Additional settings screens can be added here in the future
+        // For example:
+        // composable(SettingsScreenRoute.Privacy.route) { ... }
+        // composable(SettingsScreenRoute.Security.route) { ... }
+        // composable(SettingsScreenRoute.Notifications.route) { ... }
     }
 }
 

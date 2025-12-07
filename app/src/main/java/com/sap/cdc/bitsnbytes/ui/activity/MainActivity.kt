@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
@@ -18,6 +19,7 @@ import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.AppStateManager
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.view.screens.HomeScaffoldView
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory.LocalAuthenticationDelegate
 import kotlinx.coroutines.launch
 
 /**
@@ -28,14 +30,17 @@ import kotlinx.coroutines.launch
  * - Lifecycle-aware splash screen handling
  * - UI composition with Jetpack Compose
  * - Navigation coordinator setup
+ * - Provides single activity-scoped AuthenticationFlowDelegate to entire app
  *
  * Session event handling is delegated to MainActivityViewModel for proper MVVM architecture.
  */
 class MainActivity : FragmentActivity() {
 
-    // ViewModel integration for proper MVVM architecture
-    // ViewModel handles all session events and business logic
-    private val viewModel: MainActivityViewModel by viewModels()
+    // ViewModel integration with factory that creates AuthenticationFlowDelegate
+    // This ensures a SINGLE delegate instance for the entire activity lifecycle
+    private val viewModel: MainActivityViewModel by viewModels {
+        MainActivityViewModelFactory(applicationContext)
+    }
 
     // AppStateManager for navigation
     private val appStateManager: AppStateManager by viewModels()
@@ -60,12 +65,17 @@ class MainActivity : FragmentActivity() {
 
         setContent {
             AppTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = AppTheme.colorScheme.background
+                // Provide the SINGLE AuthenticationFlowDelegate instance to entire app
+                CompositionLocalProvider(
+                    LocalAuthenticationDelegate provides viewModel.authenticationFlowDelegate
                 ) {
-                    // Pass the activity-scoped AppStateManager
-                    HomeScaffoldView(appStateManager = appStateManager)
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = AppTheme.colorScheme.background
+                    ) {
+                        // Pass the activity-scoped AppStateManager
+                        HomeScaffoldView(appStateManager = appStateManager)
+                    }
                 }
             }
         }

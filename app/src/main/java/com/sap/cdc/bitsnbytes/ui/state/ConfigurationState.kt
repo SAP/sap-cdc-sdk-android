@@ -16,5 +16,6 @@ data class ConfigurationState(
     val domain: String = "",
     val cname: String = "",
     val useWebView: Boolean = false,
-    val debugNavigationLogging: Boolean = false
+    val debugNavigationLogging: Boolean = false,
+    val showSuccessBanner: Boolean = false
 )

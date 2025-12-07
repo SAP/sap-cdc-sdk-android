@@ -18,13 +18,15 @@ import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
  * - Delegates authentication operations to AuthenticationFlowDelegate
  * - Coordinates navigation on session events
  * - Proper cleanup in onCleared()
+ * - Provides single activity-scoped AuthenticationFlowDelegate instance
  */
 class MainActivityViewModel(
-    private val authenticationFlowDelegate: AuthenticationFlowDelegate
+    val authenticationFlowDelegate: AuthenticationFlowDelegate
 ) : ViewModel() {
 
     // This delegate is the SHARED instance that all ViewModels will use
     // It provides both state management and direct CDC SDK access
+    // IMPORTANT: Made public so MainActivity can provide it via CompositionLocal
 
     // Expose authentication state to UI
     val isAuthenticated = authenticationFlowDelegate.isAuthenticated

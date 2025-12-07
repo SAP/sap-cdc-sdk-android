@@ -2,6 +2,9 @@
 
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +50,8 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomColoredSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
+import com.sap.cdc.bitsnbytes.ui.view.composables.SuccessBanner
+import kotlinx.coroutines.delay
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -60,6 +66,19 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
 
+    // Refresh state when screen is displayed to show current config values
+    LaunchedEffect(Unit) {
+        viewModel.refreshState()
+    }
+
+    // Auto-hide success banner after 3 seconds
+    LaunchedEffect(state.showSuccessBanner) {
+        if (state.showSuccessBanner) {
+            delay(3000)
+            viewModel.onDismissBanner()
+        }
+    }
+
     Column(
         modifier = Modifier
             .background(Color.LightGray)
@@ -67,6 +86,18 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
             .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Success banner at top
+        AnimatedVisibility(
+            visible = state.showSuccessBanner,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            SuccessBanner(
+                message = "Configuration saved successfully",
+                onDismiss = { viewModel.onDismissBanner() }
+            )
+        }
+
         // UI elements.
         MediumVerticalSpacer()
         Column(

@@ -25,6 +25,8 @@ interface IConfigurationViewModel {
     fun onWebViewToggled(use: Boolean)
     fun onDebugNavigationLoggingToggled(enabled: Boolean)
     fun onSaveChanges()
+    fun onDismissBanner()
+    fun refreshState()
 }
 
 // Mocked preview class for ConfigurationViewModel
@@ -45,6 +47,8 @@ class ConfigurationViewModelPreview : IConfigurationViewModel {
     override fun onWebViewToggled(use: Boolean) {}
     override fun onDebugNavigationLoggingToggled(enabled: Boolean) {}
     override fun onSaveChanges() {}
+    override fun onDismissBanner() {}
+    override fun refreshState() {}
 }
 
 class ConfigurationViewModel(
@@ -52,16 +56,23 @@ class ConfigurationViewModel(
     val flowDelegate: AuthenticationFlowDelegate
 ) : BaseViewModel(context), IConfigurationViewModel {
 
-    private val _state = MutableStateFlow(
-        ConfigurationState(
+    private val _state = MutableStateFlow(loadCurrentState())
+    override val state: StateFlow<ConfigurationState> = _state.asStateFlow()
+
+    /**
+     * Helper method to load current configuration state from AuthenticationFlowDelegate.
+     * This ensures the state always reflects the current configuration.
+     */
+    private fun loadCurrentState(): ConfigurationState {
+        return ConfigurationState(
             apiKey = flowDelegate.siteConfig.apiKey,
             domain = flowDelegate.siteConfig.domain,
             cname = flowDelegate.siteConfig.cname ?: "",
             useWebView = ApplicationConfig.useWebViews,
-            debugNavigationLogging = ApplicationConfig.debugNavigationLogging
+            debugNavigationLogging = ApplicationConfig.debugNavigationLogging,
+            showSuccessBanner = false
         )
-    )
-    override val state: StateFlow<ConfigurationState> = _state.asStateFlow()
+    }
 
     override fun onApiKeyChanged(apiKey: String) {
         _state.update { it.copy(apiKey = apiKey) }
@@ -94,5 +105,16 @@ class ConfigurationViewModel(
             cname = currentState.cname.ifBlank { null }
         )
         flowDelegate.reinitializeWithNewConfig(newSiteConfig)
+        
+        // Show success banner
+        _state.update { it.copy(showSuccessBanner = true) }
+    }
+
+    override fun onDismissBanner() {
+        _state.update { it.copy(showSuccessBanner = false) }
+    }
+
+    override fun refreshState() {
+        _state.value = loadCurrentState()
     }
 }
