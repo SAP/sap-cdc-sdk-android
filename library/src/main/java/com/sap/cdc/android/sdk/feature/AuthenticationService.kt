@@ -46,7 +46,11 @@ class AuthenticationService(
     val siteConfig: SiteConfig,
 ) {
     val coreClient: CoreClient = CoreClient(siteConfig)
-    val sessionService: SessionService = SessionService(siteConfig)
+    
+    // Lazy initialization to ensure CDCEventBus is initialized first (in init block)
+    // before SessionService/SessionSecure attempts to subscribe to events
+    val sessionService: SessionService by lazy { SessionService(siteConfig) }
+    
     private lateinit var _notificationManager: CDCNotificationManager
     private var _sessionValidationService: SessionValidationService? = null
 
