@@ -1,5 +1,6 @@
 package com.sap.cdc.bitsnbytes.feature.provider
 
+import android.R.attr.data
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -19,8 +20,6 @@ import com.sap.cdc.android.sdk.feature.provider.ProviderException
 import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import com.sap.cdc.bitsnbytes.R
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -32,6 +31,11 @@ import kotlin.coroutines.suspendCoroutine
  */
 
 class LineAuthenticationProvider() : IAuthenticationProvider {
+
+    companion object {
+
+        const val LOG_TAG = "LineAuthenticationProvider"
+    }
 
     private var launcher: ActivityResultLauncher<Intent>? = null
 
@@ -55,7 +59,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                 hostActivity,
                 channelId,
                 LineAuthenticationParams.Builder()
-                    .scopes(listOf(Scope.PROFILE))
+                    .scopes(listOf(Scope.PROFILE, Scope.OC_EMAIL, Scope.OPENID_CONNECT))
                     .build()
             )
 
@@ -77,26 +81,19 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                 val lineResult = LineLoginApi.getLoginResultFromIntent(resultData)
                 when (lineResult.responseCode) {
                     LineApiResponseCode.SUCCESS -> {
-                        Log.d("LineAuthenticationProvider", "SUCCESS")
+                        Log.d(LOG_TAG, "SUCCESS")
                         val token = lineResult.lineCredential?.accessToken?.tokenString
-
-                        // Generate the relevant providerSession object required for CDC servers to validate the token.
-                        val data = JsonObject(
-                            mapOf(
-                                "line" to JsonObject(
-                                    mapOf(
-                                        "authToken" to JsonPrimitive(token),
-                                    )
-                                )
-                            )
-                        )
+                        val idToken = lineResult.lineIdToken?.rawString
 
                         val providerSession = data.toString()
 
                         val authenticatorProviderResult = AuthenticatorProviderResult(
                             provider = getProvider(),
                             type = ProviderType.NATIVE,
-                            providerSessions = providerSession
+                            providerSessionData = mapOf(
+                                "authToken" to token,
+                                "idToken" to idToken
+                            )
                         )
 
                         dispose()
@@ -104,7 +101,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                     }
 
                     LineApiResponseCode.CANCEL -> {
-                        Log.d("LineAuthenticationProvider", "CANCEL")
+                        Log.d(LOG_TAG, "CANCEL")
 
                         dispose()
                         continuation.resumeWithException(
@@ -116,8 +113,8 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                     }
 
                     else -> {
-                        Log.d("LineAuthenticationProvider", "ERROR")
-                        Log.d("LineAuthenticationProvider", lineResult.errorData.toString())
+                        Log.d(LOG_TAG, "ERROR")
+                        Log.d(LOG_TAG, lineResult.errorData.toString())
 
                         val providerException =
                             ProviderException(

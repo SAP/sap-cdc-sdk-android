@@ -77,7 +77,7 @@ class AuthenticationFlowDelegate(context: Context) {
     /**
      * Creates and configures a new AuthenticationService instance.
      * Centralizes service initialization to avoid duplication.
-     * 
+     *
      * @param config The SiteConfig to initialize the service with
      * @return Configured AuthenticationService instance
      */
@@ -107,16 +107,16 @@ class AuthenticationFlowDelegate(context: Context) {
 
     /**
      * Re-initializes the entire authentication system with a new SiteConfig.
-     * 
+     *
      * This method performs a complete reinitialization when configuration changes:
      * 1. Clears existing authentication state and session data
      * 2. Creates new AuthenticationService with fresh CoreClient and SessionService
      * 3. Re-registers all authentication providers with new config
      * 4. Resets biometric authentication (will reinitialize on next use)
-     * 
+     *
      * **Important:** Sessions are API-key specific, so changing configuration
      * requires clearing the old session and starting fresh.
-     * 
+     *
      * @param newSiteConfig The new site configuration to use
      */
     fun reinitializeWithNewConfig(newSiteConfig: SiteConfig) {
@@ -124,16 +124,16 @@ class AuthenticationFlowDelegate(context: Context) {
         clearAuthenticationState()
         clearCDCSession()
         clearAuthOptionsState()
-        
+
         // 2. Update siteConfig reference
         this.siteConfig = newSiteConfig
-        
+
         // 3. Create NEW AuthenticationService (includes fresh CoreClient + SessionService)
         authenticationService = createAuthenticationService(newSiteConfig)
-        
+
         // 4. Re-register authentication providers
         initializeProviders()
-        
+
         // Note: biometricAuth is lazy - will reinitialize with new sessionService on next access
     }
 
@@ -156,10 +156,10 @@ class AuthenticationFlowDelegate(context: Context) {
      */
     private fun initializeProviders() {
         authenticationProviderMap.clear()
-        
+
         // Register application specific authentication providers
         registerAuthenticationProvider("facebook", FacebookAuthenticationProvider())
-        
+
         // Register Google with both modern and legacy names (google + googleplus)
         // This supports legacy server configurations that use "googleplus" without duplicating instances
         registerAuthenticationProvider(
@@ -167,10 +167,12 @@ class AuthenticationFlowDelegate(context: Context) {
             provider = GoogleAuthenticationProvider()
         )
 
-        registerAuthenticationProvider("linkedIn", WebAuthenticationProvider(
-            "linked",
-            siteConfig = authenticationService.siteConfig,
-        ))
+        registerAuthenticationProvider(
+            "linkedIn", WebAuthenticationProvider(
+                "linked",
+                siteConfig = authenticationService.siteConfig,
+            )
+        )
     }
 
     init {
@@ -244,6 +246,7 @@ class AuthenticationFlowDelegate(context: Context) {
     fun handleSessionExpired() {
         clearCDCSession()
         clearAuthenticationState()
+        biometricAuth.invalidateBiometricAuthenticationState()
     }
 
     //region LOGIN / LOGOUT / REGISTER METHODS
@@ -648,30 +651,30 @@ class AuthenticationFlowDelegate(context: Context) {
 
     /**
      * Register authentication provider with multiple aliases.
-     * 
+     *
      * This method allows registering the same provider instance under multiple names,
      * which is useful for supporting legacy provider names without duplicating instances.
-     * 
+     *
      * ## Use Case: Legacy Provider Names
-     * 
+     *
      * Some servers may use legacy provider names (e.g., "googleplus") while the client
      * uses modern names (e.g., "google"). Rather than creating duplicate provider instances,
      * this method allows mapping multiple names to a single provider.
-     * 
+     *
      * ## Example
-     * 
+     *
      * ```
      * // Google provider can be accessed via "google" OR "googleplus"
      * registerAuthenticationProvider(
      *     aliases = listOf("google", "googleplus"),
      *     provider = GoogleAuthenticationProvider()
      * )
-     * 
+     *
      * // Both work and return the same instance:
      * getAuthenticationProvider("google")      // Same instance
      * getAuthenticationProvider("googleplus")  // Same instance
      * ```
-     * 
+     *
      * @param aliases List of names (including primary and legacy names) that map to this provider
      * @param provider The authentication provider instance to register
      */
@@ -684,7 +687,7 @@ class AuthenticationFlowDelegate(context: Context) {
     /**
      * Register authentication provider with a single name.
      * Convenience method for providers without legacy names.
-     * 
+     *
      * @param name The provider name
      * @param provider The authentication provider instance
      */

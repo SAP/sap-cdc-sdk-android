@@ -30,18 +30,18 @@ import javax.crypto.spec.GCMParameterSpec
 
 /**
  * Biometric authentication manager for secure session encryption.
- * 
+ *
  * Provides biometric-protected session storage using device biometric capabilities
  * (fingerprint, face recognition, etc.). Sessions are double-encrypted: standard AES256 GCM
  * plus biometric authentication layer.
- * 
+ *
  * ## Usage
  * ```kotlin
  * val biometricAuth = BiometricAuth(sessionService)
- * 
+ *
  * // Check device capability
  * val canUse = biometricAuth.canAuthenticate(activity)
- * 
+ *
  * // Opt in for biometric protection
  * biometricAuth.optInForBiometricSessionAuthentication(
  *     activity = activity,
@@ -54,10 +54,10 @@ import javax.crypto.spec.GCMParameterSpec
  *     onSuccess = { /* biometric enabled */ }
  *     onError = { error -> /* handle error */ }
  * }
- * 
+ *
  * // Lock session (removes from memory)
  * biometricAuth.lockBiometricSession()
- * 
+ *
  * // Unlock with biometric
  * biometricAuth.unlockSessionWithBiometricAuthentication(
  *     activity, promptInfo, executor
@@ -66,7 +66,7 @@ import javax.crypto.spec.GCMParameterSpec
  *     onError = { /* handle error */ }
  * }
  * ```
- * 
+ *
  * @param sessionService Session service for managing session state
  * @see BiometricPrompt
  * @see BiometricManager
@@ -198,6 +198,17 @@ class BiometricAuth(private val sessionService: SessionService) {
             LOG_TAG,
             "Biometric session decrypted and resaved with default encryption"
         )
+    }
+
+    /**
+     * Invalidate biometric authentication state.
+     * In the event of an expired session or an invalid session event, this method should be called to
+     * remove traces of the biometric key.
+     */
+    fun invalidateBiometricAuthenticationState() {
+        // Invalidation of the session may have already been done. Fail safe.
+        sessionService.invalidateSession()
+        keyGen.removeSecretKey()
     }
 
     /**

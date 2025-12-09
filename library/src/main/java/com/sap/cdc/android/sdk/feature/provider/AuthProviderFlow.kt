@@ -89,8 +89,18 @@ class AuthProviderFlow(
                 // These providers require a web view to authenticate the user.
                 ProviderType.WEB -> {
                     CDCDebuggable.log(LOG_TAG, "signIn: web")
-                    //TODO: Possibility missing interruption or error handling.
-                    // Secure new acquired session.
+
+                    // Handle error and potential interruption.
+                    if (signIn.cdcResponse != null) {
+                        val response = signIn.cdcResponse!!
+                        if (isResolvableContext(response)) {
+                            handleResolvableInterruption(response, callbacks)
+                            return
+                        }
+                        return
+                    }
+
+                    // Handle successful login given active session.
                     val session = signIn.session!!
                     // Session will be secured when set.
                     sessionService.setSession(session)
@@ -192,7 +202,7 @@ class AuthProviderFlow(
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
         parameters["loginMode"] = "link"
-        
+
         signIn(parameters) {
             // Set up override transformation FIRST
             doOnAnyAndOverride { authResult ->
@@ -215,10 +225,11 @@ class AuthProviderFlow(
                             connectAccountSync(provider, authToken)
                         }
                     }
+
                     else -> authResult // Pass through other results unchanged
                 }
             }
-            
+
             // Register user callbacks AFTER override
             authCallbacks()
         }

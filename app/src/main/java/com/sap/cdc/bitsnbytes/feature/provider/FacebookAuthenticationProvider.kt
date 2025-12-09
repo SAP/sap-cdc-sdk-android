@@ -12,8 +12,6 @@ import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
 import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.feature.provider.ProviderType
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -65,24 +63,13 @@ class FacebookAuthenticationProvider : IAuthenticationProvider {
                 override fun onSuccess(result: LoginResult) {
                     val accessToken = result.accessToken
 
-                    // Generate the relevant providerSession object required for CDC servers to validate the token.
-                    val data = JsonObject(
-                        mapOf(
-                            "facebook" to JsonObject(
-                                mapOf(
-                                    "authToken" to JsonPrimitive(accessToken.token),
-                                    "tokenExpiration" to JsonPrimitive(accessToken.expires.time / 1000)
-                                )
-                            )
-                        )
-                    )
-
-                    val providerSession = data.toString()
-
                     val authenticatorProviderResult = AuthenticatorProviderResult(
                         provider = getProvider(),
                         type = ProviderType.NATIVE,
-                        providerSessions = providerSession,
+                        providerSessionData = mapOf(
+                            "authToken" to accessToken.token,
+                            "tokenExpiration" to (accessToken.expires.time / 1000).toString()
+                        ),
                     )
                     continuation.resume(authenticatorProviderResult)
                 }

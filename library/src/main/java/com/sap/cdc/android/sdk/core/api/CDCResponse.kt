@@ -97,14 +97,14 @@ class CDCResponse {
      * 
      * @param code The error code (0 indicates success, non-zero indicates failure)
      * @param message A short error message describing the error
-     * @param description Detailed error description with additional context
+     * @param details Detailed error description with additional context
      * @return This CDCResponse instance for method chaining
      */
-    fun fromError(code: Int, message: String, description: String) = apply {
+    fun fromError(code: Int, message: String, details: String) = apply {
         val errorJson = buildJsonObject {
             put("errorCode", code.toString())
             put("errorMessage", message)
-            put("errorDetails", description)
+            put("errorDetails", details)
         }
         fromJSON(errorJson.toString())
     }

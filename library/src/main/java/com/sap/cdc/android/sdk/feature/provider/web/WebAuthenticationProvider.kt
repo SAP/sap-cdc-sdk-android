@@ -9,6 +9,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
+import com.sap.cdc.android.sdk.core.api.CDCResponse
 import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.core.api.utils.toEncodedQuery
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
@@ -21,6 +22,8 @@ import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import com.sap.cdc.android.sdk.feature.session.Session
 import io.ktor.util.generateNonce
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -127,15 +130,15 @@ class WebAuthenticationProvider(
                                 continuation.resume(authenticatorProviderResult)
                             } else {
                                 // Parse error information.
-                                val cdcError = handleErrorInfo(resultData)
+                                val cdcResponse = handleErrorInfo(resultData)
+                                val authenticatorProviderResult = AuthenticatorProviderResult(
+                                    provider = getProvider(),
+                                    type = ProviderType.WEB,
+                                    cdcResponse = cdcResponse
+                                )
 
                                 dispose()
-                                continuation.resumeWithException(
-                                    ProviderException(
-                                        ProviderExceptionType.PROVIDER_FAILURE,
-                                        cdcError
-                                    )
-                                )
+                                continuation.resume(authenticatorProviderResult)
                             }
                         }
                     }
@@ -200,26 +203,33 @@ class WebAuthenticationProvider(
      * Parses error information from the authentication result.
      * Extracts error code and message, optionally includes registration token.
      * @param result Result intent containing error data
-     * @return CDCError with parsed error details
+     * @return CDCResponse with parsed error details
      */
-    //TODO: Change flow to base response. Not handling CDCError as a object.
-    private fun handleErrorInfo(result: Intent): CDCError {
+    private fun handleErrorInfo(result: Intent): CDCResponse {
         val errorDescription = result.getStringExtra("error_description")
         val parts =
             errorDescription!!.replace("+", "").split("-".toRegex()).dropLastWhile { it.isEmpty() }
         val errorCode = parts[0].trim { it <= ' ' }.toInt()
         val errorMessage = parts[1].trim { it <= ' ' }
+        val errorDetails = result.getStringExtra("errorDetails")
 
-        // Generate error from parsed data.
-        val error = CDCError(errorCode, errorMessage)
+        // Build JsonObject with all values
+        val jsonMap = mutableMapOf(
+            "errorCode" to JsonPrimitive(errorCode),
+            "errorMessage" to JsonPrimitive(errorMessage)
+        )
 
-        // Extract registration token if available. Should be by default...
-        if (result.extras?.containsKey("x_regToken") == true) {
-            val regToken = result.getStringExtra("x_regToken")
-            //error.addDynamic("regToken", regToken!!)
-        }
+        // Add optional fields if present
+        errorDetails?.let { jsonMap["errorDetails"] = JsonPrimitive(it) }
+        result.getStringExtra("x_regToken")?.let { jsonMap["x_regToken"] = JsonPrimitive(it) }
+        result.getStringExtra("regToken")?.let { jsonMap["regToken"] = JsonPrimitive(it) }
+        result.getStringExtra("access_token")?.let { jsonMap["access_token"] = JsonPrimitive(it) }
+        result.getStringExtra("provider")?.let { jsonMap["provider"] = JsonPrimitive(it) }
 
-        return error
+        val jsonObject = JsonObject(jsonMap)
+        val jsonString = jsonObject.toString()
+
+        return CDCResponse().fromJSON(jsonString)
     }
 
     override suspend fun signOut(hostActivity: ComponentActivity?) {

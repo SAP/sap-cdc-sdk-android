@@ -18,8 +18,6 @@ import com.sap.cdc.android.sdk.feature.provider.ProviderExceptionType
 import com.sap.cdc.android.sdk.feature.provider.ProviderType
 import com.sap.cdc.bitsnbytes.R
 import io.ktor.util.generateNonce
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -66,22 +64,12 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
         val googleIdTokenCredential = GoogleIdTokenCredential
             .createFrom(credential.data)
 
-        // Generate the relevant providerSession object required for CDC servers to validate the token.
-        val data = JsonObject(
-            mapOf(
-                "google" to JsonObject(
-                    mapOf(
-                        "idToken" to JsonPrimitive(googleIdTokenCredential.idToken),
-                    )
-                )
-            )
-        )
-        val providerSession = data.toString()
-
         val authenticatorProviderResult = AuthenticatorProviderResult(
             provider = getProvider(),
             type = ProviderType.NATIVE,
-            providerSessions = providerSession
+            providerSessionData = mapOf(
+                "idToken" to googleIdTokenCredential.idToken,
+            )
         )
         return authenticatorProviderResult
     }
