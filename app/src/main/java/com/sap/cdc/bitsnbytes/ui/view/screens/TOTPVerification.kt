@@ -33,8 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.TwoFactorContext
-import com.sap.cdc.android.sdk.feature.tfa.TFAProvidersEntity
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
@@ -47,13 +45,8 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
 
 @Composable
 fun TOTPVerificationView(
-    viewModel: ITOTPVerificationViewModel,
-    twoFactorContext: TwoFactorContext
+    viewModel: ITOTPVerificationViewModel
 ) {
-    LaunchedEffect(twoFactorContext) {
-        viewModel.updateTwoFactorContext(twoFactorContext)
-    }
-
     // Handle navigation events
     LaunchedEffect(Unit) {
         viewModel.navigationEvents.collect { event ->
@@ -234,12 +227,7 @@ fun TOTPCodeVerificationView(
 fun TOTPVerificationViewPreview() {
     AppTheme {
         TOTPVerificationView(
-            viewModel = TOTPVerificationViewModelPreview(),
-            twoFactorContext = TwoFactorContext(
-                tfaProviders = TFAProvidersEntity(
-                    activeProviders = listOf()
-                )
-            )
+            viewModel = TOTPVerificationViewModelPreview()
         )
     }
 }

@@ -30,8 +30,8 @@ class WelcomeViewModel(context: Context, val flowDelegate: AuthenticationFlowDel
     override val state: StateFlow<WelcomeState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<WelcomeNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<WelcomeNavigationEvent> = _navigationEvents.asSharedFlow()
 

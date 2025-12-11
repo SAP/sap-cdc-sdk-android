@@ -2,6 +2,8 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.sap.cdc.android.sdk.feature.TwoFactorContext
+import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.ui.state.AuthMethodsNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.state.AuthMethodsState
@@ -34,13 +36,13 @@ class AuthMethodsViewModel(
     override val state: StateFlow<AuthMethodsState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<AuthMethodsNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<AuthMethodsNavigationEvent> = _navigationEvents.asSharedFlow()
 
-    fun initializeWithContext(twoFactorContextJson: String) {
-        _state.update { it.copy(twoFactorContext = twoFactorContextJson) }
+    fun initializeWithContext(twoFactorContext: TwoFactorContext) {
+        _state.update { it.copy(twoFactorContext = twoFactorContext.toJson()) }
     }
 
     override fun onSendCodeToEmail() {
@@ -49,7 +51,7 @@ class AuthMethodsViewModel(
 
     override fun onSendCodeToPhone() {
         viewModelScope.launch {
-            _navigationEvents.emit(AuthMethodsNavigationEvent.NavigateToPhoneSelection)
+            _navigationEvents.emit(AuthMethodsNavigationEvent.NavigateToPhoneSelection(_state.value.twoFactorContext))
         }
     }
 

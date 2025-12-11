@@ -59,8 +59,8 @@ class EmailRegistrationViewModel(
     override val state: StateFlow<EmailRegistrationState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<EmailRegistrationNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<EmailRegistrationNavigationEvent> = _navigationEvents.asSharedFlow()
 

@@ -38,8 +38,8 @@ class TOTPVerificationViewModel(context: Context, val flowDelegate: Authenticati
     override val state: StateFlow<TOTPVerificationState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<TOTPVerificationNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<TOTPVerificationNavigationEvent> = _navigationEvents.asSharedFlow()
 
@@ -48,6 +48,10 @@ class TOTPVerificationViewModel(context: Context, val flowDelegate: Authenticati
 
     private val _qACode = MutableStateFlow<Bitmap?>(null)
     override val qACode: StateFlow<Bitmap?> = _qACode
+
+    fun initializeWithContext(twoFactorContext: TwoFactorContext) {
+        _twoFactorContext.value = twoFactorContext
+    }
 
     override fun updateTwoFactorContext(newContext: TwoFactorContext) {
         _twoFactorContext.value = newContext

@@ -45,8 +45,8 @@ class RegisterViewModel(context: Context, val flowDelegate: AuthenticationFlowDe
     override val state: StateFlow<RegisterState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<RegisterNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<RegisterNavigationEvent> = _navigationEvents.asSharedFlow()
 

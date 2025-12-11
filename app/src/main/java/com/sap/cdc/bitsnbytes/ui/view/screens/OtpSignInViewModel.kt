@@ -2,7 +2,6 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
 import com.sap.cdc.bitsnbytes.ui.state.OtpSignInNavigationEvent
@@ -36,8 +35,8 @@ class OtpSignInViewModel(
     override val state: StateFlow<OtpSignInState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<OtpSignInNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<OtpSignInNavigationEvent> = _navigationEvents.asSharedFlow()
 

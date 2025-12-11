@@ -20,7 +20,7 @@ data class AuthMethodsState(
  */
 @Immutable
 sealed class AuthMethodsNavigationEvent {
-    data object NavigateToPhoneSelection : AuthMethodsNavigationEvent()
+    data class NavigateToPhoneSelection(val context: String) : AuthMethodsNavigationEvent()
     data class NavigateToTOTPVerification(val context: String) : AuthMethodsNavigationEvent()
     data object NavigateToLogin : AuthMethodsNavigationEvent()
 }

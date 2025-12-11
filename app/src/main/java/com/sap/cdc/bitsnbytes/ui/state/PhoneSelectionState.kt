@@ -1,6 +1,8 @@
 package com.sap.cdc.bitsnbytes.ui.state
 
 import androidx.compose.runtime.Immutable
+import com.sap.cdc.bitsnbytes.ui.view.model.Country
+import com.sap.cdc.bitsnbytes.ui.view.model.CountryData
 
 /**
  * Created by Tal Mirmelshtein on 09/11/2024
@@ -17,7 +19,8 @@ import androidx.compose.runtime.Immutable
 data class PhoneSelectionState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val inputField: String = ""
+    val inputField: String = "",
+    val selectedCountry: Country = CountryData.getDefaultCountry()
 )
 
 /**

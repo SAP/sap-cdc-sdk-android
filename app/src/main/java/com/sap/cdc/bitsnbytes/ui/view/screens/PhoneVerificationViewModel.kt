@@ -21,7 +21,7 @@ interface IPhoneVerificationViewModel {
     val navigationEvents: SharedFlow<PhoneVerificationNavigationEvent>
     
     fun updateOtpValue(value: String)
-    fun onVerifyCode(twoFactorContext: TwoFactorContext)
+    fun onVerifyCode()
     fun onCodeSent()
 }
 
@@ -32,10 +32,16 @@ class PhoneVerificationViewModel(context: Context, val flowDelegate: Authenticat
     override val state: StateFlow<PhoneVerificationState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<PhoneVerificationNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<PhoneVerificationNavigationEvent> = _navigationEvents.asSharedFlow()
+
+    private var _twoFactorContext: TwoFactorContext? = null
+
+    fun initializeWithContext(twoFactorContext: TwoFactorContext) {
+        _twoFactorContext = twoFactorContext
+    }
 
     override fun updateOtpValue(value: String) {
         _state.update { it.copy(otpValue = value) }
@@ -45,14 +51,14 @@ class PhoneVerificationViewModel(context: Context, val flowDelegate: Authenticat
         _state.update { it.copy(codeSent = true) }
     }
 
-    override fun onVerifyCode(twoFactorContext: TwoFactorContext) {
+    override fun onVerifyCode() {
         _state.update { it.copy(isLoading = true, error = null) }
         
         viewModelScope.launch {
             flowDelegate.verifyPhoneCode(
                 verificationCode = _state.value.otpValue,
                 rememberDevice = false,
-                twoFactorContext = twoFactorContext
+                twoFactorContext = _twoFactorContext!!
             ) {
                 onSuccess = {
                     _state.update { it.copy(isLoading = false) }
@@ -74,6 +80,6 @@ class PhoneVerificationViewModelPreview : IPhoneVerificationViewModel {
         MutableSharedFlow<PhoneVerificationNavigationEvent>().asSharedFlow()
     
     override fun updateOtpValue(value: String) {}
-    override fun onVerifyCode(twoFactorContext: TwoFactorContext) {}
+    override fun onVerifyCode() {}
     override fun onCodeSent() {}
 }

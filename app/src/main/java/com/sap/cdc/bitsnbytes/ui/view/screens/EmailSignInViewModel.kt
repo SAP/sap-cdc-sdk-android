@@ -54,8 +54,8 @@ class EmailSignInViewModel(
     override val state: StateFlow<EmailSignInState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<EmailSignInNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<EmailSignInNavigationEvent> = _navigationEvents.asSharedFlow()
 

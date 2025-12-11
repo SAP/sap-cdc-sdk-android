@@ -3,7 +3,6 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.core.api.model.CDCError
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.ResolvableContext
 import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
@@ -53,8 +52,8 @@ class OtpVerifyViewModel(
     override val state: StateFlow<OtpVerifyState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<OtpVerifyNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<OtpVerifyNavigationEvent> = _navigationEvents.asSharedFlow()
 

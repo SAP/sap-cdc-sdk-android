@@ -2,7 +2,6 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.RegistrationContext
 import com.sap.cdc.bitsnbytes.extensions.parseRequiredMissingFieldsForRegistration
 import com.sap.cdc.bitsnbytes.extensions.toJson
@@ -52,8 +51,8 @@ class PendingRegistrationViewModel(
     override val state: StateFlow<PendingRegistrationState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<PendingRegistrationNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<PendingRegistrationNavigationEvent> = _navigationEvents.asSharedFlow()
 

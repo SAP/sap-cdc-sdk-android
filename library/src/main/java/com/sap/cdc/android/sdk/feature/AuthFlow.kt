@@ -184,6 +184,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             initiator = initiator,
             originatingError = createAuthError(response),
             tfaProviders = tfaProviders,
+            regToken = regToken
         )
 
         // Try invoking the specific handler first

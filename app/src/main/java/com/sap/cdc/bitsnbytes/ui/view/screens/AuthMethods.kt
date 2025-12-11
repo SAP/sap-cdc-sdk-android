@@ -20,10 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.R
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
-import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 import com.sap.cdc.bitsnbytes.ui.state.AuthMethodsNavigationEvent
@@ -32,8 +30,7 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.SmallActionTextButton
 
 @Composable
 fun AuthMethodsView(
-    viewModel: IAuthMethodsViewModel,
-    twoFactorContext: TwoFactorContext,
+    viewModel: IAuthMethodsViewModel
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -42,7 +39,9 @@ fun AuthMethodsView(
         viewModel.navigationEvents.collect { event ->
             when (event) {
                 is AuthMethodsNavigationEvent.NavigateToPhoneSelection -> {
-                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.PhoneSelection.route)
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.PhoneSelection.route}/${event.context}"
+                    )
                 }
                 is AuthMethodsNavigationEvent.NavigateToTOTPVerification -> {
                     NavigationCoordinator.INSTANCE.navigate(
@@ -124,8 +123,7 @@ fun AuthMethodsView(
 fun AuthMethodsViewPreview() {
     AppTheme {
         AuthMethodsView(
-            viewModel = AuthMethodsViewModelPreview(),
-            twoFactorContext = TwoFactorContext()
+            viewModel = AuthMethodsViewModelPreview()
         )
     }
 }

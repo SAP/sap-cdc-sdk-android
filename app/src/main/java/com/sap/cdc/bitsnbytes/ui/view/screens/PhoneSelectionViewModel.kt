@@ -27,20 +27,21 @@ interface IPhoneSelectionViewModel {
 
     fun updateTwoFactorContext(newContext: TwoFactorContext)
     fun updateInputField(value: String) {}
+    fun updateSelectedCountry(country: com.sap.cdc.bitsnbytes.ui.view.model.Country)
     fun onRegisterPhoneNumber()
     fun onSendCode(phoneId: String)
     fun loadRegisteredPhoneNumbers()
 }
 
-class PhoneSelectionViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) : 
+class PhoneSelectionViewModel(context: Context, val flowDelegate: AuthenticationFlowDelegate) :
     BaseViewModel(context), IPhoneSelectionViewModel {
 
     private val _state = MutableStateFlow(PhoneSelectionState())
     override val state: StateFlow<PhoneSelectionState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<PhoneSelectionNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<PhoneSelectionNavigationEvent> = _navigationEvents.asSharedFlow()
 
@@ -50,6 +51,10 @@ class PhoneSelectionViewModel(context: Context, val flowDelegate: Authentication
     private val _twoFactorContext = MutableStateFlow<TwoFactorContext?>(null)
     override val twoFactorContext: StateFlow<TwoFactorContext?> = _twoFactorContext
 
+    fun initializeWithContext(twoFactorContext: TwoFactorContext) {
+        _twoFactorContext.value = twoFactorContext
+    }
+
     override fun updateTwoFactorContext(newContext: TwoFactorContext) {
         _twoFactorContext.value = newContext
     }
@@ -58,9 +63,13 @@ class PhoneSelectionViewModel(context: Context, val flowDelegate: Authentication
         _state.update { it.copy(inputField = value) }
     }
 
+    override fun updateSelectedCountry(country: com.sap.cdc.bitsnbytes.ui.view.model.Country) {
+        _state.update { it.copy(selectedCountry = country) }
+    }
+
     override fun loadRegisteredPhoneNumbers() {
         _state.update { it.copy(isLoading = true, error = null) }
-        
+
         viewModelScope.launch {
             flowDelegate.getRegisteredPhoneNumbers(twoFactorContext.value!!) {
                 onSuccess = {
@@ -81,11 +90,11 @@ class PhoneSelectionViewModel(context: Context, val flowDelegate: Authentication
 
     override fun onRegisterPhoneNumber() {
         _state.update { it.copy(isLoading = true, error = null) }
-        
+
         viewModelScope.launch {
             flowDelegate.registerPhoneNumber(
                 twoFactorContext = twoFactorContext.value!!,
-                phoneNumber = _state.value.inputField,
+                phoneNumber = _state.value.selectedCountry.dialCode + _state.value.inputField,
                 language = "en"
             ) {
                 onSuccess = {
@@ -109,7 +118,7 @@ class PhoneSelectionViewModel(context: Context, val flowDelegate: Authentication
 
     override fun onSendCode(phoneId: String) {
         _state.update { it.copy(isLoading = true, error = null) }
-        
+
         viewModelScope.launch {
             flowDelegate.sendPhoneCode(
                 twoFactorContext = twoFactorContext.value!!,
@@ -140,12 +149,13 @@ class PhoneSelectionViewModel(context: Context, val flowDelegate: Authentication
 // Mock preview class for the PhoneSelectionViewModel
 class PhoneSelectionViewModelPreview : IPhoneSelectionViewModel {
     override val state: StateFlow<PhoneSelectionState> = MutableStateFlow(PhoneSelectionState()).asStateFlow()
-    override val navigationEvents: SharedFlow<PhoneSelectionNavigationEvent> = 
+    override val navigationEvents: SharedFlow<PhoneSelectionNavigationEvent> =
         MutableSharedFlow<PhoneSelectionNavigationEvent>().asSharedFlow()
     override val phoneList: StateFlow<List<TFAPhoneEntity>> = MutableStateFlow(emptyList())
     override val twoFactorContext: StateFlow<TwoFactorContext?> = MutableStateFlow(TwoFactorContext())
-    
+
     override fun updateTwoFactorContext(newContext: TwoFactorContext) {}
+    override fun updateSelectedCountry(country: com.sap.cdc.bitsnbytes.ui.view.model.Country) {}
     override fun onRegisterPhoneNumber() {}
     override fun onSendCode(phoneId: String) {}
     override fun loadRegisteredPhoneNumbers() {}

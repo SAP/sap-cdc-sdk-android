@@ -62,8 +62,8 @@ class SignInViewModel(context: Context, val flowDelegate: AuthenticationFlowDele
     override val state: StateFlow<SignInState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<SignInNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<SignInNavigationEvent> = _navigationEvents.asSharedFlow()
 

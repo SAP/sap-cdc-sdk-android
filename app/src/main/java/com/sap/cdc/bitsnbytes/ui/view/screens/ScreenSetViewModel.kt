@@ -165,8 +165,8 @@ class ScreenSetViewModel(
     override val state: StateFlow<ScreenSetState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<ScreenSetNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<ScreenSetNavigationEvent> = _navigationEvents.asSharedFlow()
 

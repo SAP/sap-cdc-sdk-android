@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
@@ -46,8 +45,7 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PhoneVerificationView(
-    viewModel: IPhoneVerificationViewModel,
-    twoFactorContext: TwoFactorContext
+    viewModel: IPhoneVerificationViewModel
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -154,7 +152,7 @@ fun PhoneVerificationView(
                     .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
-                    viewModel.onVerifyCode(twoFactorContext)
+                    viewModel.onVerifyCode()
                 }) {
                 Text("Verify")
             }
@@ -189,8 +187,7 @@ fun PhoneVerificationView(
 fun PhoneVerificationViewPreview() {
     AppTheme {
         PhoneVerificationView(
-            viewModel = PhoneVerificationViewModelPreview(),
-            twoFactorContext = TwoFactorContext()
+            viewModel = PhoneVerificationViewModelPreview()
         )
     }
 }

@@ -93,8 +93,8 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
     // Get the single activity-scoped delegate (provided by MainActivity)
     val authDelegate = ViewModelScopeProvider.activityScopedAuthenticationDelegate(context)
 
-        NavHost(
-            profileNavController, startDestination =
+    NavHost(
+        profileNavController, startDestination =
                 when (authDelegate.hasValidSession()) {
                     true -> {
                         if (authDelegate.isBiometricActive()) {
@@ -250,12 +250,12 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
             composable("${ProfileScreenRoute.AuthMethods.route}/{twoFactorContext}") { backStackEntry ->
                 val encodedTwoFactorJson = backStackEntry.arguments?.getString("twoFactorContext")
                 val decodedTwoFactorJson = Uri.decode(encodedTwoFactorJson!!)
-                val resolvable = Json.decodeFromString<TwoFactorContext>(decodedTwoFactorJson)
+                val twoFactorContext = Json.decodeFromString<TwoFactorContext>(decodedTwoFactorJson)
                 val viewModel: AuthMethodsViewModel = ViewModelScopeProvider.screenScopedViewModel(
                     factory = CustomViewModelFactory(context, authDelegate)
                 )
-                viewModel.initializeWithContext(decodedTwoFactorJson)
-                AuthMethodsView(viewModel, resolvable)
+                viewModel.initializeWithContext(twoFactorContext)
+                AuthMethodsView(viewModel)
             }
 
             composable("${ProfileScreenRoute.PhoneSelection.route}/{TwoFactorContext}") { backStackEntry ->
@@ -265,7 +265,8 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
                 val viewModel: PhoneSelectionViewModel = ViewModelScopeProvider.screenScopedViewModel(
                     factory = CustomViewModelFactory(context, authDelegate)
                 )
-                PhoneSelectionView(viewModel, twoFactorContext)
+                viewModel.initializeWithContext(twoFactorContext)
+                PhoneSelectionView(viewModel)
             }
 
             composable("${ProfileScreenRoute.PhoneVerification.route}/{twoFactorContext}") { backStackEntry ->
@@ -275,7 +276,8 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
                 val viewModel: PhoneVerificationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                     factory = CustomViewModelFactory(context, authDelegate)
                 )
-                PhoneVerificationView(viewModel, twoFactorContext)
+                viewModel.initializeWithContext(twoFactorContext)
+                PhoneVerificationView(viewModel)
             }
 
             composable("${ProfileScreenRoute.TOTPVerification.route}/{twoFactorContext}") { backStackEntry ->
@@ -285,7 +287,8 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
                 val viewModel: TOTPVerificationViewModel = ViewModelScopeProvider.screenScopedViewModel(
                     factory = CustomViewModelFactory(context, authDelegate)
                 )
-                TOTPVerificationView(viewModel, twoFactorContext)
+                viewModel.initializeWithContext(twoFactorContext)
+                TOTPVerificationView(viewModel)
             }
 
             composable(ProfileScreenRoute.BiometricLocked.route) {

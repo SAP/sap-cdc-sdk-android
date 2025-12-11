@@ -52,8 +52,8 @@ class CustomIDSignInViewModel(
     override val state: StateFlow<CustomIDSignInState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<CustomIDSignInNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<CustomIDSignInNavigationEvent> = _navigationEvents.asSharedFlow()
 

@@ -39,8 +39,8 @@ class MyProfileViewModel(context: Context, override val flowDelegate: Authentica
     override val state: StateFlow<MyProfileState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<MyProfileNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<MyProfileNavigationEvent> = _navigationEvents.asSharedFlow()
 

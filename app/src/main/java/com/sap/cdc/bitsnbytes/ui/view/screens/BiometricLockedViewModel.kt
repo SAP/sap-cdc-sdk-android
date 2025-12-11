@@ -35,8 +35,8 @@ class BiometricLockedViewModel(
     override val state: StateFlow<BiometricLockedState> = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<BiometricLockedNavigationEvent>(
-        replay = 1,
-        extraBufferCapacity = 0
+        replay = 0,
+        extraBufferCapacity = 1
     )
     override val navigationEvents: SharedFlow<BiometricLockedNavigationEvent> = _navigationEvents.asSharedFlow()
 

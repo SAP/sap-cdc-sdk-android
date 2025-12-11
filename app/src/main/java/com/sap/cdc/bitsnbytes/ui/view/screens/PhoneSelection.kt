@@ -4,12 +4,14 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,8 +38,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.feature.TwoFactorContext
-import com.sap.cdc.android.sdk.feature.tfa.TFAPhoneEntity
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
@@ -46,6 +46,7 @@ import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
+import com.sap.cdc.bitsnbytes.ui.view.composables.CountryCodeSelector
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
@@ -54,14 +55,9 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
 
 @Composable
 fun PhoneSelectionView(
-    viewModel: IPhoneSelectionViewModel,
-    twoFactorContext: TwoFactorContext
+    viewModel: IPhoneSelectionViewModel
 ) {
     val state by viewModel.state.collectAsState()
-
-    LaunchedEffect(twoFactorContext) {
-        viewModel.updateTwoFactorContext(twoFactorContext)
-    }
 
     // Handle navigation events
     LaunchedEffect(Unit) {
@@ -152,30 +148,47 @@ fun RegisterNewPhoneNumber(
     )
     SmallVerticalSpacer()
 
-    TextField(
-        state.inputField,
-        modifier = Modifier
-            .fillMaxWidth()
-            .connectNode(handler = autoFillHandler)
-            .defaultFocusChangeAutoFill(handler = autoFillHandler),
-        placeholder = {
-            Text(
-                "Enter phone number",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-            )
-        },
-        textStyle = TextStyle(
-            color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Normal
-        ),
-        onValueChange = {
-            viewModel.updateInputField(it)
-        },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-        keyboardActions = KeyboardActions {
-            focusManager.moveFocus(FocusDirection.Next)
-        },
-    )
+    // Row containing country selector and phone number input
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Country code selector
+        CountryCodeSelector(
+            selectedCountry = state.selectedCountry,
+            onCountrySelected = { country ->
+                viewModel.updateSelectedCountry(country)
+            }
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Phone number input field
+        TextField(
+            value = state.inputField,
+            modifier = Modifier
+                .weight(1f)
+                .connectNode(handler = autoFillHandler)
+                .defaultFocusChangeAutoFill(handler = autoFillHandler),
+            placeholder = {
+                Text(
+                    "Enter phone number",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                )
+            },
+            textStyle = TextStyle(
+                color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Normal
+            ),
+            onValueChange = {
+                viewModel.updateInputField(it)
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            keyboardActions = KeyboardActions {
+                focusManager.moveFocus(FocusDirection.Next)
+            },
+        )
+    }
 
     CustomSizeVerticalSpacer(48.dp)
 
@@ -228,19 +241,7 @@ fun RegisteredPhoneNumbers(
 fun PhoneSelectionViewPreview() {
     AppTheme {
         PhoneSelectionView(
-            viewModel = PhoneSelectionViewModelPreview(),
-            twoFactorContext = TwoFactorContext(
-                phones = listOf(
-                    TFAPhoneEntity(
-                        id = "1",
-                        obfuscated = "+1******789",
-                    ),
-                    TFAPhoneEntity(
-                        id = "2",
-                        obfuscated = "+1******123",
-                    )
-                )
-            )
+            viewModel = PhoneSelectionViewModelPreview()
         )
     }
 }

@@ -144,7 +144,7 @@ internal class AuthTFA(
             "lang" to (language ?: "en"),
             "mode" to "register",
             "method" to (method?.value ?: TFAPhoneMethod.SMS.value),
-            "phoneID" to phoneNumber
+            "phoneNumber" to phoneNumber
         )
         AuthTFAFlow(coreClient, sessionService)
             .registerPhone(parameters, twoFactorContext, callbacks)
