@@ -5,7 +5,10 @@ import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthResult
 import com.sap.cdc.android.sdk.feature.AuthSuccess
 import com.sap.cdc.android.sdk.feature.RegistrationContext
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -28,8 +31,10 @@ class AuthCallbacksEnhancementTest {
             // Step 1: Add override transformer (this used to cause IllegalStateException)
             doOnPendingRegistrationAndOverride { registrationContext ->
                 // Transform the context (simulate parsing missing fields)
-                registrationContext.copy(
-                    missingRequiredFields = listOf("firstName", "lastName")
+                AuthResult.PendingRegistration(
+                    registrationContext.copy(
+                        missingRequiredFields = listOf("firstName", "lastName")
+                    )
                 )
             }
             
@@ -87,8 +92,10 @@ class AuthCallbacksEnhancementTest {
         callbacks.apply {
             // Override transformer
             doOnSuccessAndOverride { authSuccess ->
-                authSuccess.copy(
-                    data = authSuccess.data + ("transformed" to "true")
+                AuthResult.Success(
+                    authSuccess.copy(
+                        data = authSuccess.data + ("transformed" to "true")
+                    )
                 )
             }
             
@@ -225,8 +232,10 @@ class AuthCallbacksEnhancementTest {
             
             // Individual override (applied second)
             doOnSuccessAndOverride { authSuccess ->
-                authSuccess.copy(
-                    data = authSuccess.data + ("individual" to "second")
+                AuthResult.Success(
+                    authSuccess.copy(
+                        data = authSuccess.data + ("individual" to "second")
+                    )
                 )
             }
             
@@ -308,8 +317,10 @@ class AuthCallbacksEnhancementTest {
         callbacks.apply {
             // Only individual override, no universal override
             doOnPendingRegistrationAndOverride { registrationContext ->
-                registrationContext.copy(
-                    missingRequiredFields = listOf("individualOverride")
+                AuthResult.PendingRegistration(
+                    registrationContext.copy(
+                        missingRequiredFields = listOf("individualOverride")
+                    )
                 )
             }
             

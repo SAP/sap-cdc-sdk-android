@@ -87,22 +87,22 @@ data class AuthCallbacks(
     private var _onLinkingContextUpdated: MutableList<(LinkingContext) -> Unit> = mutableListOf(),
     private var _onOTPContextUpdated: MutableList<(OTPContext) -> Unit> = mutableListOf(),
 
-    // NEW: Override transformers stored separately
-    private var _onSuccessOverrides: MutableList<suspend (AuthSuccess) -> AuthSuccess> = mutableListOf(),
-    private var _onErrorOverrides: MutableList<suspend (AuthError) -> AuthError> = mutableListOf(),
-    private var _onPendingRegistrationOverrides: MutableList<suspend (RegistrationContext) -> RegistrationContext> = mutableListOf(),
-    private var _onLinkingRequiredOverrides: MutableList<suspend (LinkingContext) -> LinkingContext> = mutableListOf(),
-    private var _onTwoFactorRequiredOverrides: MutableList<suspend (TwoFactorContext) -> TwoFactorContext> = mutableListOf(),
-    private var _onOTPRequiredOverrides: MutableList<suspend (OTPContext) -> OTPContext> = mutableListOf(),
-    private var _onCaptchaRequiredOverrides: MutableList<suspend (Unit) -> Unit> = mutableListOf()
+    // Override transformers - single override per type for simplified architecture
+    private var _onSuccessOverride: (suspend (AuthSuccess) -> AuthResult)? = null,
+    private var _onErrorOverride: (suspend (AuthError) -> AuthResult)? = null,
+    private var _onPendingRegistrationOverride: (suspend (RegistrationContext) -> AuthResult)? = null,
+    private var _onLinkingRequiredOverride: (suspend (LinkingContext) -> AuthResult)? = null,
+    private var _onTwoFactorRequiredOverride: (suspend (TwoFactorContext) -> AuthResult)? = null,
+    private var _onOTPRequiredOverride: (suspend (OTPContext) -> AuthResult)? = null,
+    private var _onCaptchaRequiredOverride: (suspend (Unit) -> AuthResult)? = null
 ) {
 
     // Public setters that append to the chain (backward compatible)
     var onSuccess: ((AuthSuccess) -> Unit)?
-        get() = if (_onSuccess.isEmpty() && _onSuccessOverrides.isEmpty() && !hasUniversalOverride()) {
+        get() = if (_onSuccess.isEmpty() && _onSuccessOverride == null && !hasUniversalOverride()) {
             null
         } else { authSuccess ->
-            if (_onSuccessOverrides.isNotEmpty() || hasUniversalOverride()) {
+            if (_onSuccessOverride != null || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnSuccess(authSuccess)
@@ -117,10 +117,10 @@ data class AuthCallbacks(
         }
 
     var onError: ((AuthError) -> Unit)?
-        get() = if (_onError.isEmpty() && _onErrorOverrides.isEmpty() && !hasUniversalOverride()) {
+        get() = if (_onError.isEmpty() && _onErrorOverride == null && !hasUniversalOverride()) {
             null
         } else { authError ->
-            if (_onErrorOverrides.isNotEmpty() || hasUniversalOverride()) {
+            if (_onErrorOverride != null || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnError(authError)
@@ -135,10 +135,10 @@ data class AuthCallbacks(
         }
 
     var onPendingRegistration: ((RegistrationContext) -> Unit)?
-        get() = if (_onPendingRegistration.isEmpty() && _onPendingRegistrationOverrides.isEmpty() && !hasUniversalOverride()) {
+        get() = if (_onPendingRegistration.isEmpty() && _onPendingRegistrationOverride == null && !hasUniversalOverride()) {
             null
         } else { context ->
-            if (_onPendingRegistrationOverrides.isNotEmpty() || hasUniversalOverride()) {
+            if (_onPendingRegistrationOverride != null || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnPendingRegistration(context)
@@ -153,10 +153,10 @@ data class AuthCallbacks(
         }
 
     var onLinkingRequired: ((LinkingContext) -> Unit)?
-        get() = if (_onLinkingRequired.isEmpty() && _onLinkingRequiredOverrides.isEmpty() && !hasUniversalOverride()) {
+        get() = if (_onLinkingRequired.isEmpty() && _onLinkingRequiredOverride == null && !hasUniversalOverride()) {
             null
         } else { context ->
-            if (_onLinkingRequiredOverrides.isNotEmpty() || hasUniversalOverride()) {
+            if (_onLinkingRequiredOverride != null || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnLinkingRequired(context)
@@ -171,10 +171,10 @@ data class AuthCallbacks(
         }
 
     var onTwoFactorRequired: ((TwoFactorContext) -> Unit)?
-        get() = if (_onTwoFactorRequired.isEmpty() && _onTwoFactorRequiredOverrides.isEmpty() && !hasUniversalOverride()) {
+        get() = if (_onTwoFactorRequired.isEmpty() && _onTwoFactorRequiredOverride == null && !hasUniversalOverride()) {
             null
         } else { context ->
-            if (_onTwoFactorRequiredOverrides.isNotEmpty() || hasUniversalOverride()) {
+            if (_onTwoFactorRequiredOverride != null || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnTwoFactorRequired(context)
@@ -189,10 +189,10 @@ data class AuthCallbacks(
         }
 
     var onOTPRequired: ((OTPContext) -> Unit)?
-        get() = if (_onOTPRequired.isEmpty() && _onOTPRequiredOverrides.isEmpty() && !hasUniversalOverride()) {
+        get() = if (_onOTPRequired.isEmpty() && _onOTPRequiredOverride == null && !hasUniversalOverride()) {
             null
         } else { context ->
-            if (_onOTPRequiredOverrides.isNotEmpty() || hasUniversalOverride()) {
+            if (_onOTPRequiredOverride != null || hasUniversalOverride()) {
                 // Auto-bridge to async execution
                 kotlinx.coroutines.runBlocking {
                     executeOnOTPRequired(context)
@@ -207,11 +207,11 @@ data class AuthCallbacks(
         }
 
     var onCaptchaRequired: (() -> Unit)?
-        get() = if (_onCaptchaRequired.isEmpty() && _onCaptchaRequiredOverrides.isEmpty() && !hasUniversalOverride()) {
+        get() = if (_onCaptchaRequired.isEmpty() && _onCaptchaRequiredOverride == null && !hasUniversalOverride()) {
             null
         } else {
             {
-                if (_onCaptchaRequiredOverrides.isNotEmpty() || hasUniversalOverride()) {
+                if (_onCaptchaRequiredOverride != null || hasUniversalOverride()) {
                     // Auto-bridge to async execution
                     kotlinx.coroutines.runBlocking {
                         executeOnCaptchaRequired()
@@ -337,33 +337,126 @@ data class AuthCallbacks(
         _onOTPContextUpdated.add(0, callback)
     }
 
-    // NEW: Override methods for response transformation
-    fun doOnSuccessAndOverride(transformer: suspend (AuthSuccess) -> AuthSuccess) = apply {
-        _onSuccessOverrides.add(0, transformer)
+    // Override methods for response transformation with type transformation support
+    /**
+     * Register an override transformer for Success results.
+     * 
+     * This override can transform the Success result into ANY AuthResult type, enabling:
+     * - Data enrichment (Success → Success with enriched data)
+     * - Error handling (Success → Error if validation fails)
+     * - Chained operations (e.g., automatic account linking)
+     * 
+     * The override persists through authentication interruptions, only executing when
+     * an actual Success result is received.
+     * 
+     * **Single Override Restriction:** Only ONE Success override is allowed per callback flow.
+     * Attempting to register multiple overrides will throw IllegalArgumentException.
+     * 
+     * @param transformer Suspend function that transforms AuthSuccess to any AuthResult type
+     * @throws IllegalArgumentException if an override is already registered
+     */
+    fun doOnSuccessAndOverride(transformer: suspend (AuthSuccess) -> AuthResult) = apply {
+        require(_onSuccessOverride == null) {
+            "Only one Success override allowed per callback flow. " +
+            "Multiple overrides detected - consolidate logic into a single override."
+        }
+        _onSuccessOverride = transformer
     }
 
-    fun doOnErrorAndOverride(transformer: suspend (AuthError) -> AuthError) = apply {
-        _onErrorOverrides.add(0, transformer)
+    /**
+     * Register an override transformer for Error results.
+     * 
+     * **Single Override Restriction:** Only ONE Error override is allowed per callback flow.
+     * 
+     * @param transformer Suspend function that transforms AuthError to any AuthResult type
+     * @throws IllegalArgumentException if an override is already registered
+     */
+    fun doOnErrorAndOverride(transformer: suspend (AuthError) -> AuthResult) = apply {
+        require(_onErrorOverride == null) {
+            "Only one Error override allowed per callback flow. " +
+            "Multiple overrides detected - consolidate logic into a single override."
+        }
+        _onErrorOverride = transformer
     }
 
-    fun doOnPendingRegistrationAndOverride(transformer: suspend (RegistrationContext) -> RegistrationContext) = apply {
-        _onPendingRegistrationOverrides.add(0, transformer)
+    /**
+     * Register an override transformer for PendingRegistration results.
+     * 
+     * **Single Override Restriction:** Only ONE PendingRegistration override is allowed per callback flow.
+     * 
+     * @param transformer Suspend function that transforms RegistrationContext to any AuthResult type
+     * @throws IllegalArgumentException if an override is already registered
+     */
+    fun doOnPendingRegistrationAndOverride(transformer: suspend (RegistrationContext) -> AuthResult) = apply {
+        require(_onPendingRegistrationOverride == null) {
+            "Only one PendingRegistration override allowed per callback flow. " +
+            "Multiple overrides detected - consolidate logic into a single override."
+        }
+        _onPendingRegistrationOverride = transformer
     }
 
-    fun doOnLinkingRequiredAndOverride(transformer: suspend (LinkingContext) -> LinkingContext) = apply {
-        _onLinkingRequiredOverrides.add(0, transformer)
+    /**
+     * Register an override transformer for LinkingRequired results.
+     * 
+     * **Single Override Restriction:** Only ONE LinkingRequired override is allowed per callback flow.
+     * 
+     * @param transformer Suspend function that transforms LinkingContext to any AuthResult type
+     * @throws IllegalArgumentException if an override is already registered
+     */
+    fun doOnLinkingRequiredAndOverride(transformer: suspend (LinkingContext) -> AuthResult) = apply {
+        require(_onLinkingRequiredOverride == null) {
+            "Only one LinkingRequired override allowed per callback flow. " +
+            "Multiple overrides detected - consolidate logic into a single override."
+        }
+        _onLinkingRequiredOverride = transformer
     }
 
-    fun doOnTwoFactorRequiredAndOverride(transformer: suspend (TwoFactorContext) -> TwoFactorContext) = apply {
-        _onTwoFactorRequiredOverrides.add(0, transformer)
+    /**
+     * Register an override transformer for TwoFactorRequired results.
+     * 
+     * **Single Override Restriction:** Only ONE TwoFactorRequired override is allowed per callback flow.
+     * 
+     * @param transformer Suspend function that transforms TwoFactorContext to any AuthResult type
+     * @throws IllegalArgumentException if an override is already registered
+     */
+    fun doOnTwoFactorRequiredAndOverride(transformer: suspend (TwoFactorContext) -> AuthResult) = apply {
+        require(_onTwoFactorRequiredOverride == null) {
+            "Only one TwoFactorRequired override allowed per callback flow. " +
+            "Multiple overrides detected - consolidate logic into a single override."
+        }
+        _onTwoFactorRequiredOverride = transformer
     }
 
-    fun doOnOTPRequiredAndOverride(transformer: suspend (OTPContext) -> OTPContext) = apply {
-        _onOTPRequiredOverrides.add(0, transformer)
+    /**
+     * Register an override transformer for OTPRequired results.
+     * 
+     * **Single Override Restriction:** Only ONE OTPRequired override is allowed per callback flow.
+     * 
+     * @param transformer Suspend function that transforms OTPContext to any AuthResult type
+     * @throws IllegalArgumentException if an override is already registered
+     */
+    fun doOnOTPRequiredAndOverride(transformer: suspend (OTPContext) -> AuthResult) = apply {
+        require(_onOTPRequiredOverride == null) {
+            "Only one OTPRequired override allowed per callback flow. " +
+            "Multiple overrides detected - consolidate logic into a single override."
+        }
+        _onOTPRequiredOverride = transformer
     }
 
-    fun doOnCaptchaRequiredAndOverride(transformer: suspend (Unit) -> Unit) = apply {
-        _onCaptchaRequiredOverrides.add(0, transformer)
+    /**
+     * Register an override transformer for CaptchaRequired results.
+     * 
+     * **Single Override Restriction:** Only ONE CaptchaRequired override is allowed per callback flow.
+     * 
+     * @param transformer Suspend function that transforms Unit to any AuthResult type
+     * @throws IllegalArgumentException if an override is already registered
+     */
+    fun doOnCaptchaRequiredAndOverride(transformer: suspend (Unit) -> AuthResult) = apply {
+        require(_onCaptchaRequiredOverride == null) {
+            "Only one CaptchaRequired override allowed per callback flow. " +
+            "Multiple overrides detected - consolidate logic into a single override."
+        }
+        _onCaptchaRequiredOverride = transformer
     }
 
     // NEW: Universal override method for any callback type transformation
@@ -431,101 +524,128 @@ data class AuthCallbacks(
         executeCallback(AuthResult.CaptchaRequired)
     }
 
+    // Recursion prevention flag for re-routing
+    private var isRerouting = false
+
     // Internal execution methods - apply individual overrides and execute callbacks
     // (Universal override is already applied by the router before reaching here)
     private suspend fun executeOnSuccessInternal(authSuccess: AuthSuccess) {
-        var currentValue = authSuccess
-
-        // Apply individual override transformers
-        for (transformer in _onSuccessOverrides) {
-            currentValue = transformer(currentValue)
+        // Apply single override if present
+        val result = _onSuccessOverride?.invoke(authSuccess) 
+            ?: AuthResult.Success(authSuccess)
+        
+        // Check if type changed and not already re-routing
+        if (result !is AuthResult.Success && !isRerouting) {
+            isRerouting = true
+            executeCallback(result)  // Re-route to correct handler
+            isRerouting = false
+            return
         }
-
-        // Execute all callbacks with the final transformed value
-        _onSuccess.forEach { it(currentValue) }
+        
+        // Still Success - execute callbacks
+        val finalSuccess = (result as AuthResult.Success).authSuccess
+        _onSuccess.forEach { it(finalSuccess) }
     }
 
     private suspend fun executeOnErrorInternal(authError: AuthError) {
-        var currentValue = authError
-
-        // Apply individual override transformers
-        for (transformer in _onErrorOverrides) {
-            currentValue = transformer(currentValue)
+        val result = _onErrorOverride?.invoke(authError) 
+            ?: AuthResult.Error(authError)
+        
+        if (result !is AuthResult.Error && !isRerouting) {
+            isRerouting = true
+            executeCallback(result)
+            isRerouting = false
+            return
         }
-
-        // Execute all callbacks with the final transformed value
-        _onError.forEach { it(currentValue) }
+        
+        val finalError = (result as AuthResult.Error).authError
+        _onError.forEach { it(finalError) }
     }
 
     private suspend fun executeOnPendingRegistrationInternal(context: RegistrationContext) {
-        var currentValue = context
-
-        // Apply individual override transformers
-        for (transformer in _onPendingRegistrationOverrides) {
-            currentValue = transformer(currentValue)
+        val result = _onPendingRegistrationOverride?.invoke(context) 
+            ?: AuthResult.PendingRegistration(context)
+        
+        if (result !is AuthResult.PendingRegistration && !isRerouting) {
+            isRerouting = true
+            executeCallback(result)
+            isRerouting = false
+            return
         }
-
-        // Execute all callbacks with the final transformed value
-        _onPendingRegistration.forEach { it(currentValue) }
+        
+        val finalContext = (result as AuthResult.PendingRegistration).context
+        _onPendingRegistration.forEach { it(finalContext) }
     }
 
     private suspend fun executeOnLinkingRequiredInternal(context: LinkingContext) {
-        var currentValue = context
-
-        // Apply individual override transformers
-        for (transformer in _onLinkingRequiredOverrides) {
-            currentValue = transformer(currentValue)
+        val result = _onLinkingRequiredOverride?.invoke(context) 
+            ?: AuthResult.LinkingRequired(context)
+        
+        if (result !is AuthResult.LinkingRequired && !isRerouting) {
+            isRerouting = true
+            executeCallback(result)
+            isRerouting = false
+            return
         }
-
-        // Execute all callbacks with the final transformed value
-        _onLinkingRequired.forEach { it(currentValue) }
+        
+        val finalContext = (result as AuthResult.LinkingRequired).context
+        _onLinkingRequired.forEach { it(finalContext) }
     }
 
     private suspend fun executeOnTwoFactorRequiredInternal(context: TwoFactorContext) {
-        var currentValue = context
-
-        // Apply individual override transformers
-        for (transformer in _onTwoFactorRequiredOverrides) {
-            currentValue = transformer(currentValue)
+        val result = _onTwoFactorRequiredOverride?.invoke(context) 
+            ?: AuthResult.TwoFactorRequired(context)
+        
+        if (result !is AuthResult.TwoFactorRequired && !isRerouting) {
+            isRerouting = true
+            executeCallback(result)
+            isRerouting = false
+            return
         }
-
-        // Execute all callbacks with the final transformed value
-        _onTwoFactorRequired.forEach { it(currentValue) }
+        
+        val finalContext = (result as AuthResult.TwoFactorRequired).context
+        _onTwoFactorRequired.forEach { it(finalContext) }
     }
 
     private suspend fun executeOnOTPRequiredInternal(context: OTPContext) {
-        var currentValue = context
-
-        // Apply individual override transformers
-        for (transformer in _onOTPRequiredOverrides) {
-            currentValue = transformer(currentValue)
+        val result = _onOTPRequiredOverride?.invoke(context) 
+            ?: AuthResult.OTPRequired(context)
+        
+        if (result !is AuthResult.OTPRequired && !isRerouting) {
+            isRerouting = true
+            executeCallback(result)
+            isRerouting = false
+            return
         }
-
-        // Execute all callbacks with the final transformed value
-        _onOTPRequired.forEach { it(currentValue) }
+        
+        val finalContext = (result as AuthResult.OTPRequired).context
+        _onOTPRequired.forEach { it(finalContext) }
     }
 
     private suspend fun executeOnCaptchaRequiredInternal() {
-        var currentValue = Unit
-
-        // Apply individual override transformers
-        for (transformer in _onCaptchaRequiredOverrides) {
-            currentValue = transformer(currentValue)
+        val result = _onCaptchaRequiredOverride?.invoke(Unit) 
+            ?: AuthResult.CaptchaRequired
+        
+        if (result !is AuthResult.CaptchaRequired && !isRerouting) {
+            isRerouting = true
+            executeCallback(result)
+            isRerouting = false
+            return
         }
-
+        
         // Execute all callbacks
         _onCaptchaRequired.forEach { it() }
     }
 
     // Helper methods to check if async execution is required
     fun hasOverrideTransformers(): Boolean {
-        return _onSuccessOverrides.isNotEmpty() ||
-                _onErrorOverrides.isNotEmpty() ||
-                _onPendingRegistrationOverrides.isNotEmpty() ||
-                _onLinkingRequiredOverrides.isNotEmpty() ||
-                _onTwoFactorRequiredOverrides.isNotEmpty() ||
-                _onOTPRequiredOverrides.isNotEmpty() ||
-                _onCaptchaRequiredOverrides.isNotEmpty() ||
+        return _onSuccessOverride != null ||
+                _onErrorOverride != null ||
+                _onPendingRegistrationOverride != null ||
+                _onLinkingRequiredOverride != null ||
+                _onTwoFactorRequiredOverride != null ||
+                _onOTPRequiredOverride != null ||
+                _onCaptchaRequiredOverride != null ||
                 hasUniversalOverride()
     }
 }

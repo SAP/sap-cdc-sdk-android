@@ -12,7 +12,6 @@ import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_A
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
 import com.sap.cdc.android.sdk.feature.AuthFlow
-import com.sap.cdc.android.sdk.feature.AuthResult
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.LinkingContext
 import com.sap.cdc.android.sdk.feature.provider.sso.SSOResponseEntity
@@ -196,38 +195,47 @@ class AuthProviderFlow(
         callbacks.onSuccess?.invoke(authSuccess)
     }
 
+    /**
+     * Link a social provider account to the current site account.
+     * 
+     * This method handles the account linking flow by:
+     * 1. Validating LinkingContext has required provider and authToken
+     * 2. Initiating sign-in with loginMode=link
+     * 3. Automatically calling connectAccount when sign-in succeeds
+     * 4. Handling any authentication interruptions (2FA, pending registration, etc.)
+     * 
+     * The linking process uses an override transformer that waits for actual Success,
+     * persisting through any authentication interruptions before executing the final
+     * connectAccount operation.
+     * 
+     * @param parameters Additional parameters for the sign-in request
+     * @param linkingContext Context containing provider and authToken for linking
+     * @param authCallbacks Callback configuration for handling authentication results
+     */
     suspend fun linkToProvider(
         parameters: MutableMap<String, String> = mutableMapOf(),
         linkingContext: LinkingContext,
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
+        // Validate linkingContext before entering flow
+        if (linkingContext.provider == null || linkingContext.authToken == null) {
+            val callbacks = AuthCallbacks().apply(authCallbacks)
+            callbacks.executeOnError(
+                com.sap.cdc.android.sdk.feature.AuthError(
+                    "LinkingContext missing required provider or authToken",
+                    "MISSING_PROVIDER_DATA"
+                )
+            )
+            return
+        }
+        
         parameters["loginMode"] = "link"
 
         signIn(parameters) {
-            // Set up override transformation FIRST
-            doOnAnyAndOverride { authResult ->
-                when (authResult) {
-                    is AuthResult.Success -> {
-                        // Transform signIn success into connectAccount result
-                        val provider = linkingContext.provider
-                        val authToken = linkingContext.authToken
-
-                        if (provider == null || authToken == null) {
-                            AuthResult.Error(
-                                com.sap.cdc.android.sdk.feature.AuthError(
-                                    "LinkingContext missing required provider or authToken",
-                                    "MISSING_PROVIDER_DATA"
-                                )
-                            )
-                        } else {
-                            // Perform connectAccount and return its result
-                            // This can return Success, Error, or any other AuthResult type
-                            connectAccountSync(provider, authToken)
-                        }
-                    }
-
-                    else -> authResult // Pass through other results unchanged
-                }
+            // Use Success override to wait for actual Success (persists through interruptions)
+            doOnSuccessAndOverride { authSuccess ->
+                // Execute connectAccount and return its result (Success or Error)
+                connectAccountSync(linkingContext.provider!!, linkingContext.authToken!!)
             }
 
             // Register user callbacks AFTER override

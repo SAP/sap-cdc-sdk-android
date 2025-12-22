@@ -2,6 +2,7 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.sap.cdc.android.sdk.feature.AuthResult
 import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.bitsnbytes.extensions.parseRequiredMissingFieldsForRegistration
 import com.sap.cdc.bitsnbytes.extensions.splitFullName
@@ -40,8 +41,9 @@ interface IEmailRegistrationViewModel {
 // Mock preview class for the EmailRegisterViewModel
 class EmailRegistrationViewModelPreview : IEmailRegistrationViewModel {
     override val state: StateFlow<EmailRegistrationState> = MutableStateFlow(EmailRegistrationState()).asStateFlow()
-    override val navigationEvents: SharedFlow<EmailRegistrationNavigationEvent> = MutableSharedFlow<EmailRegistrationNavigationEvent>().asSharedFlow()
-    
+    override val navigationEvents: SharedFlow<EmailRegistrationNavigationEvent> =
+        MutableSharedFlow<EmailRegistrationNavigationEvent>().asSharedFlow()
+
     override fun onNameChanged(name: String) {}
     override fun onEmailChanged(email: String) {}
     override fun onPasswordChanged(password: String) {}
@@ -100,12 +102,12 @@ class EmailRegistrationViewModel(
                     "lastName" to namePair.second
                 )
             )
-            
+
             val credentials = Credentials(
                 email = currentState.email,
                 password = currentState.password
             )
-            
+
             flowDelegate.register(
                 credentials,
                 mutableMapOf("profile" to profileObject.toString())
@@ -113,25 +115,27 @@ class EmailRegistrationViewModel(
                 doOnPendingRegistrationAndOverride { registrationContext ->
                     val parsedMissingRequiredFieldsFromErrorDetails =
                         registrationContext.originatingError?.details?.parseRequiredMissingFieldsForRegistration()
-                    registrationContext.copy(missingRequiredFields = parsedMissingRequiredFieldsFromErrorDetails)
+                    AuthResult.PendingRegistration(
+                        registrationContext.copy(missingRequiredFields = parsedMissingRequiredFieldsFromErrorDetails)
+                    )
                 }
 
                 onSuccess = {
                     _state.update { it.copy(isLoading = false, error = null) }
                     _navigationEvents.tryEmit(EmailRegistrationNavigationEvent.NavigateToMyProfile)
                 }
-                
+
                 onError = { error ->
                     _state.update { it.copy(isLoading = false, error = error.message) }
                 }
-                
+
                 onTwoFactorRequired = { twoFactorContext ->
                     _state.update { it.copy(isLoading = false, error = null) }
                     _navigationEvents.tryEmit(
                         EmailRegistrationNavigationEvent.NavigateToAuthMethods(twoFactorContext.toJson())
                     )
                 }
-                
+
                 onPendingRegistration = { registrationContext ->
                     _state.update { it.copy(isLoading = false, error = null) }
                     _navigationEvents.tryEmit(
