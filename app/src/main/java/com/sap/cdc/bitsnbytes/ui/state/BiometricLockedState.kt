@@ -21,5 +21,9 @@ data class BiometricLockedState(
  */
 @Immutable
 sealed class BiometricLockedNavigationEvent {
-    data object NavigateToMyProfile : BiometricLockedNavigationEvent()
+    /**
+     * Navigate to a specific route after successful unlock.
+     * @param route The target route to navigate to
+     */
+    data class NavigateToRoute(val route: String) : BiometricLockedNavigationEvent()
 }

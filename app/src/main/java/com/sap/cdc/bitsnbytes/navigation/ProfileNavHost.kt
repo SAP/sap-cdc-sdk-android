@@ -95,16 +95,21 @@ fun ProfileNavHost(appStateManager: AppStateManager) {
 
     NavHost(
         profileNavController, startDestination =
-                when (authDelegate.hasValidSession()) {
-                    true -> {
+                when {
+                    // Check if biometric is locked FIRST - session is cleared when locked
+                    authDelegate.isBiometricLocked() -> {
+                        ProfileScreenRoute.BiometricLocked.route
+                    }
+                    // Then check if user has valid session
+                    authDelegate.hasValidSession() -> {
                         if (authDelegate.isBiometricActive()) {
                             ProfileScreenRoute.BiometricLocked.route
                         } else {
                             ProfileScreenRoute.MyProfile.route
                         }
                     }
-
-                    false -> ProfileScreenRoute.Welcome.route
+                    // No session - show welcome
+                    else -> ProfileScreenRoute.Welcome.route
                 }
         ) {
             composable(ProfileScreenRoute.Welcome.route) {

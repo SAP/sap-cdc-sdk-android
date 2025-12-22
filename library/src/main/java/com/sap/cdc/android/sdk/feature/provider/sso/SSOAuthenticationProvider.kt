@@ -9,6 +9,7 @@ import android.util.Pair
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.core.net.toUri
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.model.CDCError
@@ -210,7 +211,7 @@ class SSOAuthenticationProvider(
      * @return JSON string containing error details
      */
     private fun parseErrorUri(uriString: String): String {
-        val uri = Uri.parse(uriString)
+        val uri = uriString.toUri()
 
         // Map query string parameters.
         val queryParams = uri.encodedFragment!!.parseQueryStringParams()

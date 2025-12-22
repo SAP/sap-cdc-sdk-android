@@ -108,9 +108,16 @@ class NavigationCoordinator private constructor() {
     /**
      * Navigate back/up the stack.
      * Delegates to AppStateManager for actual navigation.
+     * 
+     * @return true if navigation was successful, false if there was no backstack to pop
      */
-    fun navigateUp() {
-        appStateManager?.navigateUp()
+    fun navigateUp(): Boolean {
+        val manager = appStateManager
+        return if (manager != null) {
+            manager.navigateUp()
+        } else {
+            false
+        }
     }
 
     /**
@@ -125,5 +132,14 @@ class NavigationCoordinator private constructor() {
         } catch (e: Exception) {
             false
         }
+    }
+
+    /**
+     * Get the current navigation route.
+     * 
+     * @return The current route string, or null if not available
+     */
+    fun getCurrentRoute(): String? {
+        return appStateManager?.currentRoute?.value
     }
 }

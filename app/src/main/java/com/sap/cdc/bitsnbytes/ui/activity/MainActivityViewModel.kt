@@ -7,6 +7,7 @@ import com.sap.cdc.android.sdk.events.EventSubscription
 import com.sap.cdc.android.sdk.events.SessionEvent
 import com.sap.cdc.android.sdk.events.subscribeToSessionEventsManual
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
+import com.sap.cdc.bitsnbytes.feature.auth.BiometricLifecycleManager
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 
@@ -17,6 +18,7 @@ import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
  * - Session event subscription and handling (proper MVVM architecture)
  * - Delegates authentication operations to AuthenticationFlowDelegate
  * - Coordinates navigation on session events
+ * - Manages BiometricLifecycleManager for automatic session locking
  * - Proper cleanup in onCleared()
  * - Provides single activity-scoped AuthenticationFlowDelegate instance
  */
@@ -35,10 +37,17 @@ class MainActivityViewModel(
     // Direct access to CDC SDK components
     val authenticationService = authenticationFlowDelegate.authenticationService
 
+    // BiometricLifecycleManager for automatic session locking/unlocking
+    private val biometricLifecycleManager: BiometricLifecycleManager
+
     // Event subscription handle for manual cleanup
     private var sessionEventSubscription: EventSubscription? = null
 
     init {
+        // Initialize BiometricLifecycleManager with the shared AuthenticationFlowDelegate
+        biometricLifecycleManager = BiometricLifecycleManager(authenticationFlowDelegate)
+        biometricLifecycleManager.initialize()
+        
         setupSessionEventHandling()
     }
 
@@ -127,9 +136,10 @@ class MainActivityViewModel(
 
     /**
      * Clean up resources when ViewModel is cleared.
-     * Unsubscribes from event bus to prevent memory leaks.
+     * Unsubscribes from event bus and cleans up BiometricLifecycleManager to prevent memory leaks.
      */
     override fun onCleared() {
+        biometricLifecycleManager.cleanup()
         sessionEventSubscription?.unsubscribe()
         sessionEventSubscription = null
         super.onCleared()

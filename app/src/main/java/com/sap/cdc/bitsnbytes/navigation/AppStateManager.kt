@@ -140,15 +140,16 @@ class AppStateManager : ViewModel() {
         updateBackNavigationState()
     }
     
-    fun navigateUp() {
+    fun navigateUp(): Boolean {
         NavigationDebugLogger.logNavigation(
             source = "AppStateManager",
             action = "navigateUp()",
             navController = currentNavController
         )
         
-        currentNavController?.popBackStack()
+        val result = currentNavController?.popBackStack() ?: false
         updateBackNavigationState()
+        return result
     }
     
     private fun updateBackNavigationState() {

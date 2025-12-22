@@ -2,9 +2,7 @@ package com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
@@ -13,7 +11,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
-import com.sap.cdc.bitsnbytes.feature.auth.BiometricLifecycleManager
 
 // CompositionLocal for providing AuthenticationFlowDelegate across the composition tree
 val LocalAuthenticationDelegate = compositionLocalOf<AuthenticationFlowDelegate?> { null }
@@ -111,40 +108,11 @@ object ViewModelScopeProvider {
     fun activityScopedAuthenticationDelegate(
         context: Context
     ): AuthenticationFlowDelegate {
-        // Try to get from CompositionLocal first
+        // Get from CompositionLocal (provided by MainActivity)
         val providedDelegate = LocalAuthenticationDelegate.current
         return providedDelegate ?: throw IllegalStateException(
-            "AuthenticationFlowDelegate not provided. Make sure to wrap your composable with ProvideAuthenticationDelegate."
+            "AuthenticationFlowDelegate not provided. Make sure MainActivity provides it via CompositionLocalProvider."
         )
-    }
-
-    /**
-     * Provides the AuthenticationFlowDelegate to the composition tree.
-     * This should be called at the top level (e.g., in ProfileNavHost) to provide
-     * the delegate to all child composables.
-     * Also initializes BiometricLifecycleManager for automatic session locking.
-     */
-    @Composable
-    fun ProvideAuthenticationDelegate(
-        context: Context,
-        content: @Composable () -> Unit
-    ) {
-        val authDelegate = remember {
-            AuthenticationFlowDelegate(context)
-        }
-        
-        // Initialize BiometricLifecycleManager with the shared AuthenticationFlowDelegate
-        val biometricLifecycleManager = remember {
-            BiometricLifecycleManager(authDelegate).also { manager ->
-                manager.initialize()
-            }
-        }
-        
-        CompositionLocalProvider(
-            LocalAuthenticationDelegate provides authDelegate
-        ) {
-            content()
-        }
     }
 }
 

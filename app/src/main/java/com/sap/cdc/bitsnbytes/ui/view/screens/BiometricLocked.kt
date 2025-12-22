@@ -40,11 +40,19 @@ fun BiometricLockedView(viewModel: IBiometricLockedViewModel) {
     LaunchedEffect(Unit) {
         viewModel.navigationEvents.collect { event ->
             when (event) {
-                is BiometricLockedNavigationEvent.NavigateToMyProfile -> {
-                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                        toRoute = ProfileScreenRoute.MyProfile.route,
-                        rootRoute = ProfileScreenRoute.BiometricLocked.route
-                    )
+                is BiometricLockedNavigationEvent.NavigateToRoute -> {
+                    // Pop the BiometricLocked screen - this will either:
+                    // 1. Reveal the previous screen if there's a backstack (normal case)
+                    // 2. Do nothing if BiometricLocked is the only screen, so we need to navigate explicitly
+                    val didNavigateUp = NavigationCoordinator.INSTANCE.navigateUp()
+                    
+                    // If navigateUp didn't work (no backstack), navigate to the target route
+                    if (!didNavigateUp) {
+                        NavigationCoordinator.INSTANCE.navigate(event.route) {
+                            popUpTo(ProfileScreenRoute.BiometricLocked.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 }
             }
         }

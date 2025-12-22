@@ -35,7 +35,7 @@ class BiometricLifecycleManager(
 
     /**
      * Handle lifecycle state changes.
-     * - ON_STOP: App moved to background - lock biometric session if active
+     * - ON_STOP: App moved to background - save route and lock biometric session if active
      * - ON_START: App came to foreground - navigate to unlock screen if biometric is locked
      */
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
@@ -46,7 +46,11 @@ class BiometricLifecycleManager(
                     authenticationFlowDelegate.isBiometricActive() && 
                     !authenticationFlowDelegate.isBiometricLocked()) {
                     
-                    CDCDebuggable.log(LOG_TAG, "App backgrounded - locking biometric session")
+                    // Save current route before locking to restore user's position after unlock
+                    val currentRoute = NavigationCoordinator.INSTANCE.getCurrentRoute()
+                    authenticationFlowDelegate.setRouteBeforeLock(currentRoute)
+                    
+                    CDCDebuggable.log(LOG_TAG, "App backgrounded - locking biometric session. Saved route: $currentRoute")
                     authenticationFlowDelegate.biometricLock()
                 }
             }
@@ -61,10 +65,9 @@ class BiometricLifecycleManager(
                     // This prevents crashes when app starts from killed state
                     if (isNavigationAvailable()) {
                         CDCDebuggable.log(LOG_TAG, "Navigation available - navigating to unlock screen")
-                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                            toRoute = ProfileScreenRoute.BiometricLocked.route,
-                            rootRoute = ProfileScreenRoute.BiometricLocked.route
-                        )
+                        // Navigate to BiometricLocked WITHOUT clearing the backstack
+                        // This preserves the navigation history so user can return after unlock
+                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.BiometricLocked.route)
                     } else {
                         CDCDebuggable.log(LOG_TAG, "Navigation not available yet - skipping navigation to unlock screen")
                     }

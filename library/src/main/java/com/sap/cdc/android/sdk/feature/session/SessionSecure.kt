@@ -241,7 +241,7 @@ internal class SessionSecure(
         )
         val json = esp.getString(CDC_SESSION_EXPIRATIONS, null)
         var sessionMap: MutableMap<String, String> = mutableMapOf()
-        if (json != null) {
+        if (json != null && json != "") {
             sessionMap = Json.decodeFromString<MutableMap<String, String>>(json)
         }
         return sessionMap[siteConfig.apiKey]?.toLong()
@@ -285,10 +285,9 @@ internal class SessionSecure(
         this.sessionEntity?.session = decryptedSession
 
         // Check if session has expired.
-        val sessionExpiration = getExpirationTime()
-
+        val sessionExpiration = getExpirationTime() ?: return
         val currentTime = System.currentTimeMillis()
-        if (sessionExpiration != null && sessionExpiration > 0) {
+        if (sessionExpiration > 0) {
             if (sessionExpiration <= currentTime) {
                 CDCDebuggable.log(LOG_TAG, "Session has expired. Clearing session.")
                 emitSessionExpired(

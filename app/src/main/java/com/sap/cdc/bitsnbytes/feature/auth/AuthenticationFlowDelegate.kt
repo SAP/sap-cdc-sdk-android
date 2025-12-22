@@ -719,6 +719,39 @@ class AuthenticationFlowDelegate(context: Context) {
     }
 
     /**
+     * Stores the navigation route before biometric lock to restore user's position after unlock.
+     * Null indicates no route was saved (e.g., first app load with biometric active).
+     */
+    private var routeBeforeLock: String? = null
+
+    /**
+     * Save the current navigation route before locking the biometric session.
+     * This allows restoring the user's position after unlock.
+     *
+     * @param route The current navigation route to save, or null if not available
+     */
+    fun setRouteBeforeLock(route: String?) {
+        routeBeforeLock = route
+    }
+
+    /**
+     * Get the saved navigation route from before the biometric lock.
+     *
+     * @return The saved route, or null if no route was saved (first load scenario)
+     */
+    fun getRouteBeforeLock(): String? {
+        return routeBeforeLock
+    }
+
+    /**
+     * Clear the saved navigation route after it has been used.
+     * This prevents stale route data from being used in future unlock operations.
+     */
+    fun clearRouteBeforeLock() {
+        routeBeforeLock = null
+    }
+
+    /**
      * Check if biometric session encryption is active.
      */
     fun isBiometricActive(): Boolean {
