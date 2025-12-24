@@ -7,11 +7,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
+import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import java.lang.ref.WeakReference
@@ -153,7 +152,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
                     val error = ScreenSetsError(
                         message = extractErrorMessage(event),
                         eventName = event.name(),
-                        cdcError = event.content?.get("error") as? CDCError,
+                        authError = event.content?.get("error") as? AuthError,
                         details = event.content
                     )
                     callbacks.onError?.invoke(error)
@@ -369,7 +368,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
      */
     private fun extractErrorMessage(event: WebBridgeJSEvent): String {
         return when (val error = event.content?.get("error")) {
-            is CDCError -> error.errorMessage ?: "Unknown error"
+            is AuthError -> error.message ?: "Unknown error"
             is String -> error
             is Map<*, *> -> error["message"] as? String ?: "Unknown error"
             else -> "Unknown error occurred"

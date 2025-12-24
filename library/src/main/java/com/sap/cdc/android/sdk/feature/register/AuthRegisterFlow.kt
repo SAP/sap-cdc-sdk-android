@@ -9,7 +9,7 @@ import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_REGIS
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_SET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.Credentials
+import com.sap.cdc.android.sdk.feature.EmailCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
@@ -20,12 +20,12 @@ class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
     }
 
     suspend fun register(
-        credentials: Credentials,
+        credentials: EmailCredentials,
         parameters: MutableMap<String, String> = mutableMapOf(),
         callbacks: AuthCallbacks
     ) {
         // Create parameter map according to credentials input.
-        credentials.email?.let { parameters["email"] = it }
+        credentials.email.let { parameters["email"] = it }
         parameters["password"] = credentials.password
         register(parameters, callbacks)
     }

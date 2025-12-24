@@ -1,7 +1,6 @@
 package com.sap.cdc.android.sdk.feature.screensets
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -60,7 +59,7 @@ class ScreenSetsCallbacksTest {
         val testError = ScreenSetsError(
             message = "Test error",
             eventName = "error",
-            cdcError = null,
+            authError = null,
             details = null
         )
         

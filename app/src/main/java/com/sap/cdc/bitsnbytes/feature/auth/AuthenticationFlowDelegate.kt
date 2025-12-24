@@ -14,9 +14,10 @@ import com.sap.cdc.android.sdk.events.emitTokenReceived
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthenticationService
-import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.android.sdk.feature.CustomIdCredentials
+import com.sap.cdc.android.sdk.feature.EmailCredentials
 import com.sap.cdc.android.sdk.feature.LinkingContext
+import com.sap.cdc.android.sdk.feature.LoginIdCredentials
 import com.sap.cdc.android.sdk.feature.TwoFactorContext
 import com.sap.cdc.android.sdk.feature.biometric.BiometricAuth
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
@@ -251,30 +252,29 @@ class AuthenticationFlowDelegate(context: Context) {
 
     //region LOGIN / LOGOUT / REGISTER METHODS
 
-    suspend fun login(credentials: Credentials, authCallbacks: AuthCallbacks.() -> Unit) {
-        authenticationService.authenticate().login()
-            .credentials(credentials = credentials) {
-                // Register original callbacks first
-                authCallbacks()
+    suspend fun login(credentials: LoginIdCredentials, authCallbacks: AuthCallbacks.() -> Unit) {
+        authenticationService.authenticate().login().withLoginId(credentials = credentials) {
+            // Register original callbacks first
+            authCallbacks()
 
-                // Add state management side-effect
-                doOnSuccess { authSuccess ->
-                    try {
-                        // Parse and update the state
-                        val accountData = json.decodeFromString<AccountEntity>(authSuccess.jsonData)
-                        _userAccount.value = accountData
-                    } catch (e: Exception) {
-                        // Handle parsing errors silently - don't break the callback chain
-                        // Could add logging here if needed
-                    }
+            // Add state management side-effect
+            doOnSuccess { authSuccess ->
+                try {
+                    // Parse and update the state
+                    val accountData = json.decodeFromString<AccountEntity>(authSuccess.jsonData)
+                    _userAccount.value = accountData
+                } catch (e: Exception) {
+                    // Handle parsing errors silently - don't break the callback chain
+                    // Could add logging here if needed
                 }
-
             }
+
+        }
     }
 
     suspend fun loginWithCustomId(credentials: CustomIdCredentials, authCallbacks: AuthCallbacks.() -> Unit) {
         authenticationService.authenticate().login()
-            .customIdentifier(credentials = credentials) {
+            .withCustomIdentifier(credentials = credentials) {
                 // Register original callbacks first
                 authCallbacks()
 
@@ -313,11 +313,11 @@ class AuthenticationFlowDelegate(context: Context) {
     }
 
     suspend fun register(
-        credentials: Credentials,
+        credentials: EmailCredentials,
         parameters: MutableMap<String, String> = mutableMapOf(),
         authCallbacks: AuthCallbacks.() -> Unit,
     ) {
-        authenticationService.authenticate().register().credentials(
+        authenticationService.authenticate().register().emailCredentials(
             credentials = credentials, configure = authCallbacks,
             parameters = parameters
         )

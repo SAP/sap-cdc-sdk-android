@@ -233,7 +233,6 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         authCallbacks.onSuccess?.invoke(authSuccess)
 
         // Invoke enriched continuation callback
-        twoFactorContext.phvToken = phvToken
         authCallbacks.onTwoFactorContextUpdated?.invoke(twoFactorContext)
     }
 

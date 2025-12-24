@@ -3,7 +3,7 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sap.cdc.android.sdk.feature.AuthResult
-import com.sap.cdc.android.sdk.feature.Credentials
+import com.sap.cdc.android.sdk.feature.EmailCredentials
 import com.sap.cdc.bitsnbytes.extensions.parseRequiredMissingFieldsForRegistration
 import com.sap.cdc.bitsnbytes.extensions.splitFullName
 import com.sap.cdc.bitsnbytes.extensions.toJson
@@ -103,7 +103,7 @@ class EmailRegistrationViewModel(
                 )
             )
 
-            val credentials = Credentials(
+            val credentials = EmailCredentials(
                 email = currentState.email,
                 password = currentState.password
             )

@@ -143,13 +143,13 @@ class AuthenticationApi(
             response
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
             CDCDebuggable.log(LOG_TAG, "Request timed out: ${e.message}")
-            CDCResponse().fromError(504001, "Timeout", "The request timed out and was cancelled")
+            CDCResponse().fromError(504002, "Request Timeout", "A timeout that was defined in the request is reached.")
         } catch (e: kotlinx.coroutines.CancellationException) {
             CDCDebuggable.log(LOG_TAG, "Request was cancelled: ${e.message}")
-            CDCResponse().fromError(200001, "Operation canceled", "The request was cancelled before completion")
+            CDCResponse().fromError(200001, "Operation canceled", null)
         } catch (e: Exception) {
             CDCDebuggable.log(LOG_TAG, "Unexpected error in network request: ${e.message}")
-            CDCResponse().fromError(500001, "General Server error", "An unexpected error occurred during the network request: ${e.message}")
+            CDCResponse().fromError(500001, "General Server error", e.message)
         }
     }
 

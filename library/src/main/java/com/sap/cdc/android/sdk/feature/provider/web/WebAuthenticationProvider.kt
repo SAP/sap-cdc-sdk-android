@@ -10,10 +10,10 @@ import androidx.activity.result.contract.ActivityResultContract
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.core.api.utils.toEncodedQuery
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthEndpoints
+import com.sap.cdc.android.sdk.feature.AuthErrorCodes
 import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
@@ -67,7 +67,7 @@ class WebAuthenticationProvider(
                 continuation.resumeWithException(
                     ProviderException(
                         ProviderExceptionType.HOST_NULL,
-                        CDCError.Companion.contextError()
+                        AuthErrorCodes.providerError()
                     )
                 )
                 return@suspendCoroutine
@@ -101,7 +101,7 @@ class WebAuthenticationProvider(
                         continuation.resumeWithException(
                             ProviderException(
                                 ProviderExceptionType.CANCELED,
-                                CDCError.Companion.operationCanceled()
+                                AuthErrorCodes.operationCanceled()
                             )
                         )
                     }

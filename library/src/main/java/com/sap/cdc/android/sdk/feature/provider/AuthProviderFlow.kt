@@ -11,6 +11,7 @@ import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
+import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.LinkingContext
@@ -170,7 +171,7 @@ class AuthProviderFlow(
             }
         } catch (exception: ProviderException) {
             Log.d(LOG_TAG, exception.type.ordinal.toString())
-            callbacks.onError?.invoke(createAuthError(CDCResponse().fromError(exception.error!!)))
+            callbacks.onError?.invoke(exception.error!!)
         }
     }
 
@@ -220,12 +221,12 @@ class AuthProviderFlow(
         // Validate linkingContext before entering flow
         if (linkingContext.provider == null || linkingContext.authToken == null) {
             val callbacks = AuthCallbacks().apply(authCallbacks)
-            callbacks.executeOnError(
-                com.sap.cdc.android.sdk.feature.AuthError(
-                    "LinkingContext missing required provider or authToken",
-                    "MISSING_PROVIDER_DATA"
-                )
+            val error = AuthError(
+                code = null,
+                message = "LinkingContext missing required provider or authToken",
+                details = "MISSING_PROVIDER_DATA"
             )
+            callbacks.onError?.invoke(error)
             return
         }
         
@@ -238,7 +239,7 @@ class AuthProviderFlow(
                 connectAccountSync(linkingContext.provider!!, linkingContext.authToken!!)
             }
 
-            // Register user callbacks AFTER override
+            // Apply user auth callbacks
             authCallbacks()
         }
     }

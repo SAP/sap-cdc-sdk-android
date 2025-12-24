@@ -2,7 +2,7 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.ResolvableContext
 import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate
@@ -37,7 +37,7 @@ interface IOtpVerifyViewModel {
         code: String,
         resolvable: ResolvableContext,
         onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        onFailedWith: (AuthError?) -> Unit
     ) {
         //Stub
     }
@@ -137,7 +137,7 @@ class OtpVerifyViewModel(
         code: String,
         resolvable: ResolvableContext,
         onLogin: () -> Unit,
-        onFailedWith: (CDCError?) -> Unit
+        onFailedWith: (AuthError?) -> Unit
     ) {
         viewModelScope.launch {
             // Commented out implementation - keeping stub

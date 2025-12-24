@@ -2,7 +2,6 @@ package com.sap.cdc.android.sdk.feature.screensets
 
 import androidx.activity.ComponentActivity
 import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.extensions.capitalFirst
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthEndpoints
@@ -10,6 +9,7 @@ import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGOU
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_ADD_CONNECTION
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_LOGOUT
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_SOCIALIZE_REMOVE_CONNECTION
+import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.AuthenticationService
 import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
@@ -189,7 +189,7 @@ class WebBridgeJSApiService(
                     WebBridgeJSEvaluation(
                         containerID = containerId,
                         evaluationString = response.jsonResponse ?: "",
-                        event = WebBridgeJSEvent.errorEvent(response.serializeTo<CDCError>())
+                        event = WebBridgeJSEvent.errorEvent(response.serializeTo<AuthError>())
                     )
                 )
                 coroutineContext.cancel()
@@ -320,7 +320,9 @@ class WebBridgeJSApiService(
                         WebBridgeJSEvaluation(
                             containerID = containerId,
                             evaluationString = error.asJson!!,
-                            event = WebBridgeJSEvent.errorEvent(CDCError.fromJson(error.asJson))
+                            event = WebBridgeJSEvent.errorEvent(
+                                error.asJson?.let { Json.decodeFromString<AuthError>(it) }
+                            )
                         )
                     )
                     coroutineContext.cancel()
@@ -560,7 +562,9 @@ class WebBridgeJSLinkingInterruption(
                 WebBridgeJSEvaluation(
                     containerID = containerId,
                     evaluationString = response.jsonResponse ?: "",
-                    event = WebBridgeJSEvent.errorEvent(CDCError.fromJson(json = response.jsonResponse!!))
+                    event = WebBridgeJSEvent.errorEvent(
+                        Json.decodeFromString<AuthError>(response.jsonResponse!!)
+                    )
                 )
             )
             completion()

@@ -9,7 +9,7 @@ import android.util.Pair
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.AuthErrorCodes
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
@@ -43,7 +43,7 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                 continuation.resumeWithException(
                     ProviderException(
                         ProviderExceptionType.CANCELED,
-                        CDCError.operationCanceled()
+                        AuthErrorCodes.operationCanceled()
                     )
                 )
                 return@suspendCoroutine
@@ -78,7 +78,7 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                         continuation.resumeWithException(
                             ProviderException(
                                 ProviderExceptionType.CANCELED,
-                                CDCError.operationCanceled()
+                                AuthErrorCodes.operationCanceled()
                             )
                         )
                     }
@@ -90,7 +90,7 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                             continuation.resumeWithException(
                                 ProviderException(
                                     ProviderExceptionType.CANCELED,
-                                    CDCError.operationCanceled()
+                                    AuthErrorCodes.operationCanceled()
                                 )
                             )
                         }
@@ -102,7 +102,7 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                             continuation.resumeWithException(
                                 ProviderException(
                                     ProviderExceptionType.PROVIDER_FAILURE,
-                                    CDCError.providerError()
+                                    AuthErrorCodes.providerError()
                                 )
                             )
                         }
@@ -125,7 +125,7 @@ class WeChatAuthenticationProvider : IAuthenticationProvider {
                             continuation.resumeWithException(
                                 ProviderException(
                                     ProviderExceptionType.PROVIDER_FAILURE,
-                                    CDCError.providerError()
+                                    AuthErrorCodes.providerError()
                                 )
                             )
                         }

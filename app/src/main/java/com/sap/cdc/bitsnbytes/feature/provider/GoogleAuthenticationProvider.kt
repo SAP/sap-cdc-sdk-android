@@ -10,7 +10,7 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.AuthErrorCodes
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
@@ -32,7 +32,7 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
         if (hostActivity == null) {
             val exception = ProviderException(
                 ProviderExceptionType.HOST_NULL,
-                CDCError.contextError()
+                AuthErrorCodes.providerError()
             )
             throw exception
         }
@@ -52,9 +52,8 @@ class GoogleAuthenticationProvider : IAuthenticationProvider {
         if (result.failed()) {
             val providerException = ProviderException(
                 ProviderExceptionType.PROVIDER_FAILURE,
-                CDCError.providerError()
+                AuthErrorCodes.providerError().copy(details = result.exception?.message.toString())
             )
-            providerException.error?.errorDetails = result.exception?.message.toString()
             throw providerException
         }
 

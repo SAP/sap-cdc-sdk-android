@@ -13,7 +13,7 @@ import com.linecorp.linesdk.Scope
 import com.linecorp.linesdk.api.LineApiClientBuilder
 import com.linecorp.linesdk.auth.LineAuthenticationParams
 import com.linecorp.linesdk.auth.LineLoginApi
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.AuthErrorCodes
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
@@ -48,7 +48,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                 continuation.resumeWithException(
                     ProviderException(
                         ProviderExceptionType.CANCELED,
-                        CDCError.operationCanceled()
+                        AuthErrorCodes.operationCanceled()
                     )
                 )
                 return@suspendCoroutine
@@ -107,7 +107,7 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                         continuation.resumeWithException(
                             ProviderException(
                                 ProviderExceptionType.CANCELED,
-                                CDCError.operationCanceled()
+                                AuthErrorCodes.operationCanceled()
                             )
                         )
                     }
@@ -119,9 +119,8 @@ class LineAuthenticationProvider() : IAuthenticationProvider {
                         val providerException =
                             ProviderException(
                                 ProviderExceptionType.PROVIDER_FAILURE,
-                                CDCError.providerError()
+                                AuthErrorCodes.providerError().copy(details = lineResult.errorData.toString())
                             )
-                        providerException.error?.errorDetails = lineResult.errorData.toString()
 
                         dispose()
                         continuation.resumeWithException(providerException)

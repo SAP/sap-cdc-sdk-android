@@ -6,7 +6,7 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.AuthErrorCodes
 import com.sap.cdc.android.sdk.feature.provider.AuthenticatorProviderResult
 import com.sap.cdc.android.sdk.feature.provider.IAuthenticationProvider
 import com.sap.cdc.android.sdk.feature.provider.ProviderException
@@ -34,7 +34,7 @@ class FacebookAuthenticationProvider : IAuthenticationProvider {
                 continuation.resumeWithException(
                     ProviderException(
                         ProviderExceptionType.HOST_NULL,
-                        CDCError.contextError()
+                        AuthErrorCodes.providerError()
                     )
                 )
                 return@suspendCoroutine
@@ -46,7 +46,7 @@ class FacebookAuthenticationProvider : IAuthenticationProvider {
                     continuation.resumeWithException(
                         ProviderException(
                             ProviderExceptionType.CANCELED,
-                            CDCError.operationCanceled()
+                            AuthErrorCodes.operationCanceled()
                         )
                     )
                 }
@@ -54,9 +54,8 @@ class FacebookAuthenticationProvider : IAuthenticationProvider {
                 override fun onError(error: FacebookException) {
                     val providerException = ProviderException(
                         ProviderExceptionType.PROVIDER_FAILURE,
-                        CDCError.providerError()
+                        AuthErrorCodes.providerError().copy(details = error.message)
                     )
-                    providerException.error?.errorDetails = error.message
                     continuation.resumeWithException(providerException)
                 }
 

@@ -3,7 +3,6 @@ package com.sap.cdc.android.sdk.feature
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
-import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_TFA_GET_PROVIDERS
@@ -147,8 +146,8 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
             else -> {
                 // Unknown interruption - treat as error
                 val authError = AuthError(
-                    message = "Unknown interruption occurred: ${response.errorCode()}",
-                    code = response.errorCode().toString()
+                    code = response.errorCode(),
+                    message = "Unknown interruption occurred: ${response.errorCode()}"
                 )
                 callbacks.onError?.invoke(authError)
             }
@@ -312,19 +311,6 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     }
 
     /**
-     * Determines if a CDC error contains a resolvable authentication interruption.
-     *
-     * Checks if the error code represents a resolvable context (2FA, linking,
-     * pending registration) or contains an OTP
-     *
-     * @param cdcError The CDC error to evaluate
-     * @return true if the error contains a resolvable interruption, false otherwise
-     */
-    protected fun isResolvableContext(cdcError: CDCError): Boolean {
-        return ResolvableContext.Companion.resolvables.containsKey(cdcError.errorCode)
-    }
-
-    /**
      * Creates an AuthSuccess object from a CDC response.
      *
      * Extracts user data from the response and packages it into an AuthSuccess
@@ -348,14 +334,12 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * @return AuthError containing the error information
      */
     protected fun createAuthError(response: CDCResponse): AuthError {
-        val error = response.toCDCError()
-        val authError = AuthError(
-            message = error.errorMessage ?: "Unknown error",
-            code = error.errorCode.toString(),
-            details = error.errorDetails ?: "Unknown error",
+        return AuthError(
+            code = response.errorCode(),
+            message = response.errorMessage() ?: "Unknown error",
+            details = response.errorDetails() ?: "Unknown error",
             asJson = response.jsonResponse
         )
-        return authError
     }
 
     /**

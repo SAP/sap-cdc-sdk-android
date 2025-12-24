@@ -1,27 +1,27 @@
 package com.sap.cdc.android.sdk.feature.login
 
 import com.sap.cdc.android.sdk.core.CoreClient
+import com.sap.cdc.android.sdk.feature.ATokenCredentials
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.android.sdk.feature.CustomIdCredentials
+import com.sap.cdc.android.sdk.feature.LoginIdCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 interface IAuthLogin {
 
-    // DSL methods with lambda receivers
-    suspend fun credentials(
-        credentials: Credentials,
-        configure: AuthCallbacks.() -> Unit
-    )
-
-    suspend fun customIdentifier(
-        credentials: CustomIdCredentials,
+    suspend fun withLoginId(
+        credentials: LoginIdCredentials,
         authCallbacks: AuthCallbacks.() -> Unit
     )
 
-    suspend fun parameters(
-        parameters: MutableMap<String, String>,
-        configure: AuthCallbacks.() -> Unit
+    suspend fun withToken(
+        credentials: ATokenCredentials,
+        authCallbacks: AuthCallbacks.() -> Unit
+    )
+
+    suspend fun withCustomIdentifier(
+        credentials: CustomIdCredentials,
+        authCallbacks: AuthCallbacks.() -> Unit
     )
 }
 
@@ -30,15 +30,25 @@ internal class AuthLogin(
     private val sessionService: SessionService
 ) : IAuthLogin {
 
-    override suspend fun credentials(
-        credentials: Credentials,
-        configure: AuthCallbacks.() -> Unit
+    override suspend fun withLoginId(
+        credentials: LoginIdCredentials,
+        authCallbacks: AuthCallbacks.() -> Unit
     ) {
-        val callbacks = AuthCallbacks().apply(configure)
-        AuthLoginFlow(coreClient, sessionService).login(credentials, callbacks)
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        AuthLoginFlow(coreClient, sessionService)
+            .login(credentials, callbacks)
     }
 
-    override suspend fun customIdentifier(
+    override suspend fun withToken(
+        credentials: ATokenCredentials,
+        authCallbacks: AuthCallbacks.() -> Unit
+    ) {
+        val callbacks = AuthCallbacks().apply(authCallbacks)
+        AuthLoginFlow(coreClient, sessionService)
+            .login(credentials, callbacks)
+    }
+
+    override suspend fun withCustomIdentifier(
         credentials: CustomIdCredentials,
         authCallbacks: AuthCallbacks.() -> Unit
     ) {
@@ -46,7 +56,7 @@ internal class AuthLogin(
         AuthLoginFlow(coreClient, sessionService).login(credentials, callbacks)
     }
 
-    override suspend fun parameters(
+    internal suspend fun parameters(
         parameters: MutableMap<String, String>,
         configure: AuthCallbacks.() -> Unit
     ) {

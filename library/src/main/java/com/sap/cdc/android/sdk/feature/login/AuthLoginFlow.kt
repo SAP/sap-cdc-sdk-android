@@ -3,15 +3,17 @@ package com.sap.cdc.android.sdk.feature.login
 import com.sap.cdc.android.sdk.CDCDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.feature.ATokenCredentials
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_ID_CREATE_TOKEN
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_LOGIN
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
+import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthFlow
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
-import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.android.sdk.feature.CustomIdCredentials
 import com.sap.cdc.android.sdk.feature.LinkingContext
+import com.sap.cdc.android.sdk.feature.LoginIdCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
@@ -42,14 +44,25 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         login(parameters, callbacks)
     }
 
+
     suspend fun login(
-        credentials: Credentials,
+        credentials: LoginIdCredentials,
         callbacks: AuthCallbacks
     ) {
         // Create parameter map according to credentials input.
         val parameters = mutableMapOf<String, String>()
-        credentials.loginId?.let { parameters["loginID"] = it }
-        credentials.aToken?.let { parameters["aToken"] = it }
+        parameters["loginID"] = credentials.loginId
+        parameters["password"] = credentials.password
+        login(parameters, callbacks)
+    }
+
+    suspend fun login(
+        credentials: ATokenCredentials,
+        callbacks: AuthCallbacks
+    ) {
+        // Create parameter map according to credentials input.
+        val parameters = mutableMapOf<String, String>()
+        parameters["aToken"] = credentials.aToken
         parameters["password"] = credentials.password
         login(parameters, callbacks)
     }
@@ -168,12 +181,12 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         // Validate linkingContext before entering flow
         if (linkingContext.provider == null || linkingContext.authToken == null) {
             val callbacks = AuthCallbacks().apply(authCallbacks)
-            callbacks.executeOnError(
-                com.sap.cdc.android.sdk.feature.AuthError(
-                    "LinkingContext missing required provider or authToken",
-                    "MISSING_PROVIDER_DATA"
-                )
+            val error = AuthError(
+                code = null,
+                message = "LinkingContext missing required provider or authToken",
+                details = "MISSING_PROVIDER_DATA"
             )
+            callbacks.onError?.invoke(error)
             return
         }
         

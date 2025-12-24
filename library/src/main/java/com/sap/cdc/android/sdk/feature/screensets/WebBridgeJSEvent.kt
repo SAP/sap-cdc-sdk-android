@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.screensets
 
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.AuthError
 
 /**
  * Event wrapper for JavaScript bridge communication.
@@ -45,7 +45,7 @@ class WebBridgeJSEvent(
             mapOf("eventName" to CANCELED)
         )
 
-        fun errorEvent(error: CDCError?): WebBridgeJSEvent = WebBridgeJSEvent(
+        fun errorEvent(error: AuthError?): WebBridgeJSEvent = WebBridgeJSEvent(
             mapOf("eventName" to ERROR, "error" to error)
         )
 

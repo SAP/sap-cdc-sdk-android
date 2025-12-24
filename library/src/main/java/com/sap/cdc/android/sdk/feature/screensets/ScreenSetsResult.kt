@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.screensets
 
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.AuthError
 
 /**
  * Event data container for ScreenSets lifecycle events.
@@ -31,16 +31,16 @@ data class ScreenSetsEventData(
  * 
  * @property message Human-readable error message
  * @property eventName Name of the event where the error occurred
- * @property cdcError Structured CDC error object if available
+ * @property authError Structured authentication error object if available
  * @property details Additional error context and metadata
  * 
- * @see CDCError
+ * @see AuthError
  * @see ScreenSetsCallbacks.onError
  */
 data class ScreenSetsError(
     val message: String,
     val eventName: String? = null,
-    val cdcError: CDCError? = null,
+    val authError: AuthError? = null,
     val details: Map<String, Any?>? = null
 )
 

@@ -1,6 +1,5 @@
 package com.sap.cdc.android.sdk.core.api
 
-import com.sap.cdc.android.sdk.core.api.model.CDCError
 import com.sap.cdc.android.sdk.core.network.HttpExceptions
 import com.sap.cdc.android.sdk.extensions.printDebugStackTrace
 import io.ktor.http.HttpStatusCode
@@ -44,7 +43,6 @@ import kotlinx.serialization.json.put
  * Copyright: SAP LTD.
  * 
  * @see com.sap.cdc.android.sdk.core.api.CDCRequest
- * @see com.sap.cdc.android.sdk.core.api.model.CDCError
  * @see com.sap.cdc.android.sdk.core.api.Api
  */
 class CDCResponse {
@@ -73,21 +71,6 @@ class CDCResponse {
     }
 
     /**
-     * Initializes the response from a CDCError object.
-     * 
-     * This method creates an error response using the error code, description, and details
-     * from the provided CDCError instance.
-     * 
-     * @param error The CDCError object containing error information
-     * @return This CDCResponse instance for method chaining
-     * 
-     * @see com.sap.cdc.android.sdk.core.api.model.CDCError
-     */
-    fun fromError(error: CDCError)  = apply {
-        fromError(error.errorCode, error.errorMessage ?: "", error.errorDetails ?: "")
-    }
-
-    /**
      * Initializes the response with custom error information.
      * 
      * This method constructs an error response with the specified code, message, and description.
@@ -100,7 +83,7 @@ class CDCResponse {
      * @param details Detailed error description with additional context
      * @return This CDCResponse instance for method chaining
      */
-    fun fromError(code: Int, message: String, details: String) = apply {
+    fun fromError(code: Int, message: String, details: String?) = apply {
         val errorJson = buildJsonObject {
             put("errorCode", code.toString())
             put("errorMessage", message)
@@ -241,23 +224,6 @@ class CDCResponse {
      * @return The error flags string, or null if not present in the response
      */
     fun errorFlags(): String? = jsonObject?.get("errorFlags")?.jsonPrimitive?.contentOrNull
-
-    /**
-     * Converts this response to a CDCError object.
-     * 
-     * This method creates a CDCError instance containing the basic error information
-     * (code, message, details) from this response. Note that CDCError has limited data
-     * and should primarily be used for display purposes.
-     * 
-     * For handling resolvable errors or accessing complete response data, use the
-     * CDCResponse directly as it contains all necessary flow information.
-     * 
-     * @return A CDCError object with the error information from this response
-     * @throws NullPointerException if errorCode is null
-     * 
-     * @see com.sap.cdc.android.sdk.core.api.model.CDCError
-     */
-    fun toCDCError(): CDCError = CDCError(errorCode()!!, errorMessage(), errorDetails())
 
     /**
      * Determines if the response represents an error.

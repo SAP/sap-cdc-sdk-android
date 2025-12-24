@@ -2,7 +2,7 @@ package com.sap.cdc.android.sdk.feature.register
 
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
-import com.sap.cdc.android.sdk.feature.Credentials
+import com.sap.cdc.android.sdk.feature.EmailCredentials
 import com.sap.cdc.android.sdk.feature.session.SessionService
 
 //region REGISTER INTERFACE
@@ -12,16 +12,12 @@ interface IAuthRegister {
     fun resolve(): IAuthRegisterResolvers
 
     // DSL methods with lambda receivers
-    suspend fun credentials(
-        credentials: Credentials,
+    suspend fun emailCredentials(
+        credentials: EmailCredentials,
         configure: AuthCallbacks.() -> Unit,
         parameters: MutableMap<String, String> = mutableMapOf()
     )
 
-    suspend fun parameters(
-        parameters: MutableMap<String, String>,
-        configure: AuthCallbacks.() -> Unit
-    )
 }
 
 internal class AuthRegister(
@@ -30,8 +26,8 @@ internal class AuthRegister(
 
 ) : IAuthRegister {
 
-    override suspend fun credentials(
-        credentials: Credentials,
+    override suspend fun emailCredentials(
+        credentials: EmailCredentials,
         configure: AuthCallbacks.() -> Unit,
         parameters: MutableMap<String, String>
     ) {
@@ -43,7 +39,7 @@ internal class AuthRegister(
         )
     }
 
-    override suspend fun parameters(
+    internal suspend fun parameters(
         parameters: MutableMap<String, String>,
         configure: AuthCallbacks.() -> Unit
     ) {

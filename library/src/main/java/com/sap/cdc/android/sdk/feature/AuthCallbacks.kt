@@ -23,10 +23,10 @@ data class AuthSuccess(
 
 @Serializable
 data class AuthError(
-    val message: String,
-    val code: String? = null,
+    val code: Int? = null,
+    val message: String? = null,
     val details: String? = null,
-    val asJson: String? = null
+    val asJson: String? = null,
 )
 
 @Serializable

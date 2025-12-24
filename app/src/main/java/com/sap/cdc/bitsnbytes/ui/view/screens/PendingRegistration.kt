@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -187,11 +186,12 @@ fun PendingRegistrationView(
 fun PendingRegistrationViewPreview() {
     PendingRegistrationView(
         PendingRegistrationViewModelPreview(),
-        RegistrationContext(originatingError = AuthError(
-            message = "Pending registration error",
-            code = "400",
-            details = "Missing required fields for registration: nickname",
-            ""
-        ))
+        RegistrationContext(
+            originatingError = AuthError(
+                code = 400,
+                message = "Pending registration error",
+                details = "Missing required fields for registration: nickname"
+            )
+        )
     )
 }

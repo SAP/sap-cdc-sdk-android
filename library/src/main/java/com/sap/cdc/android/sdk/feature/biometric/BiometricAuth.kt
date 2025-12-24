@@ -83,8 +83,8 @@ class BiometricAuth(private val sessionService: SessionService) {
 
     private fun createBiometricAuthError(code: Int?, message: String?): AuthError {
         val authError = AuthError(
-            message = message ?: "Unknown error",
-            code = code.toString()
+            code = code,
+            message = message ?: "Unknown error"
         )
         return authError
     }

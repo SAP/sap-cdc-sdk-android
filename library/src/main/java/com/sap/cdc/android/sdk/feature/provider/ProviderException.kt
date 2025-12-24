@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.provider
 
-import com.sap.cdc.android.sdk.core.api.model.CDCError
+import com.sap.cdc.android.sdk.feature.AuthError
 
 /**
  * Authentication provider exception types and exception class.
@@ -28,9 +28,9 @@ enum class ProviderExceptionType {
  * Exception thrown during authentication provider operations.
  * 
  * @property type The type of provider exception
- * @property error Optional CDC error details
+ * @property error Optional authentication error details
  */
 data class ProviderException(
     val type: ProviderExceptionType,
-    val error: CDCError? = null,
-) : Exception(error?.errorDetails)
+    val error: AuthError? = null,
+) : Exception(error?.details)
