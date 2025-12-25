@@ -19,92 +19,102 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.inputs.branch }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-    - name: Update signingConfigs in build.gradle.kts
-      run: |
-        sed -i '/signingConfigs {/,/}/c\signingConfigs {\n\n    getByName("debug") {\n        keyAlias = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_ALIAS }}"\n        keyPassword = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_PASSWORD }}"\n        storeFile = file("keystore/debug")\n        storePassword = "${{ secrets.BITS_N_BYTES_DEBUG_STORE_PASSWORD }}"\n    }\n' app/build.gradle.kts
+      - name: Update signingConfigs in build.gradle.kts
+        run: |
+          sed -i '/signingConfigs {/,/}/c\signingConfigs {\n\n    getByName("debug") {\n        keyAlias = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_ALIAS }}"\n        keyPassword = "${{ secrets.BITS_N_BYTES_DEBUG_KEY_PASSWORD }}"\n        storeFile = file("keystore/debug")\n        storePassword = "${{ secrets.BITS_N_BYTES_DEBUG_STORE_PASSWORD }}"\n    }\n' app/build.gradle.kts
 
-    - name: Configure string resources using helper
-      shell: bash
-      run: |
-        upsert_string () {
-          local file="$1" name="$2" value="$3"
-          # one-line sanitize
-          value=$(printf '%s' "$value" | tr -d '\n\r')
-          sed -i "/<string[[:space:]][^>]*name=\"$name\"[^>]*>/d" "$file"
-          awk -v n="$name" -v v="$value" '
-            /<\/resources>/ {
-              print "    <string name=\"" n "\">" v "</string>"
-            }
-            { print }
-          ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
-        }
+      - name: Configure string resources using helper
+        shell: bash
+        run: |
+          upsert_string () {
+            local file="$1" name="$2" value="$3"
+            # one-line sanitize
+            value=$(printf '%s' "$value" | tr -d '\n\r')
+            sed -i "/<string[[:space:]][^>]*name=\"$name\"[^>]*>/d" "$file"
+            awk -v n="$name" -v v="$value" '
+              /<\/resources>/ {
+                print "    <string name=\"" n "\">" v "</string>"
+              }
+              { print }
+            ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+          }
+          
+          # API keys/domains for demo.variant
+          upsert_string app/src/main/res/values/strings.xml "com.sap.cxcdc.apikey" '${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}'
+          upsert_string app/src/main/res/values/strings.xml "com.sap.cxcdc.domain" 'us1.gigya.com'
+          upsert_string app/src/variant/res/values/strings.xml "com.sap.cxcdc.apikey" '${{ secrets.BITS_N_BYTES_VARIANT_API_KEY }}'
+          upsert_string app/src/variant/res/values/strings.xml "com.sap.cxcdc.domain" 'us1.gigya.com'
+          
+          # Asset statements
+          upsert_string app/src/main/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'
+          upsert_string app/src/variant/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'
+          
+          # Google resources
+          upsert_string app/src/main/res/values/strings.xml "google_server_client_id" '${{ secrets.GOOGLE_WEB_SERVER_CLIENT_ID }}'
+          upsert_string app/src/variant/res/values/strings.xml "google_server_client_id" 'GOOGLE_WEB_CLIENT_ID_HERE'
+          
+          # Facebook resources
+          upsert_string app/src/main/res/values/strings.xml "facebook_app_id" 'FB_APP_ID_HERE'
+          upsert_string app/src/main/res/values/strings.xml "fb_login_protocol_scheme" 'FB_LOGIN_PROTOCOL_SCHEME_HERE'
+          upsert_string app/src/main/res/values/strings.xml "facebook_client_token" 'FB_CLIENT_TOKEN_HERE'
+          upsert_string app/src/variant/res/values/strings.xml "facebook_app_id" 'FB_APP_ID_HERE'
+          upsert_string app/src/variant/res/values/strings.xml "fb_login_protocol_scheme" 'FB_LOGIN_PROTOCOL_SCHEME_HERE'
+          upsert_string app/src/variant/res/values/strings.xml "facebook_client_token" 'FB_CLIENT_TOKEN_HERE'
+          
+          # Line resources
+          upsert_string app/src/main/res/values/strings.xml "line_channel_id" 'LINE_CHANNEL_ID_HERE'
+          upsert_string app/src/variant/res/values/strings.xml "line_channel_id" 'LINE_CHANNEL_ID_HERE'
+          
+          # WeChat resources
+          upsert_string app/src/main/res/values/strings.xml "wechat_app_id" 'WECHAT_APP_ID_HERE'
+          upsert_string app/src/variant/res/values/strings.xml "wechat_app_id" 'WECHAT_APP_ID_HERE'
 
-        # API keys/domains for demo.variant
-        upsert_string app/src/main/res/values/strings.xml "com.sap.cxcdc.apikey" '${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}'
-        upsert_string app/src/main/res/values/strings.xml "com.sap.cxcdc.domain" 'us1.gigya.com'
-        upsert_string app/src/variant/res/values/strings.xml "com.sap.cxcdc.apikey" '${{ secrets.BITS_N_BYTES_VARIANT_API_KEY }}'
-        upsert_string app/src/variant/res/values/strings.xml "com.sap.cxcdc.domain" 'us1.gigya.com'
+      - name: Create file for google-services.json (Demo)
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
 
-        # Asset statements
-        upsert_string app/src/main/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'
-        upsert_string app/src/variant/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
 
-        # Google resources
-        upsert_string app/src/main/res/values/strings.xml "google_server_client_id" '${{ secrets.GOOGLE_WEB_SERVER_CLIENT_ID }}'
-        upsert_string app/src/variant/res/values/strings.xml "google_server_client_id" 'GOOGLE_WEB_CLIENT_ID_HERE'
+      - name: Rename Demo APK file
+        run: mv app/build/outputs/apk/demo/debug/app-demo-debug.apk app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
 
-        # Facebook resources
-        upsert_string app/src/main/res/values/strings.xml "facebook_app_id" 'FB_APP_ID_HERE'
-        upsert_string app/src/main/res/values/strings.xml "fb_login_protocol_scheme" 'FB_LOGIN_PROTOCOL_SCHEME_HERE'
-        upsert_string app/src/main/res/values/strings.xml "facebook_client_token" 'FB_CLIENT_TOKEN_HERE'
-        upsert_string app/src/variant/res/values/strings.xml "facebook_app_id" 'FB_APP_ID_HERE'
-        upsert_string app/src/variant/res/values/strings.xml "fb_login_protocol_scheme" 'FB_LOGIN_PROTOCOL_SCHEME_HERE'
-        upsert_string app/src/variant/res/values/strings.xml "facebook_client_token" 'FB_CLIENT_TOKEN_HERE'
+      - name: Rename Variant APK file
+        run: mv app/build/outputs/apk/variant/debug/app-variant-debug.apk app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk
 
-        # Line resources
-        upsert_string app/src/main/res/values/strings.xml "line_channel_id" 'LINE_CHANNEL_ID_HERE'
-        upsert_string app/src/variant/res/values/strings.xml "line_channel_id" 'LINE_CHANNEL_ID_HERE'
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-debug-apk
+          path: app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
 
-        # WeChat resources
-        upsert_string app/src/main/res/values/strings.xml "wechat_app_id" 'WECHAT_APP_ID_HERE'
-        upsert_string app/src/variant/res/values/strings.xml "wechat_app_id" 'WECHAT_APP_ID_HERE'
+      - name: Upload Variant APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant-debug-apk
+          path: app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk
 
-    - name: Create file for google-services.json (Demo)
-      run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
+      - name: Upload to Soucelabs
+        working-directory: app/build/outputs/apk/demo/debug/
+        run: |
+          curl -u '${{ secrets.SAUCE_USERNAME }}:${{ secrets.SAUCE_ACCESS_KEY }}' --location --request POST 'https://api.eu-central-1.saucelabs.com/v1/storage/upload' --form payload=@'bits-n-bytes-app-demo-debug.apk' --form name='bits-n-bytes-app-demo-debug.apk' --form description='e2e Android test app' --silent --show-error
 
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
-
-    - name: Rename Demo APK file
-      run: mv app/build/outputs/apk/demo/debug/app-demo-debug.apk app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
-
-    - name: Rename Variant APK file
-      run: mv app/build/outputs/apk/variant/debug/app-variant-debug.apk app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: demo-debug-apk
-        path: app/build/outputs/apk/demo/debug/bits-n-bytes-app-demo-debug.apk
-
-    - name: Upload Variant APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: variant-debug-apk
-        path: app/build/outputs/apk/variant/debug/bits-n-bytes-app-variant-debug.apk
-
-    - name: Upload to Soucelabs
-      working-directory: app/build/outputs/apk/demo/debug/
-      run: |
-        curl -u '${{ secrets.SAUCE_USERNAME }}:${{ secrets.SAUCE_ACCESS_KEY }}' --location --request POST 'https://api.eu-central-1.saucelabs.com/v1/storage/upload' --form payload=@'bits-n-bytes-app-demo-debug.apk' --form name='bits-n-bytes-app-demo-debug.apk' --form description='e2e Android test app' --silent --show-error
+      - name: Trigger e2e test worker
+        env:
+          REPO_ACCESS_TOKEN: ${{ secrets.E2E_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token REPO_ACCESS_TOKEN" \
+            https://api.github.com/repos/SAP/gigya-mobile-sdk-tests/dispatches \
+            -d '{"event_type":"trigger_event_from_android"}'
