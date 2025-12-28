@@ -20,10 +20,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -36,14 +35,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.ResolvableContext
+import com.sap.cdc.android.sdk.feature.LinkingContext
+import com.sap.cdc.android.sdk.feature.account.LinkEntities
 import com.sap.cdc.bitsnbytes.R
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.LinkAccountNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
+import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
+import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.ViewDynamicSocialSelection
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ILinkAccountViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -56,16 +57,24 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.LinkAccountViewModelPreview
 @Composable
 fun LinkAccountView(
     viewModel: ILinkAccountViewModel,
-    resolvable: ResolvableContext,
+    linkingContext: LinkingContext,
 ) {
     val context = LocalContext.current
-    var loading by remember { mutableStateOf(false) }
-
-    var linkError by remember { mutableStateOf("") }
-
+    val state by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
-    var password by remember {
-        mutableStateOf("")
+
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is LinkAccountNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.MyProfile.route,
+                        rootRoute = ProfileScreenRoute.Welcome.route
+                    )
+                }
+            }
+        }
     }
 
     Column(
@@ -87,12 +96,12 @@ fun LinkAccountView(
         Spacer(modifier = Modifier.size(24.dp))
 
         // Vary login providers list to display the correct link path (social or site).
-        if (resolvable.linking?.conflictingAccounts!!.loginProviders.contains("site")) {
+        if (linkingContext.conflictingAccounts!!.loginProviders.contains("site")) {
             // Login to site.
             Text("Link with account password")
             Spacer(modifier = Modifier.size(12.dp))
             TextField(
-                value = password,
+                value = state.password,
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(
@@ -106,9 +115,7 @@ fun LinkAccountView(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 ),
-                onValueChange = {
-                    password = it
-                },
+                onValueChange = { viewModel.onPasswordChanged(it) },
                 keyboardActions = KeyboardActions {
                     focusManager.moveFocus(FocusDirection.Next)
                 },
@@ -122,22 +129,9 @@ fun LinkAccountView(
                     .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
-                    loading = true
-                    // Link to site account using password.
-                    viewModel.resolveLinkToSiteAccount(
-                        loginId = resolvable.linking?.conflictingAccounts?.loginID!!,
-                        password = password,
-                        resolvableContext = resolvable,
-                        onLogin = {
-                            loading = false
-                            NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                                toRoute = ProfileScreenRoute.MyProfile.route,
-                                rootRoute = ProfileScreenRoute.Welcome.route
-                            )
-                        },
-                        onFailedWith = { error ->
-                            loading = false
-                        }
+                    viewModel.onLinkToSiteAccount(
+                        loginId = linkingContext.conflictingAccounts?.loginID!!,
+                        linkingContext = linkingContext
                     )
                 }) {
                 Text("Link Account")
@@ -146,30 +140,19 @@ fun LinkAccountView(
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        val socialProvidersOnly = resolvable.linking?.conflictingAccounts!!.loginProviders.toMutableList()
+        val socialProvidersOnly = linkingContext.conflictingAccounts!!.loginProviders.toMutableList()
         socialProvidersOnly.remove("site")
-        if (socialProvidersOnly.size > 0) {
+        if (socialProvidersOnly.isNotEmpty()) {
             Text("Link with existing social accounts")
             Spacer(modifier = Modifier.size(12.dp))
             // Login to social
             ViewDynamicSocialSelection(
                 socialProviders = socialProvidersOnly,
             ) { provider ->
-                loading = true
-                viewModel.resolveLinkToSocialAccount(
+                viewModel.onLinkToSocialProvider(
                     hostActivity = context as ComponentActivity,
                     provider = provider,
-                    resolvableContext = resolvable,
-                    onLogin = {
-                        loading = false
-                        NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                            toRoute = ProfileScreenRoute.MyProfile.route,
-                            rootRoute = ProfileScreenRoute.Welcome.route
-                        )
-                    },
-                    onFailedWith = { error ->
-                        loading = false
-                    }
+                    linkingContext = linkingContext
                 )
             }
         }
@@ -182,7 +165,8 @@ fun LinkAccountView(
         )
         Spacer(modifier = Modifier.size(24.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 240.dp, height = 44.dp),
+        OutlinedButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
@@ -207,7 +191,8 @@ fun LinkAccountView(
 
         Spacer(modifier = Modifier.size(10.dp))
 
-        OutlinedButton(modifier = Modifier.size(width = 240.dp, height = 44.dp),
+        OutlinedButton(
+            modifier = Modifier.size(width = 240.dp, height = 44.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
                 NavigationCoordinator.INSTANCE.navigate("${ProfileScreenRoute.AuthTabView.route}/1")
@@ -254,11 +239,19 @@ fun LinkAccountView(
         Spacer(modifier = Modifier.size(24.dp))
         Text("Create a new one", fontSize = 14.sp, fontWeight = FontWeight.Bold)
 
+        MediumVerticalSpacer()
+
+        // Error message
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+            }
+        }
     }
 
     // Loading indicator on top of all views.
     Box(Modifier.fillMaxWidth()) {
-        IndeterminateLinearIndicator(loading)
+        IndeterminateLinearIndicator(state.isLoading)
     }
 }
 
@@ -267,8 +260,10 @@ fun LinkAccountView(
 fun LinkAccountViewPreview() {
     LinkAccountView(
         viewModel = LinkAccountViewModelPreview(),
-        resolvable = ResolvableContext(
-            "",
+        linkingContext = LinkingContext(
+            conflictingAccounts = LinkEntities(
+                loginProviders = listOf("site", "google", "facebook"),
+            )
         )
     )
 }

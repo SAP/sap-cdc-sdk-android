@@ -10,20 +10,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.bitsnbytes.ApplicationConfig
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.route.ScreenSetsRoute
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.navigation.ScreenSetsRoute
+import com.sap.cdc.bitsnbytes.ui.state.WelcomeNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionTextButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomSizeVerticalSpacer
@@ -31,8 +31,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IWelcomeViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -44,12 +42,21 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.WelcomeViewModelPreview
 @Composable
 fun WelcomeView(viewModel: IWelcomeViewModel) {
     val context = LocalContext.current
+    val state by viewModel.state.collectAsState()
 
-    var loading by remember { mutableStateOf(false) }
-    var ssoError by remember { mutableStateOf("") }
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is WelcomeNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                }
+            }
+        }
+    }
 
     LoadingStateColumn(
-        loading = loading,
+        loading = state.isLoading,
         modifier = Modifier
             .background(Color.White)
             .fillMaxWidth()
@@ -104,28 +111,16 @@ fun WelcomeView(viewModel: IWelcomeViewModel) {
         ActionTextButton(
             "Sign in with SSO"
         ) {
-            loading = true
-            viewModel.singleSignOn(
-                context as ComponentActivity,
-                mutableMapOf(),
-                onLogin = {
-                    loading = false
-                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                },
-                onFailedWith = { error ->
-                    loading = false
-                    ssoError = error?.errorDescription!!
-                }
-            )
+            viewModel.onSingleSignOn(context as ComponentActivity)
         }
 
         LargeVerticalSpacer()
 
         // Error message
-        if (ssoError.isNotEmpty()) {
-            SimpleErrorMessages(
-                text = ssoError
-            )
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+            }
         }
     }
 }

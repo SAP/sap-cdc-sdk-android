@@ -6,11 +6,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -18,9 +18,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.EmailRegistrationNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LoadingStateColumn
@@ -30,8 +31,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.OutlineTitleAndEditTextField
 import com.sap.cdc.bitsnbytes.ui.view.composables.PasswordNotMatchingError
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailRegisterViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IEmailRegisterViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -41,31 +40,37 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.IEmailRegisterViewModel
  */
 
 @Composable
-fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
+fun EmailRegisterView(viewModel: IEmailRegistrationViewModel) {
     val context = LocalContext.current
-    // Editable variables.
-    var name by remember {
-        mutableStateOf("")
-    }
-    var email by remember {
-        mutableStateOf("")
-    }
-    var password by remember {
-        mutableStateOf("")
-    }
-    var confirmPassword by remember {
-        mutableStateOf("")
-    }
-    // State modifiers.
-    var passwordVisible: Boolean by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
+    
     val isNotMatching = remember {
         derivedStateOf {
-            password != confirmPassword
+            state.password != state.confirmPassword
         }
     }
-    var registerError by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
-    var loading by remember { mutableStateOf(false) }
+
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is EmailRegistrationNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                }
+                is EmailRegistrationNavigationEvent.NavigateToAuthMethods -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.AuthMethods.route}/${event.twoFactorContextJson}"
+                    )
+                }
+                is EmailRegistrationNavigationEvent.NavigateToPendingRegistration -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.ResolvePendingRegistration.route}/${event.registrationContextJson}"
+                    )
+                }
+            }
+        }
+    }
 
     // UI elements.
 
@@ -73,7 +78,7 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .padding(48.dp),
-        loading = loading
+        loading = state.isLoading
     ) {
 
         LargeVerticalSpacer()
@@ -88,11 +93,9 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
         OutlineTitleAndEditTextField(
             modifier = Modifier,
             titleText = "Name: *",
-            inputText = name,
+            inputText = state.name,
             placeholderText = "Name placeholder",
-            onValueChange = {
-                name = it
-            },
+            onValueChange = { viewModel.onNameChanged(it) },
             focusManager = focusManager
         )
 
@@ -101,11 +104,9 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
         OutlineTitleAndEditTextField(
             modifier = Modifier,
             titleText = "Email: *",
-            inputText = email,
+            inputText = state.email,
             placeholderText = "Email placeholder",
-            onValueChange = {
-                email = it
-            },
+            onValueChange = { viewModel.onEmailChanged(it) },
             focusManager = focusManager
         )
 
@@ -113,13 +114,11 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
         SmallVerticalSpacer()
         OutlineTitleAndEditPasswordTextField(
             titleText = "Password: *",
-            inputText = password,
+            inputText = state.password,
             placeholderText = "",
-            passwordVisible = passwordVisible,
-            onValueChange = {
-                password = it
-            },
-            onEyeClick = { passwordVisible = it },
+            passwordVisible = state.passwordVisible,
+            onValueChange = { viewModel.onPasswordChanged(it) },
+            onEyeClick = { viewModel.onPasswordVisibilityToggled() },
             focusManager = focusManager
         )
 
@@ -127,13 +126,11 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
         SmallVerticalSpacer()
         OutlineTitleAndEditPasswordTextField(
             titleText = "Confirm password: *",
-            inputText = confirmPassword,
+            inputText = state.confirmPassword,
             placeholderText = "",
-            passwordVisible = passwordVisible,
-            onValueChange = {
-                confirmPassword = it
-            },
-            onEyeClick = { passwordVisible = it },
+            passwordVisible = state.passwordVisible,
+            onValueChange = { viewModel.onConfirmPasswordChanged(it) },
+            onEyeClick = { viewModel.onPasswordVisibilityToggled() },
             focusManager = focusManager
         )
 
@@ -147,57 +144,17 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
         )
 
         MediumVerticalSpacer()
+
         ActionOutlineButton(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             text = "Register",
-            onClick = {
-                registerError = ""
-                loading = true
-                // Credentials registration.
-                viewModel.register(
-                    email = email,
-                    password = password,
-                    name = name,
-                    onLogin = {
-                        loading = false
-                        NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                    },
-                    onPendingTwoFactorVerification = { authResponse ->
-                        loading = false
-                        registerError = ""
-                        NavigationCoordinator.INSTANCE
-                            .navigate(
-                                "${ProfileScreenRoute.AuthMethods.route}/${
-                                    authResponse?.resolvable()?.toJson()
-                                }"
-                            )
-                    },
-                    onPendingTwoFactorRegistration = { authResponse ->
-                        loading = false
-                        registerError = ""
-                        NavigationCoordinator.INSTANCE
-                            .navigate(
-                                "${ProfileScreenRoute.AuthMethods.route}/${
-                                    authResponse?.resolvable()?.toJson()
-                                }"
-                            )
-                    },
-                    onFailedWith = { error ->
-                        loading = false
-                        if (error != null) {
-                            // Need to display error information.
-                            registerError = error.errorDetails!!
-                        }
-                    }
-                )
-            }
+            onClick = { viewModel.onRegisterClick() }
         )
 
-        if (registerError.isNotEmpty()) {
-            SimpleErrorMessages(
-                text = registerError
-            )
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+            }
         }
     }
 
@@ -208,6 +165,6 @@ fun EmailRegisterView(viewModel: IEmailRegisterViewModel) {
 @Composable
 fun EmailRegisterViewPreview() {
     AppTheme {
-        EmailRegisterView(EmailRegisterViewModelPreview())
+        EmailRegisterView(EmailRegistrationViewModelPreview())
     }
 }

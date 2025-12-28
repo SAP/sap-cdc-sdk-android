@@ -20,29 +20,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.ResolvableContext
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.feature.OTPContext
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.OtpVerifyNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.OtpTextField
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IOtpVerifyViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModelPreview
 
 /**
  * Created by Tal Mirmelshtein on 25/11/2024
@@ -53,15 +51,27 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.OtpVerifyViewModelPreview
 @Composable
 fun OtpVerifyView(
     viewModel: IOtpVerifyViewModel,
-    resolvableContext: ResolvableContext,
+    otpContext: OTPContext,
     otpType: OTPType,
     inputField: String? = null,
 ) {
-    var loading by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
 
-    var signInError by remember { mutableStateOf("") }
-
-    var codeSent by remember { mutableStateOf(false) }
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is OtpVerifyNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                }
+                is OtpVerifyNavigationEvent.NavigateToPendingRegistration -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.ResolvePendingRegistration.route}/${event.registrationContext}"
+                    )
+                }
+            }
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -71,11 +81,7 @@ fun OtpVerifyView(
             .fillMaxHeight()
     ) {
         // UI elements.
-        IndeterminateLinearIndicator(loading)
-
-        var otpValue by remember {
-            mutableStateOf("")
-        }
+        IndeterminateLinearIndicator(state.isLoading)
 
         Spacer(modifier = Modifier.size(80.dp))
         Text(
@@ -103,7 +109,7 @@ fun OtpVerifyView(
         )
         Spacer(modifier = Modifier.size(32.dp))
 
-        if (codeSent) {
+        if (state.codeSent) {
             Spacer(modifier = Modifier.size(12.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -133,67 +139,51 @@ fun OtpVerifyView(
 
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 val autoFillHandler =
-                    autoFillRequestHandler(autofillTypes = listOf(AutofillType.SmsOtpCode, AutofillType.EmailAddress),
-                        onFill = {
-                            otpValue = it
-                        }
-                    )
+                    autoFillRequestHandler(
+                    contentTypes = listOf(ContentType.SmsOtpCode, ContentType.EmailAddress),
+                    onFill = {
+                        viewModel.updateOtpValue(it)
+                    }
+                )
                 OtpTextField(
                     modifier = Modifier
                         .connectNode(handler = autoFillHandler)
                         .defaultFocusChangeAutoFill(handler = autoFillHandler),
-                    otpText = otpValue, onOtpTextChange = { value, _ ->
-                        otpValue = value
+                    otpText = state.otpValue, onOtpTextChange = { value, _ ->
+                        viewModel.updateOtpValue(value)
                         if (value.isEmpty()) autoFillHandler.requestVerifyManual()
                     })
             }
 
             Spacer(modifier = Modifier.size(6.dp))
 
-            if (signInError.isNotEmpty()) {
-                Spacer(modifier = Modifier.size(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Cancel, contentDescription = "", tint = Color.Red
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = signInError,
-                        color = Color.Red,
-                    )
+            state.error?.let { error ->
+                if (error.isNotEmpty()) {
+                    Spacer(modifier = Modifier.size(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Filled.Cancel, contentDescription = "", tint = Color.Red
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = error,
+                            color = Color.Red,
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.size(48.dp))
 
-            OutlinedButton(modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp),
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
-                    loading = true
-                    viewModel.resolveLoginWithCode(code = otpValue,
-                        resolvable = resolvableContext,
-                        onLogin = {
-                            loading = false
-                            signInError = ""
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        },
-                        onPendingRegistration =  { authResponse ->
-                            loading = false
-                            NavigationCoordinator.INSTANCE
-                                .navigate(
-                                    "${ProfileScreenRoute.ResolvePendingRegistration.route}/${
-                                        authResponse?.resolvable()?.toJson()
-                                    }"
-                                )
-                        },
-                        onFailedWith = { error ->
-                            signInError = error?.errorDescription!!
-                            loading = false
-                        })
+                    viewModel.onVerifyCode(otpContext.vToken ?: "")
                 }) {
                 Text("Verify")
             }
@@ -203,22 +193,18 @@ fun OtpVerifyView(
         Spacer(modifier = Modifier.size(24.dp))
 
         Text(
-            when (codeSent) {
+            when (state.codeSent) {
                 true -> "Sent code again"
                 false -> "Didn't get code"
             },
-            color = when (codeSent) {
+            color = when (state.codeSent) {
                 true -> Color.LightGray
                 false -> Color.Black
             },
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .clickable(enabled = !codeSent) {
-                    codeSent = true
-                    //TODO: cancel timer when composable is not active.
-                    viewModel.startOtpTimer {
-                        codeSent = false
-                    }
+                .clickable(enabled = !state.codeSent) {
+                    viewModel.onResendCode()
                 }
                 .padding(start = 16.dp, end = 16.dp),
         )
@@ -232,9 +218,8 @@ fun OtpVerifyView(
 fun PhoneOtpVerifyView() {
     OtpVerifyView(
         viewModel = OtpVerifyViewModelPreview(),
-        resolvableContext = ResolvableContext(),
+        otpContext = OTPContext(""),
         otpType = OTPType.PHONE,
         inputField = ""
     )
 }
-

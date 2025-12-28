@@ -1,85 +1,93 @@
 package com.sap.cdc.android.sdk.core.network
 
-import com.sap.cdc.android.sdk.CDCDebuggable
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
-import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.ResponseException
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.plugins.observer.ResponseObserver
-import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
+ * Network client wrapper for HTTP operations in the SAP CDC SDK.
+ * 
+ * This class serves as a lightweight wrapper around Ktor's HttpClient, providing
+ * a consistent interface for network operations throughout the SDK. It abstracts
+ * the HTTP client creation and management through the HttpClientProvider pattern.
+ * 
+ * The NetworkClient is responsible for:
+ * - Providing access to a configured HttpClient instance
+ * - Delegating HTTP client creation to the injected provider
+ * - Enabling flexible HTTP client configuration through dependency injection
+ * 
+ * By default, it uses [KtorHttpClientProvider] for production environments,
+ * but can accept custom providers for testing or specialized configurations.
+ * 
+ * @property httpClientProvider The provider responsible for creating and configuring
+ *                              the HttpClient. Defaults to [KtorHttpClientProvider].
+ * 
+ * @constructor Creates a NetworkClient with the specified HTTP client provider.
+ * 
+ * @author Tal Mirmelshtein
+ * @since 10/06/2024
+ * 
  * Copyright: SAP LTD.
+ * 
+ * @see com.sap.cdc.android.sdk.core.network.HttpClientProvider
+ * @see com.sap.cdc.android.sdk.core.network.KtorHttpClientProvider
+ * @see com.sap.cdc.android.sdk.core.CoreClient
  */
 class NetworkClient(
+    private val httpClientProvider: HttpClientProvider = KtorHttpClientProvider()
 ) {
     companion object {
+        /**
+         * Log tag for NetworkClient-related logging operations.
+         */
         internal const val LOG_TAG = "NetworkClient"
-        private const val TIME_OUT = 30_000
     }
 
-    fun http() = HttpClient(Android) {
-
-        engine {
-            connectTimeout = TIME_OUT
-            socketTimeout = TIME_OUT
-        }
-
-        install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) {
-                    CDCDebuggable.log(LOG_TAG, message)
-                }
-
-            }
-            level = LogLevel.ALL
-        }
-
-//        HttpResponseValidator {
-//            validateResponse { response: HttpResponse ->
-//                if (!response.status.isSuccess()) {
-//                    val httpFailureReason = when (response.status) {
-//                        HttpStatusCode.Unauthorized -> HttpStatusCode.Unauthorized.description
-//                        HttpStatusCode.Forbidden -> HttpStatusCode.Forbidden.description
-//                        HttpStatusCode.RequestTimeout -> HttpStatusCode.RequestTimeout.description
-//                        in HttpStatusCode.InternalServerError..HttpStatusCode.GatewayTimeout -> "${response.status.value} Server Error"
-//                        else -> "Network error!"
-//                    }
-//
-//                    throw HttpExceptions(
-//                        response = response,
-//                        cachedResponseText = response.bodyAsText(),
-//                        failureReason = httpFailureReason,
-//                    )
-//                }
-//            }
-//        }
-
-        install(ResponseObserver) {
-            onResponse { response ->
-                CDCDebuggable.log(LOG_TAG, "HTTP Status: ${response.status.value}")
-            }
-        }
-
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded)
-        }
-    }
+    /**
+     * Provides access to the configured HttpClient instance.
+     * 
+     * This method delegates to the HttpClientProvider to create or retrieve
+     * the HttpClient. The client is configured with all necessary settings
+     * for CDC API communication (timeouts, logging, default headers, etc.).
+     * 
+     * @return A configured Ktor HttpClient ready for making HTTP requests
+     * 
+     * @see HttpClientProvider.createHttpClient
+     */
+    fun http(): HttpClient = httpClientProvider.createHttpClient()
 }
 
+/**
+ * Custom exception class for HTTP-related errors in CDC operations.
+ * 
+ * This exception extends Ktor's ResponseException to provide additional context
+ * about HTTP failures, including both the HTTP status code and a descriptive
+ * failure reason.
+ * 
+ * The exception message format: "Status: {status_code}. Failure: {failure_reason}"
+ * 
+ * This exception is typically caught and converted to a [CDCResponse] error
+ * by the [Api] class for consistent error handling throughout the SDK.
+ * 
+ * @property response The HTTP response that caused the exception
+ * @property failureReason A descriptive reason for the failure (may be null)
+ * @property cachedResponseText The cached response body text for error analysis
+ * 
+ * @constructor Creates an HttpExceptions with HTTP response details and failure information.
+ *
+ * @see com.sap.cdc.android.sdk.core.api.CDCResponse.fromHttpException
+ * @see com.sap.cdc.android.sdk.core.api.Api
+ */
 class HttpExceptions(
     response: HttpResponse,
     failureReason: String?,
     cachedResponseText: String,
 ) : ResponseException(response, cachedResponseText) {
+    /**
+     * The formatted error message including HTTP status and failure reason.
+     * 
+     * Format: "Status: {status_code}. Failure: {failure_reason}"
+     */
     override val message: String = "Status: ${response.status}." + " Failure: $failureReason"
 }
-

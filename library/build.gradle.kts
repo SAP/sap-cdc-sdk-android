@@ -4,24 +4,28 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.dokka)
+    alias(libs.plugins.jreleaser)
 }
 
-group = "com.sap.cdc.android"
-version = "0.3.0"
+group = "com.sap.oss.cdc-android-sdk"
+version = "1.0.0"
 
-ext["name"] = "SAP Customer Data Cloud for Android"
-ext["artifactId"] = "sdk"
-ext["description"] = "SAP Customer Data Cloud for Android"
-ext["url"] = ""
+ext["name"] = "SAP Customer Data Cloud SDK for Android"
+ext["artifactId"] = "cdc-android-sdk"
+ext["description"] = "SAP Customer Data Cloud SDK for Android - A comprehensive solution for integrating SAP Customer Data Cloud services into Android applications"
+ext["url"] = "https://github.com/SAP/sap-cdc-sdk-android"
 
 android {
     namespace = "com.sap.cdc.android.sdk"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 24
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        val testApiKey: String = project.findProperty("testApiKey") as String? ?: ""
+        buildConfigField("String", "TEST_API_KEY", "\"$testApiKey\"")
     }
 
     buildTypes {
@@ -40,11 +44,29 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
+    }
+
+    packaging {
+        resources {
+            excludes.add("META-INF/LICENSE.md")
+            excludes.add("META-INF/LICENSE-notice.md")
+        }
+    }
+
+    publishing {
+        singleVariant("release")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 
@@ -55,19 +77,18 @@ dependencies {
     implementation(libs.material)
 
     testImplementation(libs.junit)
-    testImplementation(libs.mockito.inline)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.mockito.core)
     testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.json)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-
     // Http engine, JSON serialization/deserialization, kotlinx.serialization, Logging HTTP requests
     api(libs.bundles.ktor)
-    // Jetpack security.
-    api(libs.androidx.security.crypto)
     // Jetpack biometric
     api(libs.androidx.biometric)
     // Jetpack work manager
@@ -76,12 +97,20 @@ dependencies {
     api(libs.androidx.browser)
 }
 
-tasks.dokkaHtml {
-    outputDirectory.set(layout.buildDirectory.dir("docs/dokka").get().asFile)
+// Create Javadoc JAR for JReleaser using Dokka
+val javadocJar by tasks.registering(Jar::class) {
+    dependsOn("dokkaHtml")
+    archiveClassifier.set("javadoc")
+    from(layout.buildDirectory.dir("dokka/html"))
 }
 
-tasks.assemble {
-    dependsOn(tasks.dokkaHtml)
+// Create sources JAR for JReleaser
+val sourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(android.sourceSets["main"].java.srcDirs)
 }
 
-apply(from = "../publish-package.gradle")
+// Ensure JARs are built with the main build
+tasks.named("assemble") {
+    dependsOn(javadocJar, sourcesJar)
+}

@@ -10,6 +10,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,151 +20,180 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.screensets.ScreenSetUrlBuilder
-import com.sap.cdc.android.sdk.screensets.WebBridgeJS
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSConfig
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.CANCELED
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.HIDE
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGIN
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSEvent.Companion.LOGOUT
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebChromeClient
-import com.sap.cdc.android.sdk.screensets.WebBridgeJSWebViewClient
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebChromeClient
+import com.sap.cdc.android.sdk.feature.screensets.WebBridgeJSWebViewClient
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.ScreenSetNavigationEvent
+import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ScreenSetViewModel
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
  * Copyright: SAP LTD.
  *
  * Custom view for loading screen-sets.
- * Compose requires WebViews to be created within an AndroidView composable.
- * This view demonstrates the basic usage of the WebBridgeJS element that allows streaming
- * events from the WebSDK to the mobile SDK.
+ * This is a pure UI component that observes state from ScreenSetViewModel.
+ * All business logic and WebView lifecycle management is handled by the ViewModel.
  */
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun ScreenSetView(
     viewModel: ScreenSetViewModel,
-    screenSet: String, startScreen: String) {
+    screenSet: String,
+    startScreen: String
+) {
     val context = LocalContext.current
+    val state by viewModel.state.collectAsState()
+    
+    // Store WebView reference for proper disposal
+    var webViewRef: WebView? by remember { mutableStateOf(null) }
 
-    var screenSetError by remember { mutableStateOf("") }
+    // Initialize ScreenSet when composable is first launched
+    LaunchedEffect(screenSet, startScreen) {
+        Log.d("ScreenSetView", "Initializing ScreenSet: $screenSet - $startScreen")
+        viewModel.initializeScreenSet(screenSet, startScreen)
+    }
 
-    // Create only when file access is required..
-    val bridgingWebChromeClient = WebBridgeJSWebChromeClient()
-    rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            bridgingWebChromeClient.onActivityResult(uri)
-        }
-    )
-
-    // Create screen set request parameters.
-    val params = mutableMapOf<String, Any>(
-        "screenSet" to screenSet,
-        "startScreen" to startScreen
-    )
-
-    // Build Uri.
-    val screenSetUrl = ScreenSetUrlBuilder.Builder()
-        .apiKey(viewModel.identityService.getConfig().apiKey)
-        .domain(viewModel.identityService.getConfig().domain)
-        .params(params)
-        .build()
-
-    // Set native social provider authenticators.
-    val webBridgeJS: WebBridgeJS = viewModel.newWebBridgeJS()
-
-    // Add specific web bridge configurations.
-    webBridgeJS.addConfig(
-        WebBridgeJSConfig.Builder().obfuscate(true).build()
-    )
-
-    Box {
-        AndroidView(
-            modifier = Modifier
-                .fillMaxSize(),
-            factory = { it ->
-                WebView(it).apply {
-                    settings.javaScriptEnabled = true
-                    settings.setSupportZoom(true)
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            // Log that we're processing a navigation event
+            com.sap.cdc.bitsnbytes.navigation.NavigationDebugLogger.logNavigationEvent(
+                source = "ScreenSetView",
+                event = event
+            )
+            
+            when (event) {
+                is ScreenSetNavigationEvent.NavigateBack -> {
+                    Log.d("ScreenSetView", "Navigation event: NavigateBack")
+                    NavigationCoordinator.INSTANCE.navigateUp()
+                }
+                is ScreenSetNavigationEvent.NavigateToMyProfile -> {
+                    Log.d("ScreenSetView", "Navigation event: NavigateToMyProfile")
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.MyProfile.route,
+                        rootRoute = ProfileScreenRoute.Welcome.route
                     )
-
-                    webViewClient = WebBridgeJSWebViewClient(webBridgeJS) { browserUri ->
-                        //TODO: Check for legacy action. is it required??
-                        val intent = Intent(Intent.ACTION_VIEW, browserUri)
-                        context.startActivity(intent)
-                    }
-
-                    // Add only hen file access is required.
-                    settings.allowFileAccess = true
-                    webChromeClient = bridgingWebChromeClient
                 }
-            },
-            update = { webView ->
-                Log.d("ScreenSetView", "update")
-
-                // Attach the web bridge to the web view element.
-                webBridgeJS.attachBridgeTo(webView, viewModel.viewModelScope)
-
-                // Set external authenticators. SDK will no longer use reflection to
-                // retrieve external providers.
-                webBridgeJS.setNativeSocialProviders(
-                    viewModel.identityService.getAuthenticatorMap()
-                )
-
-                // Register for JS events.
-                webBridgeJS.registerForEvents { webBridgeJSEvent ->
-                    val eventName = webBridgeJSEvent.name()
-                    // Log event.
-                    Log.d("ScreenSetView", "event: $eventName")
-                    when (eventName) {
-                        CANCELED -> {
-                            screenSetError = "Operation canceled"
-                        }
-
-                        HIDE -> {
-                            // Destroy the WebView instance.
-                            webView.post { webView.destroy() }
-                            NavigationCoordinator.INSTANCE.navigateUp()
-                        }
-
-                        LOGIN -> {
-                            // Flow successful. Navigate to profile screen.
-                            webView.post {
-                                NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                                    toRoute = ProfileScreenRoute.MyProfile.route,
-                                    rootRoute = ProfileScreenRoute.Welcome.route
-                                )
-                            }
-                        }
-
-                        LOGOUT -> {
-                            // Navigate back to close the screen set view.
-                            NavigationCoordinator.INSTANCE.navigateUp()
-                        }
-                    }
+                is ScreenSetNavigationEvent.NavigateToRoute -> {
+                    Log.d("ScreenSetView", "Navigation event: NavigateToRoute(${event.route})")
+                    NavigationCoordinator.INSTANCE.navigate(event.route)
                 }
-
-                // Load URL.
-                webBridgeJS.load(webView, screenSetUrl)
-            },
-            onRelease = {  webView ->
-                Log.d("ScreenSetView", "onRelease")
-                webBridgeJS.detachBridgeFrom(webView)
             }
-        )
+        }
+    }
 
-        // Screen-set error optional display.
-        if (screenSetError.isNotEmpty()) {
-            SimpleErrorMessages(screenSetError)
+    // File chooser launcher (optional - only if needed)
+    val fileChooserLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // Handle file chooser result if needed
+    }
+
+    // WebChromeClient for file chooser support (optional)
+    val webBridgeJSWebChromeClient = remember {
+        WebBridgeJSWebChromeClient { intent ->
+            fileChooserLauncher.launch(intent)
+        }
+    }
+
+    // Get WebBridgeJS instance once
+    val webBridgeJS = remember { viewModel.flowDelegate.getWebBridge() }
+    
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Only show WebView when URL is ready
+        if (state.screenSetUrl != null) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { factoryContext ->
+                    Log.d("ScreenSetView", "Creating WebView with key: ${state.webViewKey}")
+                    
+                    WebView(factoryContext).apply {
+                        // Configure WebView settings
+                        settings.javaScriptEnabled = true
+                        settings.domStorageEnabled = true
+                        settings.cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
+                        settings.allowFileAccess = true
+
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        )
+
+                        // Set WebViewClient with loading callbacks
+                        webViewClient = WebBridgeJSWebViewClient(
+                            webBridge = webBridgeJS,
+                            onBrowserIntent = { uri ->
+                                val intent = Intent(Intent.ACTION_VIEW, uri)
+                                context.startActivity(intent)
+                            },
+                            onPageStarted = {
+                                viewModel.onWebViewPageStarted()
+                            },
+                            onPageFinished = {
+                                viewModel.onWebViewPageFinished()
+                            }
+                        )
+                        
+                        // Set WebChromeClient
+                        webChromeClient = webBridgeJSWebChromeClient
+                        
+                        // Store reference for cleanup
+                        webViewRef = this
+
+                        // Setup WebBridge and load URL via ViewModel
+                        viewModel.setupWebBridge(this)
+
+                        Log.d("ScreenSetView", "WebView created and setup initiated")
+                    }
+                },
+                update = { webView ->
+                    // Update callback - ensure we have the latest reference
+                    webViewRef = webView
+                    Log.d("ScreenSetView", "WebView update callback - state.isInitialized: ${state.isInitialized}")
+                }
+            )
+        }
+
+        // Loading indicator
+        if (state.isLoading) {
+            IndeterminateLinearIndicator(true)
+        }
+
+        // Error message display
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
+            }
+        }
+    }
+
+    // Cleanup when composable is disposed
+    DisposableEffect(state.webViewKey) {
+        onDispose {
+            Log.d("ScreenSetView", "Disposing ScreenSetView for key: ${state.webViewKey}")
+            
+            // Log WebView lifecycle event
+            com.sap.cdc.bitsnbytes.navigation.NavigationDebugLogger.logWebViewLifecycle(
+                source = "ScreenSetView",
+                lifecycleEvent = "DisposableEffect onDispose",
+                details = "webViewKey=${state.webViewKey}, disposing WebView"
+            )
+            
+            // Dispose WebView on main thread to ensure thread safety
+            webViewRef?.let { webView ->
+                webView.post {
+                    try {
+                        viewModel.handleWebViewDisposal(webView)
+                        webViewRef = null
+                        Log.d("ScreenSetView", "WebView disposed successfully")
+                    } catch (e: Exception) {
+                        Log.e("ScreenSetView", "Error during WebView disposal", e)
+                    }
+                }
+            }
         }
     }
 }

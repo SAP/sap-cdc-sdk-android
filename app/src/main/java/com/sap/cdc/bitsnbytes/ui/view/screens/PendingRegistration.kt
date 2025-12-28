@@ -18,34 +18,32 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.android.sdk.auth.ResolvableContext
-import com.sap.cdc.android.sdk.auth.ResolvableRegistration
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
+import com.sap.cdc.android.sdk.feature.AuthError
+import com.sap.cdc.android.sdk.feature.RegistrationContext
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.PendingRegistrationNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
 import com.sap.cdc.bitsnbytes.ui.view.composables.IndeterminateLinearIndicator
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IPendingRegistrationViewModel
-import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModelPreview
+import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
+import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -59,15 +57,33 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.PendingRegistrationViewModelPreview
 @Composable
 fun PendingRegistrationView(
     viewModel: IPendingRegistrationViewModel,
-    resolvableContext: ResolvableContext
+    registrationContext: RegistrationContext
 ) {
-    val context = LocalContext.current
-    var loading by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
-    var registerError by remember { mutableStateOf("") }
-    val values = remember {
-        mutableStateMapOf(*resolvableContext.registration?.missingRequiredFields!!.map { it to "" }
-            .toTypedArray())
+
+    // Initialize fields on first composition
+    LaunchedEffect(registrationContext) {
+        viewModel.initializeMissingFields(registrationContext)
+    }
+
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is PendingRegistrationNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
+                        toRoute = ProfileScreenRoute.MyProfile.route,
+                        rootRoute = ProfileScreenRoute.Welcome.route
+                    )
+                }
+                is PendingRegistrationNavigationEvent.NavigateToLinkAccount -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.ResolveLinkAccount.route}/${event.linkingContext}"
+                    )
+                }
+            }
+        }
     }
 
     // UI elements
@@ -94,12 +110,13 @@ fun PendingRegistrationView(
                 .padding(start = 48.dp, end = 48.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            resolvableContext.registration?.missingRequiredFields?.forEach { field ->
-                var inputText = values[field].toString()
+            state.missingFields.forEach { field ->
+                val fieldValue = state.fieldValues[field] ?: ""
                 val autoFillHandler =
-                    autoFillRequestHandler(autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Password),
+                    autoFillRequestHandler(
+                        contentTypes = listOf(ContentType.EmailAddress, ContentType.Password),
                         onFill = {
-                            inputText  = it
+                            viewModel.updateFieldValue(field, it)
                         }
                     )
                 Text(
@@ -108,8 +125,10 @@ fun PendingRegistrationView(
                     fontWeight = FontWeight.Light,
                 )
                 TextField(
-                    value = inputText,
-                    modifier = Modifier.fillMaxWidth().connectNode(handler = autoFillHandler)
+                    value = fieldValue,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .connectNode(handler = autoFillHandler)
                         .defaultFocusChangeAutoFill(handler = autoFillHandler),
                     placeholder = {
                         Text(
@@ -124,7 +143,7 @@ fun PendingRegistrationView(
                         fontWeight = FontWeight.Normal
                     ),
                     onValueChange = {
-                        values[field] = it
+                        viewModel.updateFieldValue(field, it)
                     },
                     keyboardActions = KeyboardActions {
                         focusManager.moveFocus(FocusDirection.Next)
@@ -140,37 +159,25 @@ fun PendingRegistrationView(
                     .padding(start = 12.dp, end = 12.dp),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
-                    registerError = ""
-                    loading = true
-                    // Resolve pending registration.
-                    viewModel.resolvePendingRegistrationWithMissingProfileFields(
-                        values,
-                        resolvableContext.regToken!!,
-                        onLogin = {
-                            loading = false
-                            // Route to profile page and pop all routes inclusively so
-                            // The root route will return to the main home screen.
-                            NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                                toRoute = ProfileScreenRoute.MyProfile.route,
-                                rootRoute = ProfileScreenRoute.Welcome.route
-                            )
-                        },
-                        onFailedWith = { error ->
-                            loading = false
-                            if (error != null) {
-                                // Need to display error information.
-                                registerError = error.errorDescription ?: ""
-                            }
-                        })
+                    viewModel.onResolve(registrationContext.regToken!!)
                 }) {
                 Text("Resolve")
+            }
+        }
+
+        LargeVerticalSpacer()
+
+        // Error message
+        state.error?.let { error ->
+            if (error.isNotEmpty()) {
+                SimpleErrorMessages(text = error)
             }
         }
     }
 
     // Loading indicator on top of all views.
     Box(Modifier.fillMaxWidth()) {
-        IndeterminateLinearIndicator(loading)
+        IndeterminateLinearIndicator(state.isLoading)
     }
 }
 
@@ -179,8 +186,12 @@ fun PendingRegistrationView(
 fun PendingRegistrationViewPreview() {
     PendingRegistrationView(
         PendingRegistrationViewModelPreview(),
-        ResolvableContext("", null, null, ResolvableRegistration(listOf("email", "password"))),
+        RegistrationContext(
+            originatingError = AuthError(
+                code = 400,
+                message = "Pending registration error",
+                details = "Missing required fields for registration: nickname"
+            )
+        )
     )
 }
-
-

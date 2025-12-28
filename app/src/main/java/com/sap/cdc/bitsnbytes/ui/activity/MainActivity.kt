@@ -1,80 +1,99 @@
 package com.sap.cdc.bitsnbytes.ui.activity
 
 import android.os.Bundle
+import android.webkit.WebView
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.CDCMessageEventBus
-import com.sap.cdc.android.sdk.SessionEvent
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import androidx.lifecycle.repeatOnLifecycle
+import com.sap.cdc.bitsnbytes.BuildConfig
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.AppStateManager
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.ui.view.screens.HomeScaffoldView
+import com.sap.cdc.bitsnbytes.ui.view.viewmodel.factory.LocalAuthenticationDelegate
 import kotlinx.coroutines.launch
 
 /**
- * Created by Tal Mirmelshtein on 10/06/2024
- * Copyright: SAP LTD.
+ * Main Activity with proper lifecycle management and MVVM architecture.
  *
- * Main application activity class.
+ * Responsibilities:
+ * - Conditional WebView debugging (debug builds only)
+ * - Lifecycle-aware splash screen handling
+ * - UI composition with Jetpack Compose
+ * - Navigation coordinator setup
+ * - Provides single activity-scoped AuthenticationFlowDelegate to entire app
+ *
+ * Session event handling is delegated to MainActivityViewModel for proper MVVM architecture.
  */
 class MainActivity : FragmentActivity() {
+
+    // ViewModel integration with factory that creates AuthenticationFlowDelegate
+    // This ensures a SINGLE delegate instance for the entire activity lifecycle
+    private val viewModel: MainActivityViewModel by viewModels {
+        MainActivityViewModelFactory(applicationContext)
+    }
+
+    // AppStateManager for navigation
+    private val appStateManager: AppStateManager by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashscreen = installSplashScreen()
-        var keepSplashScreen = true
-        super.onCreate(savedInstanceState)
-        splashscreen.setKeepOnScreenCondition { keepSplashScreen }
-        lifecycleScope.launch {
-            keepSplashScreen = false
+        // Install splash screen before super.onCreate()
+        val splashScreen = installSplashScreen()
+
+        // Enable WebView debugging only in debug builds
+        if (BuildConfig.DEBUG) {
+            WebView.setWebContentsDebuggingEnabled(true)
         }
+
+        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Proper splash screen lifecycle management
+        configureSplashScreen(splashScreen)
+
+        // Connect NavigationCoordinator with AppStateManager
+        NavigationCoordinator.INSTANCE.setAppStateManager(appStateManager)
+
         setContent {
             AppTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = AppTheme.colorScheme.background
+                // Provide the SINGLE AuthenticationFlowDelegate instance to entire app
+                CompositionLocalProvider(
+                    LocalAuthenticationDelegate provides viewModel.authenticationFlowDelegate
                 ) {
-                    HomeScaffoldView()
-                }
-            }
-        }
-
-        // Subscribe to session events. This is a global event bus for session events.
-        // If a session event is received, the user will be navigated to the welcome screen.
-        CDCMessageEventBus.subscribeToSessionEvents {
-            when (it) {
-                is SessionEvent.ExpiredSession -> {
-                    CDCDebuggable.log("MainActivity", "Invalidate session event received from bus.")
-                    NavigationCoordinator.INSTANCE.popToRootAndNavigate(
-                        toRoute = ProfileScreenRoute.Welcome.route,
-                        rootRoute = ProfileScreenRoute.Welcome.route
-                    )
-                }
-
-                is SessionEvent.VerifySession -> {
-                    // Verify session
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = AppTheme.colorScheme.background
+                    ) {
+                        // Pass the activity-scoped AppStateManager
+                        HomeScaffoldView(appStateManager = appStateManager)
+                    }
                 }
             }
         }
     }
 
-    override fun onDestroy() {
-        // Dispose the event bus.
-        CDCMessageEventBus.dispose()
-        super.onDestroy()
+    /**
+     * Configure splash screen with proper lifecycle management
+     */
+    private fun configureSplashScreen(splashScreen: androidx.core.splashscreen.SplashScreen) {
+        var keepSplashScreen = true
+        splashScreen.setKeepOnScreenCondition { keepSplashScreen }
+
+        // Use lifecycle-aware coroutine scope
+        lifecycleScope.launch {
+            // Wait for activity to be in STARTED state before dismissing splash
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                keepSplashScreen = false
+            }
+        }
     }
 }
-
-
-
-
-
-
-

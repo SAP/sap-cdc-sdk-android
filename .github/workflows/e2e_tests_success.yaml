@@ -1,0 +1,38 @@
+name: E2E Tests Success Handler
+run-name: E2E Tests Passed
+
+on:
+  repository_dispatch:
+    types: [trigger_event_from_tests, e2e_tests_passed_from_pr]
+
+jobs:
+  tests_done:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display test result
+        run: echo "E2E tests completed successfully"
+      
+      - name: Update commit status to success
+        if: github.event.client_payload.commit_sha
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.client_payload.commit_sha }} \
+            -d '{
+              "state": "success",
+              "context": "E2E Tests (External)",
+              "description": "All E2E tests passed successfully",
+              "target_url": "${{ github.event.client_payload.test_run_url || format('https://github.com/SAP/gigya-mobile-sdk-tests/actions') }}"
+            }'
+      
+      - name: Comment on PR
+        if: github.event.client_payload.pr_number
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.client_payload.pr_number }}/comments \
+            -d '{
+              "body": "✅ **E2E Tests Passed**\n\nAll external end-to-end tests completed successfully.\n\n[View test results](https://github.com/SAP/gigya-mobile-sdk-tests/actions)"
+            }'

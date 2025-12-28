@@ -4,7 +4,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- WeChat specific configuration -->
     <queries>
         <package android:name="com.tencent.mm" />
     </queries>
@@ -31,19 +33,30 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Messaging service extends FirebaseMessagingService to handle incoming messages -->
         <service
-            android:name=".cdc.AppMessagingService"
+            android:name=".feature.messaging.AppMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
+        <!-- CDCNotificationReceiver handles the actions from the notification (approve/deny) -->
         <receiver
-            android:name="com.sap.cdc.android.sdk.auth.notifications.CDCNotificationReceiver"
+            android:name="com.sap.cdc.android.sdk.feature.notifications.CDCNotificationReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="approve" />
@@ -51,15 +64,17 @@
             </intent-filter>
         </receiver>
 
+        <!-- WebLoginActivity displays the web view for web based login flows -->
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.activity.WebLoginActivity"
+            android:name="com.sap.cdc.android.sdk.feature.provider.web.WebLoginActivity"
             android:allowTaskReparenting="true"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.CXCDCAndroidSDK" />
 
+        <!-- SSOLoginActivity handles the redirect from the browser after a successful login -->
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.activity.SSOLoginActivity"
+            android:name="com.sap.cdc.android.sdk.feature.provider.sso.SSOLoginActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.CDC.NoAnimationActivity">
@@ -79,12 +94,19 @@
             </intent-filter>
         </activity>
 
+        <!-- Digital Asset Links for App Links and Identity Federation -->
+        <meta-data
+            android:name="asset_statements"
+            android:resource="@string/asset_statements" />
+
+        <!-- Activity to handle the result of provider sign in flows -->
         <activity
-            android:name="com.sap.cdc.android.sdk.auth.provider.activity.ResultLoginActivity"
+            android:name="com.sap.cdc.android.sdk.feature.provider.ResultLoginActivity"
             android:exported="true"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.CDC.NoAnimationActivity" />
 
+        <!-- START Social providers (declarations required for WeChat, Facebook) -->
         <activity
             android:name=".wxapi.WXEntryActivity"
             android:exported="true"
@@ -117,7 +139,7 @@
             </intent-filter>
         </activity>
 
-
+        <!-- END social providers -->
     </application>
 
 </manifest>

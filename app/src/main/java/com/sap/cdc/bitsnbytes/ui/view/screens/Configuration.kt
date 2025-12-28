@@ -2,6 +2,9 @@
 
 package com.sap.cdc.bitsnbytes.ui.view.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +24,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -28,7 +32,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,13 +45,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomColoredSizeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.LargeVerticalSpacer
 import com.sap.cdc.bitsnbytes.ui.view.composables.MediumVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.ConfigurationViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IConfigurationViewModel
+import com.sap.cdc.bitsnbytes.ui.view.composables.SuccessBanner
+import kotlinx.coroutines.delay
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -59,10 +64,20 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.IConfigurationViewModel
 @Composable
 fun ConfigurationView(viewModel : IConfigurationViewModel) {
     val context = LocalContext.current
-    val apiKey = remember { mutableStateOf(viewModel.currentApiKey()) }
-    val domain = remember { mutableStateOf(viewModel.currentApiDomain()) }
-    val cname = remember { mutableStateOf(viewModel.currentCname()) }
-    var checked by remember { mutableStateOf(viewModel.webViewUse()) }
+    val state by viewModel.state.collectAsState()
+
+    // Refresh state when screen is displayed to show current config values
+    LaunchedEffect(Unit) {
+        viewModel.refreshState()
+    }
+
+    // Auto-hide success banner after 3 seconds
+    LaunchedEffect(state.showSuccessBanner) {
+        if (state.showSuccessBanner) {
+            delay(3000)
+            viewModel.onDismissBanner()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -71,6 +86,18 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
             .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Success banner at top
+        AnimatedVisibility(
+            visible = state.showSuccessBanner,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            SuccessBanner(
+                message = "Configuration saved successfully",
+                onDismiss = { viewModel.onDismissBanner() }
+            )
+        }
+
         // UI elements.
         MediumVerticalSpacer()
         Column(
@@ -79,14 +106,22 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
         ) {
-            ConfigurationCardEdit(title = "Api Key", valueState = apiKey)
+            ConfigurationCardEdit(
+                title = "Api Key",
+                value = state.apiKey,
+                onValueChange = { viewModel.onApiKeyChanged(it) }
+            )
             Spacer(
                 modifier = Modifier
                     .height(2.dp)
                     .fillMaxWidth()
                     .background(color = Color.LightGray)
             )
-            ConfigurationCardExposed(title = "Domain", valueState = domain)
+            ConfigurationCardExposed(
+                title = "Domain",
+                value = state.domain,
+                onValueChange = { viewModel.onDomainChanged(it) }
+            )
             Spacer(
                 modifier = Modifier
                     .height(2.dp)
@@ -94,7 +129,9 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
                     .background(color = Color.LightGray)
             )
             ConfigurationCardEdit(
-                title = "cname".uppercase(), valueState = cname
+                title = "cname".uppercase(),
+                value = state.cname,
+                onValueChange = { viewModel.onCnameChanged(it) }
             )
             CustomColoredSizeVerticalSpacer(
                 color = Color.LightGray,
@@ -102,18 +139,55 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
             )
             Box(modifier = Modifier.height(54.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Use Web View (default: native view)", style = AppTheme.typography.body)
+                    Text(
+                        text = "Use Web View (default: native view)",
+                        style = AppTheme.typography.body,
+                        modifier = Modifier.weight(1f)
+                    )
                     Switch(
-                        checked = viewModel.webViewUse(),
-                        onCheckedChange = {
-                            checked = it
-                            viewModel.updateWebViewUse(checked)
-                        },
-                        thumbContent = if (checked) {
+                        checked = state.useWebView,
+                        onCheckedChange = { viewModel.onWebViewToggled(it) },
+                        thumbContent = if (state.useWebView) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        } else {
+                            null
+                        }
+                    )
+                }
+            }
+            CustomColoredSizeVerticalSpacer(
+                color = Color.LightGray,
+                size = 2.dp
+            )
+            Box(modifier = Modifier.height(54.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Debug Navigation Logging",
+                        style = AppTheme.typography.body,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = state.debugNavigationLogging,
+                        onCheckedChange = { viewModel.onDebugNavigationLoggingToggled(it) },
+                        thumbContent = if (state.debugNavigationLogging) {
                             {
                                 Icon(
                                     imageVector = Icons.Filled.Check,
@@ -133,16 +207,7 @@ fun ConfigurationView(viewModel : IConfigurationViewModel) {
         ActionOutlineInverseButton(
             modifier = Modifier.size(width = 260.dp, height = 48.dp),
             text = "Save Changes",
-            onClick = {
-                viewModel.updateWithNewConfig(
-                    SiteConfig(
-                        context,
-                        apiKey = apiKey.value,
-                        domain = domain.value,
-                        cname = cname.value
-                    )
-                )
-            }
+            onClick = { viewModel.onSaveChanges() }
         )
     }
 }
@@ -156,7 +221,7 @@ fun ConfigurationViewPreview() {
 }
 
 @Composable
-fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
+fun ConfigurationCardEdit(title: String, value: String, onValueChange: (String) -> Unit) {
     MediumVerticalSpacer()
     Column(
     ) {
@@ -164,11 +229,9 @@ fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
             title, style = AppTheme.typography.labelNormal,
             modifier = Modifier.padding(start = 16.dp),)
         TextField(
-            valueState.value,
+            value,
             textStyle = AppTheme.typography.body,
-            onValueChange = {
-                valueState.value = it
-            },
+            onValueChange = onValueChange,
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
@@ -182,7 +245,7 @@ fun ConfigurationCardEdit(title: String, valueState: MutableState<String>) {
 }
 
 @Composable
-fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
+fun ConfigurationCardExposed(title: String, value: String, onValueChange: (String) -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
 
     Column {
@@ -196,7 +259,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
             onExpandedChange = { isExpanded = it })
         {
             TextField(
-                value = valueState.value,
+                value = value,
                 onValueChange = {},
                 readOnly = true,
                 textStyle = AppTheme.typography.body,
@@ -206,7 +269,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
                     unfocusedContainerColor = Color.White
                 ),
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
                     .fillMaxWidth()
             )
 
@@ -224,7 +287,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
                         Text(text = "us1.gigya.com")
                     },
                     onClick = {
-                        valueState.value = "us1.gigya.com"
+                        onValueChange("us1.gigya.com")
                         isExpanded = false
                     },
                 )
@@ -233,7 +296,7 @@ fun ConfigurationCardExposed(title: String, valueState: MutableState<String>) {
                         Text(text = "eu1.gigya.com")
                     },
                     onClick = {
-                        valueState.value = "eu1.gigya.com"
+                        onValueChange("eu1.gigya.com")
                         isExpanded = false
                     },
                 )

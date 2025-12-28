@@ -11,6 +11,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,15 +20,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sap.cdc.bitsnbytes.ui.route.NavigationCoordinator
-import com.sap.cdc.bitsnbytes.ui.route.ProfileScreenRoute
-import com.sap.cdc.bitsnbytes.ui.theme.AppTheme
+import com.sap.cdc.bitsnbytes.apptheme.AppTheme
+import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
+import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
+import com.sap.cdc.bitsnbytes.ui.state.EmailSignInNavigationEvent
 import com.sap.cdc.bitsnbytes.ui.utils.autoFillRequestHandler
 import com.sap.cdc.bitsnbytes.ui.utils.connectNode
 import com.sap.cdc.bitsnbytes.ui.utils.defaultFocusChangeAutoFill
@@ -38,8 +42,6 @@ import com.sap.cdc.bitsnbytes.ui.view.composables.OutlineTitleAndEditPasswordTex
 import com.sap.cdc.bitsnbytes.ui.view.composables.OutlineTitleAndEditTextField
 import com.sap.cdc.bitsnbytes.ui.view.composables.SimpleErrorMessages
 import com.sap.cdc.bitsnbytes.ui.view.composables.SmallVerticalSpacer
-import com.sap.cdc.bitsnbytes.ui.viewmodel.EmailSignInViewModelPreview
-import com.sap.cdc.bitsnbytes.ui.viewmodel.IEmailSignInViewModel
 
 
 /**
@@ -51,20 +53,34 @@ import com.sap.cdc.bitsnbytes.ui.viewmodel.IEmailSignInViewModel
 
 @Composable
 fun EmailSignInView(viewModel: IEmailSignInViewModel) {
-    var loading by remember { mutableStateOf(false) }
-    var email by remember {
-        mutableStateOf("")
-    }
-    var password by remember {
-        mutableStateOf("")
-    }
-    var signInError by remember { mutableStateOf("") }
-    var passwordVisible: Boolean by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
+    var isSwitchChecked by remember { mutableStateOf(false) }
+
+    // Handle navigation events
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is EmailSignInNavigationEvent.NavigateToMyProfile -> {
+                    NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
+                }
+                is EmailSignInNavigationEvent.NavigateToAuthMethods -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.AuthMethods.route}/${event.twoFactorContextJson}"
+                    )
+                }
+                is EmailSignInNavigationEvent.NavigateToPendingRegistration -> {
+                    NavigationCoordinator.INSTANCE.navigate(
+                        "${ProfileScreenRoute.ResolvePendingRegistration.route}/${event.registrationContextJson}"
+                    )
+                }
+            }
+        }
+    }
 
     //UI elements
     LoadingStateColumn(
-        loading
+        state.isLoading
     ) {
 
         LargeVerticalSpacer()
@@ -84,10 +100,8 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
             SmallVerticalSpacer()
             val autoFillHandler =
                 autoFillRequestHandler(
-                    autofillTypes = listOf(AutofillType.EmailAddress),
-                    onFill = {
-                        email = it
-                    }
+                    contentTypes = listOf(ContentType.EmailAddress),
+                    onFill = { viewModel.onEmailChanged(it) }
                 )
 
             OutlineTitleAndEditTextField(
@@ -95,11 +109,9 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
                     .connectNode(handler = autoFillHandler)
                     .defaultFocusChangeAutoFill(handler = autoFillHandler),
                 titleText = "Email: *",
-                inputText = email,
+                inputText = state.email,
                 placeholderText = "Email placeholder",
-                onValueChange = {
-                    email = it
-                },
+                onValueChange = { viewModel.onEmailChanged(it) },
                 focusManager = focusManager
             )
 
@@ -107,13 +119,11 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
             SmallVerticalSpacer()
             OutlineTitleAndEditPasswordTextField(
                 titleText = "Password: *",
-                inputText = password,
+                inputText = state.password,
                 placeholderText = "Password placeholder",
-                passwordVisible = passwordVisible,
-                onValueChange = {
-                    password = it
-                },
-                onEyeClick = { passwordVisible = it },
+                passwordVisible = state.passwordVisible,
+                onValueChange = { viewModel.onPasswordChanged(it) },
+                onEyeClick = { viewModel.onPasswordVisibilityToggled() },
                 focusManager = focusManager
             )
 
@@ -129,53 +139,28 @@ fun EmailSignInView(viewModel: IEmailSignInViewModel) {
             SmallVerticalSpacer()
 
             ActionOutlineButton(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 text = "Login",
-                onClick = {
-                    loading = true
-                    viewModel.login(
-                        email = email, password = password,
-                        onLogin = {
-                            signInError = ""
-                            loading = false
-                            NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.MyProfile.route)
-                        },
-                        onFailedWith = { error ->
-                            loading = false
-                            signInError = error?.errorDescription!!
-                        },
-                        onLoginIdentifierExists = {
-                            loading = false
-                        },
-                        onPendingTwoFactorVerification = { authResponse ->
-                            loading = false
-                            signInError = ""
-                            NavigationCoordinator.INSTANCE
-                                .navigate(
-                                    "${ProfileScreenRoute.AuthMethods.route}/${
-                                        authResponse?.resolvable()?.toJson()
-                                    }"
-                                )
-                        },
-                        onPendingTwoFactorRegistration = { authResponse ->
-                            loading = false
-                            signInError = ""
-                            NavigationCoordinator.INSTANCE
-                                .navigate(
-                                    "${ProfileScreenRoute.AuthMethods.route}/${
-                                        authResponse?.resolvable()?.toJson()
-                                    }"
-                                )
-                        }
-                    )
-                }
+                onClick = { viewModel.onLoginClick() }
             )
 
-            if (signInError.isNotEmpty()) {
-                SimpleErrorMessages(
-                    text = signInError
+            if (state.captchaRequired) {
+                SmallVerticalSpacer()
+                androidx.compose.material3.Switch(
+                    checked = isSwitchChecked,
+                    onCheckedChange = { isChecked ->
+                        isSwitchChecked = isChecked
+                        if (isChecked) {
+                            viewModel.onGetCaptchaToken()
+                        }
+                    }
                 )
+            }
+
+            state.error?.let { error ->
+                if (error.isNotEmpty()) {
+                    SimpleErrorMessages(text = error)
+                }
             }
         }
     }
