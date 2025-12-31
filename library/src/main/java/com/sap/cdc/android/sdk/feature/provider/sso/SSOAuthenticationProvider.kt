@@ -10,7 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.core.net.toUri
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 import com.sap.cdc.android.sdk.feature.AuthErrorCodes
@@ -33,7 +33,7 @@ import kotlin.coroutines.suspendCoroutine
  * (Proof Key for Code Exchange) for enhanced security. Uses Chrome Custom Tabs
  * for a seamless authentication experience.
  * 
- * @property siteConfig CDC site configuration
+ * @property siteConfig CIAM site configuration
  * @property params Optional authentication parameters
  * 
  * @author Tal Mirmelshtein
@@ -69,7 +69,7 @@ class SSOAuthenticationProvider(
     override suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult =
         suspendCoroutine { continuation ->
 
-            CDCDebuggable.log(
+            CIAMDebuggable.log(
                 LOG_TAG,
                 "SSOAuthenticationProvider: signIn"
             )
@@ -96,7 +96,7 @@ class SSOAuthenticationProvider(
             val ssoProviderIntent = Intent(hostActivity, SSOLoginActivity::class.java)
             ssoProviderIntent.putExtra(SSOLoginActivity.Companion.EXTRA_URI, url)
 
-            CDCDebuggable.log(
+            CIAMDebuggable.log(
                 LOG_TAG,
                 "SSOAuthenticationProvider: signIn: url: $url"
             )
@@ -117,7 +117,7 @@ class SSOAuthenticationProvider(
                 val resultCode = result.first
                 when (resultCode) {
                     Activity.RESULT_CANCELED -> {
-                        CDCDebuggable.log(
+                        CIAMDebuggable.log(
                             LOG_TAG,
                             "SSOAuthenticationProvider: signIn: RESULT_CANCELED"
                         )
@@ -131,7 +131,7 @@ class SSOAuthenticationProvider(
                     }
 
                     Activity.RESULT_OK -> {
-                        CDCDebuggable.log(
+                        CIAMDebuggable.log(
                             LOG_TAG,
                             "SSOAuthenticationProvider: signIn: RESULT_OK"
                         )

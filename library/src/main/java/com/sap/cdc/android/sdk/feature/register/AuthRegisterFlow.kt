@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.register
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_FINALIZE_REGISTRATION
@@ -44,7 +44,7 @@ class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.finalizeRegistration](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/228cd8bc68dc477094b3e0e9fe108e23.html?q=accounts.getAccountInfo)
      */
     suspend fun register(parameters: MutableMap<String, String>, callbacks: AuthCallbacks) {
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "register: with parameters:$parameters"
         )
@@ -88,7 +88,7 @@ class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
         }
 
         // Success case
-        CDCDebuggable.log(LOG_TAG, "register: success")
+        CIAMDebuggable.log(LOG_TAG, "register: success")
         // No interruption in flow - secure the session - flow is successful.
         secureNewSession(registration)
 
@@ -103,7 +103,7 @@ class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
      * @see [accounts.finalizeRegistration](https://help.sap.com/docs/SAP_CUSTOMER_DATA_CLOUD/8b8d6fffe113457094a17701f63e3d6a/228cd8bc68dc477094b3e0e9fe108e23.html?q=accounts.getAccountInfo)
      */
     suspend fun finalize(parameters: MutableMap<String, String>, callbacks: AuthCallbacks) {
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "finalize: with parameters:$parameters"
         )
@@ -127,7 +127,7 @@ class AuthRegisterFlow(coreClient: CoreClient, sessionService: SessionService) :
         parameters: MutableMap<String, String>,
         callbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "resolveWith: with parameters:$parameters"
         )

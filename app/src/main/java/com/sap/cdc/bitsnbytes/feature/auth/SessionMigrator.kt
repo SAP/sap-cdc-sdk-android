@@ -24,7 +24,7 @@ import javax.crypto.spec.GCMParameterSpec
  * The migrator will decode a secured session that was created by previous SDK (v6+) and
  * re-secure it using current SDK standards.
  *
- * Use this class in any "init" function of your CDC SDK wrapper class to ensure migration is
+ * Use this class in any "init" function of your CIAM SDK wrapper class to ensure migration is
  * preformed before any other SDK actions.
  */
 class SessionMigrator(private val context: Context) {
@@ -48,7 +48,7 @@ class SessionMigrator(private val context: Context) {
     }
 
     /**
-     * Try to migrate an existing session created from an old version of the CDC SDK.
+     * Try to migrate an existing session created from an old version of the CIAM SDK.
      */
     fun tryMigrateSession(
         authenticationService: AuthenticationService,

@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.core.network
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.DefaultRequest
@@ -15,14 +15,14 @@ import io.ktor.http.HttpHeaders
 /**
  * Production implementation of HttpClientProvider using Ktor with Android engine.
  * 
- * This is the default HTTP client provider used by the SAP CDC SDK in production
+ * This is the default HTTP client provider used by the SAP CIAM SDK in production
  * environments. It configures a Ktor HttpClient with the Android engine optimized
- * for CDC API communication.
+ * for CIAM API communication.
  * 
  * Configuration includes:
  * - **Android Engine**: Native Android HTTP engine for optimal performance
  * - **Timeouts**: 30-second connect and socket timeouts
- * - **Logging**: Comprehensive request/response logging through CDCDebuggable
+ * - **Logging**: Comprehensive request/response logging through CIAMDebuggable
  * - **Response Observer**: HTTP status monitoring for debugging
  * - **Default Headers**: Content-Type set to application/x-www-form-urlencoded
  * 
@@ -43,7 +43,7 @@ class KtorHttpClientProvider : HttpClientProvider {
         
         /**
          * Timeout duration in milliseconds for both connect and socket operations.
-         * Set to 30 seconds (30,000 ms) to allow sufficient time for CDC API responses.
+         * Set to 30 seconds (30,000 ms) to allow sufficient time for CIAM API responses.
          */
         private const val TIME_OUT = 30_000
     }
@@ -59,11 +59,11 @@ class KtorHttpClientProvider : HttpClientProvider {
      * - 30-second socket timeout
      * 
      * **Installed Plugins:**
-     * - **Logging**: Logs all HTTP traffic (headers, body, etc.) through CDCDebuggable
+     * - **Logging**: Logs all HTTP traffic (headers, body, etc.) through CIAMDebuggable
      * - **ResponseObserver**: Monitors HTTP response status codes for debugging
      * - **DefaultRequest**: Sets default Content-Type header to application/x-www-form-urlencoded
      * 
-     * @return A fully configured HttpClient instance ready for CDC API requests
+     * @return A fully configured HttpClient instance ready for CIAM API requests
      * 
      * @see HttpClientProvider.createHttpClient
      */
@@ -76,7 +76,7 @@ class KtorHttpClientProvider : HttpClientProvider {
         install(Logging) {
             logger = object : Logger {
                 override fun log(message: String) {
-                    CDCDebuggable.log(LOG_TAG, message)
+                    CIAMDebuggable.log(LOG_TAG, message)
                 }
             }
             level = LogLevel.ALL
@@ -84,7 +84,7 @@ class KtorHttpClientProvider : HttpClientProvider {
 
         install(ResponseObserver) {
             onResponse { response ->
-                CDCDebuggable.log(LOG_TAG, "HTTP Status: ${response.status.value}")
+                CIAMDebuggable.log(LOG_TAG, "HTTP Status: ${response.status.value}")
             }
         }
 

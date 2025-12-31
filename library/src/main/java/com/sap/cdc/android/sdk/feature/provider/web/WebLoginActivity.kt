@@ -14,8 +14,8 @@ import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import android.window.OnBackInvokedDispatcher
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.R
+import com.sap.cdc.android.sdk.CIAMDebuggable
+import com.sap.ciam.android.sdk.R
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 
 /**
@@ -54,13 +54,13 @@ class WebLoginActivity : ComponentActivity() {
         }
         // Application can override this XML file and customize is according to app specifications.
         // View ids however are strict and need to remain.
-        setContentView(R.layout.sap_cdc_android_webloginactivity)
+        setContentView(R.layout.sap_ciam_android_webloginactivity)
 
         // ProgressBar widget is available to show on WebView start/finished state.
-        progressBar = findViewById(R.id.sapCdcAndroidWebLoginProgressBar)
+        progressBar = findViewById(R.id.sapCiamAndroidWebLoginProgressBar)
 
         // WebView widget is mandatory for this Activity.
-        webView = findViewById(R.id.sapCdcAndroidWebLoginWebView)
+        webView = findViewById(R.id.sapCiamAndroidWebLoginWebView)
         setupWebViewElement()
 
         // Get URI extra.
@@ -88,12 +88,12 @@ class WebLoginActivity : ComponentActivity() {
         webView.webViewClient = object : WebViewClient() {
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                CDCDebuggable.log(LOG_TAG, "onPageStarted: $url")
+                CIAMDebuggable.log(LOG_TAG, "onPageStarted: $url")
                 progressBar?.visibility = View.VISIBLE
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
-                CDCDebuggable.log(LOG_TAG, "onPageFinished: $url")
+                CIAMDebuggable.log(LOG_TAG, "onPageFinished: $url")
                 progressBar?.visibility = View.INVISIBLE
             }
 
@@ -101,7 +101,7 @@ class WebLoginActivity : ComponentActivity() {
                 view: WebView?,
                 request: WebResourceRequest?
             ): Boolean {
-                CDCDebuggable.log(LOG_TAG, "shouldOverrideUrlLoading: ${request?.url}")
+                CIAMDebuggable.log(LOG_TAG, "shouldOverrideUrlLoading: ${request?.url}")
                 if (request == null) return true
                 if (loginResult(request.url)) {
                     return false
@@ -122,7 +122,7 @@ class WebLoginActivity : ComponentActivity() {
         if (uri == null) return false
         val scheme = uri.scheme
         val host = uri.host
-        CDCDebuggable.log(LOG_TAG, "loginResult: scheme:$scheme host:$host")
+        CIAMDebuggable.log(LOG_TAG, "loginResult: scheme:$scheme host:$host")
 
         if (scheme == null || host == null) return false
         if (scheme == "gigya" && host == "gsapi") {

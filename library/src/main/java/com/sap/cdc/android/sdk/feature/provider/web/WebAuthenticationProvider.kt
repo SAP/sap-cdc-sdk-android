@@ -7,9 +7,9 @@ import android.util.Pair
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.api.CIAMResponse
 import com.sap.cdc.android.sdk.core.api.utils.toEncodedQuery
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthEndpoints
@@ -32,10 +32,10 @@ import kotlin.coroutines.suspendCoroutine
  * Web-based social authentication provider.
  *
  * Implements social login using WebView for providers that don't have native SDK support.
- * Handles OAuth 1.0a flow with the CDC socialize.login endpoint.
+ * Handles OAuth 1.0a flow with the CIAM socialize.login endpoint.
  *
  * @property socialProvider Social provider identifier (e.g., "twitter", "linkedin")
- * @property siteConfig CDC site configuration
+ * @property siteConfig CIAM site configuration
  *
  * @author Tal Mirmelshtein
  * @since 10/06/2024
@@ -60,7 +60,7 @@ class WebAuthenticationProvider(
     override fun getProvider(): String = this.socialProvider
 
     override suspend fun signIn(hostActivity: ComponentActivity?): AuthenticatorProviderResult {
-        CDCDebuggable.log(LOG_TAG, "signIn: with parameters: $socialProvider")
+        CIAMDebuggable.log(LOG_TAG, "signIn: with parameters: $socialProvider")
         return suspendCoroutine { continuation ->
 
             if (hostActivity == null) {
@@ -78,7 +78,7 @@ class WebAuthenticationProvider(
             webProviderIntent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             webProviderIntent.putExtra(WebLoginActivity.Companion.EXTRA_URI, uri)
 
-            CDCDebuggable.log(LOG_TAG, "signIn: launching web login activity with uri: $uri")
+            CIAMDebuggable.log(LOG_TAG, "signIn: launching web login activity with uri: $uri")
 
             launcher = hostActivity.activityResultRegistry.register(
                 "web-login",
@@ -96,7 +96,7 @@ class WebAuthenticationProvider(
                 val resultCode = result.first
                 when (resultCode) {
                     Activity.RESULT_CANCELED -> {
-                        CDCDebuggable.log(LOG_TAG, "signIn: RESULT_CANCELED")
+                        CIAMDebuggable.log(LOG_TAG, "signIn: RESULT_CANCELED")
                         dispose()
                         continuation.resumeWithException(
                             ProviderException(
@@ -107,9 +107,9 @@ class WebAuthenticationProvider(
                     }
 
                     Activity.RESULT_OK -> {
-                        CDCDebuggable.log(LOG_TAG, "signIn: RESULT_OK")
+                        CIAMDebuggable.log(LOG_TAG, "signIn: RESULT_OK")
                         val resultData = result.second
-                        CDCDebuggable.log(
+                        CIAMDebuggable.log(
                             LOG_TAG,
                             "onActivityResult: intent null: ${resultData == null}"
                         )
@@ -203,9 +203,9 @@ class WebAuthenticationProvider(
      * Parses error information from the authentication result.
      * Extracts error code and message, optionally includes registration token.
      * @param result Result intent containing error data
-     * @return CDCResponse with parsed error details
+     * @return CIAMResponse with parsed error details
      */
-    private fun handleErrorInfo(result: Intent): CDCResponse {
+    private fun handleErrorInfo(result: Intent): CIAMResponse {
         val errorDescription = result.getStringExtra("error_description")
         val parts =
             errorDescription!!.replace("+", "").split("-".toRegex()).dropLastWhile { it.isEmpty() }
@@ -229,7 +229,7 @@ class WebAuthenticationProvider(
         val jsonObject = JsonObject(jsonMap)
         val jsonString = jsonObject.toString()
 
-        return CDCResponse().fromJSON(jsonString)
+        return CIAMResponse().fromJSON(jsonString)
     }
 
     override suspend fun signOut(hostActivity: ComponentActivity?) {

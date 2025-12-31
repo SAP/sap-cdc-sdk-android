@@ -10,7 +10,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.GetPublicKeyCredentialOption
 import androidx.credentials.PublicKeyCredential
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.feature.provider.passkey.IPasskeysAuthenticationProvider
 import java.lang.ref.WeakReference
 
@@ -55,7 +55,7 @@ class PasskeysAuthenticationProvider(
                 null
             }
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, e.message ?: "Error creating passkey")
+            CIAMDebuggable.log(LOG_TAG, e.message ?: "Error creating passkey")
             return null
         }
     }
@@ -88,7 +88,7 @@ class PasskeysAuthenticationProvider(
                 null
             }
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, e.message ?: "Error getting passkey")
+            CIAMDebuggable.log(LOG_TAG, e.message ?: "Error getting passkey")
             return null
         }
     }

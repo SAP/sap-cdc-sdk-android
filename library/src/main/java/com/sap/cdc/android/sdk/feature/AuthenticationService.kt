@@ -3,12 +3,12 @@ package com.sap.cdc.android.sdk.feature
 import androidx.core.content.edit
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.events.CIAMEventBusProvider
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.account.AuthAccount
 import com.sap.cdc.android.sdk.feature.account.IAuthAccount
-import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationManager
-import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationOptions
+import com.sap.cdc.android.sdk.feature.notifications.CIAMNotificationManager
+import com.sap.cdc.android.sdk.feature.notifications.CIAMNotificationOptions
 import com.sap.cdc.android.sdk.feature.notifications.IFCMTokenRequest
 import com.sap.cdc.android.sdk.feature.session.AuthSession
 import com.sap.cdc.android.sdk.feature.session.IAuthSession
@@ -47,17 +47,17 @@ class AuthenticationService(
 ) {
     val coreClient: CoreClient = CoreClient(siteConfig)
     
-    // Lazy initialization to ensure CDCEventBus is initialized first (in init block)
+    // Lazy initialization to ensure CIAMEventBus is initialized first (in init block)
     // before SessionService/SessionSecure attempts to subscribe to events
     val sessionService: SessionService by lazy { SessionService(siteConfig) }
     
-    private lateinit var _notificationManager: CDCNotificationManager
+    private lateinit var _notificationManager: CIAMNotificationManager
     private var _sessionValidationService: SessionValidationService? = null
 
     init {
         // Initialize the lifecycle-aware event bus when the SDK is first created
-        if (!CDCEventBusProvider.isInitialized()) {
-            CDCEventBusProvider.initialize()
+        if (!CIAMEventBusProvider.isInitialized()) {
+            CIAMEventBusProvider.initialize()
         }
     }
 
@@ -139,9 +139,9 @@ class AuthenticationService(
      */
     fun registerForPushAuthentication(
         fcmTokenRequest: IFCMTokenRequest,
-        notificationOptions: CDCNotificationOptions? = CDCNotificationOptions()
+        notificationOptions: CIAMNotificationOptions? = CIAMNotificationOptions()
     ) = apply {
-        _notificationManager = CDCNotificationManager(
+        _notificationManager = CIAMNotificationManager(
             authenticationService = this,
             notificationOptions = notificationOptions!!
         )

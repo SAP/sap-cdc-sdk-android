@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.session.validation
 
-import com.sap.cdc.android.sdk.BuildConfig
+import com.sap.ciam.android.sdk.BuildConfig
 
 /**
  * Configuration for periodic session validation.

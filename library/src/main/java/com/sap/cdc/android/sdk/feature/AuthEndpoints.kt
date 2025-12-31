@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.feature
 
 /**
- * SAP CDC API endpoint constants.
+ * SAP CIAM API endpoint constants.
  * 
  * Centralized collection of all CDC REST API endpoint identifiers used throughout
  * the SDK for authentication, account management, social login, OTP, OAuth, passkeys,

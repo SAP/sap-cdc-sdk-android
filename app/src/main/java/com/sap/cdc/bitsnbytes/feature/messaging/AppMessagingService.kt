@@ -7,7 +7,7 @@ import com.sap.cdc.android.sdk.events.emitTokenReceived
 
 /**
  * Firebase Messaging Service to handle incoming messages and token updates.
- * Integrates with the CDC event bus to emit relevant events.
+ * Integrates with the CIAM event bus to emit relevant events.
  */
 class AppMessagingService() : FirebaseMessagingService() {
 

@@ -57,6 +57,7 @@ data class OTPContext(
 
 @Serializable
 data class RegistrationContext(
+    //TODO: Not a part of the context. Move to app.
     var missingRequiredFields: List<String>? = null,
     val regToken: String? = null,
     val originatingError: AuthError? = null

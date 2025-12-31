@@ -2,7 +2,7 @@ package com.sap.cdc.android.sdk.feature.screensets
 
 import android.view.ViewGroup
 import android.webkit.WebView
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 
 /**
  * Extension methods for WebBridgeJS to simplify ScreenSetsCallbacks usage
@@ -50,8 +50,8 @@ fun WebBridgeJS.disposeWebViewImmediately(webView: WebView) {
         // 2. Forcibly remove from parent ViewGroup to ensure immediate UI removal
         (webView.parent as? ViewGroup)?.removeView(webView)
         
-        CDCDebuggable.log(WebBridgeJS.LOG_TAG, "WebView disposed immediately and removed from view hierarchy")
+        CIAMDebuggable.log(WebBridgeJS.LOG_TAG, "WebView disposed immediately and removed from view hierarchy")
     } catch (e: Exception) {
-        CDCDebuggable.log(WebBridgeJS.LOG_TAG, "Error during immediate WebView disposal: ${e.message}")
+        CIAMDebuggable.log(WebBridgeJS.LOG_TAG, "Error during immediate WebView disposal: ${e.message}")
     }
 }

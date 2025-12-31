@@ -43,10 +43,10 @@ jobs:
           }
           
           # API keys/domains for demo.variant
-          upsert_string app/src/main/res/values/strings.xml "com.sap.cxcdc.apikey" '${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}'
-          upsert_string app/src/main/res/values/strings.xml "com.sap.cxcdc.domain" 'us1.gigya.com'
-          upsert_string app/src/variant/res/values/strings.xml "com.sap.cxcdc.apikey" '${{ secrets.BITS_N_BYTES_VARIANT_API_KEY }}'
-          upsert_string app/src/variant/res/values/strings.xml "com.sap.cxcdc.domain" 'us1.gigya.com'
+          upsert_string app/src/main/res/values/strings.xml "com.sap.ciam.apikey" '${{ secrets.BITS_N_BYTES_DEMO_API_KEY }}'
+          upsert_string app/src/main/res/values/strings.xml "com.sap.ciam.domain" 'us1.gigya.com'
+          upsert_string app/src/variant/res/values/strings.xml "com.sap.ciam.apikey" '${{ secrets.BITS_N_BYTES_VARIANT_API_KEY }}'
+          upsert_string app/src/variant/res/values/strings.xml "com.sap.ciam.domain" 'us1.gigya.com'
           
           # Asset statements
           upsert_string app/src/main/res/values/strings.xml "asset_statements" '${{ secrets.BITS_N_BYTES_ASSET_STATEMENTS }}'

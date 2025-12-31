@@ -1,8 +1,8 @@
 package com.sap.cdc.android.sdk.feature
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.api.CIAMResponse
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_TFA_GET_PROVIDERS
@@ -76,13 +76,13 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     /**
      * Extracts and secures a new session from the authentication response.
      *
-     * When a CDC API response contains session information (under the "sessionInfo" key),
+     * When a CIAM API response contains session information (under the "sessionInfo" key),
      * this method extracts the session and stores it securely via the SessionService.
      * This changes the login state of the application.
      *
      * @param response The CDC response that may contain session information
      */
-    fun secureNewSession(response: CDCResponse) {
+    fun secureNewSession(response: CIAMResponse) {
         if (response.containsKey("sessionInfo")) {
             val session = response.serializeObject<Session>("sessionInfo")
             if (session != null) {
@@ -105,7 +105,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * @param callbacks Authentication callbacks to invoke for interruption handling
      */
     protected suspend fun handleResolvableInterruption(
-        response: CDCResponse,
+        response: CIAMResponse,
         callbacks: AuthCallbacks
     ) {
         val regToken: String? = response.stringField("regToken")
@@ -168,7 +168,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      */
     protected suspend fun handleTwoFactorRequired(
         initiator: TwoFactorInitiator,
-        response: CDCResponse,
+        response: CIAMResponse,
         regToken: String?,
         callbacks: AuthCallbacks
     ) {
@@ -206,7 +206,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * @param callbacks Authentication callbacks to invoke
      */
     protected fun handleOTPRequired(
-        response: CDCResponse,
+        response: CIAMResponse,
         callbacks: AuthCallbacks
     ) {
         val otpContext = OTPContext(
@@ -235,7 +235,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * @param callbacks Authentication callbacks to invoke
      */
     protected fun handlePendingRegistration(
-        response: CDCResponse,
+        response: CIAMResponse,
         regToken: String?,
         callbacks: AuthCallbacks
     ) {
@@ -265,7 +265,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * @param callbacks Authentication callbacks to invoke
      */
     protected suspend fun handleLinkingRequired(
-        response: CDCResponse,
+        response: CIAMResponse,
         regToken: String?,
         callbacks: AuthCallbacks
     ) {
@@ -305,7 +305,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * @param response The CDC response to evaluate
      * @return true if the response contains a resolvable interruption, false otherwise
      */
-    protected fun isResolvableContext(response: CDCResponse): Boolean {
+    protected fun isResolvableContext(response: CIAMResponse): Boolean {
         return ResolvableContext.Companion.resolvables.containsKey(response.errorCode()) ||
                 response.containsKey("vToken")
     }
@@ -319,7 +319,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * @param response The successful CDC response
      * @return AuthSuccess containing the response data
      */
-    protected fun createAuthSuccess(response: CDCResponse): AuthSuccess {
+    protected fun createAuthSuccess(response: CIAMResponse): AuthSuccess {
         val userData = response.jsonObject?.toMap() ?: emptyMap()
         return AuthSuccess(response.jsonResponse ?: "{}", userData)
     }
@@ -333,7 +333,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      * @param response The error CDC response
      * @return AuthError containing the error information
      */
-    protected fun createAuthError(response: CDCResponse): AuthError {
+    protected fun createAuthError(response: CIAMResponse): AuthError {
         return AuthError(
             code = response.errorCode(),
             message = response.errorMessage() ?: "Unknown error",
@@ -351,7 +351,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
     protected suspend fun getConflictingAccountsSync(
         parameters: MutableMap<String, String>? = mutableMapOf()
     ): AuthResult {
-        CDCDebuggable.log(LOG_TAG, "getConflictingAccounts: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "getConflictingAccounts: with parameters:$parameters")
 
         val response = AuthenticationApi(coreClient, sessionService).send(
             EP_ACCOUNTS_GET_CONFLICTING_ACCOUNTS,
@@ -374,7 +374,7 @@ open class AuthFlow(val coreClient: CoreClient, val sessionService: SessionServi
      */
     protected suspend fun getTwoFactorProvidersSync(parameters: MutableMap<String, String>? = mutableMapOf())
             : AuthResult {
-        CDCDebuggable.log(LOG_TAG, "getTFAProviders: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "getTFAProviders: with parameters:$parameters")
         val response = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_GET_PROVIDERS,
             parameters!!

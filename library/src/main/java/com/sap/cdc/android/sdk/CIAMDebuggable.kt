@@ -2,25 +2,26 @@ package com.sap.cdc.android.sdk
 
 import android.util.Log
 import android.webkit.WebView
+import com.sap.cdc.android.sdk.CIAMDebuggable.debugLogging
 import com.sap.cdc.android.sdk.core.network.NetworkClient
 
 /**
- * Debug logging utility for SAP CDC Android SDK.
+ * Debug logging utility for SAP CIAM Android SDK.
  * 
- * Centralized control for SDK logging. All logs are prefixed with "CDC_" for easy filtering.
+ * Centralized control for SDK logging. All logs are prefixed with "CIAM_" for easy filtering.
  * 
  * ```kotlin
  * // Enable in Application.onCreate()
  * if (BuildConfig.DEBUG) {
- *     CDCDebuggable.debugLogging(true)
- *     CDCDebuggable.httpLogging(true)
- *     CDCDebuggable.setWebViewDebuggable(true)
+ *     CIAMDebuggable.debugLogging(true)
+ *     CIAMDebuggable.httpLogging(true)
+ *     CIAMDebuggable.setWebViewDebuggable(true)
  * }
  * 
- * // Filter logs: adb logcat | grep CDC_
+ * // Filter logs: adb logcat | grep CIAM_
  * ```
  */
-object CDCDebuggable {
+object CIAMDebuggable {
 
     private var debug: Boolean = false
     private var http: Boolean = false
@@ -58,7 +59,7 @@ object CDCDebuggable {
     }
 
     /**
-     * Internal logging method. Logs are prefixed with "CDC_".
+     * Internal logging method. Logs are prefixed with "CIAM_".
      * @param tag Component tag
      * @param message Log message
      */
@@ -67,7 +68,7 @@ object CDCDebuggable {
             if (tag == NetworkClient.LOG_TAG && !http) {
                 return
             }
-            Log.d("CDC_$tag", message)
+            Log.d("CIAM_$tag", message)
         }
     }
 }

@@ -12,7 +12,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthError
@@ -169,7 +169,7 @@ class BiometricAuth(private val sessionService: SessionService) {
             iv = String(Base64.encode(cipher.iv, Base64.DEFAULT))
         )
 
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "Biometric session encrypted in addition to the default encryption"
         )
@@ -180,7 +180,7 @@ class BiometricAuth(private val sessionService: SessionService) {
      * and only the default AES session encryption will remain.
      */
     private fun biometricUnsecure(sessionEntity: SessionEntity, cipher: Cipher, optOut: Boolean) {
-        CDCDebuggable.log(LOG_TAG, "biometricUnsecure: save:$optOut")
+        CIAMDebuggable.log(LOG_TAG, "biometricUnsecure: save:$optOut")
         val encryptedSession = sessionEntity.session
         val encryptedBytes = Base64.decode(encryptedSession, Base64.DEFAULT)
         val decryptedSession = String(cipher.doFinal(encryptedBytes))
@@ -194,7 +194,7 @@ class BiometricAuth(private val sessionService: SessionService) {
             sessionService.unlockBiometricSession(decryptedSession)
         }
 
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "Biometric session decrypted and resaved with default encryption"
         )
@@ -229,7 +229,7 @@ class BiometricAuth(private val sessionService: SessionService) {
 
         val sessionEntity = getSessionEntity()
         if (sessionEntity == null) {
-            CDCDebuggable.log(LOG_TAG, "Biometric OptOut: No session to unlock, invalidating biometric state")
+            CIAMDebuggable.log(LOG_TAG, "Biometric OptOut: No session to unlock, invalidating biometric state")
 
             callbacks.onError?.invoke(createBiometricAuthError(null, "Session Unavailable"))
 
@@ -249,7 +249,7 @@ class BiometricAuth(private val sessionService: SessionService) {
             object : BiometricPrompt.AuthenticationCallback() {
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    CDCDebuggable.log(
+                    CIAMDebuggable.log(
                         LOG_TAG,
                         "Biometric OptOut: onAuthenticationError: code: $errorCode, message: $errString"
                     )
@@ -257,13 +257,13 @@ class BiometricAuth(private val sessionService: SessionService) {
                 }
 
                 override fun onAuthenticationFailed() {
-                    CDCDebuggable.log(LOG_TAG, "Biometric OptOut: onAuthenticationFailed")
+                    CIAMDebuggable.log(LOG_TAG, "Biometric OptOut: onAuthenticationFailed")
                     callbacks.onError?.invoke(createBiometricAuthError(null, "Authentication failed"))
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
 
-                    CDCDebuggable.log(LOG_TAG, "Biometric OptOut: onAuthenticationSucceeded")
+                    CIAMDebuggable.log(LOG_TAG, "Biometric OptOut: onAuthenticationSucceeded")
                     val cryptoObjectCipher = result.cryptoObject?.cipher
                     if (cryptoObjectCipher != null) {
                         // Decrypt session with biometric key and re-encrypt session with default setting.
@@ -303,7 +303,7 @@ class BiometricAuth(private val sessionService: SessionService) {
             object : BiometricPrompt.AuthenticationCallback() {
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    CDCDebuggable.log(
+                    CIAMDebuggable.log(
                         LOG_TAG,
                         "Biometric OptIn: onAuthenticationError: code: $errorCode, message: $errString"
                     )
@@ -311,15 +311,15 @@ class BiometricAuth(private val sessionService: SessionService) {
                 }
 
                 override fun onAuthenticationFailed() {
-                    CDCDebuggable.log(LOG_TAG, "Biometric OptIn: onAuthenticationFailed")
+                    CIAMDebuggable.log(LOG_TAG, "Biometric OptIn: onAuthenticationFailed")
                     callbacks.onError?.invoke(createBiometricAuthError(null, "Authentication failed"))
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    CDCDebuggable.log(LOG_TAG, "Biometric OptIn: onAuthenticationSucceeded")
+                    CIAMDebuggable.log(LOG_TAG, "Biometric OptIn: onAuthenticationSucceeded")
                     val cryptoObjectCipher = result.cryptoObject?.cipher
                     if (cryptoObjectCipher == null) {
-                        CDCDebuggable.log(
+                        CIAMDebuggable.log(
                             LOG_TAG,
                             "Biometric OptIn: onAuthenticationSucceeded - Error no Cipher"
                         )

@@ -4,7 +4,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -14,13 +14,13 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 /**
- * Concrete implementation of the lifecycle-aware event bus for the CDC SDK.
+ * Concrete implementation of the lifecycle-aware event bus for the CIAM SDK.
  * Uses coroutines and channels for efficient event distribution with lifecycle awareness.
  */
-class CDCLifecycleEventBus : LifecycleAwareEventBus {
+class CIAMLifecycleEventBus : LifecycleAwareEventBus {
     
     companion object {
-        private const val LOG_TAG = "CDCLifecycleEventBus"
+        private const val LOG_TAG = "CIAMLifecycleEventBus"
     }
     
     // Event channels for different event types and scopes
@@ -41,7 +41,7 @@ class CDCLifecycleEventBus : LifecycleAwareEventBus {
     ) {
         val eventKey = EventKey(eventClass, scope)
         
-        CDCDebuggable.log(LOG_TAG, "Subscribing to ${eventClass.simpleName} events with scope $scope")
+        CIAMDebuggable.log(LOG_TAG, "Subscribing to ${eventClass.simpleName} events with scope $scope")
         
         // Create or get existing channel
         val channel = eventChannels.getOrPut(eventKey) {
@@ -63,7 +63,7 @@ class CDCLifecycleEventBus : LifecycleAwareEventBus {
                         }
                     }
                 } catch (e: Exception) {
-                    CDCDebuggable.log(LOG_TAG, "Event handling error: ${e.message}")
+                    CIAMDebuggable.log(LOG_TAG, "Event handling error: ${e.message}")
                     break
                 }
             }
@@ -85,7 +85,7 @@ class CDCLifecycleEventBus : LifecycleAwareEventBus {
     ): EventSubscription {
         val eventKey = EventKey(eventClass, scope)
         
-        CDCDebuggable.log(LOG_TAG, "Manual subscription to ${eventClass.simpleName} events with scope $scope")
+        CIAMDebuggable.log(LOG_TAG, "Manual subscription to ${eventClass.simpleName} events with scope $scope")
         
         // Create or get existing channel
         val channel = eventChannels.getOrPut(eventKey) {
@@ -101,7 +101,7 @@ class CDCLifecycleEventBus : LifecycleAwareEventBus {
                         @Suppress("UNCHECKED_CAST")
                         onEvent(event as T)
                     } catch (e: Exception) {
-                        CDCDebuggable.log(LOG_TAG, "Event handling error: ${e.message}")
+                        CIAMDebuggable.log(LOG_TAG, "Event handling error: ${e.message}")
                     }
                 }
             },
@@ -129,24 +129,24 @@ class CDCLifecycleEventBus : LifecycleAwareEventBus {
         }
         
         if (matchingChannels.isNotEmpty()) {
-            CDCDebuggable.log(LOG_TAG, "Emitting ${event::class.simpleName} event with scope $scope to ${matchingChannels.size} subscriber(s)")
+            CIAMDebuggable.log(LOG_TAG, "Emitting ${event::class.simpleName} event with scope $scope to ${matchingChannels.size} subscriber(s)")
             
             CoroutineScope(dispatcher).launch {
                 matchingChannels.values.forEach { channel ->
                     try {
                         channel.trySend(event)
                     } catch (e: Exception) {
-                        CDCDebuggable.log(LOG_TAG, "Event emission error: ${e.message}")
+                        CIAMDebuggable.log(LOG_TAG, "Event emission error: ${e.message}")
                     }
                 }
             }
         } else {
-            CDCDebuggable.log(LOG_TAG, "No subscribers for ${event::class.simpleName} event with scope $scope")
+            CIAMDebuggable.log(LOG_TAG, "No subscribers for ${event::class.simpleName} event with scope $scope")
         }
     }
     
     override fun clearScope(scope: EventScope) {
-        CDCDebuggable.log(LOG_TAG, "Clearing scope: $scope")
+        CIAMDebuggable.log(LOG_TAG, "Clearing scope: $scope")
         
         val keysToRemove = eventChannels.keys.filter { it.scope == scope }
         
@@ -169,7 +169,7 @@ class CDCLifecycleEventBus : LifecycleAwareEventBus {
     }
     
     private fun cleanupLifecycleSubscriptions(lifecycleOwner: LifecycleOwner) {
-        CDCDebuggable.log(LOG_TAG, "Cleaning up lifecycle subscriptions for $lifecycleOwner")
+        CIAMDebuggable.log(LOG_TAG, "Cleaning up lifecycle subscriptions for $lifecycleOwner")
         
         lifecycleSubscriptions[lifecycleOwner]?.forEach { eventKey ->
             // Only close channel if no manual subscriptions exist
@@ -182,7 +182,7 @@ class CDCLifecycleEventBus : LifecycleAwareEventBus {
     }
     
     private fun unsubscribeManual(eventKey: EventKey, subscription: ManualEventSubscription) {
-        CDCDebuggable.log(LOG_TAG, "Unsubscribing manual subscription for ${eventKey.eventClass.simpleName}")
+        CIAMDebuggable.log(LOG_TAG, "Unsubscribing manual subscription for ${eventKey.eventClass.simpleName}")
         
         manualSubscriptions[eventKey]?.remove(subscription)
         

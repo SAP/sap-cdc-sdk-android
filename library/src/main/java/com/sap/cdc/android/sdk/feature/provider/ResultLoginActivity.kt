@@ -2,7 +2,7 @@ package com.sap.cdc.android.sdk.feature.provider
 
 import android.content.Intent
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 
 /**
  * Result handler activity for authentication provider flows.
@@ -25,7 +25,7 @@ class ResultLoginActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        CDCDebuggable.log(LOG_TAG, "onNewIntent: recieved")
+        CIAMDebuggable.log(LOG_TAG, "onNewIntent: recieved")
         setResult(RESULT_OK, intent)
         finish()
     }

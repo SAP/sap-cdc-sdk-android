@@ -1,18 +1,18 @@
 package com.sap.cdc.android.sdk.core.api
 
-import com.sap.cdc.android.sdk.BuildConfig
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.core.api.utils.AndroidBase64Encoder
 import com.sap.cdc.android.sdk.core.api.utils.Signing
 import com.sap.cdc.android.sdk.core.api.utils.SigningSpec
+import com.sap.ciam.android.sdk.BuildConfig
 import io.ktor.http.HttpMethod
 import io.ktor.util.generateNonce
 
 /**
- * Builder class for constructing SAP CDC API requests.
+ * Builder class for constructing SAP CIAM API requests.
  * 
- * This class provides a fluent interface for building CDC API requests with all necessary
+ * This class provides a fluent interface for building CIAM API requests with all necessary
  * parameters, headers, authentication, and signatures. It automatically handles:
  * - Default request parameters (API key, SDK version, format, nonce)
  * - HTTP method configuration
@@ -20,18 +20,18 @@ import io.ktor.util.generateNonce
  * - User-Agent header extraction and configuration
  * - GMID handling
  * 
- * The CDCRequest uses a builder pattern with method chaining to construct requests:
+ * The CIAMRequest uses a builder pattern with method chaining to construct requests:
  * ```
- * CDCRequest(siteConfig)
+ * CIAMRequest(siteConfig)
  *     .api("accounts.getAccountInfo")
  *     .authenticated(token)
  *     .timestamp(timestamp)
  *     .sign(secret)
  * ```
  * 
- * @property siteConfig The SAP CDC site configuration containing API credentials
+ * @property siteConfig The SAP CIAM site configuration containing API credentials
  * 
- * @constructor Creates a new CDCRequest with default parameters initialized from the site configuration.
+ * @constructor Creates a new CIAMRequest with default parameters initialized from the site configuration.
  * 
  * @author Tal Mirmelshtein
  * @since 10/06/2024
@@ -41,14 +41,14 @@ import io.ktor.util.generateNonce
  * @see com.sap.cdc.android.sdk.core.SiteConfig
  * @see com.sap.cdc.android.sdk.core.api.Api
  */
-class CDCRequest(
+class CIAMRequest(
     siteConfig: SiteConfig
 ) {
     companion object {
         /**
-         * Log tag for CDCRequest-related logging operations.
+         * Log tag for CIAMRequest-related logging operations.
          */
-        const val LOG_TAG = "CDCRequest"
+        const val LOG_TAG = "CIAMRequest"
     }
 
     /**
@@ -57,7 +57,7 @@ class CDCRequest(
     private var method: String = HttpMethod.Post.value // Default method is post.
     
     /**
-     * The CDC API endpoint to call (e.g., "accounts.login", "accounts.getAccountInfo").
+     * The CIAM API endpoint to call (e.g., "accounts.login", "accounts.getAccountInfo").
      */
     var api: String = ""
     
@@ -102,7 +102,7 @@ class CDCRequest(
         try {
             userAgent = System.getProperty("http.agent")
         } catch (ex: Exception) {
-            CDCDebuggable.log(LOG_TAG, "Unable to fetch system property http.agent.")
+            CIAMDebuggable.log(LOG_TAG, "Unable to fetch system property http.agent.")
         }
         if (userAgent != null) {
             headers["User-Agent"] = userAgent!!
@@ -113,7 +113,7 @@ class CDCRequest(
      * Sets the HTTP method for the request.
      * 
      * @param method The HTTP method (e.g., HttpMethod.Get.value, HttpMethod.Post.value)
-     * @return This CDCRequest instance for method chaining
+     * @return This CIAMRequest instance for method chaining
      */
     fun method(method: String) = apply {
         this.method = method
@@ -127,7 +127,7 @@ class CDCRequest(
      * target environment values from the provided parameters.
      * 
      * @param parameters A map of parameter key-value pairs to add to the request
-     * @return This CDCRequest instance for method chaining
+     * @return This CIAMRequest instance for method chaining
      */
     fun parameters(parameters: MutableMap<String, String>) = apply {
         // Make sure that we always send mobile as targetEnv field.
@@ -145,7 +145,7 @@ class CDCRequest(
      * no changes are made.
      * 
      * @param headers A map of header key-value pairs to add to the request, or null
-     * @return This CDCRequest instance for method chaining
+     * @return This CIAMRequest instance for method chaining
      */
     fun headers(headers: MutableMap<String, String>?) = apply {
         if (headers != null) {
@@ -160,20 +160,20 @@ class CDCRequest(
      * and platforms. This should be set when a GMID is available from previous interactions.
      * 
      * @param gmid The GMID to include in the request
-     * @return This CDCRequest instance for method chaining
+     * @return This CIAMRequest instance for method chaining
      */
     fun gmid(gmid: String) = apply {
         parameters["gmid"] = gmid
     }
 
     /**
-     * Sets the CDC API endpoint to call.
+     * Sets the CIAM API endpoint to call.
      * 
      * The API endpoint should be specified in the format "namespace.method"
      * (e.g., "accounts.login", "accounts.getAccountInfo", "accounts.setAccountInfo").
      * 
-     * @param api The CDC API endpoint name
-     * @return This CDCRequest instance for method chaining
+     * @param api The CIAM API endpoint name
+     * @return This CIAMRequest instance for method chaining
      */
     fun api(api: String) = apply {
         this.api = api
@@ -186,7 +186,7 @@ class CDCRequest(
      * The token is typically obtained from a successful login or registration flow.
      * 
      * @param token The OAuth token obtained from a previous authentication
-     * @return This CDCRequest instance for method chaining
+     * @return This CIAMRequest instance for method chaining
      */
     fun authenticated(token: String) = apply {
         parameters["oauth_token"] = token
@@ -199,7 +199,7 @@ class CDCRequest(
      * be synchronized with the server time using the timestamp from SiteConfig.
      * 
      * @param timestamp The Unix epoch timestamp in seconds as a string
-     * @return This CDCRequest instance for method chaining
+     * @return This CIAMRequest instance for method chaining
      * 
      * @see com.sap.cdc.android.sdk.core.SiteConfig.getServerTimestamp
      */
@@ -224,7 +224,7 @@ class CDCRequest(
      * canonicalized request parameters.
      * 
      * @param secret The secret key used for signing (typically the user secret or API secret)
-     * @return This CDCRequest instance for method chaining
+     * @return This CIAMRequest instance for method chaining
      * 
      * @see Signing
      * @see SigningSpec

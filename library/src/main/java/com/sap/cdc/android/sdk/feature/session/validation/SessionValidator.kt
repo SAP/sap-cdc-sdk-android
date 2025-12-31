@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.session.validation
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.events.LifecycleAwareEventBus
 import com.sap.cdc.android.sdk.events.SessionEvent
 import com.sap.cdc.android.sdk.feature.AuthEndpoints
@@ -10,9 +10,9 @@ import kotlinx.coroutines.Dispatchers
 import java.util.Date
 
 /**
- * Core session validation logic that performs validation against CDC API.
+ * Core session validation logic that performs validation against CIAM API.
  * 
- * Validates active sessions by checking their validity with the CDC backend.
+ * Validates active sessions by checking their validity with the CIAM backend.
  * Emits events for validation lifecycle (started, succeeded, failed).
  * 
  * @property authenticationApi Authentication API client for network requests
@@ -37,7 +37,7 @@ class SessionValidator(
     }
 
     /**
-     * Validates the current session by making a request to the CDC API.
+     * Validates the current session by making a request to the CIAM API.
      * Emits appropriate events based on the validation result.
      *
      * @throws Exception if validation fails due to network or other errors
@@ -45,12 +45,12 @@ class SessionValidator(
     suspend fun validateSession() {
         val session = sessionService.getSession()
         if (session == null) {
-            CDCDebuggable.log(LOG_TAG, "No active session found for validation")
+            CIAMDebuggable.log(LOG_TAG, "No active session found for validation")
             emitEvent(SessionEvent.ValidationFailed("", "No active session"))
             return
         }
 
-        CDCDebuggable.log(LOG_TAG, "Starting session validation: ${Date()} ")
+        CIAMDebuggable.log(LOG_TAG, "Starting session validation: ${Date()} ")
         emitEvent(SessionEvent.ValidationStarted(session.token))
 
         try {
@@ -66,16 +66,16 @@ class SessionValidator(
             if (response.isError()) {
                 // Session on longer valid
                 val errorMsg = response.errorMessage() ?: "Unknown validation error"
-                CDCDebuggable.log(LOG_TAG, "Session validation failed: $errorMsg")
+                CIAMDebuggable.log(LOG_TAG, "Session validation failed: $errorMsg")
                 emitEvent(SessionEvent.ValidationFailed(session.token, errorMsg))
                 return
             }
 
-            CDCDebuggable.log(LOG_TAG, "Session validation succeeded")
+            CIAMDebuggable.log(LOG_TAG, "Session validation succeeded")
             emitEvent(SessionEvent.ValidationSucceeded(session.token))
 
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, "Session validation failed with exception: ${e.message}")
+            CIAMDebuggable.log(LOG_TAG, "Session validation failed with exception: ${e.message}")
             val errorMsg = e.message ?: "Network error during validation"
             emitEvent(SessionEvent.ValidationFailed(session.token, errorMsg))
             throw e

@@ -1,13 +1,13 @@
 package com.sap.cdc.android.sdk.events
 
-import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationActionData
+import com.sap.cdc.android.sdk.feature.notifications.CIAMNotificationActionData
 import java.util.UUID
 
 /**
- * Base interface for all CDC events in the lifecycle-aware event bus.
+ * Base interface for all CIAM events in the lifecycle-aware event bus.
  * Provides common properties for event identification and tracking.
  */
-interface CDCEvent {
+interface CIAMEvent {
     /**
      * Timestamp when the event was created (milliseconds since epoch).
      */
@@ -25,10 +25,10 @@ interface CDCEvent {
 }
 
 /**
- * Session-related events in the CDC SDK.
+ * Session-related events in the CIAM SDK.
  * These events are emitted during session lifecycle operations.
  */
-sealed class SessionEvent : CDCEvent {
+sealed class SessionEvent : CIAMEvent {
     
     /**
      * Event emitted when a session has expired.
@@ -120,10 +120,10 @@ sealed class SessionEvent : CDCEvent {
 }
 
 /**
- * Message-related events in the CDC SDK.
+ * Message-related events in the CIAM SDK.
  * These events are emitted during Firebase messaging operations.
  */
-sealed class MessageEvent : CDCEvent {
+sealed class MessageEvent : CIAMEvent {
     
     /**
      * Event emitted when a new Firebase token is received.
@@ -163,7 +163,7 @@ sealed class MessageEvent : CDCEvent {
      */
     data class NotificationActionReceived(
         val action: String,
-        val data: CDCNotificationActionData,
+        val data: CIAMNotificationActionData,
         override val timestamp: Long = System.currentTimeMillis(),
         override val eventId: String = UUID.randomUUID().toString(),
         override val source: String = "NotificationReceiver"

@@ -44,10 +44,10 @@ import java.util.concurrent.Executor
 
 /**
  * Complete authentication state solution for ViewModels.
- * Provides direct access to CDC SDK and manages authentication state.
+ * Provides direct access to CIAM SDK and manages authentication state.
  *
  * Key benefits:
- * - Direct CDC SDK access (eliminates repository passthrough)
+ * - Direct CIAM SDK access (eliminates repository passthrough)
  * - Centralized authentication state management
  * - Activity-scoped lifecycle when used with ViewModelScopeProvider
  * - Single instance shared across all ViewModels
@@ -62,7 +62,7 @@ class AuthenticationFlowDelegate(context: Context) {
         appContext.getSharedPreferences("auth_options_state", Context.MODE_PRIVATE)
     }
 
-    // Direct CDC SDK access - eliminates repository passthrough boilerplate
+    // Direct CIAM SDK access - eliminates repository passthrough boilerplate
     /**
      * Site configuration - use reinitializeWithNewConfig() to update
      */

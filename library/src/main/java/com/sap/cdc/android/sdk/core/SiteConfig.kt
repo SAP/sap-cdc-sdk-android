@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.core
 
 import android.content.Context
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.api.Api
 import com.sap.cdc.android.sdk.extensions.requiredStringResourceFromKey
 import com.sap.cdc.android.sdk.extensions.stringResourceFromKey
@@ -9,13 +9,13 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 /**
- * Configuration class for SAP CDC (Customer Data Cloud) SDK site settings.
+ * Configuration class for SAP CIAM (Customer Identity and Access Management) SDK site settings.
  * 
- * This class manages the core configuration required to communicate with SAP CDC services,
+ * This class manages the core configuration required to communicate with SAP CIAM services,
  * including API credentials, domain settings, and server time synchronization.
  * 
  * The SiteConfig handles:
- * - API key and domain configuration for CDC service endpoints
+ * - API key and domain configuration for CIAM service endpoints
  * - Optional CNAME configuration for custom domain routing
  * - Server time offset calculation and management for timestamp synchronization
  * 
@@ -38,15 +38,15 @@ import java.util.Locale
  * 
  * ## Configuration in strings.xml
  * ```xml
- * <string name="com.sap.cxcdc.apikey">YOUR_API_KEY</string>
- * <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
- * <string name="com.sap.cxcdc.cname">custom.domain.com</string> <!-- Optional -->
+ * <string name="com.sap.ciam.apikey">YOUR_API_KEY</string>
+ * <string name="com.sap.ciam.domain">us1.gigya.com</string>
+ * <string name="com.sap.ciam.cname">custom.domain.com</string> <!-- Optional -->
  * ```
  * 
  * @property applicationContext The Android application context used for resource access
- * @property apiKey The SAP CDC API key that identifies your CDC site
- * @property domain The CDC data center domain (e.g., "us1.gigya.com", "eu1.gigya.com")
- * @property cname Optional custom domain (CNAME) for CDC API requests. If provided, 
+ * @property apiKey The SAP CIAM API key that identifies your CIAM site
+ * @property domain The CIAM data center domain (e.g., "us1.gigya.com", "eu1.gigya.com")
+ * @property cname Optional custom domain (CNAME) for CIAM API requests. If provided, 
  *                 API requests will be routed through this domain instead of the default domain.
  * @property timeProvider Function that provides the current time in milliseconds. 
  *                        Defaults to System.currentTimeMillis(). Can be overridden for testing.
@@ -70,19 +70,19 @@ class SiteConfig(
     /**
      * Creates a SiteConfig by loading configuration from application resources.
      * 
-     * This constructor retrieves the CDC configuration from the application's string resources:
-     * - "com.sap.cxcdc.apikey" (required) - The CDC API key
-     * - "com.sap.cxcdc.domain" (required) - The CDC domain
-     * - "com.sap.cxcdc.cname" (optional) - Custom CNAME if configured
+     * This constructor retrieves the CIAM configuration from the application's string resources:
+     * - "com.sap.ciam.apikey" (required) - The CIAM API key
+     * - "com.sap.ciam.domain" (required) - The CIAM domain
+     * - "com.sap.ciam.cname" (optional) - Custom CNAME if configured
      * 
      * @param context The Android context used to access application resources
      * @throws IllegalArgumentException if required resources (apiKey or domain) are not found
      */
     constructor(context: Context) : this(
         context,
-        context.requiredStringResourceFromKey("com.sap.cxcdc.apikey"),
-        context.requiredStringResourceFromKey("com.sap.cxcdc.domain"),
-        context.stringResourceFromKey("com.sap.cxcdc.cname"),
+        context.requiredStringResourceFromKey("com.sap.ciam.apikey"),
+        context.requiredStringResourceFromKey("com.sap.ciam.domain"),
+        context.stringResourceFromKey("com.sap.ciam.cname"),
     )
 
     /**
@@ -101,16 +101,16 @@ class SiteConfig(
         resourceProvider: ResourceProvider
     ) : this(
         context,
-        resourceProvider.getRequiredString("com.sap.cxcdc.apikey"),
-        resourceProvider.getRequiredString("com.sap.cxcdc.domain"),
-        resourceProvider.getString("com.sap.cxcdc.cname")
+        resourceProvider.getRequiredString("com.sap.ciam.apikey"),
+        resourceProvider.getRequiredString("com.sap.ciam.domain"),
+        resourceProvider.getString("com.sap.ciam.cname")
     )
 
     /**
      * The server time offset in seconds.
      * 
      * This offset represents the difference between the server time and local device time,
-     * used to synchronize timestamps in API requests with the CDC server.
+     * used to synchronize timestamps in API requests with the CIAM server.
      */
     private var serverOffset: Long = 0
 
@@ -121,7 +121,7 @@ class SiteConfig(
          * Format: "EEE, dd MMM yyyy HH:mm:ss zzz" (e.g., "Mon, 18 Nov 2024 19:21:00 GMT")
          * This follows the RFC 1123 date format commonly used in HTTP headers.
          */
-        const val CDC_SERVER_OFFSET_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz"
+        const val CIAM_SERVER_OFFSET_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz"
     }
 
     /**
@@ -137,7 +137,7 @@ class SiteConfig(
     fun getServerTimestamp(): String {
         val timestamp: String =
             ((timeProvider() / 1000) + serverOffset).toString()
-        CDCDebuggable.log(Api.LOG_TAG, "serverOffset - get: $timestamp")
+        CIAMDebuggable.log(Api.LOG_TAG, "serverOffset - get: $timestamp")
         return timestamp
     }
 
@@ -160,16 +160,16 @@ class SiteConfig(
     fun setServerOffset(date: String?) {
         if (date == null) return
         val format = SimpleDateFormat(
-            CDC_SERVER_OFFSET_FORMAT,
+            CIAM_SERVER_OFFSET_FORMAT,
             Locale.ENGLISH
         )
         try {
             val serverDate = format.parse(date) ?: return
             serverOffset = (serverDate.time - timeProvider()) / 1000
-            CDCDebuggable.log(Api.LOG_TAG, "serverOffset - set: $serverOffset")
+            CIAMDebuggable.log(Api.LOG_TAG, "serverOffset - set: $serverOffset")
         } catch (e: java.text.ParseException) {
             // Invalid date format - ignore and keep current offset
-            CDCDebuggable.log(Api.LOG_TAG, "Invalid date format, keeping current serverOffset: $serverOffset")
+            CIAMDebuggable.log(Api.LOG_TAG, "Invalid date format, keeping current serverOffset: $serverOffset")
         }
     }
 }

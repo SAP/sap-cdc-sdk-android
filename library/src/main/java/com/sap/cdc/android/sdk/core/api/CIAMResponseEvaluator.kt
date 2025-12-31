@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.core.api
 
 /**
- * Interface for evaluating CDC API responses for specific conditions or error patterns.
+ * Interface for evaluating CIAM API responses for specific conditions or error patterns.
  * 
  * Response evaluators provide a strategy pattern for detecting and handling specific
  * types of errors or response conditions. Implementations can check for particular
@@ -12,18 +12,18 @@ package com.sap.cdc.android.sdk.core.api
  * - Identifying network-related errors that should trigger retry logic
  * - Recognizing validation errors that need user input correction
  * 
- * @see com.sap.cdc.android.sdk.core.api.CDCResponse
+ * @see com.sap.cdc.android.sdk.core.api.CIAMResponse
  * @see com.sap.cdc.android.sdk.core.api.InvalidGMIDResponseEvaluator
  */
-interface CDCResponseEvaluator {
+interface CIAMResponseEvaluator {
 
     /**
      * Evaluates a CDC response for a specific condition or error pattern.
      * 
-     * @param response The CDCResponse to evaluate
+     * @param response The CIAMResponse to evaluate
      * @return true if the response matches the evaluated condition, false otherwise
      */
-    fun evaluate(response: CDCResponse): Boolean
+    fun evaluate(response: CIAMResponse): Boolean
 }
 
 /**
@@ -43,10 +43,10 @@ interface CDCResponseEvaluator {
  * 2. Obtain a new GMID from CDC
  * 3. Retry the original request with the new GMID
  * 
- * @see com.sap.cdc.android.sdk.core.api.CDCResponseEvaluator
- * @see com.sap.cdc.android.sdk.core.api.CDCResponse
+ * @see com.sap.cdc.android.sdk.core.api.CIAMResponseEvaluator
+ * @see com.sap.cdc.android.sdk.core.api.CIAMResponse
  */
-class InvalidGMIDResponseEvaluator : CDCResponseEvaluator {
+class InvalidGMIDResponseEvaluator : CIAMResponseEvaluator {
 
     companion object {
         /**
@@ -89,15 +89,15 @@ class InvalidGMIDResponseEvaluator : CDCResponseEvaluator {
      * 
      * The evaluation only applies to error responses (non-zero error codes).
      * 
-     * @param response The CDCResponse to evaluate
+     * @param response The CIAMResponse to evaluate
      * @return true if the response indicates an invalid GMID condition, false otherwise
      * 
-     * @see CDCResponse.isError
-     * @see CDCResponse.errorCode
-     * @see CDCResponse.errorDetails
-     * @see CDCResponse.errorFlags
+     * @see CIAMResponse.isError
+     * @see CIAMResponse.errorCode
+     * @see CIAMResponse.errorDetails
+     * @see CIAMResponse.errorFlags
      */
-    override fun evaluate(response: CDCResponse): Boolean {
+    override fun evaluate(response: CIAMResponse): Boolean {
         if (!response.isError()) return false
 
         val errorCode = response.errorCode()

@@ -1,12 +1,12 @@
 package com.sap.cdc.android.sdk.feature
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.AndroidResourceProvider
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.ResourceProvider
 import com.sap.cdc.android.sdk.core.api.Api
-import com.sap.cdc.android.sdk.core.api.CDCRequest
-import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.api.CIAMRequest
+import com.sap.cdc.android.sdk.core.api.CIAMResponse
 import com.sap.cdc.android.sdk.core.api.InvalidGMIDResponseEvaluator
 import com.sap.cdc.android.sdk.core.api.model.GMIDEntity
 import com.sap.cdc.android.sdk.extensions.prepareApiUrl
@@ -19,7 +19,7 @@ import kotlinx.coroutines.sync.withLock
 /**
  * Internal API client for authenticated CDC requests.
  * 
- * Handles CDC API communication with automatic GMID management, request signing,
+ * Handles CIAM API communication with automatic GMID management, request signing,
  * and retry logic for invalidated identifiers.
  * 
  * ## Key Features
@@ -47,8 +47,8 @@ import kotlinx.coroutines.sync.withLock
  * @param sessionService Service for managing user sessions
  * @param resourceProvider Provider for accessing encrypted storage (defaults to Android resources)
  * @see AuthenticationService
- * @see CDCRequest
- * @see CDCResponse
+ * @see CIAMRequest
+ * @see CIAMResponse
  */
 class AuthenticationApi(
     private val coreClient: CoreClient,
@@ -66,26 +66,26 @@ class AuthenticationApi(
     }
 
     /**
-     * Sends an authenticated API request to the CDC service with comprehensive exception handling.
+     * Sends an authenticated API request to the CIAM service with comprehensive exception handling.
      *
-     * This method handles the complete lifecycle of CDC API requests including:
+     * This method handles the complete lifecycle of CIAM API requests including:
      * - GMID validation and renewal
      * - Request signing for authenticated sessions
      * - Automatic retry on GMID invalidation
      * - Graceful handling of coroutine cancellations and timeouts
      *
-     * @param api The CDC API endpoint to call (e.g., "accounts.getAccountInfo")
+     * @param api The CIAM API endpoint to call (e.g., "accounts.getAccountInfo")
      * @param parameters Optional map of request parameters. Defaults to empty map if null.
      * @param method HTTP method to use. Defaults to POST if null.
      * @param headers Optional map of additional headers. Defaults to empty map if null.
      *
-     * @return CDCResponse containing either:
-     *         - Success response with data from the CDC service
+     * @return CIAMResponse containing either:
+     *         - Success response with data from the CIAM service
      *         - Error response with code 504001 for timeout cancellations
      *         - Error response with code 200001 for request cancellations (including JobCancellationException)
      *         - Error response with code 500001 for other unexpected errors
      *
-     * @throws Nothing - All exceptions are caught and converted to error CDCResponse objects
+     * @throws Nothing - All exceptions are caught and converted to error CIAMResponse objects
      *
      * @since 1.0.0
      */
@@ -94,15 +94,15 @@ class AuthenticationApi(
         parameters: MutableMap<String, String>? = mutableMapOf(),
         method: String? = HttpMethod.Post.value,
         headers: MutableMap<String, String>? = mutableMapOf()
-    ): CDCResponse {
+    ): CIAMResponse {
         return try {
             // Synchronize GMID validation and fetching across all coroutines
             gmidMutex.withLock {
                 if (!isLocalGmidValid()) {
-                    CDCDebuggable.log(LOG_TAG, "Local GMID not available or invalid - requesting new GMID")
+                    CIAMDebuggable.log(LOG_TAG, "Local GMID not available or invalid - requesting new GMID")
                     val ids = fetchIDs()
                     if (ids.isError()) {
-                        CDCDebuggable.log(LOG_TAG, "getIDs error: ${ids.errorCode()}")
+                        CIAMDebuggable.log(LOG_TAG, "getIDs error: ${ids.errorCode()}")
                         return ids
                     }
                 }
@@ -110,12 +110,12 @@ class AuthenticationApi(
 
             // At this point, GMID is guaranteed valid
             parameters!![PARAM_GMID] = sessionService.gmidLatest()
-            val cdcRequest = buildCDCRequest(api, parameters, method, headers)
+            val cdcRequest = buildCIAMRequest(api, parameters, method, headers)
             var response = send(request = cdcRequest, method)
 
             // Handle GMID invalidation with retry
             if (response.isError() && InvalidGMIDResponseEvaluator().evaluate(response)) {
-                CDCDebuggable.log(LOG_TAG, "Remote GMID evaluation failed - fetching new GMID")
+                CIAMDebuggable.log(LOG_TAG, "Remote GMID evaluation failed - fetching new GMID")
                 
                 // Synchronize GMID refresh to avoid duplicate fetches
                 gmidMutex.withLock {
@@ -123,14 +123,14 @@ class AuthenticationApi(
                     val currentGmid = sessionService.gmidLatest()
                     if (cdcRequest.parameters[PARAM_GMID] == currentGmid) {
                         // Still stale, we need to refresh
-                        CDCDebuggable.log(LOG_TAG, "GMID still stale, fetching new one")
+                        CIAMDebuggable.log(LOG_TAG, "GMID still stale, fetching new one")
                         val ids = retryFetchIDs()
                         if (ids.isError()) {
-                            CDCDebuggable.log(LOG_TAG, "getIDs failed after $MAX_RETRY_COUNT retries")
+                            CIAMDebuggable.log(LOG_TAG, "getIDs failed after $MAX_RETRY_COUNT retries")
                             return response
                         }
                     } else {
-                        CDCDebuggable.log(LOG_TAG, "GMID already refreshed by another coroutine")
+                        CIAMDebuggable.log(LOG_TAG, "GMID already refreshed by another coroutine")
                     }
                 }
                 
@@ -142,14 +142,14 @@ class AuthenticationApi(
             
             response
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            CDCDebuggable.log(LOG_TAG, "Request timed out: ${e.message}")
-            CDCResponse().fromError(504002, "Request Timeout", "A timeout that was defined in the request is reached.")
+            CIAMDebuggable.log(LOG_TAG, "Request timed out: ${e.message}")
+            CIAMResponse().fromError(504002, "Request Timeout", "A timeout that was defined in the request is reached.")
         } catch (e: kotlinx.coroutines.CancellationException) {
-            CDCDebuggable.log(LOG_TAG, "Request was cancelled: ${e.message}")
-            CDCResponse().fromError(200001, "Operation canceled", null)
+            CIAMDebuggable.log(LOG_TAG, "Request was cancelled: ${e.message}")
+            CIAMResponse().fromError(200001, "Operation canceled", null)
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, "Unexpected error in network request: ${e.message}")
-            CDCResponse().fromError(500001, "General Server error", e.message)
+            CIAMDebuggable.log(LOG_TAG, "Unexpected error in network request: ${e.message}")
+            CIAMResponse().fromError(500001, "General Server error", e.message)
         }
     }
 
@@ -161,32 +161,32 @@ class AuthenticationApi(
      * - Graceful handling of coroutine cancellations and timeouts
      * - Consistent error response formatting
      *
-     * @param request The CDCRequest object containing the request details including URL, parameters, and headers
+     * @param request The CIAMRequest object containing the request details including URL, parameters, and headers
      *
-     * @return CDCResponse containing either:
-     *         - Success response with data from the CDC service
+     * @return CIAMResponse containing either:
+     *         - Success response with data from the CIAM service
      *         - Error response with code 504001 for timeout cancellations
      *         - Error response with code 200001 for request cancellations (including JobCancellationException)
      *         - Error response with code 500001 for other unexpected errors
      *
-     * @throws Nothing - All exceptions are caught and converted to error CDCResponse objects
+     * @throws Nothing - All exceptions are caught and converted to error CIAMResponse objects
      *
      * @see Api.get
      * @since 1.0.0
      */
-    override suspend fun get(request: CDCRequest): CDCResponse {
+    override suspend fun get(request: CIAMRequest): CIAMResponse {
         return try {
             signRequestIfNeeded(request)
             super.get(request)
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            CDCDebuggable.log(LOG_TAG, "GET request timed out: ${e.message}")
-            CDCResponse().fromError(504001, "Timeout", "The GET request timed out and was cancelled")
+            CIAMDebuggable.log(LOG_TAG, "GET request timed out: ${e.message}")
+            CIAMResponse().fromError(504001, "Timeout", "The GET request timed out and was cancelled")
         } catch (e: kotlinx.coroutines.CancellationException) {
-            CDCDebuggable.log(LOG_TAG, "GET request was cancelled: ${e.message}")
-            CDCResponse().fromError(200001, "Operation canceled", "The GET request was cancelled before completion")
+            CIAMDebuggable.log(LOG_TAG, "GET request was cancelled: ${e.message}")
+            CIAMResponse().fromError(200001, "Operation canceled", "The GET request was cancelled before completion")
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, "Unexpected error in GET request: ${e.message}")
-            CDCResponse().fromError(500001, "General Server error", "An unexpected error occurred during the GET request: ${e.message}")
+            CIAMDebuggable.log(LOG_TAG, "Unexpected error in GET request: ${e.message}")
+            CIAMResponse().fromError(500001, "General Server error", "An unexpected error occurred during the GET request: ${e.message}")
         }
     }
 
@@ -198,37 +198,37 @@ class AuthenticationApi(
      * - Graceful handling of coroutine cancellations and timeouts
      * - Consistent error response formatting
      *
-     * @param request The CDCRequest object containing the request details including URL, parameters, and headers
+     * @param request The CIAMRequest object containing the request details including URL, parameters, and headers
      *
-     * @return CDCResponse containing either:
-     *         - Success response with data from the CDC service
+     * @return CIAMResponse containing either:
+     *         - Success response with data from the CIAM service
      *         - Error response with code 504001 for timeout cancellations
      *         - Error response with code 200001 for request cancellations (including JobCancellationException)
      *         - Error response with code 500001 for other unexpected errors
      *
-     * @throws Nothing - All exceptions are caught and converted to error CDCResponse objects
+     * @throws Nothing - All exceptions are caught and converted to error CIAMResponse objects
      *
      * @see Api.post
      * @since 1.0.0
      */
-    override suspend fun post(request: CDCRequest): CDCResponse {
+    override suspend fun post(request: CIAMRequest): CIAMResponse {
         return try {
             signRequestIfNeeded(request)
             super.post(request)
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            CDCDebuggable.log(LOG_TAG, "POST request timed out: ${e.message}")
-            CDCResponse().fromError(504001, "Timeout", "The POST request timed out and was cancelled")
+            CIAMDebuggable.log(LOG_TAG, "POST request timed out: ${e.message}")
+            CIAMResponse().fromError(504001, "Timeout", "The POST request timed out and was cancelled")
         } catch (e: kotlinx.coroutines.CancellationException) {
-            CDCDebuggable.log(LOG_TAG, "POST request was cancelled: ${e.message}")
-            CDCResponse().fromError(200001, "Operation canceled", "The POST request was cancelled before completion")
+            CIAMDebuggable.log(LOG_TAG, "POST request was cancelled: ${e.message}")
+            CIAMResponse().fromError(200001, "Operation canceled", "The POST request was cancelled before completion")
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, "Unexpected error in POST request: ${e.message}")
-            CDCResponse().fromError(500001, "General Server error", "An unexpected error occurred during the POST request: ${e.message}")
+            CIAMDebuggable.log(LOG_TAG, "Unexpected error in POST request: ${e.message}")
+            CIAMResponse().fromError(500001, "General Server error", "An unexpected error occurred during the POST request: ${e.message}")
         }
     }
 
-    private fun signRequestIfNeeded(request: CDCRequest) {
-        CDCDebuggable.log(LOG_TAG, "Signing request if needed")
+    private fun signRequestIfNeeded(request: CIAMRequest) {
+        CIAMDebuggable.log(LOG_TAG, "Signing request if needed")
         if (sessionService.availableSession()) {
             sessionService.getSession()?.let { session ->
                 request.authenticated(session.token)
@@ -240,15 +240,15 @@ class AuthenticationApi(
     /**
      * Get IDs from the server.
      */
-    private suspend fun fetchIDs(): CDCResponse {
-        CDCDebuggable.log(LOG_TAG, "Fetching IDs")
+    private suspend fun fetchIDs(): CIAMResponse {
+        CIAMDebuggable.log(LOG_TAG, "Fetching IDs")
         val cdcRequest =
-            buildCDCRequest(AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS, mutableMapOf(), HttpMethod.Post.value)
+            buildCIAMRequest(AuthEndpoints.Companion.EP_SOCIALIZE_GET_IDS, mutableMapOf(), HttpMethod.Post.value)
         val idsResponse = send(cdcRequest)
         if (!idsResponse.isError()) {
             // Deserialize the response to GMIDEntity
             val gmidEntity = idsResponse.serializeTo<GMIDEntity>()
-            CDCDebuggable.log(LOG_TAG, "gmid: ${gmidEntity?.gmid}")
+            CIAMDebuggable.log(LOG_TAG, "gmid: ${gmidEntity?.gmid}")
             // Save the GMID to secure preferences
             if (gmidEntity != null) {
                 val esp = resourceProvider.getEncryptedSharedPreferences(
@@ -259,7 +259,7 @@ class AuthenticationApi(
                 editor.putLong(AuthenticationService.Companion.CDC_GMID_REFRESH_TS, gmidEntity.refreshTime!!)
                 editor.apply()
             }
-            CDCDebuggable.log(LOG_TAG, "gmidEntity: $gmidEntity")
+            CIAMDebuggable.log(LOG_TAG, "gmidEntity: $gmidEntity")
         }
         return idsResponse
     }
@@ -268,14 +268,14 @@ class AuthenticationApi(
      * Retry fetching IDs if the initial attempt fails.
      * This method will retry up to MAX_RETRY_COUNT times.
      */
-    private suspend fun retryFetchIDs(): CDCResponse {
+    private suspend fun retryFetchIDs(): CIAMResponse {
         var retryCount = 0
-        var ids: CDCResponse
+        var ids: CIAMResponse
         do {
             ids = fetchIDs()
             if (!ids.isError()) break
             retryCount++
-            CDCDebuggable.log(LOG_TAG, "Retrying getIDs... Attempt: $retryCount")
+            CIAMDebuggable.log(LOG_TAG, "Retrying getIDs... Attempt: $retryCount")
         } while (retryCount < MAX_RETRY_COUNT)
         return ids
     }
@@ -284,7 +284,7 @@ class AuthenticationApi(
      * Check if the local GMID is valid.
      */
     private fun isLocalGmidValid(): Boolean {
-        CDCDebuggable.log(LOG_TAG, "Validating local GMID")
+        CIAMDebuggable.log(LOG_TAG, "Validating local GMID")
         val prefs = resourceProvider.getEncryptedSharedPreferences(
             AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
         )
@@ -294,15 +294,15 @@ class AuthenticationApi(
     }
 
     /**
-     * Builds a CDCRequest object.
+     * Builds a CIAMRequest object.
      */
-    private fun buildCDCRequest(
+    private fun buildCIAMRequest(
         api: String,
         parameters: MutableMap<String, String>,
         method: String?,
         headers: MutableMap<String, String>? = mutableMapOf()
-    ): CDCRequest {
-        return CDCRequest(coreClient.siteConfig)
+    ): CIAMRequest {
+        return CIAMRequest(coreClient.siteConfig)
             .method(method ?: HttpMethod.Post.value)
             .api(api.prepareApiUrl(coreClient.siteConfig))
             .parameters(parameters)

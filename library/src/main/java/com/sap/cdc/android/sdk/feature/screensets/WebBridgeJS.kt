@@ -6,7 +6,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.extensions.parseQueryStringParams
 import com.sap.cdc.android.sdk.feature.AuthError
 import com.sap.cdc.android.sdk.feature.AuthenticationService
@@ -191,7 +191,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             JS_NAME
         )
         bridgedApiService.evaluateJSResult = { evaluateJS ->
-            CDCDebuggable.log(LOG_TAG, "evaluateJS: $evaluateJS")
+            CIAMDebuggable.log(LOG_TAG, "evaluateJS: $evaluateJS")
             val containerID = evaluateJS.containerID
             val evaluationString = evaluateJS.evaluationString
             if (evaluationString.isNotEmpty()) {
@@ -246,9 +246,9 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             bridgedWebView?.clear()
             bridgedWebView = null
             
-            CDCDebuggable.log(LOG_TAG, "Bridge detached successfully (safe cleanup)")
+            CIAMDebuggable.log(LOG_TAG, "Bridge detached successfully (safe cleanup)")
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, "Error during bridge detachment: ${e.message}")
+            CIAMDebuggable.log(LOG_TAG, "Error during bridge detachment: ${e.message}")
         }
     }
 
@@ -266,7 +266,7 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
             bridgedWebView?.get()?.evaluateJavascript(
                 invocation
             ) { result ->
-                CDCDebuggable.log(LOG_TAG, "evaluateJS: onReceiveValue: $result")
+                CIAMDebuggable.log(LOG_TAG, "evaluateJS: onReceiveValue: $result")
             }
         }
     }
@@ -319,24 +319,24 @@ class WebBridgeJS(private val authenticationService: AuthenticationService) {
         when (action) {
             ACTION_GET_IDS -> {
                 val ids = "{\"gmid\":\"${bridgedApiService.gmid()}\"}"
-                CDCDebuggable.log(LOG_TAG, "$action: $ids")
+                CIAMDebuggable.log(LOG_TAG, "$action: $ids")
                 evaluateJS(callbackID!!, ids)
             }
 
             ACTION_IS_SESSION_VALID -> {
                 val session = bridgedApiService.session()
-                CDCDebuggable.log(LOG_TAG, "$action: ${session != null}")
+                CIAMDebuggable.log(LOG_TAG, "$action: ${session != null}")
                 evaluateJS(callbackID!!, (session != null).toString())
             }
 
             ACTION_SEND_REQUEST, ACTION_SEND_OAUTH_REQUEST -> {
-                CDCDebuggable.log(LOG_TAG, "$action: ")
+                CIAMDebuggable.log(LOG_TAG, "$action: ")
                 // Specific mapping is required to handle legacy & new apis.
                 bridgedApiService.onRequest(action, method, params, headers, callbackID!!)
             }
 
             ACTION_ON_PLUGIN_EVENT -> {
-                CDCDebuggable.log(LOG_TAG, "$action: $params")
+                CIAMDebuggable.log(LOG_TAG, "$action: $params")
                 val containerId = params["sourceContainerID"]
                 if (containerId != null) {
                     val event = WebBridgeJSEvent(params)

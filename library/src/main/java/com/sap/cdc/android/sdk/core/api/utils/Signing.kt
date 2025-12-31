@@ -1,16 +1,16 @@
 package com.sap.cdc.android.sdk.core.api.utils
 
-import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.core.api.CDCRequest
+import com.sap.cdc.android.sdk.CIAMDebuggable
+import com.sap.cdc.android.sdk.core.api.CIAMRequest
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * Request signing utility for SAP CDC OAuth 1.0 authentication.
+ * Request signing utility for SAP CIAM OAuth 1.0 authentication.
  * 
- * Generates HMAC-SHA1 signatures for CDC API requests to ensure request authenticity.
+ * Generates HMAC-SHA1 signatures for CIAM API requests to ensure request authenticity.
  * The signature is computed from the HTTP method, URL, and query parameters.
  * 
  * @property base64Encoder Base64 encoder for encoding/decoding signature components
@@ -30,14 +30,14 @@ class Signing(private val base64Encoder: Base64Encoder) {
     }
 
     /**
-     * Generates an HMAC-SHA1 signature for a CDC API request.
+     * Generates an HMAC-SHA1 signature for a CIAM API request.
      * 
      * @param spec Signing specification containing secret, URL, method, and parameters
      * @return Base64-encoded signature string
      */
     fun newSignature(spec: SigningSpec): String {
         val normalizedUrl = normalizeUrl(spec)
-        CDCDebuggable.log(LOG_TAG, "baseSignature_: $normalizedUrl")
+        CIAMDebuggable.log(LOG_TAG, "baseSignature_: $normalizedUrl")
         val keyBytes = base64Encoder.decode(spec.secret, android.util.Base64.DEFAULT)
         val textData: ByteArray = normalizedUrl.toByteArray(StandardCharsets.UTF_8)
         val signingKey = SecretKeySpec(keyBytes, SIGNING_ALGORITHM)
@@ -53,7 +53,7 @@ class Signing(private val base64Encoder: Base64Encoder) {
     private fun normalizeUrl(
         spec: SigningSpec
     ): String {
-        CDCDebuggable.log(LOG_TAG, "normalizedUrl_: ${spec.api}")
+        CIAMDebuggable.log(LOG_TAG, "normalizedUrl_: ${spec.api}")
         return "${spec.method}&${spec.api.urlEncode()}&${
             spec.queryParameters.toEncodedQuery().urlEncode()
         }"
@@ -89,7 +89,7 @@ fun MutableMap<String, String>.toEncodedQuery(): String {
  * Contains all components needed to generate an OAuth 1.0 signature.
  * 
  * @property secret Base64-encoded secret key for HMAC signing
- * @property api The CDC API endpoint URL
+ * @property api The CIAM API endpoint URL
  * @property method HTTP method (GET or POST)
  * @property queryParameters Request parameters to include in signature
  */
@@ -100,11 +100,11 @@ class SigningSpec(
     var queryParameters: MutableMap<String, String>
 ) {
     /**
-     * Creates a SigningSpec from a CDCRequest.
+     * Creates a SigningSpec from a CIAMRequest.
      * @param request The CDC request to create spec from
      * @return This SigningSpec instance
      */
-    fun fromRequest(request: CDCRequest): SigningSpec {
+    fun fromRequest(request: CIAMRequest): SigningSpec {
         return this
     }
 }

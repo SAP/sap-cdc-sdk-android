@@ -1,9 +1,9 @@
 package com.sap.cdc.android.sdk.feature.provider.passkey
 
 import android.annotation.SuppressLint
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.api.CIAMResponse
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_OAUTH_AUTHORIZE
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_OAUTH_CONNECT
@@ -48,7 +48,7 @@ class AuthPasskeysFlow(
             val options = initRegisterCredentialsEntity?.options
             if (options == null) {
                 // End flow with error.
-                authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
                 return
             }
             // Use credentials manager to create the passkey.
@@ -58,11 +58,11 @@ class AuthPasskeysFlow(
             // Check for correct response
             if (registrationResponseJson != null) {
                 // Debug logs
-                CDCDebuggable.log(
+                CIAMDebuggable.log(
                     LOG_TAG,
                     "createPasskey: attestation:\n $registrationResponseJson"
                 )
-                CDCDebuggable.log(
+                CIAMDebuggable.log(
                     LOG_TAG,
                     "createPasskey: token:\n ${initRegisterCredentialsEntity.token}"
                 )
@@ -89,12 +89,12 @@ class AuthPasskeysFlow(
                     register.stringField("idToken")
                 if (idToken == null) {
                     // End flow with error.
-                    authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                    authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
                     return
                 }
 
                 // Debug logs
-                CDCDebuggable.log(LOG_TAG, "createPasskey: idToken:\n $idToken")
+                CIAMDebuggable.log(LOG_TAG, "createPasskey: idToken:\n $idToken")
 
                 // Connect credentials to the session.
                 val connect = AuthenticationApi(coreClient, sessionService).send(
@@ -103,7 +103,7 @@ class AuthPasskeysFlow(
                 )
 
                 // Debug logs
-                CDCDebuggable.log(
+                CIAMDebuggable.log(
                     LOG_TAG,
                     "createPasskey: connectResponse:\n ${connect.jsonResponse}"
                 )
@@ -120,11 +120,11 @@ class AuthPasskeysFlow(
                 authCallbacks.onSuccess?.invoke(authSuccess)
             } else {
                 //TODO: Special error here. edge case (extend provider error)
-                authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
             }
         } catch (e: SerializationException) {
             //TODO: Special error here. edge case  (extend provider error)
-            authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+            authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
         }
     }
 
@@ -147,7 +147,7 @@ class AuthPasskeysFlow(
 
             if (optionsResponseModel?.options == null) {
                 // End flow with error.
-                authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
                 return
             }
 
@@ -158,11 +158,11 @@ class AuthPasskeysFlow(
             if (authenticationResponseJson != null) {
                 // Verify assertion.
                 // Debug logs
-                CDCDebuggable.log(
+                CIAMDebuggable.log(
                     LOG_TAG,
                     "authenticateWithPasskey: authenticatorAssertion:\n $authenticationResponseJson"
                 )
-                CDCDebuggable.log(
+                CIAMDebuggable.log(
                     LOG_TAG,
                     "authenticateWithPasskey: token:\n ${optionsResponseModel.token}"
                 )
@@ -188,12 +188,12 @@ class AuthPasskeysFlow(
                     verifyAssertion.stringField("idToken")
                 if (idToken == null) {
                     // End flow with error.
-                    authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                    authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
                     return
                 }
 
                 // Debug logs
-                CDCDebuggable.log(LOG_TAG, "authenticateWithPasskey: idToken:\n $idToken")
+                CIAMDebuggable.log(LOG_TAG, "authenticateWithPasskey: idToken:\n $idToken")
 
                 // Authorize
                 val authorize = AuthenticationApi(coreClient, sessionService).send(
@@ -212,12 +212,12 @@ class AuthPasskeysFlow(
                 val code = authorize.stringField("code")
                 if (code == null) {
                     // End flow with error.
-                    authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                    authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
                     return
                 }
 
                 // Debug logs
-                CDCDebuggable.log(LOG_TAG, "createPasskey: code:\n $code")
+                CIAMDebuggable.log(LOG_TAG, "createPasskey: code:\n $code")
 
                 // Toke
                 val token = AuthenticationApi(coreClient, sessionService).send(
@@ -233,7 +233,7 @@ class AuthPasskeysFlow(
                 }
 
                 // Debug logs
-                CDCDebuggable.log(
+                CIAMDebuggable.log(
                     LOG_TAG,
                     "authenticateWithPasskey: tokenResponse:\n ${token.jsonResponse}"
                 )
@@ -245,11 +245,11 @@ class AuthPasskeysFlow(
                 authCallbacks.onSuccess?.invoke(authSuccess)
             } else {
                 //TODO: Special error here. edge case (extend provider error)
-                authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
             }
         } catch (e: SerializationException) {
             //TODO: Special error here. edge case (extend provider error)
-            authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+            authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
         }
     }
 
@@ -291,12 +291,12 @@ class AuthPasskeysFlow(
                 removeCredentials.stringField("idToken")
             if (idToken == null) {
                 // End flow with error.
-                authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
                 return
             }
 
             // Debug logs
-            CDCDebuggable.log(LOG_TAG, "authenticateWithPasskey: idToken:\n $idToken")
+            CIAMDebuggable.log(LOG_TAG, "authenticateWithPasskey: idToken:\n $idToken")
 
             val disconnect = AuthenticationApi(coreClient, sessionService).send(
                 EP_OAUTH_DISCONNECT,
@@ -314,7 +314,7 @@ class AuthPasskeysFlow(
 
         } catch (e: SerializationException) {
             //TODO: Special error here. edge case (extend provider error)
-            authCallbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+            authCallbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
         }
     }
 }

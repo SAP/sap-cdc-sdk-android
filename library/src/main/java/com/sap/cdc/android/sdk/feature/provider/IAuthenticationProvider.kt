@@ -1,13 +1,13 @@
 package com.sap.cdc.android.sdk.feature.provider
 
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.api.CIAMResponse
 import com.sap.cdc.android.sdk.feature.session.Session
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
- * Authentication provider interfaces and types for SAP CDC.
+ * Authentication provider interfaces and types for SAP CIAM.
  *
  * Defines the contract for authentication providers including native social providers,
  * web-based providers, and SSO flows.
@@ -79,7 +79,7 @@ class AuthenticatorProviderResult(val provider: String, val type: ProviderType) 
     var providerSessionData: Map<String, String?>? = null
     internal var session: Session? = null
     internal var ssoData: SSOAuthenticationData? = null
-    internal var cdcResponse: CDCResponse? = null
+    internal var cdcResponse: CIAMResponse? = null
 
     /**
      * Public constructor for native social provider authentication.
@@ -105,7 +105,7 @@ class AuthenticatorProviderResult(val provider: String, val type: ProviderType) 
     /**
      * Internal constructor for web based social provider authentication.
      */
-    internal constructor(provider: String, type: ProviderType, cdcResponse: CDCResponse) : this(
+    internal constructor(provider: String, type: ProviderType, cdcResponse: CIAMResponse) : this(
         provider,
         type
     ) {

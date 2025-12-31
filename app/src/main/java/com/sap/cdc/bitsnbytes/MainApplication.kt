@@ -1,7 +1,7 @@
 package com.sap.cdc.bitsnbytes
 
 import android.app.Application
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 
 /**
  * Created by Tal Mirmelshtein on 10/06/2024
@@ -14,8 +14,8 @@ class MainApplication : Application() {
         super.onCreate()
 
         // Allow WebView debugging.
-        CDCDebuggable.debugLogging(true)
-        CDCDebuggable.httpLogging(true)
-        CDCDebuggable.setWebViewDebuggable(true)
+        CIAMDebuggable.debugLogging(true)
+        CIAMDebuggable.httpLogging(true)
+        CIAMDebuggable.setWebViewDebuggable(true)
     }
 }

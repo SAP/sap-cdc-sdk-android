@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.notifications
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
@@ -27,7 +27,7 @@ class AuthPushFlow(coreClient: CoreClient, sessionService: SessionService) :
         )
         val deviceInfo = esp.getString(CDC_DEVICE_INFO, "") ?: ""
 
-        CDCDebuggable.log(LOG_TAG, "registerDevice: with deviceInfo:$deviceInfo")
+        CIAMDebuggable.log(LOG_TAG, "registerDevice: with deviceInfo:$deviceInfo")
         val registerDevice = AuthenticationApi(coreClient, sessionService).send(
             EP_ACCOUNT_AUTH_DEVICE_REGISTER,
             mutableMapOf("deviceInfo" to deviceInfo)
@@ -51,7 +51,7 @@ class AuthPushFlow(coreClient: CoreClient, sessionService: SessionService) :
         )
         val deviceInfo = esp.getString(CDC_DEVICE_INFO, "") ?: ""
 
-        CDCDebuggable.log(LOG_TAG, "unregisterDevice: with deviceInfo:$deviceInfo")
+        CIAMDebuggable.log(LOG_TAG, "unregisterDevice: with deviceInfo:$deviceInfo")
         val unregisterDevice = AuthenticationApi(coreClient, sessionService).send(
             EP_ACCOUNT_AUTH_DEVICE_UNREGISTER,
             mutableMapOf("deviceInfo" to deviceInfo)
@@ -69,7 +69,7 @@ class AuthPushFlow(coreClient: CoreClient, sessionService: SessionService) :
     }
 
     suspend fun verifyAuthPush(vToken: String, authCallbacks: AuthCallbacks) {
-        CDCDebuggable.log(LOG_TAG, "verifyAuthPush: with vToken:$vToken")
+        CIAMDebuggable.log(LOG_TAG, "verifyAuthPush: with vToken:$vToken")
         val verify = AuthenticationApi(coreClient, sessionService).send(
             EP_ACCOUNT_AUTH_PUSH_VERIFY,
             mutableMapOf("vToken" to vToken)

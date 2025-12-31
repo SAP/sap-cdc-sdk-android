@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlin.reflect.KClass
 
 /**
- * Lifecycle-aware event bus interface for the CDC SDK.
+ * Lifecycle-aware event bus interface for the CIAM SDK.
  * Provides both lifecycle-aware subscriptions for UI components and manual subscriptions for SDK internal components.
  */
 interface LifecycleAwareEventBus {

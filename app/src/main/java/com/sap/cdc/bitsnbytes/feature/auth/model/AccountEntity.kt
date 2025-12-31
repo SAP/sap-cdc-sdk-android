@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  */
 
 /**
- * Custom instance of the CDC SDK account schema.
+ * Custom instance of the CIAM SDK account schema.
  * This class can be extended according to the site schema definition and will be serialized
  * accordingly.
  */
@@ -21,7 +21,7 @@ data class AccountEntity(
 )
 
 /**
- * Custom instance of the CDC SDK profile schema.
+ * Custom instance of the CIAM SDK profile schema.
  */
 @Serializable
 data class ProfileEntity(
@@ -32,7 +32,7 @@ data class ProfileEntity(
 )
 
 /**
- * Custom instance of the CDC SDK custom identifiers schema.
+ * Custom instance of the CIAM SDK custom identifiers schema.
  */
 @Serializable
 data class CustomIdentifiers(

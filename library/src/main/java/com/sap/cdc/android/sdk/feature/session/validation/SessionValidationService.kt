@@ -7,7 +7,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import java.util.concurrent.TimeUnit
 
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
  * enable/disable, pause/resume, interval updates, and status checking.
  * Uses WorkManager to ensure validation persists across app restarts.
  * 
- * @property siteConfig CDC site configuration containing API key and domain
+ * @property siteConfig CIAM site configuration containing API key and domain
  * @property currentConfig Current validation configuration
  * 
  * @author Tal Mirmelshtein
@@ -47,7 +47,7 @@ class SessionValidationService(
      * @param intervalMinutes The interval in minutes between validation checks (default: 15)
      */
     fun enable(intervalMinutes: Long = 15L) {
-        CDCDebuggable.log(LOG_TAG, "Enabling session validation with interval: $intervalMinutes minutes")
+        CIAMDebuggable.log(LOG_TAG, "Enabling session validation with interval: $intervalMinutes minutes")
 
         currentConfig = SessionValidationConfig(intervalMinutes, enabled = true)
         startWorker()
@@ -58,7 +58,7 @@ class SessionValidationService(
      * This cancels any scheduled validation work.
      */
     fun disable() {
-        CDCDebuggable.log(LOG_TAG, "Disabling session validation")
+        CIAMDebuggable.log(LOG_TAG, "Disabling session validation")
 
         currentConfig = currentConfig.copy(enabled = false)
         workManager.cancelUniqueWork(WORK_NAME)
@@ -69,7 +69,7 @@ class SessionValidationService(
      * Validation can be resumed later using resume().
      */
     fun pause() {
-        CDCDebuggable.log(LOG_TAG, "Pausing session validation")
+        CIAMDebuggable.log(LOG_TAG, "Pausing session validation")
 
         workManager.cancelUniqueWork(WORK_NAME)
     }
@@ -79,12 +79,12 @@ class SessionValidationService(
      * Only works if validation was enabled before being paused.
      */
     fun resume() {
-        CDCDebuggable.log(LOG_TAG, "Resuming session validation")
+        CIAMDebuggable.log(LOG_TAG, "Resuming session validation")
 
         if (currentConfig.enabled) {
             startWorker()
         } else {
-            CDCDebuggable.log(LOG_TAG, "Cannot resume - validation was not previously enabled")
+            CIAMDebuggable.log(LOG_TAG, "Cannot resume - validation was not previously enabled")
         }
     }
 
@@ -94,7 +94,7 @@ class SessionValidationService(
      * Useful after configuration changes or to force immediate rescheduling.
      */
     fun restart() {
-        CDCDebuggable.log(LOG_TAG, "Restarting session validation")
+        CIAMDebuggable.log(LOG_TAG, "Restarting session validation")
 
         workManager.cancelUniqueWork(WORK_NAME)
         if (currentConfig.enabled) {
@@ -108,7 +108,7 @@ class SessionValidationService(
      * @param intervalMinutes The new interval in minutes between validation checks
      */
     fun updateInterval(intervalMinutes: Long) {
-        CDCDebuggable.log(LOG_TAG, "Updating validation interval to: $intervalMinutes minutes")
+        CIAMDebuggable.log(LOG_TAG, "Updating validation interval to: $intervalMinutes minutes")
 
         currentConfig = currentConfig.copy(intervalMinutes = intervalMinutes)
         if (currentConfig.enabled) {
@@ -127,10 +127,10 @@ class SessionValidationService(
             val isActive = workInfos.any {
                 it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING
             }
-            CDCDebuggable.log(LOG_TAG, "Session validation active: $isActive")
+            CIAMDebuggable.log(LOG_TAG, "Session validation active: $isActive")
             isActive
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, "Error checking validation status: ${e.message}")
+            CIAMDebuggable.log(LOG_TAG, "Error checking validation status: ${e.message}")
             false
         }
     }
@@ -148,7 +148,7 @@ class SessionValidationService(
      * @param config The new configuration to apply
      */
     fun configure(config: SessionValidationConfig) {
-        CDCDebuggable.log(LOG_TAG, "Configuring session validation: $config")
+        CIAMDebuggable.log(LOG_TAG, "Configuring session validation: $config")
         
         currentConfig = config
         updateValidation()
@@ -159,10 +159,10 @@ class SessionValidationService(
      * This method enables validation if it was configured to do so.
      */
     fun onNewSession() {
-        CDCDebuggable.log(LOG_TAG, "New session detected")
+        CIAMDebuggable.log(LOG_TAG, "New session detected")
         
         if (currentConfig.enabled) {
-            CDCDebuggable.log(LOG_TAG, "Enabling session validation for new session")
+            CIAMDebuggable.log(LOG_TAG, "Enabling session validation for new session")
             startWorker()
         }
     }
@@ -171,7 +171,7 @@ class SessionValidationService(
      * Internal method to start the WorkManager worker with current configuration.
      */
     private fun startWorker() {
-        CDCDebuggable.log(LOG_TAG, "Starting session validation worker")
+        CIAMDebuggable.log(LOG_TAG, "Starting session validation worker")
 
         // Create input data with site configuration
         val inputData = Data.Builder()
@@ -200,7 +200,7 @@ class SessionValidationService(
             workRequest
         )
 
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "Session validation worker started with interval: ${currentConfig.intervalMinutes} minutes"
         )

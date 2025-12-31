@@ -5,12 +5,12 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.storage.AndroidKeystoreSecureStorage
 import com.sap.cdc.android.sdk.storage.SecureSharedPreferences
 
 /**
- * Context extension functions for SAP CDC SDK.
+ * Context extension functions for SAP CIAM SDK.
  * 
  * Provides utility functions for secure storage, network connectivity checks,
  * and resource loading. Updated to use modern Android Keystore-based encryption.
@@ -79,13 +79,13 @@ fun Context.isOnline(): Boolean {
     val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
     if (capabilities != null) {
         if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-            CDCDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+            CIAMDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
             return true
         } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-            CDCDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+            CIAMDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
             return true
         } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-            CDCDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+            CIAMDebuggable.log("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
             return true
         }
     }

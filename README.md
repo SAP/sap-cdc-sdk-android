@@ -27,11 +27,11 @@ Add the SDK dependency to your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.sap.oss.cdc-android-sdk:cdc-android-sdk:0.3.0")
+    implementation("com.sap.oss.ciam-android-sdk:ciam-android-sdk:0.3.0")
 }
 ```
 
-The library is available on [MavenCentral](https://search.maven.org/artifact/com.sap.oss.cdc-android-sdk/cdc-android-sdk).
+The library is available on [MavenCentral](https://search.maven.org/artifact/com.sap.oss.ciam-android-sdk/ciam-android-sdk).
 
 # SDK Setup
 
@@ -48,13 +48,13 @@ val siteConfig = SiteConfig(context)
 
 ```xml
 <!-- Mandatory -->
-<string name="com.sap.cxcdc.apikey">YOUR_API_KEY_HERE</string>
+<string name="com.sap.ciam.apikey">YOUR_API_KEY_HERE</string>
 
 <!-- Optional - defaults to "us1.gigya.com" if not specified -->
-<string name="com.sap.cxcdc.domain">YOUR_API_DOMAIN_HERE</string>
+<string name="com.sap.ciam.domain">YOUR_API_DOMAIN_HERE</string>
 
 <!-- Optional -->
-<string name="com.sap.cxcdc.cname">YOUR_CNAME_HERE</string>
+<string name="com.sap.ciam.cname">YOUR_CNAME_HERE</string>
 ```
 
 **Multi-flavor Support:**
@@ -556,8 +556,8 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         
         // Initialize event bus (only needed once in your app)
-        if (!CDCEventBusProvider.isInitialized()) {
-            CDCEventBusProvider.initialize()
+        if (!CIAMEventBusProvider.isInitialized()) {
+            CIAMEventBusProvider.initialize()
         }
         
         // Subscribe with automatic lifecycle management
@@ -597,8 +597,8 @@ class MainActivityViewModel(
     
     init {
         // Initialize event bus
-        if (!CDCEventBusProvider.isInitialized()) {
-            CDCEventBusProvider.initialize()
+        if (!CIAMEventBusProvider.isInitialized()) {
+            CIAMEventBusProvider.initialize()
         }
         
         // Manual subscription requires explicit cleanup
@@ -711,7 +711,7 @@ subscribeToSessionEvents { event ->
 
 ## Important Notes
 
-⚠️ **Initialization:** Call `CDCEventBusProvider.initialize()` once in your app (e.g., in MainActivity or Application class)
+⚠️ **Initialization:** Call `CIAMEventBusProvider.initialize()` once in your app (e.g., in MainActivity or Application class)
 
 ⚠️ **Manual Subscriptions:** Always call `unsubscribe()` on manual subscriptions to prevent memory leaks
 
@@ -728,7 +728,7 @@ The SDK provides a flexible system for integrating social login providers (Googl
 **Key Principle:** The SDK doesn't include social provider SDKs (Facebook SDK, Google Sign-In, etc.). Instead, you implement the authentication logic in your app and provide the results to the SDK through a standardized interface.
 
 ```
-Your App → Social Provider SDK → IAuthenticationProvider → CDC SDK → CDC Server
+Your App → Social Provider SDK → IAuthenticationProvider → CIAM SDK → CIAM Server
 ```
 
 ## IAuthenticationProvider Interface
@@ -746,7 +746,7 @@ interface IAuthenticationProvider {
 
 ## AuthenticatorProviderResult
 
-This is the key object that bridges your provider implementation with the CDC SDK. It contains the authentication token in a JSON format that the CDC server validates.
+This is the key object that bridges your provider implementation with the CIAM SDK. It contains the authentication token in a JSON format that the CIAM server validates.
 
 ```kotlin
 AuthenticatorProviderResult(
@@ -760,7 +760,7 @@ AuthenticatorProviderResult(
 
 The `providerSessions` parameter is a JSON string containing authentication tokens. **The exact structure varies by provider** (Facebook uses `authToken`, Google uses `idToken`, etc.).
 
-**Important:** Each social provider has its own specific JSON structure required by CDC servers. Refer to the example implementations in the app module for the exact format:
+**Important:** Each social provider has its own specific JSON structure required by CIAM servers. Refer to the example implementations in the app module for the exact format:
 
 - **Facebook:** `app/.../provider/FacebookAuthenticationProvider.kt`
 - **Google:** `app/.../provider/GoogleAuthenticationProvider.kt`
@@ -867,9 +867,9 @@ These files show:
 
 ⚠️ **Provider Session JSON:** Each provider requires a specific JSON structure. Always refer to the example implementations for the exact format.
 
-⚠️ **Provider Names:** Use the exact provider name expected by CDC servers (e.g., "facebook", "google", not "Facebook" or "GOOGLE").
+⚠️ **Provider Names:** Use the exact provider name expected by CIAM servers (e.g., "facebook", "google", not "Facebook" or "GOOGLE").
 
-⚠️ **Dependencies:** Add social provider SDKs to your **app's** `build.gradle.kts`, not the CDC SDK. The SDK remains decoupled.
+⚠️ **Dependencies:** Add social provider SDKs to your **app's** `build.gradle.kts`, not the CIAM SDK. The SDK remains decoupled.
 
 ⚠️ **WebAuthenticationProvider:** For providers without native SDKs (LinkedIn, Twitter, etc.), use the built-in `WebAuthenticationProvider` - no custom implementation needed.
 

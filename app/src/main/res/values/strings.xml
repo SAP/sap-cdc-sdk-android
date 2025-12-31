@@ -4,8 +4,8 @@
     <!-- Uncomment and replace the placeholders with the actual values -->
 
     <!--    SDK configuration-->
-    <!--    <string name="com.sap.cxcdc.apikey">API_KEY_HERE</string>-->
-    <!--    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>-->
+    <!--    <string name="com.sap.ciam.apikey">API_KEY_HERE</string>-->
+    <!--    <string name="com.sap.ciam.domain">us1.gigya.com</string>-->
 
     <!--    Facebook provider configuration-->
     <!--    <string name="facebook_app_id">FB_APP_ID_HERE</string>-->
@@ -42,5 +42,7 @@
     <string name="resolve_link_account">Resolve Link Account\n</string>
     <string name="email_sign_in">email_sign_in</string>
 
+    <!-- Digital Asset Links for App Links (empty for now) -->
+    <string name="asset_statements"></string>
 
 </resources>

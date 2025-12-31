@@ -4,7 +4,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.bitsnbytes.navigation.NavigationCoordinator
 import com.sap.cdc.bitsnbytes.navigation.ProfileScreenRoute
 
@@ -30,7 +30,7 @@ class BiometricLifecycleManager(
      */
     fun initialize() {
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-        CDCDebuggable.log(LOG_TAG, "BiometricLifecycleManager initialized")
+        CIAMDebuggable.log(LOG_TAG, "BiometricLifecycleManager initialized")
     }
 
     /**
@@ -50,7 +50,7 @@ class BiometricLifecycleManager(
                     val currentRoute = NavigationCoordinator.INSTANCE.getCurrentRoute()
                     authenticationFlowDelegate.setRouteBeforeLock(currentRoute)
                     
-                    CDCDebuggable.log(LOG_TAG, "App backgrounded - locking biometric session. Saved route: $currentRoute")
+                    CIAMDebuggable.log(LOG_TAG, "App backgrounded - locking biometric session. Saved route: $currentRoute")
                     authenticationFlowDelegate.biometricLock()
                 }
             }
@@ -59,17 +59,17 @@ class BiometricLifecycleManager(
                 // Note: Don't check hasValidSession() as session will be null after lock
                 if (authenticationFlowDelegate.isBiometricLocked()) {
                     
-                    CDCDebuggable.log(LOG_TAG, "App foregrounded - biometric is locked, checking if navigation is available")
+                    CIAMDebuggable.log(LOG_TAG, "App foregrounded - biometric is locked, checking if navigation is available")
                     
                     // Check if navigation graph is available before attempting navigation
                     // This prevents crashes when app starts from killed state
                     if (isNavigationAvailable()) {
-                        CDCDebuggable.log(LOG_TAG, "Navigation available - navigating to unlock screen")
+                        CIAMDebuggable.log(LOG_TAG, "Navigation available - navigating to unlock screen")
                         // Navigate to BiometricLocked WITHOUT clearing the backstack
                         // This preserves the navigation history so user can return after unlock
                         NavigationCoordinator.INSTANCE.navigate(ProfileScreenRoute.BiometricLocked.route)
                     } else {
-                        CDCDebuggable.log(LOG_TAG, "Navigation not available yet - skipping navigation to unlock screen")
+                        CIAMDebuggable.log(LOG_TAG, "Navigation not available yet - skipping navigation to unlock screen")
                     }
                 }
             }
@@ -87,7 +87,7 @@ class BiometricLifecycleManager(
         return try {
             NavigationCoordinator.INSTANCE.isNavigationAvailable()
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, "Navigation availability check failed: ${e.message}")
+            CIAMDebuggable.log(LOG_TAG, "Navigation availability check failed: ${e.message}")
             false
         }
     }
@@ -98,6 +98,6 @@ class BiometricLifecycleManager(
      */
     fun cleanup() {
         ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
-        CDCDebuggable.log(LOG_TAG, "BiometricLifecycleManager cleaned up")
+        CIAMDebuggable.log(LOG_TAG, "BiometricLifecycleManager cleaned up")
     }
 }

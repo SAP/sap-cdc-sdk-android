@@ -1,11 +1,11 @@
 package com.sap.cdc.android.sdk.events
 
 /**
- * Global provider for the CDC Event Bus instance.
+ * Global provider for the CIAM Event Bus instance.
  * This singleton ensures that the event bus is accessible throughout the SDK
  * while maintaining proper initialization lifecycle.
  */
-object CDCEventBusProvider {
+object CIAMEventBusProvider {
     
     @Volatile
     private var eventBusInstance: LifecycleAwareEventBus? = null
@@ -16,7 +16,7 @@ object CDCEventBusProvider {
      * 
      * @param eventBus The event bus implementation to use
      */
-    fun initialize(eventBus: LifecycleAwareEventBus = CDCLifecycleEventBus()) {
+    fun initialize(eventBus: LifecycleAwareEventBus = CIAMLifecycleEventBus()) {
         synchronized(this) {
             if (eventBusInstance == null) {
                 eventBusInstance = eventBus
@@ -33,7 +33,7 @@ object CDCEventBusProvider {
      */
     fun getEventBus(): LifecycleAwareEventBus {
         return eventBusInstance ?: throw IllegalStateException(
-            "CDCEventBus has not been initialized. Call CDCEventBusProvider.initialize() first."
+            "CIAMEventBus has not been initialized. Call CIAMEventBusProvider.initialize() first."
         )
     }
     

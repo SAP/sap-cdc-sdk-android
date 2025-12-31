@@ -98,7 +98,7 @@ object ViewModelScopeProvider {
 
     /**
      * Creates an activity-scoped authentication delegate.
-     * This provides a shared authentication state and direct CDC SDK access
+     * This provides a shared authentication state and direct CIAM SDK access
      * across all ViewModels in the application.
      * 
      * IMPORTANT: This ensures only ONE instance of AuthenticationDelegate exists

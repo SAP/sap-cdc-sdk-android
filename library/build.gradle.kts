@@ -7,16 +7,16 @@ plugins {
     alias(libs.plugins.jreleaser)
 }
 
-group = "com.sap.oss.cdc-android-sdk"
+group = "com.sap.oss.ciam-android-sdk"
 version = "1.0.0"
 
-ext["name"] = "SAP Customer Data Cloud SDK for Android"
-ext["artifactId"] = "cdc-android-sdk"
-ext["description"] = "SAP Customer Data Cloud SDK for Android - A comprehensive solution for integrating SAP Customer Data Cloud services into Android applications"
+ext["name"] = "SAP Customer Identity and Access Management SDK for Android"
+ext["artifactId"] = "ciam-android-sdk"
+ext["description"] = "SAP Customer Identity and Access Management SDK for Android - A comprehensive solution for integrating SAP Customer Identity and Access Management services into Android applications"
 ext["url"] = "https://github.com/SAP/sap-cdc-sdk-android"
 
 android {
-    namespace = "com.sap.cdc.android.sdk"
+    namespace = "com.sap.ciam.android.sdk"
     compileSdk = 36
 
     defaultConfig {

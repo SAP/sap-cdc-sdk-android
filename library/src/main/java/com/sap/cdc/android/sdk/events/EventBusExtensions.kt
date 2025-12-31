@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.events
 
 import androidx.lifecycle.LifecycleOwner
-import com.sap.cdc.android.sdk.feature.notifications.CDCNotificationActionData
+import com.sap.cdc.android.sdk.feature.notifications.CIAMNotificationActionData
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
@@ -11,8 +11,8 @@ import kotlinx.coroutines.Dispatchers
  */
 
 // Global event bus instance accessed through the provider
-private val CDCEventBus: LifecycleAwareEventBus
-    get() = CDCEventBusProvider.getEventBus()
+private val CIAMEventBus: LifecycleAwareEventBus
+    get() = CIAMEventBusProvider.getEventBus()
 
 /**
  * Extension functions for UI components (lifecycle-aware subscriptions)
@@ -29,7 +29,7 @@ fun LifecycleOwner.subscribeToSessionEvents(
     scope: EventScope = EventScope.GLOBAL,
     onEvent: suspend (SessionEvent) -> Unit
 ) {
-    CDCEventBus.subscribe(this, SessionEvent::class, scope, onEvent = onEvent)
+    CIAMEventBus.subscribe(this, SessionEvent::class, scope, onEvent = onEvent)
 }
 
 /**
@@ -43,7 +43,7 @@ fun LifecycleOwner.subscribeToMessageEvents(
     scope: EventScope = EventScope.GLOBAL,
     onEvent: suspend (MessageEvent) -> Unit
 ) {
-    CDCEventBus.subscribe(this, MessageEvent::class, scope, onEvent = onEvent)
+    CIAMEventBus.subscribe(this, MessageEvent::class, scope, onEvent = onEvent)
 }
 
 /**
@@ -64,7 +64,7 @@ fun Any.subscribeToSessionEventsManual(
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
     onEvent: suspend (SessionEvent) -> Unit
 ): EventSubscription {
-    return CDCEventBus.subscribeManual(SessionEvent::class, scope, dispatcher, onEvent)
+    return CIAMEventBus.subscribeManual(SessionEvent::class, scope, dispatcher, onEvent)
 }
 
 /**
@@ -81,7 +81,7 @@ fun Any.subscribeToMessageEventsManual(
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
     onEvent: suspend (MessageEvent) -> Unit
 ): EventSubscription {
-    return CDCEventBus.subscribeManual(MessageEvent::class, scope, dispatcher, onEvent)
+    return CIAMEventBus.subscribeManual(MessageEvent::class, scope, dispatcher, onEvent)
 }
 
 /**
@@ -98,7 +98,7 @@ fun Any.emitSessionEvent(
     event: SessionEvent,
     scope: EventScope = EventScope.GLOBAL
 ) {
-    CDCEventBus.emit(event, scope)
+    CIAMEventBus.emit(event, scope)
 }
 
 /**
@@ -111,7 +111,7 @@ fun Any.emitMessageEvent(
     event: MessageEvent,
     scope: EventScope = EventScope.GLOBAL
 ) {
-    CDCEventBus.emit(event, scope)
+    CIAMEventBus.emit(event, scope)
 }
 
 /**
@@ -198,7 +198,7 @@ fun Any.emitRemoteMessageReceived(
  */
 fun Any.emitNotificationActionReceived(
     action: String,
-    data: CDCNotificationActionData,
+    data: CIAMNotificationActionData,
     scope: EventScope = EventScope.GLOBAL
 ) {
     emitMessageEvent(MessageEvent.NotificationActionReceived(action, data), scope)

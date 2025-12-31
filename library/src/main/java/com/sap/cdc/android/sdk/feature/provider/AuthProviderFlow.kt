@@ -2,11 +2,11 @@ package com.sap.cdc.android.sdk.feature.provider
 
 import android.util.Log
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.api.Api
-import com.sap.cdc.android.sdk.core.api.CDCRequest
-import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.api.CIAMRequest
+import com.sap.cdc.android.sdk.core.api.CIAMResponse
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN
@@ -38,11 +38,11 @@ class AuthProviderFlow(
         // Register callbacks.
         val callbacks = AuthCallbacks().apply(authCallbacks)
 
-        CDCDebuggable.log(LOG_TAG, "signIn: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "signIn: with parameters:$parameters")
 
         if (provider == null) {
             // End flow with error.
-            callbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+            callbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
             return
         }
         try {
@@ -53,7 +53,7 @@ class AuthProviderFlow(
                 // Native flows refer to social networks that require native SDK implementation
                 // in order to authenticate the user (eg. Facebook, Google, etc.).
                 ProviderType.NATIVE -> {
-                    CDCDebuggable.log(LOG_TAG, "signIn: native")
+                    CIAMDebuggable.log(LOG_TAG, "signIn: native")
                     val parameters = parameters ?: mutableMapOf()
                     if (!parameters.containsKey("loginMode")) {
                         parameters["loginMode"] = "standard"
@@ -88,7 +88,7 @@ class AuthProviderFlow(
                 // Web flows refer to all social provider types that are not native SDK based.
                 // These providers require a web view to authenticate the user.
                 ProviderType.WEB -> {
-                    CDCDebuggable.log(LOG_TAG, "signIn: web")
+                    CIAMDebuggable.log(LOG_TAG, "signIn: web")
 
                     // Handle error and potential interruption.
                     if (signIn.cdcResponse != null) {
@@ -127,7 +127,7 @@ class AuthProviderFlow(
 
                 // SSO provider authentication using a Central Login Page (CLP) only.
                 ProviderType.SSO -> {
-                    CDCDebuggable.log(LOG_TAG, "signIn: sso")
+                    CIAMDebuggable.log(LOG_TAG, "signIn: sso")
                     val ssoData = signIn.ssoData!!
                     val ssoUtil = SSOUtil()
                     val tokenResponse = ssoToken(ssoUtil, ssoData)
@@ -137,7 +137,7 @@ class AuthProviderFlow(
                             tokenResponse.serializeTo<SSOResponseEntity>()
 
                         if (ssoResponseEntity == null) {
-                            callbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                            callbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
                             return
                         }
 
@@ -164,7 +164,7 @@ class AuthProviderFlow(
                         val authSuccess = createAuthSuccess(getAccountInfo)
                         callbacks.onSuccess?.invoke(authSuccess)
                     } else {
-                        callbacks.onError?.invoke(createAuthError(CDCResponse().providerError()))
+                        callbacks.onError?.invoke(createAuthError(CIAMResponse().providerError()))
                         return
                     }
                 }
@@ -179,7 +179,7 @@ class AuthProviderFlow(
         provider: String,
         callbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "removeConnection: for provider:$provider")
+        CIAMDebuggable.log(LOG_TAG, "removeConnection: for provider:$provider")
 
         val remove = AuthenticationApi(coreClient, sessionService).send(
             EP_SOCIALIZE_REMOVE_CONNECTION, mutableMapOf("provider" to provider)
@@ -252,7 +252,7 @@ class AuthProviderFlow(
     private suspend fun ssoToken(
         ssoUtil: SSOUtil,
         data: SSOAuthenticationData
-    ): CDCResponse {
+    ): CIAMResponse {
         val headers = hashMapOf(
             "apikey" to sessionService.siteConfig.apiKey
         )
@@ -265,7 +265,7 @@ class AuthProviderFlow(
         parameters["code_verifier"] = data.verifier!!
         val urlString = ssoUtil.getUrl(sessionService.siteConfig, SSOUtil.TOKEN)
         return Api(coreClient).post(
-            CDCRequest(siteConfig = sessionService.siteConfig)
+            CIAMRequest(siteConfig = sessionService.siteConfig)
                 .api(urlString)
                 .parameters(parameters)
                 .headers(headers)

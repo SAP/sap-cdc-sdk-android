@@ -1,8 +1,8 @@
 package com.sap.cdc.bitsnbytes.ui.activity
 
 import androidx.lifecycle.ViewModel
-import com.sap.cdc.android.sdk.CDCDebuggable
-import com.sap.cdc.android.sdk.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.CIAMDebuggable
+import com.sap.cdc.android.sdk.events.CIAMEventBusProvider
 import com.sap.cdc.android.sdk.events.EventSubscription
 import com.sap.cdc.android.sdk.events.SessionEvent
 import com.sap.cdc.android.sdk.events.subscribeToSessionEventsManual
@@ -27,14 +27,14 @@ class MainActivityViewModel(
 ) : ViewModel() {
 
     // This delegate is the SHARED instance that all ViewModels will use
-    // It provides both state management and direct CDC SDK access
+    // It provides both state management and direct CIAM SDK access
     // IMPORTANT: Made public so MainActivity can provide it via CompositionLocal
 
     // Expose authentication state to UI
     val isAuthenticated = authenticationFlowDelegate.isAuthenticated
     val userAccount = authenticationFlowDelegate.userAccount
 
-    // Direct access to CDC SDK components
+    // Direct access to CIAM SDK components
     val authenticationService = authenticationFlowDelegate.authenticationService
 
     // BiometricLifecycleManager for automatic session locking/unlocking
@@ -57,8 +57,8 @@ class MainActivityViewModel(
      */
     private fun setupSessionEventHandling() {
         // Initialize event bus if not already initialized
-        if (!CDCEventBusProvider.isInitialized()) {
-            CDCEventBusProvider.initialize()
+        if (!CIAMEventBusProvider.isInitialized()) {
+            CIAMEventBusProvider.initialize()
         }
 
         // Subscribe to session events with manual lifecycle management
@@ -79,7 +79,7 @@ class MainActivityViewModel(
      * Clears authentication state and navigates to welcome screen.
      */
     private fun handleSessionExpired() {
-        CDCDebuggable.log("MainActivityViewModel", "Session expired - clearing state")
+        CIAMDebuggable.log("MainActivityViewModel", "Session expired - clearing state")
         
         // Clear authentication state via delegate
         authenticationFlowDelegate.handleSessionExpired()
@@ -95,7 +95,7 @@ class MainActivityViewModel(
      * Handle session verification request.
      */
     private fun handleSessionVerification() {
-        CDCDebuggable.log("MainActivityViewModel", "Session verification requested")
+        CIAMDebuggable.log("MainActivityViewModel", "Session verification requested")
         // Session verification logic can be added here if needed
     }
 
@@ -103,7 +103,7 @@ class MainActivityViewModel(
      * Handle session refresh.
      */
     private fun handleSessionRefreshed() {
-        CDCDebuggable.log("MainActivityViewModel", "Session refreshed")
+        CIAMDebuggable.log("MainActivityViewModel", "Session refreshed")
         // Session refresh handling can be added here if needed
     }
 
@@ -112,7 +112,7 @@ class MainActivityViewModel(
      * Only fires if session validation is enabled via registerForSessionValidation().
      */
     private fun handleValidationStarted() {
-        CDCDebuggable.log("MainActivityViewModel", "Session validation started")
+        CIAMDebuggable.log("MainActivityViewModel", "Session validation started")
     }
 
     /**
@@ -120,7 +120,7 @@ class MainActivityViewModel(
      * Only fires if session validation is enabled via registerForSessionValidation().
      */
     private fun handleValidationSucceeded() {
-        CDCDebuggable.log("MainActivityViewModel", "Session validation succeeded")
+        CIAMDebuggable.log("MainActivityViewModel", "Session validation succeeded")
     }
 
     /**
@@ -130,7 +130,7 @@ class MainActivityViewModel(
      * @param reason The reason for validation failure
      */
     private fun handleValidationFailed(reason: String) {
-        CDCDebuggable.log("MainActivityViewModel", "Session validation failed: $reason")
+        CIAMDebuggable.log("MainActivityViewModel", "Session validation failed: $reason")
         // Could trigger re-authentication flow if needed
     }
 

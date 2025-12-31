@@ -22,7 +22,7 @@ data class SessionEntity(
  * CDC mobile session data.
  * 
  * Represents an authenticated user session containing credentials required
- * for making authenticated API requests to CDC services.
+ * for making authenticated API requests to CIAM services.
  * 
  * ## Usage
  * ```kotlin

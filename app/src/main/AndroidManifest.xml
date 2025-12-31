@@ -54,9 +54,9 @@
             </intent-filter>
         </service>
 
-        <!-- CDCNotificationReceiver handles the actions from the notification (approve/deny) -->
+        <!-- CIAMNotificationReceiver handles the actions from the notification (approve/deny) -->
         <receiver
-            android:name="com.sap.cdc.android.sdk.feature.notifications.CDCNotificationReceiver"
+            android:name="com.sap.cdc.android.sdk.feature.notifications.CIAMNotificationReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="approve" />
@@ -70,14 +70,14 @@
             android:allowTaskReparenting="true"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.CXCDCAndroidSDK" />
+            android:theme="@style/Theme.CIAMAndroidSDK" />
 
         <!-- SSOLoginActivity handles the redirect from the browser after a successful login -->
         <activity
             android:name="com.sap.cdc.android.sdk.feature.provider.sso.SSOLoginActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.CDC.NoAnimationActivity">
+            android:theme="@style/Theme.CIAM.NoAnimationActivity">
 
             <intent-filter>
 
@@ -104,14 +104,14 @@
             android:name="com.sap.cdc.android.sdk.feature.provider.ResultLoginActivity"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:theme="@style/Theme.CDC.NoAnimationActivity" />
+            android:theme="@style/Theme.CIAM.NoAnimationActivity" />
 
         <!-- START Social providers (declarations required for WeChat, Facebook) -->
         <activity
             android:name=".wxapi.WXEntryActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.CDC.NoAnimationActivity" />
+            android:theme="@style/Theme.CIAM.NoAnimationActivity" />
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"

@@ -13,9 +13,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 /**
- * Response wrapper for SAP CDC API operations.
+ * Response wrapper for SAP CIAM API operations.
  * 
- * This class encapsulates responses from CDC API calls and provides convenient methods
+ * This class encapsulates responses from CIAM API calls and provides convenient methods
  * for parsing, error handling, and data extraction. It handles:
  * - JSON response parsing and serialization
  * - Error code and message extraction
@@ -23,18 +23,18 @@ import kotlinx.serialization.json.put
  * - Response validation and status checking
  * - Type-safe deserialization of response data
  * 
- * The CDCResponse provides multiple ways to access response data:
+ * The CIAMResponse provides multiple ways to access response data:
  * - Raw JSON string via [asJson]
  * - Parsed JsonObject via [jsonObject]
  * - Typed deserialization via [serializeTo] and [serializeObject]
  * - Field accessors like [stringField], [intField]
  * - Error information via [errorCode], [errorMessage], [errorDetails]
  * 
- * @property jsonResponse The raw JSON response string from the CDC API
+ * @property jsonResponse The raw JSON response string from the CIAM API
  * @property jsonObject The parsed JSON object representation of the response
- * @property json The JSON serializer instance configured for CDC responses
+ * @property json The JSON serializer instance configured for CIAM responses
  * 
- * @constructor Creates an empty CDCResponse. Use builder methods like [fromJSON], [fromError], etc.
+ * @constructor Creates an empty CIAMResponse. Use builder methods like [fromJSON], [fromError], etc.
  *              to populate the response data.
  * 
  * @author Tal Mirmelshtein
@@ -42,10 +42,10 @@ import kotlinx.serialization.json.put
  * 
  * Copyright: SAP LTD.
  * 
- * @see com.sap.cdc.android.sdk.core.api.CDCRequest
+ * @see com.sap.cdc.android.sdk.core.api.CIAMRequest
  * @see com.sap.cdc.android.sdk.core.api.Api
  */
-class CDCResponse {
+class CIAMResponse {
 
     var jsonResponse: String? = null
     var jsonObject: JsonObject? = null
@@ -63,7 +63,7 @@ class CDCResponse {
      * and a parsed JsonObject for convenient data access.
      * 
      * @param json The JSON string to parse
-     * @return This CDCResponse instance for method chaining
+     * @return This CIAMResponse instance for method chaining
      */
     fun fromJSON(json: String) = apply {
         jsonResponse = json
@@ -81,7 +81,7 @@ class CDCResponse {
      * @param code The error code (0 indicates success, non-zero indicates failure)
      * @param message A short error message describing the error
      * @param details Detailed error description with additional context
-     * @return This CDCResponse instance for method chaining
+     * @return This CIAMResponse instance for method chaining
      */
     fun fromError(code: Int, message: String, details: String?) = apply {
         val errorJson = buildJsonObject {
@@ -96,12 +96,12 @@ class CDCResponse {
     /**
      * Initializes the response from an exception.
      * 
-     * This method converts a generic exception into a CDC error response, using error code -1
+     * This method converts a generic exception into a CIAM error response, using error code -1
      * to indicate an internal error. The exception's localized message and message are used
      * for the error message and details respectively.
      * 
      * @param e The exception to convert to an error response
-     * @return This CDCResponse instance for method chaining
+     * @return This CIAMResponse instance for method chaining
      */
     fun fromException(e: Exception) = apply {
         fromError(
@@ -114,11 +114,11 @@ class CDCResponse {
     /**
      * Initializes the response from an HTTP exception.
      * 
-     * This internal method converts an HttpExceptions instance into a CDC error response,
+     * This internal method converts an HttpExceptions instance into a CIAM error response,
      * using the HTTP status code and description as the error information.
      * 
      * @param e The HttpExceptions instance containing HTTP error details
-     * @return This CDCResponse instance for method chaining
+     * @return This CIAMResponse instance for method chaining
      */
     internal fun fromHttpException(e: HttpExceptions) = apply {
         val statusCode: HttpStatusCode = e.response.status
@@ -135,7 +135,7 @@ class CDCResponse {
      * This internal method creates a standardized error response (code 400106) indicating
      * that the device is not connected to a network.
      * 
-     * @return This CDCResponse instance for method chaining
+     * @return This CIAMResponse instance for method chaining
      */
     internal fun noNetwork() = apply {
         fromError(
@@ -152,7 +152,7 @@ class CDCResponse {
      * a problem with social provider configuration (e.g., Facebook, Google login setup).
      * 
      * @param message Optional custom error message. Defaults to "Provider error" if not specified.
-     * @return This CDCResponse instance for method chaining
+     * @return This CIAMResponse instance for method chaining
      */
     internal fun providerError(message: String? = null) = apply {
         fromError(
@@ -269,7 +269,7 @@ class CDCResponse {
             try {
                 return json.decodeFromString<T>(jsonResponse!!)
             } catch (ex: Exception) {
-                ex.printDebugStackTrace("CDCResponse")
+                ex.printDebugStackTrace("CIAMResponse")
             }
         }
         return null
@@ -299,7 +299,7 @@ class CDCResponse {
             try {
                 return json.decodeFromString<T>(jsonObjectString)
             } catch (ex: Exception) {
-                ex.printDebugStackTrace("CDCResponse")
+                ex.printDebugStackTrace("CIAMResponse")
             }
         }
         return null

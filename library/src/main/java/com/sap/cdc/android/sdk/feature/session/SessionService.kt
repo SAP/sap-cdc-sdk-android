@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.session
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthenticationService.Companion.CDC_AUTHENTICATION_SERVICE_SECURE_PREFS
@@ -30,7 +30,7 @@ class SessionService(
     }
 
     init {
-        CDCDebuggable.log(LOG_TAG, "Initialized SessionService with siteConfig: $siteConfig")
+        CIAMDebuggable.log(LOG_TAG, "Initialized SessionService with siteConfig: $siteConfig")
     }
 
     private var sessionSecure: SessionSecure =

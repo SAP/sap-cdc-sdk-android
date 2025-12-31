@@ -6,23 +6,23 @@ import com.sap.cdc.android.sdk.core.network.NetworkClient
 
 
 /**
- * Core client for SAP CDC (Customer Data Cloud) SDK operations.
+ * Core client for SAP CIAM (Customer Data Cloud) SDK operations.
  * 
  * This class serves as the central entry point for SDK network operations, coordinating
  * between site configuration and network communication. It manages the HTTP client lifecycle
- * and provides access to the network layer for making CDC API requests.
+ * and provides access to the network layer for making CIAM API requests.
  * 
  * The CoreClient integrates:
  * - Site configuration (API key, domain, CNAME settings)
  * - HTTP client provisioning through a configurable provider
  * - Network client for executing API requests
  * 
- * @property siteConfig The SAP CDC site configuration containing API credentials and domain settings
+ * @property siteConfig The SAP CIAM site configuration containing API credentials and domain settings
  * @property httpClientProvider Provider for creating and configuring HTTP client instances.
  *                              Defaults to [KtorHttpClientProvider] for production use.
  *                              Can be overridden for testing or custom HTTP client configurations.
  * 
- * @property networkClient The network client instance used for executing HTTP requests to CDC APIs.
+ * @property networkClient The network client instance used for executing HTTP requests to CIAM APIs.
  *                         Automatically initialized with the provided HTTP client provider.
  * 
  * @constructor Creates a CoreClient with the specified site configuration and optional HTTP client provider.

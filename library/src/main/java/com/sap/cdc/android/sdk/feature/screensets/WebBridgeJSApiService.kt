@@ -1,7 +1,7 @@
 package com.sap.cdc.android.sdk.feature.screensets
 
 import androidx.activity.ComponentActivity
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.extensions.capitalFirst
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthEndpoints
@@ -116,7 +116,7 @@ class WebBridgeJSApiService(
             EP_SOCIALIZE_REMOVE_CONNECTION -> {
                 val provider = params["provider"]
                 if (provider == null) {
-                    CDCDebuggable.log(
+                    CIAMDebuggable.log(
                         LOG_TAG,
                         "Missing provider parameter in social remove connection attempt. Flow broken"
                     )
@@ -163,7 +163,7 @@ class WebBridgeJSApiService(
         containerId: String,
         completion: () -> Unit
     ) {
-        CDCDebuggable.log(LOG_TAG, "sendRequest: $api")
+        CIAMDebuggable.log(LOG_TAG, "sendRequest: $api")
 
         launchAsync { coroutineContext ->
             val response = AuthenticationApi(
@@ -176,7 +176,7 @@ class WebBridgeJSApiService(
                 method = HttpMethod.Post.value
             )
             if (response.isError()) {
-                CDCDebuggable.log(
+                CIAMDebuggable.log(
                     LOG_TAG,
                     "sendRequest: $api - request error: ${response.errorCode()} - ${response.errorDetails()}"
                 )
@@ -201,7 +201,7 @@ class WebBridgeJSApiService(
                 // Set new session.
                 val sessionInfo = response.serializeObject<Session>("sessionInfo")
                 if (sessionInfo == null) {
-                    CDCDebuggable.log(
+                    CIAMDebuggable.log(
                         LOG_TAG,
                         "sendRequest: $api - request error: failed to serialize session Info"
                     )
@@ -265,7 +265,7 @@ class WebBridgeJSApiService(
         //TODO: Handle headers if required.
         if (weakHostActivity.get() == null) {
             // Fail with error.
-            CDCDebuggable.log(LOG_TAG, "Context host error. Flow broken")
+            CIAMDebuggable.log(LOG_TAG, "Context host error. Flow broken")
             evaluateJSResult(
                 WebBridgeJSEvaluation(
                     containerID = containerId,
@@ -278,7 +278,7 @@ class WebBridgeJSApiService(
             val provider = params["provider"]
             if (provider == null) {
                 // Fail with error.
-                CDCDebuggable.log(LOG_TAG, "Missing provider parameter in social login attempt. Flow broken")
+                CIAMDebuggable.log(LOG_TAG, "Missing provider parameter in social login attempt. Flow broken")
                 evaluateJSResult(
                     WebBridgeJSEvaluation(
                         containerID = containerId,
@@ -306,7 +306,7 @@ class WebBridgeJSApiService(
             ) {
                 onError = { error ->
                     // Fail with error.
-                    CDCDebuggable.log(
+                    CIAMDebuggable.log(
                         LOG_TAG,
                         "sendRequest: $api - request error: ${
                             error.code
@@ -554,7 +554,7 @@ class WebBridgeJSLinkingInterruption(
             method = HttpMethod.Post.value
         )
         if (response.isError()) {
-            CDCDebuggable.log(
+            CIAMDebuggable.log(
                 WebBridgeJSApiService.LOG_TAG,
                 "notifyAccount: $api - request error: ${response.errorCode()} - ${response.errorDetails()}"
             )

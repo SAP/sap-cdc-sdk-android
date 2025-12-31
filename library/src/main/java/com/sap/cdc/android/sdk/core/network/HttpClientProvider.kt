@@ -38,7 +38,7 @@ interface HttpClientProvider {
      * - Plugins (logging, content negotiation, authentication, etc.)
      * - Default headers and request settings
      * 
-     * The returned client will be used by [NetworkClient] for all CDC API communications.
+     * The returned client will be used by [NetworkClient] for all CIAM API communications.
      * 
      * @return A configured HttpClient ready for making HTTP requests
      * 

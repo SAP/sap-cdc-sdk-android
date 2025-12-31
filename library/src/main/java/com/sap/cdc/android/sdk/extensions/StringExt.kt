@@ -12,7 +12,7 @@ import java.util.Locale
 
 
 /**
- * String extension functions for SAP CDC SDK.
+ * String extension functions for SAP CIAM SDK.
  * 
  * Provides utility functions for string manipulation, cryptographic operations,
  * JWT decoding, URL building, and query string parsing.

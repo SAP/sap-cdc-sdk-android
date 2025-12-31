@@ -1,8 +1,8 @@
 package com.sap.cdc.android.sdk.feature.login
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
-import com.sap.cdc.android.sdk.core.api.CDCResponse
+import com.sap.cdc.android.sdk.core.api.CIAMResponse
 import com.sap.cdc.android.sdk.feature.ATokenCredentials
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_ID_CREATE_TOKEN
@@ -27,7 +27,7 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         parameters: MutableMap<String, String>,
         callbacks: AuthCallbacks,
     ) {
-        CDCDebuggable.log(LOG_TAG, "login: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "login: with parameters:$parameters")
 
         val login = AuthenticationApi(coreClient, sessionService)
             .send(EP_ACCOUNTS_LOGIN, parameters)
@@ -71,7 +71,7 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         credentials: CustomIdCredentials,
         callbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "login: with customID:$credentials")
+        CIAMDebuggable.log(LOG_TAG, "login: with customID:$credentials")
 
         // Create parameter map according to credentials input.
         val parameters = mutableMapOf<String, String>()
@@ -101,7 +101,7 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
     }
 
     private suspend fun handleLoginResponse(
-        response: CDCResponse,
+        response: CIAMResponse,
         callbacks: AuthCallbacks,
     ) {
         if (isResolvableContext(response)) {
@@ -130,7 +130,7 @@ class AuthLoginFlow(coreClient: CoreClient, sessionService: SessionService) :
         parameters: MutableMap<String, String>,
         callbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "notifySocialLogin: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "notifySocialLogin: with parameters:$parameters")
         val notifySocialLogin =
             AuthenticationApi(coreClient, sessionService).send(
                 EP_ACCOUNTS_NOTIFY_SOCIAL_LOGIN,

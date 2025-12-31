@@ -95,7 +95,7 @@ sealed class ProfileScreenRoute(
 /**
  * Web-based ScreenSet routes.
  * 
- * Routes for CDC ScreenSets rendered in WebView for authentication UI.
+ * Routes for CIAM ScreenSets rendered in WebView for authentication UI.
  * 
  * @property route Navigation route string
  */

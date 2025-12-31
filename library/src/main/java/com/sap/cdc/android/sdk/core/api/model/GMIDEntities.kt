@@ -3,7 +3,7 @@ package com.sap.cdc.android.sdk.core.api.model
 import kotlinx.serialization.Serializable
 
 /**
- * GMID (Global Member ID) entity for SAP CDC session management.
+ * GMID (Global Member ID) entity for SAP CIAM session management.
  * 
  * Represents the unique identifier and refresh timestamp for a CDC session.
  * GMID is used to track user sessions across multiple devices and applications.

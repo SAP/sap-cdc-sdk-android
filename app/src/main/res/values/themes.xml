@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.CXCDCAndroidSDK" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.CIAMAndroidSDK" parent="android:Theme.Material.Light.NoActionBar" />
 
     <style name="Theme.BitsNBytes.Splash" parent="Theme.SplashScreen">
 
         <item name="windowSplashScreenBackground">#FFF</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="windowSplashScreenAnimationDuration">200</item>
-        <item name="postSplashScreenTheme">@style/Theme.CXCDCAndroidSDK</item>
+        <item name="postSplashScreenTheme">@style/Theme.CIAMAndroidSDK</item>
 
     </style>
 

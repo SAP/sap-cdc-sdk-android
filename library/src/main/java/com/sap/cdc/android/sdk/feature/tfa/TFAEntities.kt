@@ -3,7 +3,7 @@ package com.sap.cdc.android.sdk.feature.tfa
 import kotlinx.serialization.Serializable
 
 /**
- * Two-Factor Authentication (TFA) data entities for SAP CDC.
+ * Two-Factor Authentication (TFA) data entities for SAP CIAM.
  * 
  * Contains data classes, enums, and entities for managing two-factor authentication
  * including email, phone, push, and TOTP providers.

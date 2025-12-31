@@ -6,7 +6,7 @@ package com.sap.cdc.android.sdk.feature
  * This object provides factory methods for creating common AuthError instances
  * with predefined error codes and messages.
  *
- * @author SAP CDC SDK Team
+ * @author SAP CIAM SDK Team
  * @since 2024
  *
  * Copyright: SAP LTD.

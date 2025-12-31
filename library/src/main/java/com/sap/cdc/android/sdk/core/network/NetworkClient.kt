@@ -6,7 +6,7 @@ import io.ktor.client.statement.HttpResponse
 
 
 /**
- * Network client wrapper for HTTP operations in the SAP CDC SDK.
+ * Network client wrapper for HTTP operations in the SAP CIAM SDK.
  * 
  * This class serves as a lightweight wrapper around Ktor's HttpClient, providing
  * a consistent interface for network operations throughout the SDK. It abstracts
@@ -49,7 +49,7 @@ class NetworkClient(
      * 
      * This method delegates to the HttpClientProvider to create or retrieve
      * the HttpClient. The client is configured with all necessary settings
-     * for CDC API communication (timeouts, logging, default headers, etc.).
+     * for CIAM API communication (timeouts, logging, default headers, etc.).
      * 
      * @return A configured Ktor HttpClient ready for making HTTP requests
      * 
@@ -67,7 +67,7 @@ class NetworkClient(
  * 
  * The exception message format: "Status: {status_code}. Failure: {failure_reason}"
  * 
- * This exception is typically caught and converted to a [CDCResponse] error
+ * This exception is typically caught and converted to a [CIAMResponse] error
  * by the [Api] class for consistent error handling throughout the SDK.
  * 
  * @property response The HTTP response that caused the exception
@@ -76,7 +76,7 @@ class NetworkClient(
  * 
  * @constructor Creates an HttpExceptions with HTTP response details and failure information.
  *
- * @see com.sap.cdc.android.sdk.core.api.CDCResponse.fromHttpException
+ * @see com.sap.cdc.android.sdk.core.api.CIAMResponse.fromHttpException
  * @see com.sap.cdc.android.sdk.core.api.Api
  */
 class HttpExceptions(

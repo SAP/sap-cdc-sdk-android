@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.tfa
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.extensions.getEncryptedPreferences
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
@@ -37,7 +37,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
      * NOTE: Requires deviceInfo to be sent.
      */
     suspend fun optInForPushNotifications(parameters: MutableMap<String, String>, authCallbacks: AuthCallbacks) {
-        CDCDebuggable.log(LOG_TAG, "optInForPushTFA: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "optInForPushTFA: with parameters:$parameters")
 
         val initTFA = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_INIT,
@@ -81,7 +81,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         finalize: Boolean = false,
         authCallbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "finalizeOptInForPushTFA: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "finalizeOptInForPushTFA: with parameters:$parameters")
 
         val verify = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_PUSH_VERIFY,
@@ -124,7 +124,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         twoFactorContext: TwoFactorContext,
         authCallbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "getRegisteredEmails: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "getRegisteredEmails: with parameters:$parameters")
         parameters["regToken"] = twoFactorContext.regToken!!
         val init = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_INIT,
@@ -167,7 +167,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         twoFactorContext: TwoFactorContext,
         authCallbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "sendEmailCode: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "sendEmailCode: with parameters:$parameters")
         parameters["gigyaAssertion"] = twoFactorContext.assertion!!
         val sendCode = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_EMAILS_SEND_CODE,
@@ -195,7 +195,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         twoFactorContext: TwoFactorContext,
         authCallbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "registerPhone: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "registerPhone: with parameters:$parameters")
         parameters["regToken"] = twoFactorContext.regToken!!
         val init = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_INIT,
@@ -241,7 +241,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         twoFactorContext: TwoFactorContext,
         authCallbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "getRegisteredPhoneNumbers: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "getRegisteredPhoneNumbers: with parameters:$parameters")
         parameters["regToken"] = twoFactorContext.regToken!!
         val init = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_INIT,
@@ -285,7 +285,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         twoFactorContext: TwoFactorContext,
         authCallbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "sendPhoneCode: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "sendPhoneCode: with parameters:$parameters")
         parameters["gigyaAssertion"] = twoFactorContext.assertion!!
         val sendCode = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_PHONE_SEND_CODE,
@@ -314,7 +314,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         twoFactorContext: TwoFactorContext,
         authCallbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "registerTOTP: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "registerTOTP: with parameters:$parameters")
         parameters["regToken"] = twoFactorContext.regToken!!
         val init = AuthenticationApi(coreClient, sessionService).send(
             EP_TFA_INIT,
@@ -362,7 +362,7 @@ class AuthTFAFlow(coreClient: CoreClient, sessionService: SessionService) :
         rememberDevice: Boolean,
         authCallbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(LOG_TAG, "verifyCode: with parameters:$parameters")
+        CIAMDebuggable.log(LOG_TAG, "verifyCode: with parameters:$parameters")
         var assertion: String? = null
         if (twoFactorContext.assertion == null) {
             // Need to re-initiate TFA flow.

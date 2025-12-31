@@ -1,6 +1,6 @@
 package com.sap.cdc.android.sdk.feature.account
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.AuthEndpoints.Companion.EP_ACCOUNTS_GET_ACCOUNT_INFO
@@ -27,7 +27,7 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
         includeFields: List<String>? = null,
         callbacks: AuthCallbacks
     ) {
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "getAccountInfo: with parameters:$parameters"
         )
@@ -64,7 +64,7 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
         refreshOnSuccess: Boolean = false,
         callbacks: AuthCallbacks,
     ) {
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "setAccountInfo: with parameters:$parameters"
         )
@@ -105,7 +105,7 @@ class AuthAccountFlow(coreClient: CoreClient, sessionService: SessionService) :
         callbacks: AuthCallbacks
     ) {
         parameters["response_type"] = "code"
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG,
             "getAuthCode: with parameters:$parameters"
         )

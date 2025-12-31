@@ -58,7 +58,7 @@ import kotlinx.coroutines.delay
  * Copyright: SAP LTD.
  *
  * Application configuration view.
- * View allows reconfiguration of the CDC SDK & transition from native UI flows to screen-sets.
+ * View allows reconfiguration of the CIAM SDK & transition from native UI flows to screen-sets.
  */
 
 @Composable

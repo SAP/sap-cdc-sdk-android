@@ -10,7 +10,7 @@ import android.os.Build
 import android.os.Parcelable
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.events.EventSubscription
 import com.sap.cdc.android.sdk.events.MessageEvent
 import com.sap.cdc.android.sdk.events.subscribeToMessageEventsManual
@@ -36,22 +36,22 @@ interface IFCMTokenRequest {
 }
 
 /**
- * CDC Notification Manager.
- * Manages push notifications for CDC authentication flows.
+ * CIAM Notification Manager.
+ * Manages push notifications for CIAM authentication flows.
  */
-class CDCNotificationManager(
+class CIAMNotificationManager(
     private val authenticationService: AuthenticationService,
-    private val notificationOptions: CDCNotificationOptions,
+    private val notificationOptions: CIAMNotificationOptions,
 ) {
 
     companion object {
         const val LOG_TAG = "NotificationManager"
 
-        const val CDC_NOTIFICATIONS_CHANNEL_ID = "CDC_AUTHENTICATION_NOTIFICATIONS"
-        const val CDC_NOTIFICATIONS_ACTIONS_REQUEST_CODE = 2020
-        const val CDC_NOTIFICATIONS_CONTENT_REQUEST_CODE = 2021
+        const val CIAM_NOTIFICATIONS_CHANNEL_ID = "CIAM_AUTHENTICATION_NOTIFICATIONS"
+        const val CIAM_NOTIFICATIONS_ACTIONS_REQUEST_CODE = 2020
+        const val CIAM_NOTIFICATIONS_CONTENT_REQUEST_CODE = 2021
 
-        const val BUNDLE_ID_ACTION_DATA = "cdc_action_data"
+        const val BUNDLE_ID_ACTION_DATA = "ciam_action_data"
     }
 
     private var notificationManager: NotificationManagerCompat
@@ -76,7 +76,7 @@ class CDCNotificationManager(
         // Create notification manager.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CDC_NOTIFICATIONS_CHANNEL_ID, notificationOptions.channelTitle, NotificationManager.IMPORTANCE_HIGH
+                CIAM_NOTIFICATIONS_CHANNEL_ID, notificationOptions.channelTitle, NotificationManager.IMPORTANCE_HIGH
             )
             notificationManager.createNotificationChannel(channel)
         }
@@ -108,21 +108,21 @@ class CDCNotificationManager(
         val mode = data["mode"] ?: return
         when (mode) {
             "optin", "verify" -> {
-                CDCDebuggable.log(LOG_TAG, "Received actionable notification with mode: $mode")
+                CIAMDebuggable.log(LOG_TAG, "Received actionable notification with mode: $mode")
                 notifyActionable(mode, data)
             }
 
             "cancel" -> {
-                CDCDebuggable.log(LOG_TAG, "Received cancel notification.")
+                CIAMDebuggable.log(LOG_TAG, "Received cancel notification.")
 
                 if (twoFactorNotificationReceived(data)) {
-                    CDCDebuggable.log(LOG_TAG, "Canceling TFA notification.")
+                    CIAMDebuggable.log(LOG_TAG, "Canceling TFA notification.")
                     val gigyaAssertion = data["gigyaAssertion"]
                     if (gigyaAssertion != null) {
                         cancel(abs(gigyaAssertion.hashCode().toDouble()).toInt())
                     }
                 } else if (authNotificationReceived(data)) {
-                    CDCDebuggable.log(LOG_TAG, "Canceling Auth notification.")
+                    CIAMDebuggable.log(LOG_TAG, "Canceling Auth notification.")
                     val vToken = data["vToken"]
                     if (vToken != null) {
                         cancel(abs(vToken.hashCode().toDouble()).toInt())
@@ -156,8 +156,8 @@ class CDCNotificationManager(
      * @param action: The action of the notification.
      * @param data: The data fields of the notification.
      */
-    private fun onActionReceived(action: String, data: CDCNotificationActionData) {
-        CDCDebuggable.log(LOG_TAG, "onActionReceived: action: $action, data: $data")
+    private fun onActionReceived(action: String, data: CIAMNotificationActionData) {
+        CIAMDebuggable.log(LOG_TAG, "onActionReceived: action: $action, data: $data")
 
         when (action) {
             "Approve" -> {
@@ -171,7 +171,7 @@ class CDCNotificationManager(
                         scope.launch {
                             if (data.gigyaAssertion != null && data.verificationToken != null) {
                                 try {
-                                    CDCDebuggable.log(LOG_TAG, "Finalizing push TFA.")
+                                    CIAMDebuggable.log(LOG_TAG, "Finalizing push TFA.")
                                     authenticationService.authenticate().tfa().verifyNotification(
                                         parameters = mutableMapOf(
                                             "verificationToken" to data.verificationToken,
@@ -183,14 +183,14 @@ class CDCNotificationManager(
                                             notify(notificationOptions.notificationVerified?.title!!, "")
                                         }
                                         onError = { error ->
-                                            CDCDebuggable.log(
+                                            CIAMDebuggable.log(
                                                 LOG_TAG, "Error finalizing push TFA: ${error.message}"
                                             )
                                             job.cancel()
                                         }
                                     }
                                 } finally {
-                                    CDCDebuggable.log(LOG_TAG, "Finalized push TFA. Canceling coroutine job")
+                                    CIAMDebuggable.log(LOG_TAG, "Finalized push TFA. Canceling coroutine job")
                                     // Cancel the scope once the coroutine completes
                                     job.cancel()
                                 }
@@ -202,7 +202,7 @@ class CDCNotificationManager(
                         scope.launch {
                             if (data.gigyaAssertion != null && data.verificationToken != null) {
                                 try {
-                                    CDCDebuggable.log(LOG_TAG, "Verifying push TFA.")
+                                    CIAMDebuggable.log(LOG_TAG, "Verifying push TFA.")
                                     authenticationService.authenticate().tfa().verifyNotification(
                                         mutableMapOf(
                                             "verificationToken" to data.verificationToken,
@@ -214,19 +214,19 @@ class CDCNotificationManager(
                                             notify(notificationOptions.notificationVerified?.title!!, "")
                                         }
                                         onError = { error ->
-                                            CDCDebuggable.log(
+                                            CIAMDebuggable.log(
                                                 LOG_TAG, "Error verifying push TFA: ${error.message}"
                                             )
                                             job.cancel()
                                         }
                                     }
                                 } finally {
-                                    CDCDebuggable.log(LOG_TAG, "Verified push TFA. Canceling coroutine job")
+                                    CIAMDebuggable.log(LOG_TAG, "Verified push TFA. Canceling coroutine job")
                                     // Cancel the scope once the coroutine completes
                                     job.cancel()
                                 }
                             } else if (data.vToken != null) {
-                                CDCDebuggable.log(LOG_TAG, "Verifying push Authentication.")
+                                CIAMDebuggable.log(LOG_TAG, "Verifying push Authentication.")
                                 try {
                                     authenticationService.authenticate().push().verifyNotification(
                                         data.vToken
@@ -236,14 +236,14 @@ class CDCNotificationManager(
                                             notify(notificationOptions.notificationVerified?.title!!, "")
                                         }
                                         onError = { error ->
-                                            CDCDebuggable.log(
+                                            CIAMDebuggable.log(
                                                 LOG_TAG, "Error verifying push Auth: ${error.message}"
                                             )
                                             job.cancel()
                                         }
                                     }
                                 } finally {
-                                    CDCDebuggable.log(LOG_TAG, "Verified push Auth. Canceling coroutine job")
+                                    CIAMDebuggable.log(LOG_TAG, "Verified push Auth. Canceling coroutine job")
                                     // Cancel the scope once the coroutine completes
                                     job.cancel()
                                 }
@@ -269,7 +269,7 @@ class CDCNotificationManager(
         val context = authenticationService.siteConfig.applicationContext
 
         // Build notification.
-        val builder: NotificationCompat.Builder = NotificationCompat.Builder(context, CDC_NOTIFICATIONS_CHANNEL_ID)
+        val builder: NotificationCompat.Builder = NotificationCompat.Builder(context, CIAM_NOTIFICATIONS_CHANNEL_ID)
             .setSmallIcon(notificationOptions.smallIcon!!).setContentTitle(title).setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT).setAutoCancel(notificationOptions.autoCancel!!)
 
@@ -282,7 +282,7 @@ class CDCNotificationManager(
         if (notificationManager.areNotificationsEnabled()) {
             notificationManager.notify(SecureRandom().nextInt(), builder.build())
         } else {
-            CDCDebuggable.log(LOG_TAG, "Notifications permissions not enabled.")
+            CIAMDebuggable.log(LOG_TAG, "Notifications permissions not enabled.")
         }
     }
 
@@ -292,7 +292,7 @@ class CDCNotificationManager(
      * @param data: The data fields of the notification.
      */
     private fun notifyActionable(mode: String, data: Map<String, String>) {
-        CDCDebuggable.log(LOG_TAG, "notifyActionable: mode: $mode, data: $data")
+        CIAMDebuggable.log(LOG_TAG, "notifyActionable: mode: $mode, data: $data")
 
         // Need to vary the notification content based on data type (twoFactor vs auth).
 
@@ -305,13 +305,13 @@ class CDCNotificationManager(
             val verificationToken = data["verificationToken"]
 
             if (gigyaAssertion == null || verificationToken == null) {
-                CDCDebuggable.log(LOG_TAG, "Missing gigyaAssertion in notification data.")
+                CIAMDebuggable.log(LOG_TAG, "Missing gigyaAssertion in notification data.")
                 return
             }
             // the unique notification id will be the hash code of the gigyaAssertion field.
             // gigyaAssertion hash will act as notification id.
             val twoFactorNotificationId = abs(gigyaAssertion.hashCode())
-            val twoFactorActionData = CDCNotificationActionData(
+            val twoFactorActionData = CIAMNotificationActionData(
                 mode,
                 gigyaAssertion = gigyaAssertion,
                 verificationToken = verificationToken,
@@ -319,22 +319,22 @@ class CDCNotificationManager(
             )
 
             // Notify.
-            notify(twoFactorNotificationId, buildCDCNotification(title, body, twoFactorActionData))
+            notify(twoFactorNotificationId, buildCIAMNotification(title, body, twoFactorActionData))
         }
         if (authNotificationReceived(data)) {
             val vToken = data["vToken"]
 
             if (vToken == null) {
-                CDCDebuggable.log(LOG_TAG, "Missing vToken in notification data.")
+                CIAMDebuggable.log(LOG_TAG, "Missing vToken in notification data.")
                 return
             }
             // the unique notification id will be the hash code of the vToken field.
             // vToken hash will act as notification id.
             val authNotificationId = abs(vToken.hashCode())
-            val authActionData = CDCNotificationActionData(mode, vToken = vToken, notificationId = authNotificationId)
+            val authActionData = CIAMNotificationActionData(mode, vToken = vToken, notificationId = authNotificationId)
 
             // Notify.
-            notify(authNotificationId, buildCDCNotification(title, body, authActionData))
+            notify(authNotificationId, buildCIAMNotification(title, body, authActionData))
         }
     }
 
@@ -345,23 +345,23 @@ class CDCNotificationManager(
      */
     private fun notify(notificationId: Int, notification: Notification) {
         if (notificationManager.areNotificationsEnabled()) {
-            CDCDebuggable.log(
+            CIAMDebuggable.log(
                 LOG_TAG, "Notify actionable notification with id = $notificationId"
             )
             notificationManager.notify(notificationId, notification)
         } else {
-            CDCDebuggable.log(LOG_TAG, "Notifications permissions not enabled.")
+            CIAMDebuggable.log(LOG_TAG, "Notifications permissions not enabled.")
         }
     }
 
     /**
-     * Build CDC notification.
+     * Build CIAM notification.
      * @param title: The title of the notification.
      * @param body: The body of the notification.
      * @param actionData: The action data of the notification.
      * @return The built notification.
      */
-    private fun buildCDCNotification(
+    private fun buildCIAMNotification(
         title: String?, body: String?, actionData: Parcelable
     ): Notification {
         // Reference context.
@@ -369,14 +369,14 @@ class CDCNotificationManager(
 
         // Build notification.
         val builder: NotificationCompat.Builder =
-            NotificationCompat.Builder(context, CDC_NOTIFICATIONS_CHANNEL_ID).setSmallIcon(R.drawable.ic_dialog_info)
+            NotificationCompat.Builder(context, CIAM_NOTIFICATIONS_CHANNEL_ID).setSmallIcon(R.drawable.ic_dialog_info)
                 .setContentTitle(title?.trim { it <= ' ' } ?: "").setContentText(body?.trim { it <= ' ' } ?: "")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT).setTimeoutAfter(notificationOptions.timeout!!)
                 .setAutoCancel(true)
 
         // Notification channel required for Android O and above.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder.setChannelId(CDC_NOTIFICATIONS_CHANNEL_ID)
+            builder.setChannelId(CIAM_NOTIFICATIONS_CHANNEL_ID)
         }
 
         // Define actions pending intent flags.
@@ -389,7 +389,7 @@ class CDCNotificationManager(
             intent.putExtra(BUNDLE_ID_ACTION_DATA, actionData)
 
             val pendingIntent = PendingIntent.getActivity(
-                context, CDC_NOTIFICATIONS_CONTENT_REQUEST_CODE, intent, flags
+                context, CIAM_NOTIFICATIONS_CONTENT_REQUEST_CODE, intent, flags
             )
 
             // We don't want the annoying enter animation.
@@ -401,24 +401,24 @@ class CDCNotificationManager(
         }
 
         // Deny action.
-        val denyIntent = Intent(context, CDCNotificationReceiver::class.java) // Missing receiver class
+        val denyIntent = Intent(context, CIAMNotificationReceiver::class.java) // Missing receiver class
         denyIntent.putExtra(BUNDLE_ID_ACTION_DATA, actionData)
 
         denyIntent.setAction("Deny") // Missing resource string
         val denyPendingIntent = PendingIntent.getBroadcast(
-            context, CDC_NOTIFICATIONS_ACTIONS_REQUEST_CODE, denyIntent, flags
+            context, CIAM_NOTIFICATIONS_ACTIONS_REQUEST_CODE, denyIntent, flags
         )
 
 
         // Approve action.
         val approveIntent = Intent(
-            authenticationService.siteConfig.applicationContext, CDCNotificationReceiver::class.java
+            authenticationService.siteConfig.applicationContext, CIAMNotificationReceiver::class.java
         ) // Missing receiver class
         approveIntent.putExtra(BUNDLE_ID_ACTION_DATA, actionData)
 
         approveIntent.setAction("Approve") // Missing resource string
         val approvePendingIntent = PendingIntent.getBroadcast(
-            context, CDC_NOTIFICATIONS_ACTIONS_REQUEST_CODE, approveIntent, flags
+            context, CIAM_NOTIFICATIONS_ACTIONS_REQUEST_CODE, approveIntent, flags
         )
 
         builder.addAction(
@@ -441,7 +441,7 @@ class CDCNotificationManager(
         if (idToCancel == 0) {
             return
         }
-        CDCDebuggable.log(
+        CIAMDebuggable.log(
             LOG_TAG, "Cancel notification with id = $idToCancel"
         )
 

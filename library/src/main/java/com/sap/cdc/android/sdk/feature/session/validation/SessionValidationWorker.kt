@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 import com.sap.cdc.android.sdk.core.CoreClient
 import com.sap.cdc.android.sdk.core.SiteConfig
-import com.sap.cdc.android.sdk.events.CDCEventBusProvider
+import com.sap.cdc.android.sdk.events.CIAMEventBusProvider
 import com.sap.cdc.android.sdk.feature.AuthenticationApi
 import com.sap.cdc.android.sdk.feature.session.SessionService
 import java.io.IOException
@@ -19,7 +19,7 @@ import java.util.Date
  * WorkManager worker that performs periodic session validation.
  * 
  * Scheduled by SessionValidationService to run at configured intervals. The worker
- * validates active sessions against the CDC API and emits events for the results.
+ * validates active sessions against the CIAM API and emits events for the results.
  * 
  * Features:
  * - Automatically stops when no active session exists
@@ -47,7 +47,7 @@ class SessionValidationWorker(
     }
 
     override suspend fun doWork(): Result {
-        CDCDebuggable.log(LOG_TAG, "SessionValidationWorker starting work: ${Date()}")
+        CIAMDebuggable.log(LOG_TAG, "SessionValidationWorker starting work: ${Date()}")
 
         return try {
             // Get configuration from input data
@@ -56,7 +56,7 @@ class SessionValidationWorker(
             val cname = inputData.getString(INPUT_CNAME)
 
             if (apiKey == null || domain == null) {
-                CDCDebuggable.log(LOG_TAG, "Missing required configuration parameters")
+                CIAMDebuggable.log(LOG_TAG, "Missing required configuration parameters")
                 return Result.failure()
             }
 
@@ -74,40 +74,40 @@ class SessionValidationWorker(
             
             // Primary check: Is there an active session?
             if (!sessionService.availableSession()) {
-                CDCDebuggable.log(LOG_TAG, "No active session - stopping validation worker")
+                CIAMDebuggable.log(LOG_TAG, "No active session - stopping validation worker")
                 cancelRecurringWork()
                 return Result.failure()
             }
 
             val authenticationApi = AuthenticationApi(coreClient, sessionService)
-            val eventBus = CDCEventBusProvider.getEventBus()
+            val eventBus = CIAMEventBusProvider.getEventBus()
 
             // Create validator and perform validation
             val validator = SessionValidator(authenticationApi, sessionService, eventBus)
             validator.validateSession()
 
-            CDCDebuggable.log(LOG_TAG, "SessionValidationWorker completed successfully")
+            CIAMDebuggable.log(LOG_TAG, "SessionValidationWorker completed successfully")
             Result.success()
 
         } catch (e: Exception) {
-            CDCDebuggable.log(LOG_TAG, "SessionValidationWorker failed: ${e.message}")
+            CIAMDebuggable.log(LOG_TAG, "SessionValidationWorker failed: ${e.message}")
             
             // Don't stop on network errors, but stop on auth errors
             when (e) {
                 is SecurityException,
                 is IllegalStateException -> {
-                    CDCDebuggable.log(LOG_TAG, "Authentication error - stopping validation worker")
+                    CIAMDebuggable.log(LOG_TAG, "Authentication error - stopping validation worker")
                     cancelRecurringWork()
                     Result.failure()
                 }
                 is UnknownHostException,
                 is SocketTimeoutException,
                 is IOException -> {
-                    CDCDebuggable.log(LOG_TAG, "Recoverable network error, will retry")
+                    CIAMDebuggable.log(LOG_TAG, "Recoverable network error, will retry")
                     Result.retry()
                 }
                 else -> {
-                    CDCDebuggable.log(LOG_TAG, "Non-recoverable error")
+                    CIAMDebuggable.log(LOG_TAG, "Non-recoverable error")
                     Result.failure()
                 }
             }

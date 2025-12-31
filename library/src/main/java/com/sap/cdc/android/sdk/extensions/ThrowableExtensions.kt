@@ -1,10 +1,10 @@
 package com.sap.cdc.android.sdk.extensions
 
-import com.sap.cdc.android.sdk.CDCDebuggable
+import com.sap.cdc.android.sdk.CIAMDebuggable
 
 /**
  * Extension functions for Throwable to enable conditional stack trace printing
- * based on CDCDebuggable debug state.
+ * based on CIAMDebuggable debug state.
  * 
  * These extensions ensure stack traces are only printed when the SDK is in debug mode,
  * preventing sensitive information leakage in production builds.
@@ -38,7 +38,7 @@ import com.sap.cdc.android.sdk.CDCDebuggable
  */
 
 /**
- * Prints the stack trace only if CDCDebuggable debug logging is enabled.
+ * Prints the stack trace only if CIAMDebuggable debug logging is enabled.
  * 
  * This is a safe replacement for printStackTrace() that respects the SDK's debug state.
  * Use this when you don't need to log additional context about the exception.
@@ -53,16 +53,16 @@ import com.sap.cdc.android.sdk.CDCDebuggable
  * - Debug mode OFF: Does nothing (safe for production)
  */
 fun Throwable.printDebugStackTrace() {
-    if (CDCDebuggable.isDebugEnabled()) {
+    if (CIAMDebuggable.isDebugEnabled()) {
         printStackTrace()
     }
 }
 
 /**
  * Prints the stack trace with a custom tag, only if debug logging is enabled.
- * Also logs the exception details using CDCDebuggable.log() for consistent logging.
+ * Also logs the exception details using CIAMDebuggable.log() for consistent logging.
  * 
- * This method provides both structured logging (via CDCDebuggable.log) and
+ * This method provides both structured logging (via CIAMDebuggable.log) and
  * detailed stack trace (via printStackTrace) when debug mode is enabled.
  * 
  * When to Use:
@@ -80,8 +80,8 @@ fun Throwable.printDebugStackTrace() {
  * @param tag Custom tag to identify where the exception occurred (e.g., "WebBridge", "ScreenSet")
  */
 fun Throwable.printDebugStackTrace(tag: String) {
-    CDCDebuggable.log(tag, "Exception: ${this.javaClass.simpleName} - ${this.message}")
-    if (CDCDebuggable.isDebugEnabled()) {
+    CIAMDebuggable.log(tag, "Exception: ${this.javaClass.simpleName} - ${this.message}")
+    if (CIAMDebuggable.isDebugEnabled()) {
         printStackTrace()
     }
 }

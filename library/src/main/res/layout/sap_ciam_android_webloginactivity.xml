@@ -13,12 +13,12 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <WebView
-            android:id="@+id/sapCdcAndroidWebLoginWebView"
+            android:id="@+id/sapCiamAndroidWebLoginWebView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
         <ProgressBar
-            android:id="@+id/sapCdcAndroidWebLoginProgressBar"
+            android:id="@+id/sapCiamAndroidWebLoginProgressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="8dp"
