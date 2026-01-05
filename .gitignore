@@ -60,7 +60,8 @@ google-services.json
 .AppleDouble
 .LSOverride
 /example/keystore/
+
+### Internal documents ###
 /docs/
 /plans/
-
-
+/reports/
