@@ -27,6 +27,11 @@ runtimeLivedata = "1.10.0"
 workRuntimeKtx = "2.11.0"
 material3 = "1.4.0"
 
+# MRZ Reader dependencies
+camerax = "1.4.0"
+mlkitTextRecognition = "16.0.1"
+coroutinesAndroid = "1.8.0"
+
 facebookLogin = "latest.release"
 googleid = "1.1.1"
 wechatSdkAndroidWithoutMta = "6.8.0"
@@ -99,6 +104,14 @@ facebook-login = { module = "com.facebook.android:facebook-login", version.ref =
 linesdk = { module = "com.linecorp.linesdk:linesdk", version.ref = "linesdk" }
 wechat = { module = "com.tencent.mm.opensdk:wechat-sdk-android-without-mta", version.ref = "wechatSdkAndroidWithoutMta" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+
+# MRZ Reader libraries
+camerax-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutinesAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

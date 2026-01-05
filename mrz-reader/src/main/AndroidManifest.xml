@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Required permissions for MRZ scanning -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    
+    <!-- Camera hardware is required -->
+    <uses-feature 
+        android:name="android.hardware.camera" 
+        android:required="true" />
+    
+</manifest>

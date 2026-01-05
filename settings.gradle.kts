@@ -20,3 +20,4 @@ dependencyResolutionManagement {
 rootProject.name = "SAP-CDC-Android-SDK"
 include(":app")
 include(":library")
+include(":mrz-reader")
