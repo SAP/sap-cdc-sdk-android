@@ -31,6 +31,7 @@ material3 = "1.4.0"
 camerax = "1.4.0"
 mlkitTextRecognition = "16.0.1"
 coroutinesAndroid = "1.8.0"
+desugarJdkLibs = "2.0.4"
 
 facebookLogin = "latest.release"
 googleid = "1.1.1"
@@ -112,6 +113,7 @@ camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", vers
 camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutinesAndroid" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

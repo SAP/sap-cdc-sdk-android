@@ -16,7 +16,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -39,6 +39,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlin {
@@ -60,6 +61,9 @@ android {
 }
 
 dependencies {
+    // Core library desugaring for Java 8+ APIs on older Android versions
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    
     // Core Android
     implementation(libs.androidx.ktx)
     implementation(libs.androidx.appcompat)

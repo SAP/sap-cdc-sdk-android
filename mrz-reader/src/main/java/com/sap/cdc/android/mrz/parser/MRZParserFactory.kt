@@ -32,9 +32,10 @@ object MRZParserFactory {
      * Currently supported:
      * - TD1 (ID cards)
      * - TD2 (some passports/official travel documents)
+     * - TD3 (standard passports)
      * 
      * Future support:
-     * - TD3 (passports)
+     * - MRVA, MRVB (visas)
      * 
      * @param format The MRZ format
      * @return Parser instance or null if format not supported
@@ -43,9 +44,8 @@ object MRZParserFactory {
         return when (format) {
             MRZFormat.TD1 -> TD1Parser()
             MRZFormat.TD2 -> TD2Parser()
-            // Future parsers will be added here:
-            // MRZFormat.TD3 -> TD3Parser()
-            else -> null  // TD3, MRVA, MRVB not yet implemented
+            MRZFormat.TD3 -> TD3Parser()
+            else -> null  // MRVA, MRVB not yet implemented
         }
     }
     
