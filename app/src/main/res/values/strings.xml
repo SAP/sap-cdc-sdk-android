@@ -41,6 +41,9 @@
 
     <string name="resolve_link_account">Resolve Link Account\n</string>
     <string name="email_sign_in">email_sign_in</string>
+    
+    <!-- Camera Test Activity -->
+    <string name="camera_test">Camera Test</string>
 
     <!-- Digital Asset Links for App Links (empty for now) -->
     <string name="asset_statements"></string>

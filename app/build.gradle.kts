@@ -68,6 +68,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "1.8"
@@ -96,6 +97,7 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.bundles.material)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.camera.lifecycle)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -108,7 +110,14 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.coil.compose)
 
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    
     implementation(project(":library"))
+    implementation(project(":mrz-reader"))
+    
+    // CameraX dependencies (needed for test activity since mrz-reader uses 'implementation')
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.view)
 
     // Used social providers.
     implementation(libs.facebook.login)

@@ -2,8 +2,8 @@
 <resources>
 
     <!-- SDK configuration -->
-    <string name="com.sap.cxcdc.apikey">API_KEY_HERE</string>
-    <string name="com.sap.cxcdc.domain">us1.gigya.com</string>
+    <string name="com.sap.ciam.apikey">4_IRlvtosgJirDR_W_dfr3pga</string>
+    <string name="com.sap.ciam.domain">us1.gigya.com</string>
 
     <!-- Facebook provider configuration -->
     <string name="facebook_app_id">FB_APP_ID_HERE</string>

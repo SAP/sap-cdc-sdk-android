@@ -52,6 +52,10 @@ android {
         buildConfig = true
     }
 
+    lint {
+        disable += "UnsafeOptInUsageError"
+    }
+
     packaging {
         resources {
             excludes.add("META-INF/LICENSE.md")
