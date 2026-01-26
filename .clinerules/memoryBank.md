@@ -95,6 +95,7 @@ Memory Bank updates occur when:
 2. After implementing significant changes
 3. When user requests with **update memory bank** (MUST review ALL files)
 4. When context needs clarification
+5. **Automatically when using "task done" in any context** (MUST review ALL files)
 
 flowchart TD
 Start[Update Process]
@@ -110,6 +111,9 @@ Start[Update Process]
 
     Start --> Process
 
-Note: When triggered by **update memory bank**, I MUST review every memory bank file, even if some don't require updates. Focus particularly on activeContext.md and progress.md as they track current state.
+Note: When triggered by **update memory bank** or **task done**, I MUST review every memory bank file, even if some don't require updates. Focus particularly on activeContext.md and progress.md as they track current state.
+
+### Task Completion Trigger
+When I write "task done" in any context (thinking tags, responses, completion messages), this automatically triggers a full Memory Bank update before proceeding. This ensures all completed work is documented before moving to the next task.
 
 REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.

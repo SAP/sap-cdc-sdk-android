@@ -25,7 +25,7 @@ import com.sap.cdc.android.mrz.model.MRZResult
  * 
  * ```kotlin
  * // Create processor instance
- * val processor = MRZImageProcessor.create(context)
+ * val processor = IMRZImageProcessor.create(context)
  * 
  * // Configure if needed
  * processor.configure(MRZProcessorConfig(
@@ -58,7 +58,7 @@ import com.sap.cdc.android.mrz.model.MRZResult
  * @see MRZResult
  * @see MRZProcessorConfig
  */
-interface MRZImageProcessor {
+interface IMRZImageProcessor {
     
     /**
      * Process a CameraX ImageProxy for MRZ detection and parsing.
@@ -116,17 +116,23 @@ interface MRZImageProcessor {
     
     companion object {
         /**
-         * Create a new MRZImageProcessor instance.
+         * Create a new IMRZImageProcessor instance.
+         * 
+         * Returns the default implementation with:
+         * - Advanced line clustering and scoring
+         * - Stability tracking to prevent false positives
+         * - Better format detection
+         * - Comprehensive validation
          * 
          * @param context Android context (application or activity context)
          * @param config Optional initial configuration
-         * @return Configured MRZImageProcessor ready for use
+         * @return Configured IMRZImageProcessor ready for use
          */
         fun create(
             context: android.content.Context,
             config: MRZProcessorConfig = MRZProcessorConfig()
-        ): MRZImageProcessor {
-            return MRZImageProcessorImpl(context, config)
+        ): IMRZImageProcessor {
+            return MRZImageProcessorDefault(context, config)
         }
     }
 }

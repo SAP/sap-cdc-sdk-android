@@ -96,14 +96,21 @@ enum class MRZFormat(
     companion object {
         /**
          * Detect MRZ format from the number of lines and characters.
+         * More lenient to handle OCR truncation - uses ranges instead of exact match.
          * 
          * @param lines Number of MRZ lines detected
          * @param firstLineLength Length of the first MRZ line
          * @return Corresponding MRZFormat or null if no match
          */
         fun detect(lines: Int, firstLineLength: Int): MRZFormat? {
-            return values().find { 
-                it.lines == lines && it.charsPerLine == firstLineLength 
+            return when (lines) {
+                3 -> if (firstLineLength in 26..33) TD1 else null
+                2 -> when (firstLineLength) {
+                    in 28..40 -> TD2  // More lenient range
+                    in 41..48 -> TD3  // More lenient range
+                    else -> null
+                }
+                else -> null
             }
         }
         

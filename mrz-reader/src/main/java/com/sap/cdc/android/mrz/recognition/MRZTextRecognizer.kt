@@ -4,6 +4,7 @@
 package com.sap.cdc.android.mrz.recognition
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.util.Log
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageProxy
@@ -15,36 +16,41 @@ import com.sap.cdc.android.mrz.MRZProcessorConfig
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * Internal helper class for ML Kit text recognition operations.
+ * MRZ text recognizer with advanced detection logic.
  * 
- * This class wraps Google ML Kit's text recognition API and provides
- * MRZ-specific text extraction and filtering capabilities.
- * 
- * @property config Configuration for text recognition behavior
+ * Implements advanced clustering and scoring:
+ * - Groups lines into 2/3-line MRZ patterns
+ * - Scores candidates based on quality metrics
+ * - Returns structured candidates for validation
  */
 internal class MRZTextRecognizer(
     private var config: MRZProcessorConfig
 ) {
     
-    private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    // Tuning parameters
+    private val minAllowedRatio = 0.85
+    private val minChevrons = 2
+    private val minLineLength = 20
     
-    /**
-     * Update configuration at runtime.
-     */
+    private val textRecognizer = TextRecognition.getClient(
+        TextRecognizerOptions.Builder()
+            .setExecutor { command -> command.run() }
+            .build()
+    )
+    
     fun updateConfig(newConfig: MRZProcessorConfig) {
         config = newConfig
     }
     
     /**
-     * Extract text from a CameraX ImageProxy.
-     * 
-     * @param imageProxy Image from camera
-     * @return List of text lines that could be MRZ data
+     * Extract and score MRZ line candidates from ImageProxy.
      */
     @OptIn(ExperimentalGetImage::class)
-    suspend fun recognizeText(imageProxy: ImageProxy): List<String> {
+    suspend fun recognizeWithCandidates(imageProxy: ImageProxy): List<MRZLineCandidate> {
         return try {
             val mediaImage = imageProxy.image
             if (mediaImage == null) {
@@ -52,218 +58,226 @@ internal class MRZTextRecognizer(
                 return emptyList()
             }
             
-            val inputImage = InputImage.fromMediaImage(
-                mediaImage,
+            val bitmap = imageProxy.toBitmap()
+            val preprocessedBitmap = preprocessImage(bitmap)
+            val inputImage = InputImage.fromBitmap(
+                preprocessedBitmap,
                 imageProxy.imageInfo.rotationDegrees
             )
             
-            recognizeFromInputImage(inputImage)
+            extractCandidates(inputImage, imageProxy.height)
         } catch (e: Exception) {
-            logDebug("Error recognizing text from ImageProxy: ${e.message}")
+            logDebug("Error recognizing text: ${e.message}")
             emptyList()
         }
     }
     
     /**
-     * Extract text from a Bitmap.
-     * 
-     * @param bitmap Image bitmap
-     * @return List of text lines that could be MRZ data
+     * Extract and score MRZ line candidates from Bitmap.
      */
-    suspend fun recognizeText(bitmap: Bitmap): List<String> {
+    suspend fun recognizeWithCandidates(bitmap: Bitmap): List<MRZLineCandidate> {
         return try {
-            val inputImage = InputImage.fromBitmap(bitmap, 0)
-            recognizeFromInputImage(inputImage)
+            val preprocessedBitmap = preprocessImage(bitmap)
+            val inputImage = InputImage.fromBitmap(preprocessedBitmap, 0)
+            extractCandidates(inputImage, bitmap.height)
         } catch (e: Exception) {
-            logDebug("Error recognizing text from Bitmap: ${e.message}")
+            logDebug("Error recognizing text: ${e.message}")
             emptyList()
         }
     }
     
     /**
-     * Common recognition logic for InputImage.
+     * Extract MRZ line candidates from ML Kit result.
      */
-    private suspend fun recognizeFromInputImage(inputImage: InputImage): List<String> {
+    private suspend fun extractCandidates(inputImage: InputImage, imageHeight: Int): List<MRZLineCandidate> {
         logDebug("========================================")
-        logDebug("Starting text recognition...")
+        logDebug("Starting enhanced text recognition...")
         
         val result = suspendCoroutine<Text> { continuation ->
             textRecognizer.process(inputImage)
-                .addOnSuccessListener { text ->
-                    logDebug("ML Kit recognition successful")
-                    continuation.resume(text)
-                }
-                .addOnFailureListener { e ->
-                    logDebug("ML Kit recognition failed: ${e.message}")
-                    continuation.resumeWithException(e)
-                }
+                .addOnSuccessListener { continuation.resume(it) }
+                .addOnFailureListener { continuation.resumeWithException(it) }
         }
         
-        val recognizedText = result.text
-        logDebug("========================================")
-        logDebug("RAW RECOGNIZED TEXT (${recognizedText.length} chars):")
-        logDebug("\"$recognizedText\"")
-        logDebug("========================================")
-        logDebug("Total text blocks detected: ${result.textBlocks.size}")
+        logDebug("ML Kit found ${result.textBlocks.size} text blocks")
         
-        // Extract lines from text blocks
-        // ML Kit sometimes groups MRZ lines into single blocks, so we need to split them
-        val allLines = mutableListOf<String>()
-        
-        logDebug("----------------------------------------")
-        logDebug("PHASE 1: Extracting lines from blocks...")
-        // First try: Get lines from text blocks
-        result.textBlocks.forEachIndexed { blockIndex, block ->
-            logDebug("Block [$blockIndex]: \"${block.text}\" (${block.lines.size} lines)")
-            block.lines.forEachIndexed { lineIndex, line ->
-                logDebug("  Line [$blockIndex.$lineIndex]: \"${line.text}\"")
-                allLines.add(line.text)
+        // Extract all OCR lines with bounding boxes
+        val ocrLines = mutableListOf<OcrLine>()
+        for (block in result.textBlocks) {
+            for (line in block.lines) {
+                val rect = line.boundingBox ?: continue
+                val text = line.text
+                if (text.isNullOrBlank()) continue
+                ocrLines.add(OcrLine(text, rect))
             }
         }
-        logDebug("Phase 1 result: ${allLines.size} lines extracted")
         
-        logDebug("----------------------------------------")
-        logDebug("PHASE 2: Splitting blocks with newlines...")
-        var phase2Count = 0
-        result.textBlocks.forEach { block ->
-            val blockText = block.text
-            if (blockText.contains('\n')) {
-                logDebug("Block contains newlines: \"$blockText\"")
-                // Split block by newlines to get individual lines
-                blockText.lines().forEach { splitLine ->
-                    if (splitLine.isNotBlank() && !allLines.contains(splitLine.trim())) {
-                        logDebug("  Split line: \"$splitLine\"")
-                        allLines.add(splitLine.trim())
-                        phase2Count++
-                    }
-                }
-            }
-        }
-        logDebug("Phase 2 result: $phase2Count new lines found")
+        logDebug("Extracted ${ocrLines.size} OCR lines")
         
-        logDebug("----------------------------------------")
-        logDebug("PHASE 3: Parsing raw text for newlines...")
-        var phase3Count = 0
-        if (recognizedText.contains('\n')) {
-            logDebug("Raw text contains newlines, splitting...")
-            recognizedText.lines().forEachIndexed { index, rawLine ->
-                val trimmed = rawLine.trim()
-                if (trimmed.isNotBlank()) {
-                    if (!allLines.contains(trimmed)) {
-                        logDebug("  Raw line [$index]: \"$trimmed\" (NEW)")
-                        allLines.add(trimmed)
-                        phase3Count++
-                    } else {
-                        logDebug("  Raw line [$index]: \"$trimmed\" (duplicate, skipped)")
-                    }
-                }
-            }
-        } else {
-            logDebug("No newlines in raw text")
-        }
-        logDebug("Phase 3 result: $phase3Count new lines found")
-        
-        logDebug("----------------------------------------")
-        logDebug("TOTAL LINES EXTRACTED: ${allLines.size}")
-        allLines.forEachIndexed { index, line ->
-            logDebug("  [$index]: \"$line\" (${line.length} chars)")
+        if (ocrLines.isEmpty()) {
+            return emptyList()
         }
         
-        logDebug("========================================")
-        logDebug("PREPROCESSING & FILTERING...")
-        logDebug("----------------------------------------")
+        // Convert to MRZ line candidates with scoring
+        val candidates = ocrLines
+            .mapNotNull { toMrzLineCandidate(it, imageHeight) }
+            .sortedByDescending { it.score }
+            .take(30) // Limit to top 30 candidates
         
-        // Filter for potential MRZ lines
-        logDebug("Step 1: Cleaning lines (trim, remove spaces, uppercase)...")
-        val cleanedLines = allLines.map { original ->
-            val cleaned = original.trim().replace(" ", "").uppercase()
-            if (original != cleaned) {
-                logDebug("  \"$original\" -> \"$cleaned\"")
-            }
-            cleaned
+        logDebug("Found ${candidates.size} MRZ line candidates")
+        candidates.forEach { candidate ->
+            logDebug("  Candidate: \"${candidate.text}\" (score: ${candidate.score})")
         }
         
-        logDebug("Step 2: Removing duplicates...")
-        val uniqueLines = cleanedLines.distinct()
-        val duplicatesRemoved = cleanedLines.size - uniqueLines.size
-        if (duplicatesRemoved > 0) {
-            logDebug("  Removed $duplicatesRemoved duplicate lines")
-        }
-        
-        logDebug("Step 3: Filtering MRZ candidates...")
-        logDebug("  Testing ${uniqueLines.size} lines against MRZ criteria...")
-        val mrzLines = uniqueLines.filter { isMRZCandidate(it) }
-        
-        logDebug("Step 4: Sorting by length (longest first)...")
-        val sortedLines = mrzLines.sortedByDescending { it.length }
-        
-        logDebug("========================================")
-        logDebug("FINAL RESULTS:")
-        logDebug("  Total MRZ candidates found: ${sortedLines.size}")
-        
-        if (sortedLines.isEmpty()) {
-            logDebug("  ❌ NO MRZ CANDIDATES FOUND!")
-            logDebug("  All ${allLines.size} extracted lines were filtered out")
-        } else {
-            logDebug("  ✅ Found ${sortedLines.size} valid MRZ line(s):")
-            sortedLines.forEachIndexed { index, line ->
-                logDebug("    [$index]: $line (${line.length} chars)")
-            }
-        }
-        logDebug("========================================")
-        
-        return sortedLines
+        return candidates
     }
     
     /**
-     * Check if a text line is a potential MRZ candidate.
-     * 
-     * MRZ lines have specific characteristics:
-     * - Contain mostly uppercase letters, digits, and '<' character
-     * - Have specific lengths (28-50 characters for various formats)
-     * - Usually contain multiple '<' filler characters
+     * Convert OCR line to MRZ candidate with scoring.
      */
-    private fun isMRZCandidate(line: String): Boolean {
-        // Minimum length check - be more lenient
-        if (line.length < 20) {
-            logDebug("Line rejected: too short (${line.length})")
-            return false
-        }
+    private fun toMrzLineCandidate(line: OcrLine, imageHeight: Int): MRZLineCandidate? {
+        val normalized = normalizeMrzText(line.text)
         
-        // Character set check - MRZ only contains A-Z, 0-9, and '<'
-        // Count valid MRZ characters
-        val validChars = line.count { it in 'A'..'Z' || it in '0'..'9' || it == '<' }
-        val validRatio = validChars.toFloat() / line.length.toFloat()
+        // Length check
+        if (normalized.length < minLineLength) return null
         
-        // Allow lines with at least 80% valid MRZ characters (accounts for OCR errors)
-        if (validRatio < 0.8f) {
-            logDebug("Line rejected: only ${validRatio * 100}% valid MRZ characters: $line")
-            return false
-        }
+        // Character set check
+        val allowed = normalized.count { it.isMrzAllowed() }
+        val allowedRatio = allowed.toDouble() / max(1, normalized.length).toDouble()
+        if (allowedRatio < minAllowedRatio) return null
         
-        // MRZ lines typically have '<' characters (used as fillers)
-        // But be lenient - some might have few or OCR might miss them
-        val hasUppercase = line.any { it in 'A'..'Z' }
-        val hasDigits = line.any { it in '0'..'9' }
+        // Chevron check
+        val chevrons = normalized.count { it == '<' }
+        if (chevrons < minChevrons) return null
         
-        if (!hasUppercase && !hasDigits) {
-            logDebug("Line rejected: no letters or digits: $line")
-            return false
-        }
+        // Calculate score
+        val lowerBias = (line.bounds.centerY().toDouble() / imageHeight.toDouble())
+        val lengthScore = min(1.0, normalized.length / 44.0)
+        val score = (allowedRatio * 2.0) +
+                    (min(10, chevrons) * 0.15) +
+                    (lengthScore * 0.6) +
+                    (lowerBias * 0.4)
         
-        logDebug("Line accepted as MRZ candidate: $line (length: ${line.length}, valid: ${validRatio * 100}%)")
-        return true
+        return MRZLineCandidate(
+            text = normalized,
+            bounds = line.bounds,
+            score = score
+        )
     }
     
     /**
-     * Release ML Kit resources.
+     * Normalize MRZ text: uppercase, remove spaces, correct common errors.
      */
+    private fun normalizeMrzText(text: String): String {
+        return buildString(text.length) {
+            for (ch in text.uppercase()) {
+                when {
+                    ch == ' ' || ch == '\n' || ch == '\t' -> Unit
+                    ch == '«' || ch == '»' || ch == '‹' || ch == '›' -> append('<')
+                    ch == '〈' || ch == '〉' -> append('<')
+                    ch == '|' || ch == '¦' || ch == '│' -> append('I')
+                    ch == '-' || ch == '_' -> Unit
+                    else -> append(ch)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Check if character is allowed in MRZ.
+     */
+    private fun Char.isMrzAllowed(): Boolean =
+        (this in 'A'..'Z') || (this in '0'..'9') || this == '<'
+    
+    /**
+     * Preprocess image for better OCR.
+     */
+    private fun preprocessImage(bitmap: Bitmap): Bitmap {
+        try {
+            val scaledBitmap = scaleToOptimalSize(bitmap)
+            return enhanceContrastAndBrightness(scaledBitmap)
+        } catch (e: Exception) {
+            logDebug("Error preprocessing: ${e.message}")
+            return bitmap
+        }
+    }
+    
+    private fun scaleToOptimalSize(bitmap: Bitmap): Bitmap {
+        val maxDimension = 1920
+        val minDimension = 1280
+        val width = bitmap.width
+        val height = bitmap.height
+        val longestSide = maxOf(width, height)
+        
+        if (longestSide in minDimension..maxDimension) {
+            return bitmap
+        }
+        
+        val scaleFactor = if (longestSide > maxDimension) {
+            maxDimension.toFloat() / longestSide
+        } else {
+            minDimension.toFloat() / longestSide
+        }
+        
+        val newWidth = (width * scaleFactor).toInt()
+        val newHeight = (height * scaleFactor).toInt()
+        
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+    }
+    
+    private fun enhanceContrastAndBrightness(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width * height)
+        
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        
+        var totalBrightness = 0L
+        for (pixel in pixels) {
+            val r = (pixel shr 16) and 0xFF
+            val g = (pixel shr 8) and 0xFF
+            val b = pixel and 0xFF
+            totalBrightness += (r + g + b) / 3
+        }
+        val avgBrightness = totalBrightness / pixels.size
+        
+        val contrastFactor = 1.3f
+        val brightnessAdjust = (128 - avgBrightness).toInt()
+        
+        for (i in pixels.indices) {
+            val pixel = pixels[i]
+            val a = (pixel shr 24) and 0xFF
+            var r = (pixel shr 16) and 0xFF
+            var g = (pixel shr 8) and 0xFF
+            var b = pixel and 0xFF
+            
+            r = (((r - 128) * contrastFactor) + 128).toInt()
+            g = (((g - 128) * contrastFactor) + 128).toInt()
+            b = (((b - 128) * contrastFactor) + 128).toInt()
+            
+            r += brightnessAdjust
+            g += brightnessAdjust
+            b += brightnessAdjust
+            
+            r = r.coerceIn(0, 255)
+            g = g.coerceIn(0, 255)
+            b = b.coerceIn(0, 255)
+            
+            pixels[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
+        }
+        
+        val enhancedBitmap = Bitmap.createBitmap(width, height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        enhancedBitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+        
+        return enhancedBitmap
+    }
+    
     fun release() {
         try {
             textRecognizer.close()
             logDebug("Text recognizer released")
         } catch (e: Exception) {
-            logDebug("Error releasing text recognizer: ${e.message}")
+            logDebug("Error releasing: ${e.message}")
         }
     }
     
@@ -277,3 +291,8 @@ internal class MRZTextRecognizer(
         private const val TAG = "MRZTextRecognizer"
     }
 }
+
+/**
+ * Simple OCR line with bounding box.
+ */
+internal data class OcrLine(val text: String, val bounds: Rect)

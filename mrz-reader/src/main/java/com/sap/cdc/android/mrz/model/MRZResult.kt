@@ -32,7 +32,10 @@ sealed class MRZResult {
      * 
      * @property data The parsed and validated MRZ data
      */
-    data class Success(val data: MRZData) : MRZResult() {
+    data class Success(
+        val data: MRZData,
+        val detectionInfo: MRZDetectionInfo? = null
+    ) : MRZResult() {
         override fun toString(): String {
             return "MRZResult.Success(data=${data.fullName}, valid=${data.isValid})"
         }
@@ -70,10 +73,21 @@ sealed class MRZResult {
      * - Show a scanning indicator/animation to the user
      * - Keep the camera preview active
      * - Indicate that the system is actively looking for MRZ
+     * - Display helpful feedback messages to guide the user
+     * 
+     * @property detectionInfo Optional information about detected text regions (even if not valid MRZ)
+     * @property message Optional message to display to user (e.g., "Hold steady", "Parse failed: retrying")
      */
-    object Scanning : MRZResult() {
+    data class Scanning(
+        val detectionInfo: MRZDetectionInfo? = null,
+        val message: String? = null
+    ) : MRZResult() {
         override fun toString(): String {
-            return "MRZResult.Scanning"
+            return if (message != null) {
+                "MRZResult.Scanning(message='$message')"
+            } else {
+                "MRZResult.Scanning"
+            }
         }
     }
     
@@ -98,6 +112,17 @@ sealed class MRZResult {
          * @return true if this is a Scanning result, false otherwise
          */
         fun MRZResult.isScanning(): Boolean = this is Scanning
+        
+        /**
+         * Safely extract detection info from any result that contains it.
+         * 
+         * @return MRZDetectionInfo if available, null otherwise
+         */
+        fun MRZResult.getDetectionInfoOrNull(): MRZDetectionInfo? = when (this) {
+            is Success -> detectionInfo
+            is Scanning -> detectionInfo
+            else -> null
+        }
         
         /**
          * Safely extract MRZData if the result is Success, null otherwise.

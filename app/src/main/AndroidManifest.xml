@@ -52,6 +52,12 @@
             </intent-filter>
         </activity>
 
+        <!-- MRZ Result Activity -->
+        <activity
+            android:name=".feature.camera.MRZResultActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CIAMAndroidSDK" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

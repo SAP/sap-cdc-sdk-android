@@ -4,6 +4,7 @@ import com.sap.cdc.android.mrz.model.DocumentType
 import com.sap.cdc.android.mrz.model.Gender
 import com.sap.cdc.android.mrz.model.MRZData
 import com.sap.cdc.android.mrz.model.MRZFormat
+import com.sap.cdc.android.mrz.util.OCRErrorCorrection
 
 /**
  * Parser implementation for TD1 format (ID Cards).
@@ -48,9 +49,13 @@ class TD1Parser : MRZParser {
             return ParseResult.Failure(formatErrors)
         }
         
-        val line1 = lines[0]
-        val line2 = lines[1]
-        val line3 = lines[2]
+        // Step 2: Apply OCR error correction
+        val correctedLines = OCRErrorCorrection.correctLines(lines, MRZFormat.TD1)
+        
+        // Step 3: Normalize lines to expected length (pad if too short, truncate if too long)
+        val line1 = correctedLines[0].padEnd(30, '<').take(30)
+        val line2 = correctedLines[1].padEnd(30, '<').take(30)
+        val line3 = correctedLines[2].padEnd(30, '<').take(30)
         
         // Step 2: Extract fields with error tracking
         
@@ -208,10 +213,10 @@ class TD1Parser : MRZParser {
             return errors
         }
         
-        // Check each line
+        // Check each line (more lenient to handle OCR truncation)
         lines.forEachIndexed { index, line ->
-            // Check length
-            if (line.length != 30) {
+            // Check length - allow some variance for OCR errors
+            if (line.length !in 26..34) {
                 errors.add(
                     ParseError.InvalidLength(
                         expected = 30,

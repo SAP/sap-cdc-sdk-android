@@ -2,7 +2,6 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.feature.Credentials
 import com.sap.cdc.android.sdk.feature.LoginIdCredentials
 import com.sap.cdc.bitsnbytes.extensions.toJson
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate

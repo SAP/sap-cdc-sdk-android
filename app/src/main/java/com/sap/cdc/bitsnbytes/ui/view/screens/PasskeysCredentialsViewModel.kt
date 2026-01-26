@@ -3,7 +3,6 @@ package com.sap.cdc.bitsnbytes.ui.view.screens
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
-import com.sap.cdc.android.sdk.feature.AuthCallbacks
 import com.sap.cdc.android.sdk.feature.provider.passkey.PasskeyCredential
 import com.sap.cdc.android.sdk.feature.provider.passkey.PasskeyCredentials
 import com.sap.cdc.bitsnbytes.feature.auth.AuthenticationFlowDelegate

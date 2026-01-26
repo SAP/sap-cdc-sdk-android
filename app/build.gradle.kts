@@ -24,12 +24,17 @@ android {
     }
 
     signingConfigs {
-
         getByName("debug") {
-            keyAlias = findProperty("exampleComposeKeyAlias") as String
-            keyPassword = findProperty("exampleComposeKeyPassword") as String
-            storeFile = file("keystore/debug")
-            storePassword = findProperty("exampleComposeStorePassword") as String
+            val keyAlias = findProperty("exampleComposeKeyAlias") as? String
+            val keyPassword = findProperty("exampleComposeKeyPassword") as? String
+            val storePassword = findProperty("exampleComposeStorePassword") as? String
+            
+            if (keyAlias != null && keyPassword != null && storePassword != null) {
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+                this.storeFile = file("keystore/debug")
+                this.storePassword = storePassword
+            }
         }
     }
 

@@ -24,8 +24,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -44,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sap.cdc.android.sdk.core.SiteConfig
 import com.sap.cdc.bitsnbytes.apptheme.AppTheme
 import com.sap.cdc.bitsnbytes.ui.view.composables.ActionOutlineInverseButton
 import com.sap.cdc.bitsnbytes.ui.view.composables.CustomColoredSizeVerticalSpacer
