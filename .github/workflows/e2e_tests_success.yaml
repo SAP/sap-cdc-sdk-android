@@ -8,6 +8,10 @@ on:
 jobs:
   tests_done:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+      pull-requests: write
     steps:
       - name: Display test result
         run: echo "E2E tests completed successfully"
